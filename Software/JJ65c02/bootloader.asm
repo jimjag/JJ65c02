@@ -3,7 +3,7 @@
 ;                                    "JJ65c02"
 ;                                    _________
 ;
-;                                      v0.5
+;                                      v0.6
 ;
 ;   RAM bootloader and viewer (r/o) w/ serial connection support
 ;
@@ -1183,7 +1183,7 @@ BOOTLOADER__adj_clock:
     rts
 
 message:
-    .asciiz "     JJ65c02    Bootloader v0.5 "
+    .asciiz "     JJ65c02    Bootloader v0.6 "
 message2:
     .asciiz "Enter Command..."
 message3:
