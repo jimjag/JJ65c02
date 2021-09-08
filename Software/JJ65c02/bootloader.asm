@@ -245,7 +245,7 @@ MENU_main:
 .about:                                         ; start the about routine
     lda #<about
     ldy #>about
-    ldx #2
+    ldx #1
     jsr LCD__print_text
     jmp .start
 .credits:                                       ; start the credits routine
