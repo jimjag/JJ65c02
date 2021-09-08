@@ -6,9 +6,9 @@ This project contains 3 main sections:
 
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
- - The ROM bootloader
- - Arduino code
- - Host code
+  * The ROM bootloader
+  * Arduino code
+  * Host code
 * [Datasheets](./Datasheets)
 
 The Software itself is my fork of the open source codebases mentioned above, with changes due to improvements, modifications required due to the specifics of the JJ65c02 setup (as compared to the BE6502), and bug fixes.
