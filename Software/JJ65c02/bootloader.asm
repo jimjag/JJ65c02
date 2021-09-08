@@ -614,7 +614,7 @@ VIA__configure_ddrs:
 LCD__clear_video_ram:
     pha                                         ; preserve A via stack
     phy                                         ; same for Y
-    ldy #$20                                    ; set index to 32
+    ldy #$1f                                    ; set index to 31
     lda #$20                                    ; set character to 'space'
 .loop:
     sta VIDEO_RAM,Y                             ; clean video ram
