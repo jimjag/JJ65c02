@@ -1,8 +1,18 @@
-# SOFTWARE
+# The Software
 
-## The Bootloader
+There are 3 main codebases included:
 
-`bootloader.asm` (in the `Software/JJ65c02` folder) is a minimalist bootloader for the JJ65c02. Even so, it includes some incredibly useful functionality:
+* The bootloader
+* The Arduino Nano Receiver
+* The host Sender
+
+The bootloader itself is standalone, which means that it provides limited functionality all on its own. But the main function of the bootloader is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM, and for this you need the other 2 programs
+
+The way this works is that you "send" the object file to the serial port that the Arduino Nano is connected to on your host computer (mac, Windows, whatever). This is the _Sender_. On the Arduino, you run a sketch which listens on that serial port for the data, and then works with the JJ65c02 board to copy it to RAM. This is the _Receiver_.
+
+## JJ65c02: The bootloader
+
+`bootloader.asm` is a minimalist bootloader/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
 
 1. __Load__ externally assembled __programs__ into RAM via serial connection to Arduino Nano
 2. __Run__ programs that were previously loaded into RAM
@@ -22,17 +32,7 @@ The following software components are must have's:
 - The [VASM Assembler](http://sun.hasenbraten.de/vasm/) to build for the 6502
 - Node.js 8+ to be able to use the serial program loading functionality via the Arduino
 
-### Installation
-
-The project comes with a number of files, whose functionality is the following:
-
-1. `JJ65c02/bootloader.asm` - the bootloader that will be assembled and flashed to ROM
-2. `Arduino/Receiver.ino` - Arduino source which turns the Arduino into a serial receiver / parallel converter
-3. `Host/Sender.js` - Node.js tool to read 6502 object code / programs and upload them to the 6502 via serial connection
-4. `Host/.sender_config.json` - config file for `Sender.js` (update your /dev/cu.whateverhere)
-5. `Host/package.json` - package dependencies for `Sender.js`
-
-### 1. Bootloader
+### Install the bootloader
 
 Assemble the bootloader:
 
@@ -44,16 +44,18 @@ Burn it (`bootloader.out`)onto the EEPROM using your TL866 programmer in conjunc
 
 The `bootloader.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the bootloader exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
 
-### 2. Receiver (Arduino Nano)
+## Arduino: Receiver
 
 - Load `Receiver.ino` into your Arduino IDE.
 - Open the IDE's package library and search and install the `Base64` package by Arturo Guadalupi v0.0.1 also to be found [here](https://github.com/agdl/Base64)
 - Compile the source
 - Upload the program to your Arduino
 
-### 3. Sender (node.js)
+## Host: Sender (node.js)
 
-- Install the necessary npm packages via:
+The sender code is written in node, so you'll need that.
+
+- Install the necessary npm support packages via:
 
 ```
 npm install
@@ -65,7 +67,7 @@ yarn
 - Adjust the `tty` setting in `.sender_config.json` to match the device file which represents your connected Arduino
 - **DO NOT** adjust any other value in there, as it will render the serial link unstable
 
-### Usage
+## Usage
 
 #### Arduino Port Setup
 
@@ -142,28 +144,28 @@ node Sender.js /examples/hello_world.out /dev/path_to_arduino_port
 
 The **hex monitor** is very useful during development and debugging. It lets you inspect the whole address space, RAM and ROM. you can navigate using the _UP_ and _DOWN_ keys. The _RIGHT_ key performs a bigger jump in time and space and the _LEFT_ key returns you to the main menu. The monitor is currently read only and the keyboard debouncing is far from being good. But it works.
 
-# Important to know - Allocated Ressources
+## Important to know - Allocated Resources
 
-## 1. Allocated Zero Page Locations
+### 1. Allocated Zero Page Locations
 
 The bootloader needs to use some Zero Page locations: `$00 - $03`. Expect trouble if you overwrite / use them from within your own programs.
 
-## 2. Allocated RAM
+### 2. Allocated RAM
 
 The bootloader also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD. Another few RAM bytes are used by the bootloader itself.
 
 **However, don't use RAM from `$0200 - $021f`. Expect problems if you do so.**
 
-## 3. Interrupt Service Routine - ISR
+### 3. Interrupt Service Routine - ISR
 
 The Interrupt Service Routine (ISR) implemented at the end of available ROM realizes the serial loading. The way it works is quite simple. As soon as the Arduino set up all 8 bit of a byte at the data ports, it pulls the interrupt pin of the 6502 low for 30 microseconds. This triggers the 6502 to halt the current program, put all registers onto the stack and execute any routine who's starting address can be found in the Interrupt Vector Address (`$fffe-$ffff`) - the ISR. This routine reads the byte, writes it into the RAM, increases the address pointer for the next byte to come and informs the main program that data is still flowing. Consult the source for further details, it's quite straight forward.
 
-### Shortcomings
+## Shortcomings
 
 - The loader is slow. Quite slow. Even though 9600 baud as choosen transfer speed is not too bad, there are some significant idle timeouts implemented, to make the data transfer work reliably. You'll find it in `Receiver.ino`, the `Sender.js` does not have any timeouts left other than the necessary but unproblematic connection timeout once at the beginning. The worst is the timeout which allows to reliably read the UART buffer of the Arduino. When reduced, the whole data transfer becomes unreliable.
 Happy to accept PR's with improvement here. On the other hands, it's not that we transfer Gigabytes of data here ... not even Megabytes, so the current speed might suffice.
 
-### Known Problems
+## Known Problems
 
 Despite the fact that the bootloader and all of it's components are quite stable, there are some problems, which are to be found via a #TODO in the source.
 
