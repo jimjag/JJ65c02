@@ -1,3 +1,4 @@
+![6502 Rulz](./Images/6502-rulz.png)
 # Introduction
 
 **JJ65c02** is my own personal interpretation of the noteworthy [Ben Eaters 6502 Computer](https://eater.net/6502) setup. In addition to Ben's work, I've used code, concepts and inspiration from a number of people, all acknowledged below in the **Credits** section.
