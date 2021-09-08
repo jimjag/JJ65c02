@@ -113,7 +113,7 @@ vasm6502_oldstyle -wdc02 -Fbin -dotdir -o /examples/hello_world.out /examples/he
 **Important:** Since your programs now target RAM instead of ROM your program needs to have a different entry vector specified:
 
 ```
-    .org $0220
+    .org $0230
 ```
 
 To upload and run your program onto the JJ65c02, first power up the machine, and reset it. Using the keyboard, navigate to `Load` using the _Up_ and _Down_ keys in the main menu. To start the uploading process hit the _Right_ key which acts as `Enter` in most cases.

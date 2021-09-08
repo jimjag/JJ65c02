@@ -22,8 +22,8 @@
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $021f      RAM: Bootloader set-aside / Page 2
-;      . $0220 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0200 - $022f      RAM: Bootloader set-aside / Page 2
+;      . $0230 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8000 - $8fff      VIA 2: 4K (not currently used)
 ;    $9000 - $9fff      VIA 1: 4K
 ;    $a000 - $ffff      ROM: 24K
@@ -50,15 +50,15 @@ Z1 = $01
 Z2 = $02
 Z3 = $03
 
-VIDEO_RAM = $020e                               ; $020e - $021d - Video RAM for 32 char LCD display
-POSITION_MENU = $020c                           ; initialize positions for menu and cursor in RAM
-POSITION_CURSOR = $020d
-CLK_SPD = $0204                                 ; Clock speed, in MHz
-DELAY1 = $0205                                  ; Loop counter for LIB__delay10ms
-DELAY2 = $0206                                  ; same
-ISR_FIRST_RUN = $020a                           ; used to determine first run of the ISRD
+VIDEO_RAM = $0210                               ; $0210 - $022f - Video RAM for 32 char LCD display
+POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
+POSITION_CURSOR = $0205
+CLK_SPD = $0200                                 ; Clock speed, in MHz
+DELAY1 = $0201                                  ; Loop counter for LIB__delay10ms
+DELAY2 = $0202                                  ; same
+ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
 
-PROGRAM_START = $0220                           ; memory location for user programs
+PROGRAM_START = $0230                           ; memory location for user programs
 PROGRAM_END = $8000                             ; End of RAM
 
     ; Start of ROM / Not really, but we use a 32k ROM chip, so we need to write all of it
@@ -1193,7 +1193,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0220"
+    .asciiz "Running $0x0230"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON__position_map:
