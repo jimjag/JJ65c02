@@ -46,7 +46,7 @@ Because of this, Ben's code will not run unmodified on the JJ65c02, but the chan
 I only use 4 buttons on my setup, organized (and coded) as _Left_, _Up_, _Right_ and _Down_. I use this "keyboard" extensively in the bootloader. The other difference is that I use a pull_down_ resistor, to have those buttons tied _low_, instead of being tied _high_, as in Ben's design. Philosophically, I like _active high_ more than _active low_, plus I like the (admittedly pretty much ignorable) power saving.
 
 ### VIA2
-The breadboard layout, as well as the memory map, allows for a 2nd VIA chip to be added relatively easily. As I investigate adding SPI capability, this will be very useful.
+The [breadboard layout](../Images/JJ65c02-bootloader.png), as well as the memory map, allows for a 2nd VIA chip to be added relatively easily. As I investigate adding SPI capability, this will be very useful.
 
 ### Bootloader
 Of course, the biggest part of bootloader support is, well, the bootloader itself. And, as mentioned, huge kudos to Jan Roesner for his _sixty5o2_ mini-bootloader, which I've hacked away on mercilessly. But the bootloader requires an Aduino Nano as an integral component, so it is both on the breadboard layout as well as included in the schematics.
@@ -54,5 +54,5 @@ Of course, the biggest part of bootloader support is, well, the bootloader itsel
 This also means that, since you can load code into RAM and run it there, you won't be constantly removing the ROM, flashing it, and reinstalling it.
 
 ### 65C02
-Ben's design, of course, also depends on the 65C02, in fact, the WDC65C02, but his code doesn't use any of the newer opcodes which this later version of the chip provides (like **PHY**). I've decided that as long as we are using the newer chip, we should take not only hardware but software advantage of that. This means, for example, that whatever assembler you use must honor the 65C02 opcode set. For `vasm`, this means you'll need to assemble with `vasm6502_oldstyle -wdc02 -dotdir -Fbin`
+Ben's design, of course, also depends on the 65C02, in fact, the WDC65C02. However his code doesn't use any of the newer opcodes which this later version of the chip provides (like **PHY**). I've decided that as long as we are using the newer chip, we should take not only hardware but software advantage of that. This means, for example, that whatever assembler you use must honor the 65C02 opcode set. For `vasm`, this means you'll need to assemble with `vasm6502_oldstyle -wdc02 -dotdir -Fbin`
 

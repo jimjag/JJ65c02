@@ -9,7 +9,7 @@
 3. __Load & Run__ programs in one go
 4. __Debug__ the full address space via an integrated __hex monitor__ (currently read only)
 5. __Clean RAM__ for use with non-volatile RAM or during development
-6. Adjust the internal setting of the external clock speed, from 1Mhz to 14Mhz
+6. __Adjust__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
 
 The bootloader also provides some helper library functions to handle delays, driving the __LCD__ display, and reading the __mini keyboard__.
 
@@ -44,7 +44,7 @@ Burn it (`bootloader.out`)onto the EEPROM using your TL866 programmer in conjunc
 
 The `bootloader.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the bootloader exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
 
-### 2. Receiver (Arduino)
+### 2. Receiver (Arduino Nano)
 
 - Load `Receiver.ino` into your Arduino IDE.
 - Open the IDE's package library and search and install the `Base64` package by Arturo Guadalupi v0.0.1 also to be found [here](https://github.com/agdl/Base64)
@@ -102,7 +102,7 @@ The pin setup of the 6502 can also be found in the `Datasheets` folder.
 
 #### Uploading a Program
 
-You can now write a program in 6502 assembly language and assemble it like so:
+You can now write a program in 65C02 assembly language and assemble it like so:
 
 ```
 vasm6502_oldstyle -wdc02 -Fbin -dotdir -o /examples/hello_world.out /examples/hello_world.asm
@@ -114,7 +114,7 @@ vasm6502_oldstyle -wdc02 -Fbin -dotdir -o /examples/hello_world.out /examples/he
     .org $0220
 ```
 
-To upload and run your gem onto your 6502, first start up the machine, and reset it. Using the keyboard navigate to `Load` using the _Up_ and _Down_ keys in the main menu. To start the uploading process hit the _Right_ key which acts as `Enter` in most cases.
+To upload and run your program onto the JJ65c02, first power up the machine, and reset it. Using the keyboard, navigate to `Load` using the _Up_ and _Down_ keys in the main menu. To start the uploading process hit the _Right_ key which acts as `Enter` in most cases.
 
 Now you can upload your program using the Sender.js CLI tool like so:
 
@@ -122,7 +122,7 @@ Now you can upload your program using the Sender.js CLI tool like so:
 node Sender.js /examples/hello_world.out
 ```
 
-The upload process will inform you, when it's done. The 6502 automatically switches back into the main menu after the upload finished.
+The upload process will inform you when it's done. The bootloader automatically switches back into the main menu after the upload finished.
 
 Should you encounter any errors during upload, check the `tty` setting in `.sender_config.json` and adjust it to your Arduinos device port. In addition you can lower the transfer speed to values to 4800, 2400 or 1200 baud. Don't use values above 9600 baud, they won't work.
 
@@ -169,7 +169,49 @@ Despite the fact that the bootloader and all of it's components are quite stable
 
 Worth mentioning are the following:
 
-- sub par keyboard debouncing simply via burning CPU cycles
 - Simple delay-based EOF detection during data transfer - if more than a few packages fail to transfer and need to be repeated by the sender, it might happen, that the `BOOTLOADER__program_ram` routine interprets this as EOF, since no data is coming in no more. This problem can not be "easily" solved, since there are no control characters that can be transferred between the Arduino and the 6522. There are solutions, but first there needs to be a problem.
 - sub optimal register preservation - the (reduced) 6502 instruction set makes it hard to preserve all registers w/o wasting RAM locations. The current implementation does put focus on register preservation only where explicitly needed.
 - the ISR is currently static, so it can handle only interrupt requests which come from the Arduino. If you want to use other interrupts of the 6522 or software interrupts, you need to implement a priorization mechanism as well as a branching in the ISR, since (to my knowledge) there is only one interrupt vector, the 6502 can handle.
+
+## 6502 Mega Debugger
+
+Dawid Buchwald's version of Ben's monitor program with several additions:
+
+- It provides clock signal to the computer, so no clock module is required,
+- It has interactive interface, so you can control operation mode from within the serial terminal connected to Arduino Mega,
+- While maintaining compatibility with Ben's design (single step mode and continuous execution with full system bus dumps)
+- It has also high-performance mode where code is executed as fast as possible (up to 275kHz), but without dumping system bus to serial. It can be stopped manually, or upon hitting one of two possible breakpoints (defined at runtime),
+
+To use this version, you have to upload the sketch to Arduino **Mega** (not Nano!), and connect the pins as follows:
+
+|System Bus Pin|Arduino Mega Pin|
+|--------------|----------------|
+|A00|22|
+|A01|23|
+|A02|24|
+|A03|25|
+|A04|26|
+|A05|27|
+|A06|28|
+|A07|29|
+|A08|37|
+|A09|36|
+|A10|35|
+|A11|34|
+|A12|33|
+|A13|32|
+|A14|31|
+|A15|30|
+|D00|49|
+|D01|48|
+|D02|47|
+|D03|46|
+|D04|45|
+|D05|44|
+|D06|43|
+|D07|42|
+|CLK|50|
+|R/W|51|
+|SYNC|52|
+
+You also have to disconnect clock generator (oscillator or clock module) from the system to prevent conflict. Connect to Arduino Mega using serial terminal of choice with baud rate of 57600. Stop the Go/Run operations with 's' key.
