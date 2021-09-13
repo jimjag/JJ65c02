@@ -911,7 +911,7 @@ LCD__render:
     jmp .write_char                             ; repeat with next char
 .next_line:
     jsr LCD__set_cursor_second_line             ; set cursort into line 2
-    jsr LCD__send_data                          ; send dataa to lcd
+    jsr LCD__send_data                          ; send data to lcd
     inx
     jmp .write_char                             ; repear with next char
 .return:
