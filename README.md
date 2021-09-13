@@ -28,5 +28,5 @@ You can, of course, contact me via the normal Github development methods, such a
 
 * Ben Eater : for the BB6502 system itself
 * Jan Roesner : for the [Sixty5o2](https://github.com/janroesner/sixty5o2) Bootloader, which serves as the origin of my fork
-* Dawid Buchwald : The initial [source](https://github.com/dbuchwald/6502) for the mega-debugger as well as lots of other useful info.
+* Dawid Buchwald : Lots of other useful info.
 
