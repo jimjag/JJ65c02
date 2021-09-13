@@ -156,7 +156,7 @@ void update_gui(cpu *m) {
       }
       m->l->initialized = true;
     } else {
-      for (int y=0; y<LCD_ROWS; y+=2) {
+      for (int y=0; y<LCD_ROWS; y++) {
         for (int x=0; x<LCD_COLS; x++) {
           int memloc = y*LCD_COLS + x;
           if (isprint(m->l->ddram[memloc])) {

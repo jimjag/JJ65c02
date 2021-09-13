@@ -129,9 +129,10 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
         trace_emu("LCD set to NOT shift display\n");
       }
     } else if ((input & CMD_SET_DDRAM)) {
-      sprintf(message, "LCD cursor address set to %02x\n", input & 0x7f);
-      trace_emu(message);
-      l->cursor=input & 0x7f;
+      if (input & 0b11000000) {
+        trace_emu("LCD cursor address set next line\n");
+        l->cursor=40;
+      }
     }
   } else {
     l->data = l->cursor;
