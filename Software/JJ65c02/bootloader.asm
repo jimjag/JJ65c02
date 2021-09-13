@@ -57,6 +57,7 @@ CLK_SPD = $0200                                 ; Clock speed, in MHz
 DELAY1 = $0201                                  ; Loop counter for LIB__delay10ms
 DELAY2 = $0202                                  ; same
 ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
+ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, $0207)
 
 PROGRAM_START = $0230                           ; memory location for user programs
 PROGRAM_END = $8000                             ; End of RAM
@@ -90,6 +91,11 @@ main:                                           ; boot routine, first thing load
 
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
+
+    lda #<ISR_RAMWRITE
+    sta ISR_VECTOR
+    lda #>ISR_RAMWRITE
+    sta ISR_VECTOR + 1
 
     jsr LCD__clear_video_ram
     jsr LCD__initialize
@@ -1217,7 +1223,7 @@ message9:
     .asciiz "Clk Spd Saved"
 ;================================================================================
 ;
-;   ISR - Interrupt Service Routine
+;   ISR_RAMWRITE - Interrupt Service Routine
 ;
 ;   This might be the most naive approach to serial RAM writing ever, but it is
 ;   enormously stable and effective.
@@ -1253,9 +1259,9 @@ message9:
 ;
 ;================================================================================
 
-    .org $FFC9                                  ; as close as possible to the ROM's end
+    .org $FFC0                                  ; as close as possible to the ROM's end
 
-ISR:
+ISR_RAMWRITE:
 CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indirect writing
 
     pha
@@ -1286,6 +1292,9 @@ CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indir
     pla                                         ; restore A
 
     rti
+
+ISR:
+    jmp (ISR_VECTOR)
 
     .org $fffc                                  
     .word main                                  ; entry vector main routine

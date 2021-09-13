@@ -69,6 +69,7 @@ void loop() {
                 digitalWrite(DATA[n], LOW);
                 pinMode(DATA[n], OUTPUT);
             }
+            pinMode(INTERRUPT, OUTPUT);
             firstRun = false;
         }
 
@@ -105,6 +106,7 @@ void loop() {
             for (int n = 0; n < 8; n += 1) {
                 pinMode(DATA[n], INPUT);
             }
+            pinMode(INTERRUPT, INPUT_PULLUP);
             firstRun = true;
         }
     }
