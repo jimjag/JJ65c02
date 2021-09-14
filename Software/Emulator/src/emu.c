@@ -91,6 +91,9 @@ void main_loop(cpu *m) {
             set_pc(m, mem_abs(m->mem[0xFFFE], m->mem[0xFFFF], 0));
             m->sr |= FLAG_INTERRUPT;
         }
+        if (m->shutdown) {
+            break;
+        }
     }
 end:
     update_gui(m);

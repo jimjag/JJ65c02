@@ -127,7 +127,7 @@ void init_gui() {
 
 void finish_gui() {
   nodelay(stdscr, FALSE);
-  printw("\nterminated, press any key to exit.\n");
+  printw("\n**shutdown**, press any key to exit.\n");
   while(getch() == ERR);
 
   endwin();
@@ -141,6 +141,9 @@ void trace_emu(char *msg) {
 void update_gui(cpu *m) {
   int read;
   bool keep_going = false;
+  if (m->shutdown) {
+    return;   // nothing to do
+  }
 
   do {
 
@@ -244,26 +247,23 @@ void update_gui(cpu *m) {
         case ERR:
           break;
         case KEY_F(5): // F5
-          keep_going = true;
+          m->clock_mode = CLOCK_STEP;
           break;
         case KEY_F(6): // F6
-          if (!(m->clock_mode == CLOCK_SPRINT)) {
-            m->clock_mode = CLOCK_STEP;
-          }
+          m->clock_mode = CLOCK_SLOW;
           break;
         case KEY_F(7): // F7
-          if (!(m->clock_mode == CLOCK_SPRINT)) {
-            m->clock_mode = CLOCK_SLOW;
-          }
+          m->clock_mode = CLOCK_FAST;
           break;
         case KEY_F(8): // F8
-          if (!(m->clock_mode == CLOCK_SPRINT)) {
-            m->clock_mode = CLOCK_FAST;
-          }
+          m->clock_mode = CLOCK_SPRINT;
           break;
         case 10:
           m->k->key_enter = true;
           keep_going = true;
+          break;
+        case 27:
+          m->shutdown = true;
           break;
         case KEY_UP:
           m->k->key_up = true;
@@ -307,5 +307,5 @@ void update_gui(cpu *m) {
           break;
       } 
     }
-  } while (!keep_going && m->clock_mode != CLOCK_SPRINT);
+  } while (!m->shutdown && !keep_going && m->clock_mode != CLOCK_SPRINT);
 }

@@ -59,6 +59,8 @@ typedef struct {
     uint32_t cycle;
     //
     bool lcd_8_bit;
+    //
+    bool shutdown;
     // VIA1 subsystem
     via* v1;
     // LCD

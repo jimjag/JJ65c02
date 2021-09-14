@@ -18,6 +18,7 @@ cpu * new_cpu() {
     m->l = new_lcd();
     m->k = new_keys();
     m->cycle = 0;
+    m->lcd_8_bit = true;
     return m;
 }
 
