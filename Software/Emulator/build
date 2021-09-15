@@ -1,5 +1,5 @@
 #!/bin/bash
-EXECUTABLE="x6502"
+EXECUTABLE="x65c02"
 LDFLAGS="-O3 -lpthread -Wall -lncurses"
 SRCDIR=src
 

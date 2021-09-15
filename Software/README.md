@@ -1,10 +1,11 @@
 # The Software
 
-There are 3 main codebases included:
+There are 4 main codebases included:
 
 * The bootloader
 * The Arduino Nano Receiver
 * The host Sender
+* The x65c02 Emulator (which has its own [README.md](Emulator/README.md))
 
 The bootloader itself is standalone, which means that it provides limited functionality all on its own. But the main function of the bootloader is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM, and for this you need the other 2 programs
 

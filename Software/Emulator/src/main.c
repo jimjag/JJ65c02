@@ -12,8 +12,8 @@
 #include <unistd.h>
 
 void usage() {
-    printf("x6502: a simple 65C02/65C22 emulator\n");
-    printf("usage: x6502 [OPTION]... FILE\n");
+    printf("x65c02: a simple 65C02/65C22 emulator\n");
+    printf("usage: x65c02 [OPTION]... FILE\n");
     printf("options:\n");
     printf("  -b ADDR the base address at which code will be loaded (in hex, default a000)\n");
     printf("  -r run as fast as possible\n");

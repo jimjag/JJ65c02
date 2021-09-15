@@ -10,6 +10,7 @@ This project contains 3 main sections:
   * The ROM bootloader
   * Arduino code
   * Host code
+  * x65c02 Emulator
 * [Datasheets](./Datasheets)
 
 The Software itself is my fork of the open source codebases mentioned above, with changes due to improvements, modifications required due to the specifics of the JJ65c02 setup (as compared to the BE6502), and bug fixes.
