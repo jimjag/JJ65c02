@@ -225,7 +225,7 @@ MENU_main:
     beq .about
     cmp #7
     beq .credits
-    jmp .end                                    ; should we have an invalid option, restart
+    jmp .start                                  ; should we have an invalid option, restart
 
 .load_and_run:                                  ; load and directly run
     jsr .do_load                                ; load first
@@ -268,8 +268,7 @@ MENU_main:
     rts
 .do_run:                                        ; orchestration of running a program
     jmp BOOTLOADER__execute
-.end
-    jmp .start                                  ; should we ever reach this point ...
+                                  ; should we ever reach this point ...
 
 
 ;================================================================================
@@ -508,7 +507,7 @@ MONITOR__main:
     ldy #0
 .iterate_stack:                                 ; transform stack contents from bin to hex
     cpy #6
-    beq .end
+    beq .end_mon
     sty Z2                                      ; preserve Y #TODO
     pla
     jsr LIB__bin_to_hex
@@ -539,7 +538,7 @@ MONITOR__main:
     sta VIDEO_RAM,X
 .end_store:
     rts
-.end:
+.end_mon:
     lda #":"                                    ; writing the two colons
     sta VIDEO_RAM+$4
     sta VIDEO_RAM+$14
@@ -942,7 +941,7 @@ LCD__wait_busy:
 
     lda #0
     sta DDRB
-.not_ready
+.not_ready:
     lda #RW                                     ; prepare read mode
     sta PORTA
     lda #(RW | E)                               ; prepare execution
@@ -1041,17 +1040,17 @@ LIB__bin_to_hex:
     lsr                                         ; MSD to LSD position
     jsr .to_hex                                 ; output hex digit, using internal recursion
     pla                                         ; restore A
-.to_hex
+.to_hex:
     and #%00001111                              ; mask LSD for hex print
     ora #"0"                                    ; add "0"
     cmp #"9"+1                                  ; is it a decimal digit?
     bcc .output                                 ; yes! output it
     adc #6                                      ; add offset for letter A-F
-.output
+.output:
     iny                                         ; set switch for second nibble processing
     bne .return                                 ; did we process second nibble already? yes
     tax                                         ; no
-.return
+.return:
 
     rts
 
@@ -1166,7 +1165,7 @@ BOOTLOADER__adj_clock:
     beq .redisplay
     inc Z0
     bne .redisplay
-.decrease_spd
+.decrease_spd:
     lda Z0
     cmp #1
     beq .redisplay
