@@ -2,11 +2,11 @@
 This is a fork of a [fork](https://github.com/sci4me/x6502) of the original [x6502](https://github.com/haldean/x6502) project that implements full support for the WDC 65c02 instruction set.
 
 ## License
-`x6502` is freely available under the original 4-clause BSD license, the full text of which is included in the LICENSE file.
+`x65c02` is freely available under the original 4-clause BSD license, the full text of which is included in the LICENSE file.
 
 ## Usage
 ### Requirements
-`x6502` requires gcc (or compatible), pthreads and ncurses. You will also need a 6502 assembler to "compile" the ASM source code to native 6502 code. The assumption is that you will use `vasm`. See the *examples* directory for info on how to assemble your source.
+`x65c02` requires gcc (or compatible), pthreads and ncurses. You will also need a 65c02 assembler to "compile" the ASM source code to native 65c02 code. The assumption is that you will use `vasm`. See the *examples* directory for info on how to assemble your source.
 
 ### Building
 Building `x65c02` is super easy. From the top level of the  source, type `./build`. Assuming no issues, you will see the `x65c02` executable.
