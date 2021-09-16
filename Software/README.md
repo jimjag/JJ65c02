@@ -38,7 +38,7 @@ The following software components are must have's:
 Assemble the bootloader:
 
 ```
-cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -m bootloader.lst -vm bootloader.asm -o a.out
+cl65 --cpu 65c02 -C jj65c02.cfg -v -m bootloader.lst -vm bootloader.asm -o a.out
 ```
 
 Burn it (`a.out`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
@@ -108,7 +108,7 @@ The pin setup of the 6502 can also be found in the `Datasheets` folder.
 You can now write a program in 65C02 assembly language and assemble it like so:
 
 ```
-cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -o /examples/hello_world.out /examples/hello_world.asm
+cl65 --cpu 65c02 -C jj65c02.cfg -v -o /examples/hello_world /examples/hello_world.asm
 ```
 
 **Important:** Since your programs now target RAM instead of ROM your program needs to have a different entry vector specified:
@@ -122,7 +122,7 @@ To upload and run your program onto the JJ65c02, first power up the machine, and
 Now you can upload your program using the Sender.js CLI tool like so:
 
 ```
-node Sender.js /examples/hello_world.out
+node Sender.js /examples/hello_world.bin
 ```
 
 The upload process will inform you when it's done. The bootloader automatically switches back into the main menu after the upload finished.
