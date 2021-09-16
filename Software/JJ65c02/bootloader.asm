@@ -1,11 +1,20 @@
 .FEATURE leading_dot_in_identifiers
 .setcpu "65C02"
 
-.export LCD_clear_video_ram, LCD_print, LCD_print_with_offset, LCD_print_text
-.export LCD_initialize, LCD_clear_screen, LCD_set_cursor, LCD_set_cursor_second_line
-.export LCD_render, LCD_wait_busy, LCD_send_instruction, LCD_send_data
-
-.export LIB_delay10ms, LIB_bin_to_hex
+.export LCD_clear_video_ram
+.export LCD_print
+.export LCD_print_with_offset
+.export LCD_print_text
+.export LCD_initialize
+.export LCD_clear_screen
+.export LCD_set_cursor
+.export LCD_set_cursor_second_line
+.export LCD_render
+.export LCD_wait_busy
+.export LCD_send_instruction
+.export LCD_send_data
+.export LIB_delay10ms
+.export LIB_bin_to_hex
 
 ;================================================================================
 ;
@@ -63,8 +72,6 @@ VIDEO_RAM = $0210                               ; $0210 - $022f - Video RAM for 
 POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR = $0205
 CLK_SPD = $0200                                 ; Clock speed, in MHz
-DELAY1 = $0201                                  ; Loop counter for LIB_delay10ms
-DELAY2 = $0202                                  ; same
 ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
 ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, $0207)
 
@@ -1052,37 +1059,38 @@ LIB_bin_to_hex:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:       none
+;   Destroys:       .A
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 LIB_delay10ms:
-    sta DELAY1                                  ; store away .A
     phx                                         ; save .X
     phy                                         ; and .Y
-    lda CLK_SPD
-    sta DELAY2
-    lda DELAY1                                  ; Restore .A
-@sleep_4:
-    sta DELAY1                                  ; Reset for each clock speed related loop
+    ldy CLK_SPD
+    phy
+@sleep_4:                                       ; Reset CLK_SPD
+    ply
+    sty CLK_SPD
+    phy
 @sleep_3:
-    ldy #8                                      ; 8 externals of 255 internals is ~10ms
+    ldy #12                                      ; 12 externals of 119 internals is ~10ms
 @sleep_2:
-    ldx #$ff
+    ldx #119
 @sleep_1:
-    dex
-    bne @sleep_1
+    nop                                         ; 2 cycles
+    dex                                         ; 2 cycles
+    bne @sleep_1                                ; 3 cycles
     dey
     bne @sleep_2
-    dec DELAY1                                  ; Number of 10ms delays
+    dec CLK_SPD                                 ; Adj for clock speed
     bne @sleep_3
-    dec DELAY2                                  ; Account for different clock speeds
+    dec
     bne @sleep_4                                ; Faster clocks means more loops
-    sta DELAY1                                  ; We are done. Save .A once more
-    ply                                         ; Restore .Y
+    pla                                         ; pop the stored CLK_SPD
+    sta CLK_SPD
+    ply
     plx                                         ; and .X
-    lda DELAY1                                  ; and .A
     rts
 
 ;================================================================================
