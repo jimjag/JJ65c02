@@ -1,9 +1,12 @@
+.FEATURE leading_dot_in_identifiers
+.setcpu "65C02"
+
 ;================================================================================
 ;
 ;                                    "JJ65c02"
 ;                                    _________
 ;
-;                                      v0.6
+;                                      v0.7
 ;
 ;   RAM bootloader and viewer (r/o) w/ serial connection support
 ;
@@ -30,7 +33,7 @@
 ;--------
 
 ;
-; Assemble with: vasm6502_oldstyle -wdc02 -dotdir -Fbin
+; Assemble with: cl65 --cpu 65c02 -t none -C jj65c02.cfg -v bootloader.asm -o a.out
 ;
 
 PORTB = $9000                                   ; VIA port B
@@ -62,12 +65,14 @@ ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, 
 PROGRAM_START = $0230                           ; memory location for user programs
 PROGRAM_END = $8000                             ; End of RAM
 
-    ; Start of ROM / Not really, but we use a 32k ROM chip, so we need to write all of it
-    .org $8000                                  ; be sure to fill all 32k of ROM
-    nop
+CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indirect writing
+CURRENT_RAM_ADDRESS_L = Z0
+CURRENT_RAM_ADDRESS_H = Z1
+
+LOADING_STATE = Z2
 
     ; Actual start of ROM code
-    .org $a000
+    .SEGMENT "CODE"
 
 
 ;================================================================================
@@ -130,146 +135,144 @@ MENU_main:
     sta POSITION_MENU
     sta POSITION_CURSOR
 
-    jmp .start
-.MAX_SCREEN_POS:                                ; define some constants in ROM     
+    jmp @start
+@MAX_SCREEN_POS:                                ; define some constants in ROM
     .byte $06                                   ; its always number of items - 2, here its 7 windows ($00-$06) in 8 items
-.OFFSETS:
+@OFFSETS:
     .byte $00, $10, $20, $30, $40, $50, $60     ; content offsets for all 6 screen windows
-.start:                                         ; and off we go
+@start:                                         ; and off we go
     jsr LCD__clear_video_ram
     ldx POSITION_MENU
-    ldy .OFFSETS,X
+    ldy @OFFSETS,X
                                                 ; load first offset into Y
     ldx #0                                      ; set X to 0
-.loop:
+@loop:
     lda menu_items,Y                            ; load string char for Y
     sta VIDEO_RAM,X                             ; store in video ram at X
     iny
     inx
     cpx #$20                                    ; repeat 32 times
-    bne .loop
+    bne @loop
 
-.render_cursor:                                 ; render cursor position based on current state
-    lda #">"
+@render_cursor:                                 ; render cursor position based on current state
+    lda #'>'
     ldy POSITION_CURSOR
-    bne .lower_cursor
+    bne @lower_cursor
     sta VIDEO_RAM
-    jmp .render
+    jmp @render
 
-.lower_cursor:
+@lower_cursor:
     sta VIDEO_RAM+$10
 
-.render:                                        ; and update the screen
+@render:                                        ; and update the screen
     jsr LCD__render
 
-.wait_for_input:                                ; handle keyboard input
+@wait_for_input:                                ; handle keyboard input
     jsr VIA__read_keyboard_input
       
-.handle_keyboard_input:
+@handle_keyboard_input:
     cmp #$01    
-    beq .move_up                                ; UP key pressed
+    beq @move_up                                ; UP key pressed
     cmp #$02
-    beq .move_down                              ; DOWN key pressed
+    beq @move_down                              ; DOWN key pressed
     cmp #$08
-    beq .select_option                          ; RIGHT key pressed
-    bne .wait_for_input                         ; and go around
+    beq @select_option                          ; RIGHT key pressed
+    bne @wait_for_input                         ; and go around
 
-.move_up:
+@move_up:
     lda POSITION_CURSOR                         ; load cursor position
-    beq .dec_menu_offset                        ; is cursor in up position? yes?
+    beq @dec_menu_offset                        ; is cursor in up position? yes?
     lda #0                                      ; no? 
     sta POSITION_CURSOR                         ; set cursor in up position
-    jmp .start                                  ; re-render the whole menu
-.dec_menu_offset:
+    jmp @start                                  ; re-render the whole menu
+@dec_menu_offset:
     lda POSITION_MENU
-    beq .wait_for_input                         ; yes, just re-render
-.decrease:
+    beq @wait_for_input                         ; yes, just re-render
+@decrease:
     dec POSITION_MENU                           ; decrease menu position by one
-    jmp .start                                  ; and re-render
+    jmp @start                                  ; and re-render
 
-.move_down:
+@move_down:
     lda POSITION_CURSOR                         ; load cursor position
     cmp #1                                      ; is cursor in lower position?
-    beq .inc_menu_offset                        ; yes?
+    beq @inc_menu_offset                        ; yes?
     lda #1                                      ; no?
     sta POSITION_CURSOR                         ; set cursor in lower position
-    jmp .start                                  ; and re-render the whole menu
-.inc_menu_offset:
+    jmp @start                                  ; and re-render the whole menu
+@inc_menu_offset:
     lda POSITION_MENU                           ; load current menu positions
-    cmp .MAX_SCREEN_POS                         ; are we at the bottom yet?
-    bne .increase                               ; no?
-    jmp .wait_for_input                         ; yes
-.increase:
+    cmp @MAX_SCREEN_POS                         ; are we at the bottom yet?
+    bne @increase                               ; no?
+    jmp @wait_for_input                         ; yes
+@increase:
     adc #1                                      ; increase menu position
     sta POSITION_MENU
-    jmp .start                                  ; and re-render
+    jmp @start                                  ; and re-render
 
-.select_option:
+@select_option:
     clc
     lda #0                                      ; clear A
     adc POSITION_MENU
     adc POSITION_CURSOR                         ; calculate index of selected option
     cmp #0                                      ; branch trough all options
-    beq .load_and_run
+    beq @load_and_run
     cmp #1
-    beq .load
+    beq @load
     cmp #2
-    beq .run
+    beq @run
     cmp #3
-    beq .monitor
+    beq @monitor
     cmp #4
-    beq .clear_ram
+    beq @clear_ram
     cmp #5
-    beq .adj_clock
+    beq @adj_clock
     cmp #6
-    beq .about
+    beq @about
     cmp #7
-    beq .credits
-    jmp .start                                  ; should we have an invalid option, restart
+    beq @credits
+    jmp @start                                  ; should we have an invalid option, restart
 
-.load_and_run:                                  ; load and directly run
-    jsr .do_load                                ; load first
-    jsr .do_run                                 ; run immediately after
-    jmp .start                                  ; should a program ever return ...
-.load:                                          ; load program and go back into menu
-    jsr .do_load
-    jmp .start
-.run:                                           ; run a program already loaded
-    jsr .do_run
-    jmp .start
-.monitor:                                       ; start up the monitor
+@load_and_run:                                  ; load and directly run
+    jsr @do_load                                ; load first
+    jsr @do_run                                 ; run immediately after
+    jmp @start                                  ; should a program ever return ...
+@load:                                          ; load program and go back into menu
+    jsr @do_load
+    jmp @start
+@run:                                           ; run a program already loaded
+    jsr @do_run
+    jmp @start
+@monitor:                                       ; start up the monitor
     lda #<PROGRAM_START                         ; have it render the start location
     ldy #>PROGRAM_START                         ; can also be set as params during debugging
     jsr MONITOR__main
-    jmp .start
-.clear_ram:                                     ; start the clear ram routine
+    jmp @start
+@clear_ram:                                     ; start the clear ram routine
     jsr BOOTLOADER__clear_ram
-    jmp .start
-.adj_clock:
+    jmp @start
+@adj_clock:
     jsr BOOTLOADER__adj_clock
-    jmp .start
-.about:                                         ; start the about routine
+    jmp @start
+@about:                                         ; start the about routine
     lda #<about
     ldy #>about
     ldx #1
     jsr LCD__print_text
-    jmp .start
-.credits:                                       ; start the credits routine
+    jmp @start
+@credits:                                       ; start the credits routine
     lda #<credits
     ldy #>credits
     ldx #3
     jsr LCD__print_text
-    jmp .start
-.do_load:                                       ; orchestration of program loading
+    jmp @start
+@do_load:                                       ; orchestration of program loading
     lda #10                                     ; wait a bit, say 100ms
     jsr LIB__delay10ms
     jsr BOOTLOADER__program_ram                 ; call the bootloaders programming routine
 
     rts
-.do_run:                                        ; orchestration of running a program
+@do_run:                                        ; orchestration of running a program
     jmp BOOTLOADER__execute
-                                  ; should we ever reach this point ...
-
 
 ;================================================================================
 ;
@@ -287,9 +290,6 @@ MENU_main:
 ;================================================================================
 
 BOOTLOADER__program_ram:
-CURRENT_RAM_ADDRESS_L = Z0
-CURRENT_RAM_ADDRESS_H = Z1
-LOADING_STATE = Z2
     lda #%01111111                              ; we disable all 6522 interrupts!!!
     sta IER
 
@@ -315,12 +315,12 @@ LOADING_STATE = Z2
     ldx #%11100001                              ; set top 3 pins and bottom ones to on port A to output, 4 middle ones to input
     jsr VIA__configure_ddrs
 
-.wait_for_first_data:
+@wait_for_first_data:
     lda LOADING_STATE                           ; checking loading state
     cmp #$00                                    ; the ISR will set to $01 as soon as a byte is read
-    beq .wait_for_first_data
+    beq @wait_for_first_data
 
-.loading_data:
+@loading_data:
     lda #$02                                    ; assuming we're done loading, we set loading state to $02
     sta LOADING_STATE
 
@@ -329,9 +329,9 @@ LOADING_STATE = Z2
 
     lda LOADING_STATE                           ; check back loading state, which was eventually updated by the ISR
     cmp #$02
-    bne .loading_data
+    bne @loading_data
                                                 ; when no data came in in last * cycles, we're done loading  
-.done_loading:
+@done_loading:
     lda #%11111111                              ; Reset VIA ports for output, set all pins on port B to output
     ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
     jsr VIA__configure_ddrs
@@ -343,9 +343,7 @@ LOADING_STATE = Z2
 
     lda #250
     jsr LIB__delay10ms
-
     rts
-
 
 ;================================================================================
 ;
@@ -398,18 +396,18 @@ BOOTLOADER__clear_ram:
     sta Z1
     lda #$00                                    ;  load 0x00 cleaner byte
     ldy #0
-.loop:
+@loop:
     sta (Z0),Y                                  ; store it in current location
     inc Z0
-    bne .check_end                              ; rollover?
+    bne @check_end                              ; rollover?
     inc Z1                                      ; Yes, so increment upper address byte
-.check_end:
+@check_end:
     ldx #<PROGRAM_END
     cpx Z0
-    bne .loop
+    bne @loop
     ldx #>PROGRAM_END
     cpx Z1
-    bne .loop
+    bne @loop
     rts
 
 ;================================================================================
@@ -431,47 +429,46 @@ MONITOR__main:
     sta Z0                                      ; store LSB
     sty Z1                                      ; store MSB
 
-.render_current_ram_location:
+@render_current_ram_location:
     jsr LCD__clear_video_ram
 
     lda #$00                                    ; select upper row of video ram
     sta Z3                                      ; #TODO
-    jsr .transform_contents                     ; load and transform ram and address bytes
+    jsr @transform_contents                     ; load and transform ram and address bytes
 
     clc                                         ; add offset to address
     lda Z0
     adc #$04
     sta Z0
-    bcc .skip
+    bcc @skip
     inc Z1
-.skip:    
-
+@skip:
     lda #$01                                    ; select lower row of video ram
     sta Z3
-    jsr .transform_contents                     ; load and transform ram and address bytes there
+    jsr @transform_contents                     ; load and transform ram and address bytes there
 
     jsr LCD__render
 
-.wait_for_input:                                ; wait for key press
+@wait_for_input:                                ; wait for key press
     jsr VIA__read_keyboard_input
  
-.handle_keyboard_input:                         ; determine action for key pressed
+@handle_keyboard_input:                         ; determine action for key pressed
     cmp #$01    
-    beq .move_up                                ; UP key pressed
+    beq @move_up                                ; UP key pressed
     cmp #$02
-    beq .move_down                              ; DOWN key pressed
+    beq @move_down                              ; DOWN key pressed
     cmp #$04
-    beq .exit_monitor                           ; LEFT key pressed
+    beq @exit_monitor                           ; LEFT key pressed
     cmp #$08
-    beq .fast_forward                           ; RIGHT key pressed
-    bne .wait_for_input
-.exit_monitor:
+    beq @fast_forward                           ; RIGHT key pressed
+    bne @wait_for_input
+@exit_monitor:
     lda #0                                      ; needed for whatever reason
     rts
 
-.move_down:
-    jmp .render_current_ram_location            ; no math needed, the address is up to date already
-.move_up:
+@move_down:
+    jmp @render_current_ram_location            ; no math needed, the address is up to date already
+@move_up:
     sec                                         ; decrease the 16bit RAM Pointer
     lda Z0
     sbc #$08
@@ -479,8 +476,8 @@ MONITOR__main:
     lda Z1
     sbc #$00
     sta Z1
-    jmp .render_current_ram_location            ; and re-render
-.fast_forward:                                  ; add $0800 to current RAM location
+    jmp @render_current_ram_location            ; and re-render
+@fast_forward:                                  ; add $0800 to current RAM location
     sec
     lda Z0
     adc #$00
@@ -488,14 +485,14 @@ MONITOR__main:
     lda Z1
     adc #$04
     sta Z1
-    jmp .render_current_ram_location            ; and re-render
-.transform_contents:                            ; start reading address and ram contents into stack
+    jmp @render_current_ram_location            ; and re-render
+@transform_contents:                            ; start reading address and ram contents into stack
     ldy #3
-.iterate_ram:                                   ; transfer 4 ram bytes to stack
+@iterate_ram:                                   ; transfer 4 ram bytes to stack
     lda (Z0),Y
     pha
     dey
-    bne .iterate_ram
+    bne @iterate_ram
     lda (Z0),Y
     pha
 
@@ -505,9 +502,9 @@ MONITOR__main:
     pha
 
     ldy #0
-.iterate_stack:                                 ; transform stack contents from bin to hex
+@iterate_stack:                                 ; transform stack contents from bin to hex
     cpy #6
-    beq .end_mon
+    beq @end_mon
     sty Z2                                      ; preserve Y #TODO
     pla
     jsr LIB__bin_to_hex
@@ -519,32 +516,30 @@ MONITOR__main:
     adc MON__position_map,Y                     ; use the static map for that
     tax
     pla
-    jsr .store_nibble                           ; store MSN to video ram
+    jsr @store_nibble                           ; store MSN to video ram
     inx
     pla
-    jsr .store_nibble                           ; store LSN to video ram
+    jsr @store_nibble                           ; store LSN to video ram
 
     iny
-    jmp .iterate_stack                          ; repeat for all 6 bytes on stack
-.store_nibble:                                  ; subroutine to store nibbles in two lcd rows
+    jmp @iterate_stack                          ; repeat for all 6 bytes on stack
+@store_nibble:                                  ; subroutine to store nibbles in two lcd rows
     pha
     lda Z3
-    beq .store_upper_line                       ; should we store in upper line? yes
+    beq @store_upper_line                       ; should we store in upper line? yes
     pla                                         ; no, store in lower line
     sta VIDEO_RAM+$10,X
-    jmp .end_store
-.store_upper_line:                              ; upper line storage
+    jmp @end_store
+@store_upper_line:                              ; upper line storage
     pla
     sta VIDEO_RAM,X
-.end_store:
+@end_store:
     rts
-.end_mon:
-    lda #":"                                    ; writing the two colons
+@end_mon:
+    lda #':'                                    ; writing the two colons
     sta VIDEO_RAM+$4
     sta VIDEO_RAM+$14
-
     rts
-
 
 ;================================================================================
 ;
@@ -563,7 +558,7 @@ MONITOR__main:
 ;================================================================================
 
 VIA__read_keyboard_input:
-.waiting:
+@waiting:
     lda #DEBOUNCE                               ; debounce
     jsr LIB__delay10ms                          ; ~150ms
 
@@ -574,9 +569,8 @@ VIA__read_keyboard_input:
                                                 ; is built with buttons tied normal low, when
                                                 ; pushed turning high (in contrast to Ben's schematics)
 
-    beq .waiting                         ; no
+    beq @waiting                         ; no
     rts
-
 
 ;================================================================================
 ;
@@ -597,9 +591,7 @@ VIA__read_keyboard_input:
 VIA__configure_ddrs:
     sta DDRB                                    ; configure data direction for port B from A reg.
     stx DDRA                                    ; configure data direction for port A from X reg.
-
     rts
-
 
 ;================================================================================
 ;
@@ -621,14 +613,13 @@ LCD__clear_video_ram:
     phy                                         ; same for Y
     ldy #$1f                                    ; set index to 31
     lda #$20                                    ; set character to 'space'
-.loop:
+@loop:
     sta VIDEO_RAM,Y                             ; clean video ram
     dey                                         ; decrease index
-    bne .loop                                   ; are we done? no, repeat
+    bne @loop                                   ; are we done? no, repeat
     sta VIDEO_RAM                               ; yes, write zero'th location manually
     ply                                         ; restore Y
     pla                                         ; restore A
-
     rts
 
 ;================================================================================
@@ -653,9 +644,7 @@ LCD__clear_video_ram:
 LCD__print:
     ldx #0                                      ; set offset to 0 as default
     jsr LCD__print_with_offset                  ; call printing subroutine
-
     rts
-
 
 ;================================================================================
 ;
@@ -683,21 +672,19 @@ STRING_ADDRESS_PTR = Z0
     sty STRING_ADDRESS_PTR+1                    ; load t_string msb
     stx Z2                                      ; X can not directly be added to A, therefore we store it #TODO
     ldy #0
-.loop:
+@loop:
     clc
     tya
     adc Z2                                      ; compute offset based on given offset and current cursor position
     tax
     lda (STRING_ADDRESS_PTR),Y                  ; load char from given string at position Y
-    beq .return                                 ; is string terminated via 0x00? yes
+    beq @return                                 ; is string terminated via 0x00? yes
     sta VIDEO_RAM,X                             ; no - store char to video ram
     iny
-    jmp .loop                                   ; loop until we find 0x00
-.return:
+    jmp @loop                                   ; loop until we find 0x00
+@return:
     jsr LCD__render                             ; render video ram contents to LCD screen aka scanline
-
     rts
-
 
 ;================================================================================
 ;
@@ -723,66 +710,66 @@ LCD__print_text:
     sty Z1
     dex                                         ; reduce X by one to get cardinality of pages
     stx Z2                                      ; store given number of pages
-.CURRENT_PAGE = Z3
+@CURRENT_PAGE = Z3
     lda #0
     sta Z3
-.render_page:
+@render_page:
     jsr LCD__clear_video_ram                    ; clear video ram
     ldy #0                                      ; reset character index
-.render_chars:
+@render_chars:
     lda (Z0),Y                                  ; load character from given text at current character index
     cmp #$00
-    beq .do_render                              ; text ended? yes then render
+    beq @do_render                              ; text ended? yes then render
     sta VIDEO_RAM,Y                             ; no, store char in video ram at current character index
     iny                                         ; increase index
-    bne .render_chars                           ; repeat with next char
-.do_render:
+    bne @render_chars                           ; repeat with next char
+@do_render:
     jsr LCD__render                             ; render current content to screen
 
-.wait_for_input:                                ; handle keyboard input
+@wait_for_input:                                ; handle keyboard input
     jsr VIA__read_keyboard_input
 
-.handle_keyboard_input:
+@handle_keyboard_input:
     cmp #$01    
-    beq .move_up                                ; UP key pressed
+    beq @move_up                                ; UP key pressed
     cmp #$02
-    beq .move_down                              ; DOWN key pressed
+    beq @move_down                              ; DOWN key pressed
     cmp #$04
-    beq .exit                                   ; LEFT key pressed
-    bne .wait_for_input
-.exit:
-
+    beq @exit                                   ; LEFT key pressed
+    bne @wait_for_input
+@exit:
     rts
-.move_up:
-    lda .CURRENT_PAGE                           ; are we on the first page?
-    beq .wait_for_input                         ; yes, just ignore the keypress and wait for next one
 
-    dec .CURRENT_PAGE                           ; no, decrease current page by 1
+@move_up:
+    lda @CURRENT_PAGE                           ; are we on the first page?
+    beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
+
+    dec @CURRENT_PAGE                           ; no, decrease current page by 1
 
     sec                                         ; decrease reading pointer by 32 bytes
     lda Z0
     sbc #$20
     sta Z0
-    bcs .skipdec
+    bcs @skipdec
     dec Z1
-.skipdec:    
-    jmp .render_page                            ; and re-render
+@skipdec:
+    jmp @render_page                            ; and re-render
 
-.move_down:
-    lda .CURRENT_PAGE                           ; load current page
+@move_down:
+    lda @CURRENT_PAGE                           ; load current page
     cmp Z2                                      ; are we on last page already
-    beq .wait_for_input                         ; yes, just ignore keypress and wait for next one
+    beq @wait_for_input                         ; yes, just ignore keypress and wait for next one
 
-    inc .CURRENT_PAGE                           ; no, increase current page by 1
+    inc @CURRENT_PAGE                           ; no, increase current page by 1
 
     clc                                         ; add 32 to the text pointer
     lda Z0
     adc #$20
     sta Z0
-    bcc .skipinc
+    bcc @skipinc
     inc Z1
-.skipinc:
-    jmp .render_page                            ; and re-render
+@skipinc:
+    jmp @render_page                            ; and re-render
 
 ;================================================================================
 ;
@@ -835,7 +822,6 @@ LCD__clear_screen:
     lda #%00000001                              ; clear display
     jsr LCD__send_instruction
     pla
-
     rts
 
 ;================================================================================
@@ -876,7 +862,6 @@ LCD__set_cursor_second_line:
     lda #%11000000                              ; set cursor to line 2 hardly
     jsr LCD__send_instruction
     pla                                         ; restore A
-
     rts
 
 ;================================================================================
@@ -899,24 +884,22 @@ LCD__render:
     lda #%10000000                              ; force cursor to first line
     jsr LCD__set_cursor                         
     ldx #0
-.write_char:                                    ; start writing chars from video ram
+@write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
     cpx #$10                                    ; are we done with the first line?
-    beq .next_line                              ; yes - move on to second line
+    beq @next_line                              ; yes - move on to second line
     cpx #$20                                    ; are we done with 32 chars?
-    beq .return                                 ; yes, return from routine
+    beq @return                                 ; yes, return from routine
     jsr LCD__send_data                          ; no, send data to lcd
     inx
-    jmp .write_char                             ; repeat with next char
-.next_line:
+    jmp @write_char                             ; repeat with next char
+@next_line:
     jsr LCD__set_cursor_second_line             ; set cursort into line 2
     jsr LCD__send_data                          ; send data to lcd
     inx
-    jmp .write_char                             ; repear with next char
-.return:
-
+    jmp @write_char                             ; repear with next char
+@return:
     rts
-
 
 ;================================================================================
 ;
@@ -941,7 +924,7 @@ LCD__wait_busy:
 
     lda #0
     sta DDRB
-.not_ready:
+@not_ready:
     lda #RW                                     ; prepare read mode
     sta PORTA
     lda #(RW | E)                               ; prepare execution
@@ -949,7 +932,7 @@ LCD__wait_busy:
 
     lda #%10000000                              ; for the bit test
     bit PORTB                                   ; read data from LCD
-    bne .not_ready                              ; bit 7 set, LCD is still busy, need waiting
+    bne @not_ready                              ; bit 7 set, LCD is still busy, need waiting
 
     lda #RW
     sta PORTA
@@ -987,7 +970,6 @@ LCD__send_instruction:
     lda #0
     sta PORTA                                   ; clear RS/RW/E bits
     rts
-
 
 ;================================================================================
 ;
@@ -1038,20 +1020,19 @@ LIB__bin_to_hex:
     lsr
     lsr                     
     lsr                                         ; MSD to LSD position
-    jsr .to_hex                                 ; output hex digit, using internal recursion
+    jsr @to_hex                                 ; output hex digit, using internal recursion
     pla                                         ; restore A
-.to_hex:
+@to_hex:
     and #%00001111                              ; mask LSD for hex print
-    ora #"0"                                    ; add "0"
-    cmp #"9"+1                                  ; is it a decimal digit?
-    bcc .output                                 ; yes! output it
+    ora #'0'                                    ; add "0"
+    cmp #'9'+1                                  ; is it a decimal digit?
+    bcc @output                                 ; yes! output it
     adc #6                                      ; add offset for letter A-F
-.output:
+@output:
     iny                                         ; set switch for second nibble processing
-    bne .return                                 ; did we process second nibble already? yes
+    bne @return                                 ; did we process second nibble already? yes
     tax                                         ; no
-.return:
-
+@return:
     rts
 
 ;================================================================================
@@ -1077,21 +1058,21 @@ LIB__delay10ms:
     lda CLK_SPD
     sta DELAY2
     lda DELAY1                                  ; Restore .A
-.sleep_4:
+@sleep_4:
     sta DELAY1                                  ; Reset for each clock speed related loop
-.sleep_3:
+@sleep_3:
     ldy #8                                      ; 8 externals of 255 internals is ~10ms
-.sleep_2:
+@sleep_2:
     ldx #$ff
-.sleep_1:
+@sleep_1:
     dex
-    bne .sleep_1
+    bne @sleep_1
     dey
-    bne .sleep_2
+    bne @sleep_2
     dec DELAY1                                  ; Number of 10ms delays
-    bne .sleep_3
+    bne @sleep_3
     dec DELAY2                                  ; Account for different clock speeds
-    bne .sleep_4                                ; Faster clocks means more loops
+    bne @sleep_4                                ; Faster clocks means more loops
     sta DELAY1                                  ; We are done. Save .A once more
     ply                                         ; Restore .Y
     plx                                         ; and .X
@@ -1122,56 +1103,56 @@ BOOTLOADER__adj_clock:
     phy
     lda CLK_SPD
     sta Z0
-.redisplay:
+@redisplay:
     jsr LCD__clear_video_ram
     ldx #0
-.fill_vram:
+@fill_vram:
     lda clock_spd,X
     sta VIDEO_RAM,X
     inx
     cpx #14
-    bne .fill_vram
+    bne @fill_vram
 
 ; Now convert the value of Z0 (from 1 to 14) to ASCII
     lda Z0
     cmp #10                                      ; 1 or 2 digits?
-    bcc .ones_place
-    lda #"1"
+    bcc @ones_place
+    lda #'1'
     ldx #8
     sta VIDEO_RAM,X
-.ones_place:
-    lda #"0"
+@ones_place:
+    lda #'0'
     adc Z0
     ldx #9
     sta VIDEO_RAM,X
     jsr LCD__render
 
-.wait_for_input:                                ; wait for key press
+@wait_for_input:                                ; wait for key press
     jsr VIA__read_keyboard_input
 
-.handle_keyboard_input:                         ; determine action for key pressed
+@handle_keyboard_input:                         ; determine action for key pressed
     cmp #$01
-    beq .increase_spd                           ; UP key pressed
+    beq @increase_spd                           ; UP key pressed
     cmp #$02
-    beq .decrease_spd                           ; DOWN key pressed
+    beq @decrease_spd                           ; DOWN key pressed
     cmp #$04
-    beq .exit_adj                               ; LEFT key pressed
+    beq @exit_adj                               ; LEFT key pressed
     cmp #$08
-    beq .save_spd                               ; RIGHT key pressed
-    bne .wait_for_input
-.increase_spd:
+    beq @save_spd                               ; RIGHT key pressed
+    bne @wait_for_input
+@increase_spd:
     lda Z0
     cmp #14
-    beq .redisplay
+    beq @redisplay
     inc Z0
-    bne .redisplay
-.decrease_spd:
+    bne @redisplay
+@decrease_spd:
     lda Z0
     cmp #1
-    beq .redisplay
+    beq @redisplay
     dec Z0
-    bne .redisplay
-.save_spd:
+    bne @redisplay
+@save_spd:
     lda Z0
     sta CLK_SPD
     jsr LCD__clear_video_ram
@@ -1180,15 +1161,19 @@ BOOTLOADER__adj_clock:
     jsr LCD__print
     lda #50
     jsr LIB__delay10ms                          ; let them see know it
-    jmp .redisplay
-.exit_adj:
+    jmp @redisplay
+@exit_adj:
     ply                                         ; Restore .Y, .X, .A
     plx
     pla
     rts
 
+;----------------------------------------------------
+
+    .SEGMENT "RODATA"
+
 message:
-    .asciiz "     JJ65c02    Bootloader v0.6 "
+    .asciiz "     JJ65c02    Bootloader v0.7 "
 message2:
     .asciiz "Enter Command..."
 message3:
@@ -1204,22 +1189,23 @@ message8:
 MON__position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
-    .text " Load & Run     "
-    .text " Load           "
-    .text " Run            "
-    .text " Monitor        "
-    .text " Clear RAM      "
-    .text " Adjust Clk Spd "
-    .text " About          "
-    .text " Credits        "
+    .byte " Load & Run     "
+    .byte " Load           "
+    .byte " Run            "
+    .byte " Monitor        "
+    .byte " Clear RAM      "
+    .byte " Adjust Clk Spd "
+    .byte " About          "
+    .byte " Credits        "
 about:
     .asciiz "github.com/      jimjag/JJ65c02 "
 credits:
     .asciiz "Jan Roesner      Orig sixty/5o2 Ben Eater       6502 Project    Steven Wozniak  bin2hex routine "
 clock_spd:
-    .text " Clock:  % Mhz"
+    .byte " Clock:  % Mhz"
 message9:
     .asciiz "Clk Spd Saved"
+
 ;================================================================================
 ;
 ;   ISR_RAMWRITE - Interrupt Service Routine
@@ -1258,23 +1244,21 @@ message9:
 ;
 ;================================================================================
 
-    .org $FFC0                                  ; as close as possible to the ROM's end
+    .SEGMENT "ISR"                                  ; as close as possible to the ROM's end
 
 ISR_RAMWRITE:
-CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indirect writing
-
     pha
     phy
                                                 ; for a reason I dont get, the ISR is called once with 0x00
     lda ISR_FIRST_RUN                           ; check whether we are called for the first time
-    bne .write_data                             ; if not, just continue writing
+    bne @write_data                             ; if not, just continue writing
 
     lda #1                                      ; otherwise set the first time marker
     sta ISR_FIRST_RUN                           ; and return from the interrupt
 
-    jmp .doneisr
+    jmp @doneisr
 
-.write_data:
+@write_data:
     lda #$01                                    ; progressing state of loading operation
     sta LOADING_STATE                           ; so program_ram routine knows, data's still flowing
 
@@ -1284,17 +1268,18 @@ CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indir
 
                                                ; increase the 16bit RAM location
     inc CURRENT_RAM_ADDRESS_L
-    bne .doneisr
+    bne @doneisr
     inc CURRENT_RAM_ADDRESS_H
-.doneisr:
+@doneisr:
     ply                                         ; restore Y
     pla                                         ; restore A
-
     rti
 
 ISR:
     jmp (ISR_VECTOR)
 
-    .org $fffc                                  
+    .SEGMENT "VECTORS"
+
+    .word $0000
     .word main                                  ; entry vector main routine
     .word ISR                                   ; entry vector interrupt service routine

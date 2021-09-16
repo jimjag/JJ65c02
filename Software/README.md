@@ -30,7 +30,7 @@ The bootloader also provides some helper library functions to handle delays, dri
 The following software components are must have's:
 
 - Arduino IDE to be found [here](https://www.arduino.cc/en/main/software)
-- The [VASM Assembler](http://sun.hasenbraten.de/vasm/) to build for the 6502
+- The [cl65 Assembler](https://cc65.github.io) to build for the 6502
 - Node.js 8+ to be able to use the serial program loading functionality via the Arduino
 
 ### Install the bootloader
@@ -38,10 +38,10 @@ The following software components are must have's:
 Assemble the bootloader:
 
 ```
-vasm6502_oldstyle -wdc02 -Fbin -dotdir -L bootloader.lst -o bootloader.out bootloader.asm
+cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -m bootloader.lst -vm bootloader.asm -o a.out
 ```
 
-Burn it (`bootloader.out`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
+Burn it (`a.out`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
 The `bootloader.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the bootloader exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
 
@@ -108,7 +108,7 @@ The pin setup of the 6502 can also be found in the `Datasheets` folder.
 You can now write a program in 65C02 assembly language and assemble it like so:
 
 ```
-vasm6502_oldstyle -wdc02 -Fbin -dotdir -o /examples/hello_world.out /examples/hello_world.asm
+cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -o /examples/hello_world.out /examples/hello_world.asm
 ```
 
 **Important:** Since your programs now target RAM instead of ROM your program needs to have a different entry vector specified:
