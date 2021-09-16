@@ -1,6 +1,12 @@
 .FEATURE leading_dot_in_identifiers
 .setcpu "65C02"
 
+.export LCD_clear_video_ram, LCD_print, LCD_print_with_offset, LCD_print_text
+.export LCD_initialize, LCD_clear_screen, LCD_set_cursor, LCD_set_cursor_second_line
+.export LCD_render, LCD_wait_busy, LCD_send_instruction, LCD_send_data
+
+.export LIB_delay10ms, LIB_bin_to_hex
+
 ;================================================================================
 ;
 ;                                    "JJ65c02"
@@ -57,7 +63,7 @@ VIDEO_RAM = $0210                               ; $0210 - $022f - Video RAM for 
 POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR = $0205
 CLK_SPD = $0200                                 ; Clock speed, in MHz
-DELAY1 = $0201                                  ; Loop counter for LIB__delay10ms
+DELAY1 = $0201                                  ; Loop counter for LIB_delay10ms
 DELAY2 = $0202                                  ; same
 ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
 ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, $0207)
@@ -102,15 +108,15 @@ main:                                           ; boot routine, first thing load
     lda #>ISR_RAMWRITE
     sta ISR_VECTOR + 1
 
-    jsr LCD__clear_video_ram
-    jsr LCD__initialize
+    jsr LCD_clear_video_ram
+    jsr LCD_initialize
 
     lda #<message                               ; render the boot screen
     ldy #>message
-    jsr LCD__print
+    jsr LCD_print
 
     lda #255
-    jsr LIB__delay10ms
+    jsr LIB_delay10ms
 
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
@@ -141,7 +147,7 @@ MENU_main:
 @OFFSETS:
     .byte $00, $10, $20, $30, $40, $50, $60     ; content offsets for all 6 screen windows
 @start:                                         ; and off we go
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
     ldx POSITION_MENU
     ldy @OFFSETS,X
                                                 ; load first offset into Y
@@ -165,10 +171,10 @@ MENU_main:
     sta VIDEO_RAM+$10
 
 @render:                                        ; and update the screen
-    jsr LCD__render
+    jsr LCD_render
 
 @wait_for_input:                                ; handle keyboard input
-    jsr VIA__read_keyboard_input
+    jsr VIA_read_mini_keyboard
       
 @handle_keyboard_input:
     cmp #$01    
@@ -221,7 +227,7 @@ MENU_main:
     cmp #2
     beq @run
     cmp #3
-    beq @monitor
+    beq @hexdump
     cmp #4
     beq @clear_ram
     cmp #5
@@ -242,41 +248,41 @@ MENU_main:
 @run:                                           ; run a program already loaded
     jsr @do_run
     jmp @start
-@monitor:                                       ; start up the monitor
+@hexdump:                                       ; start up the memory hexdump
     lda #<PROGRAM_START                         ; have it render the start location
     ldy #>PROGRAM_START                         ; can also be set as params during debugging
-    jsr MONITOR__main
+    jsr HEXDUMP_main
     jmp @start
 @clear_ram:                                     ; start the clear ram routine
-    jsr BOOTLOADER__clear_ram
+    jsr BOOTLOADER_clear_ram
     jmp @start
 @adj_clock:
-    jsr BOOTLOADER__adj_clock
+    jsr BOOTLOADER_adj_clock
     jmp @start
 @about:                                         ; start the about routine
     lda #<about
     ldy #>about
     ldx #1
-    jsr LCD__print_text
+    jsr LCD_print_text
     jmp @start
 @credits:                                       ; start the credits routine
     lda #<credits
     ldy #>credits
     ldx #3
-    jsr LCD__print_text
+    jsr LCD_print_text
     jmp @start
 @do_load:                                       ; orchestration of program loading
     lda #10                                     ; wait a bit, say 100ms
-    jsr LIB__delay10ms
-    jsr BOOTLOADER__program_ram                 ; call the bootloaders programming routine
+    jsr LIB_delay10ms
+    jsr BOOTLOADER_program_ram                 ; call the bootloaders programming routine
 
     rts
 @do_run:                                        ; orchestration of running a program
-    jmp BOOTLOADER__execute
+    jmp BOOTLOADER_execute
 
 ;================================================================================
 ;
-;   BOOTLOADER__program_ram - writes serial data to RAM
+;   BOOTLOADER_program_ram - writes serial data to RAM
 ;
 ;   Used in conjunction w/ the ISR, orchestrates user program reading
 ;   ————————————————————————————————————
@@ -289,17 +295,17 @@ MENU_main:
 ;
 ;================================================================================
 
-BOOTLOADER__program_ram:
+BOOTLOADER_program_ram:
     lda #%01111111                              ; we disable all 6522 interrupts!!!
     sta IER
 
     lda #0                                      ; for a reason I dont get, the ISR is triggered...
     sta ISR_FIRST_RUN                           ; one time before the first byte arrives, so we mitigate here
 
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
     lda #<message4                              ; Rendering a message
     ldy #>message4
-    jsr LCD__print
+    jsr LCD_print
 
     lda #$00                                    ; initializing loading state byte
     sta LOADING_STATE
@@ -313,7 +319,7 @@ BOOTLOADER__program_ram:
 
     lda #%00000000                              ; set all pins on port B to input
     ldx #%11100001                              ; set top 3 pins and bottom ones to on port A to output, 4 middle ones to input
-    jsr VIA__configure_ddrs
+    jsr VIA_configure_ddrs
 
 @wait_for_first_data:
     lda LOADING_STATE                           ; checking loading state
@@ -325,7 +331,7 @@ BOOTLOADER__program_ram:
     sta LOADING_STATE
 
     lda #120
-    jsr LIB__delay10ms
+    jsr LIB_delay10ms
 
     lda LOADING_STATE                           ; check back loading state, which was eventually updated by the ISR
     cmp #$02
@@ -334,20 +340,20 @@ BOOTLOADER__program_ram:
 @done_loading:
     lda #%11111111                              ; Reset VIA ports for output, set all pins on port B to output
     ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    jsr VIA__configure_ddrs
+    jsr VIA_configure_ddrs
 
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
     lda #<message6
     ldy #>message6
-    jsr LCD__print
+    jsr LCD_print
 
     lda #250
-    jsr LIB__delay10ms
+    jsr LIB_delay10ms
     rts
 
 ;================================================================================
 ;
-;   BOOTLOADER__execute - executes a user program in RAM
+;   BOOTLOADER_execute - executes a user program in RAM
 ;
 ;   Program needs to be loaded via serial loader or other mechanism beforehand
 ;   ————————————————————————————————————
@@ -360,17 +366,17 @@ BOOTLOADER__program_ram:
 ;
 ;================================================================================
 
-BOOTLOADER__execute:
+BOOTLOADER_execute:
     sei                                         ; disable interrupt handling
-    jsr LCD__clear_video_ram                    ; print a message
+    jsr LCD_clear_video_ram                    ; print a message
     lda #<message7
     ldy #>message7
-    jsr LCD__print
+    jsr LCD_print
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
 ;
-;   BOOTLOADER__clear_ram - clears RAM from PROGRAM_START up to PROGRAM_END
+;   BOOTLOADER_clear_ram - clears RAM from PROGRAM_START up to PROGRAM_END
 ;
 ;   Useful during debugging or when using non-volatile RAM chips. Because
 ;   START and END are arbitrary addresses, we need a super generic routine
@@ -384,11 +390,11 @@ BOOTLOADER__execute:
 ;
 ;================================================================================
 
-BOOTLOADER__clear_ram:
-    jsr LCD__clear_video_ram                    ; render message 
+BOOTLOADER_clear_ram:
+    jsr LCD_clear_video_ram                    ; render message 
     lda #<message8
     ldy #>message8
-    jsr LCD__print
+    jsr LCD_print
 
     ldy #<PROGRAM_START                         ; load start location into zero page
     sty Z0
@@ -412,7 +418,7 @@ BOOTLOADER__clear_ram:
 
 ;================================================================================
 ;
-;   MONITOR__main - RAM/ROM Hexmonitor (r/o)
+;   HEXDUMP_main - RAM/ROM Hexdump (r/o)
 ;
 ;   Currently read only, traverses RAM and ROM locations, shows hex data contents
 ;   ————————————————————————————————————
@@ -425,12 +431,12 @@ BOOTLOADER__clear_ram:
 ;
 ;================================================================================
 
-MONITOR__main:
+HEXDUMP_main:
     sta Z0                                      ; store LSB
     sty Z1                                      ; store MSB
 
 @render_current_ram_location:
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
 
     lda #$00                                    ; select upper row of video ram
     sta Z3                                      ; #TODO
@@ -447,10 +453,10 @@ MONITOR__main:
     sta Z3
     jsr @transform_contents                     ; load and transform ram and address bytes there
 
-    jsr LCD__render
+    jsr LCD_render
 
 @wait_for_input:                                ; wait for key press
-    jsr VIA__read_keyboard_input
+    jsr VIA_read_mini_keyboard
  
 @handle_keyboard_input:                         ; determine action for key pressed
     cmp #$01    
@@ -458,11 +464,11 @@ MONITOR__main:
     cmp #$02
     beq @move_down                              ; DOWN key pressed
     cmp #$04
-    beq @exit_monitor                           ; LEFT key pressed
+    beq @exit_hexdump                           ; LEFT key pressed
     cmp #$08
     beq @fast_forward                           ; RIGHT key pressed
     bne @wait_for_input
-@exit_monitor:
+@exit_hexdump:
     lda #0                                      ; needed for whatever reason
     rts
 
@@ -507,13 +513,13 @@ MONITOR__main:
     beq @end_mon
     sty Z2                                      ; preserve Y #TODO
     pla
-    jsr LIB__bin_to_hex
+    jsr LIB_bin_to_hex
     ldy Z2                                      ; restore Y
     pha                                         ; push least sign. nibble (LSN) onto stack
     phx                                         ; push most sign. nibble (MSN) too
 
     tya                                         ; calculate nibble positions in video ram
-    adc MON__position_map,Y                     ; use the static map for that
+    adc MON_position_map,Y                     ; use the static map for that
     tax
     pla
     jsr @store_nibble                           ; store MSN to video ram
@@ -543,7 +549,7 @@ MONITOR__main:
 
 ;================================================================================
 ;
-;   VIA__read_keyboard_input - returns 4-key keyboard inputs
+;   VIA_read_mini_keyboard - returns 4-key keyboard inputs
 ;
 ;   Input is read, normalized and returned to the caller. We wait until
 ;   they actually *enter* something
@@ -557,10 +563,10 @@ MONITOR__main:
 ;
 ;================================================================================
 
-VIA__read_keyboard_input:
+VIA_read_mini_keyboard:
 @waiting:
     lda #DEBOUNCE                               ; debounce
-    jsr LIB__delay10ms                          ; ~150ms
+    jsr LIB_delay10ms                           ; ~150ms
 
     lda PORTA                                   ; load current key status from VIA
     ror                                         ; normalize the input to $1, $2, $4 and $8
@@ -574,7 +580,7 @@ VIA__read_keyboard_input:
 
 ;================================================================================
 ;
-;   VIA__configure_ddrs - configures data direction registers of the VIA chip
+;   VIA_configure_ddrs - configures data direction registers of the VIA chip
 ;
 ;   Expects one byte per register with bitwise setup input/output directions
 ;   ————————————————————————————————————
@@ -588,14 +594,14 @@ VIA__read_keyboard_input:
 ;
 ;================================================================================
 
-VIA__configure_ddrs:
+VIA_configure_ddrs:
     sta DDRB                                    ; configure data direction for port B from A reg.
     stx DDRA                                    ; configure data direction for port A from X reg.
     rts
 
 ;================================================================================
 ;
-;   LCD__clear_video_ram - clears the Video Ram segment with 0x00 bytes
+;   LCD_clear_video_ram - clears the Video Ram segment with 0x00 bytes
 ;
 ;   Useful before rendering new contents by writing to the video ram
 ;   ————————————————————————————————————
@@ -608,7 +614,7 @@ VIA__configure_ddrs:
 ;
 ;================================================================================
 
-LCD__clear_video_ram:
+LCD_clear_video_ram:
     pha                                         ; preserve A via stack
     phy                                         ; same for Y
     ldy #$1f                                    ; set index to 31
@@ -624,7 +630,7 @@ LCD__clear_video_ram:
 
 ;================================================================================
 ;
-;   LCD__print - prints a string to the LCD (highlevel)
+;   LCD_print - prints a string to the LCD (highlevel)
 ;
 ;   String must be given as address pointer, subroutines are called
 ;   The given string is automatically broken into the second display line and
@@ -641,14 +647,14 @@ LCD__clear_video_ram:
 ;
 ;================================================================================
 
-LCD__print:
+LCD_print:
     ldx #0                                      ; set offset to 0 as default
-    jsr LCD__print_with_offset                  ; call printing subroutine
+    jsr LCD_print_with_offset                   ; call printing subroutine
     rts
 
 ;================================================================================
 ;
-;   LCD__print_with_offset - prints string on LCD screen at given offset
+;   LCD_print_with_offset - prints string on LCD screen at given offset
 ;
 ;   String must be given as address pointer, subroutines are called
 ;   The given string is automatically broken into the second display line and
@@ -666,7 +672,7 @@ LCD__print:
 ;
 ;================================================================================
 
-LCD__print_with_offset:
+LCD_print_with_offset:
 STRING_ADDRESS_PTR = Z0
     sta STRING_ADDRESS_PTR                      ; load t_string lsb
     sty STRING_ADDRESS_PTR+1                    ; load t_string msb
@@ -683,12 +689,12 @@ STRING_ADDRESS_PTR = Z0
     iny
     jmp @loop                                   ; loop until we find 0x00
 @return:
-    jsr LCD__render                             ; render video ram contents to LCD screen aka scanline
+    jsr LCD_render                              ; render video ram contents to LCD screen aka scanline
     rts
 
 ;================================================================================
 ;
-;   LCD__print_text - prints a scrollable / escapeable multiline text (highlevel)
+;   LCD_print_text - prints a scrollable / escapeable multiline text (highlevel)
 ;
 ;   The text location must be given as memory pointer, the number of pages to
 ;   be rendered needs to be given as well
@@ -705,7 +711,7 @@ STRING_ADDRESS_PTR = Z0
 ;
 ;================================================================================
 
-LCD__print_text:
+LCD_print_text:
     sta Z0                                      ; store text pointer in zero page
     sty Z1
     dex                                         ; reduce X by one to get cardinality of pages
@@ -714,7 +720,7 @@ LCD__print_text:
     lda #0
     sta Z3
 @render_page:
-    jsr LCD__clear_video_ram                    ; clear video ram
+    jsr LCD_clear_video_ram                    ; clear video ram
     ldy #0                                      ; reset character index
 @render_chars:
     lda (Z0),Y                                  ; load character from given text at current character index
@@ -724,10 +730,10 @@ LCD__print_text:
     iny                                         ; increase index
     bne @render_chars                           ; repeat with next char
 @do_render:
-    jsr LCD__render                             ; render current content to screen
+    jsr LCD_render                              ; render current content to screen
 
 @wait_for_input:                                ; handle keyboard input
-    jsr VIA__read_keyboard_input
+    jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:
     cmp #$01    
@@ -773,7 +779,7 @@ LCD__print_text:
 
 ;================================================================================
 ;
-;   LCD__initialize - initializes the LCD display
+;   LCD_initialize - initializes the LCD display
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -785,27 +791,27 @@ LCD__print_text:
 ;
 ;================================================================================
 
-LCD__initialize:
+LCD_initialize:
     lda #%11111111                              ; set all pins on port B to output
     ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    jsr VIA__configure_ddrs
+    jsr VIA_configure_ddrs
 
     lda #%00111000                              ; set 8-bit mode, 2-line display, 5x8 font
-    jsr LCD__send_instruction
+    jsr LCD_send_instruction
 
     lda #%00001110                              ; display on, cursor on, blink off
-    jsr LCD__send_instruction
+    jsr LCD_send_instruction
     
     lda #%00000110                              ; increment and shift cursor, don't shift display
-    jsr LCD__send_instruction
+    jsr LCD_send_instruction
 
-    jmp LCD__clear_screen                       ; reset and clear LCD
+    jmp LCD_clear_screen                        ; reset and clear LCD
 
 ;================================================================================
 ;
-;   LCD__clear_screen - clears the screen on hardware level (low level)
+;   LCD_clear_screen - clears the screen on hardware level (low level)
 ;
-;   Not to confuse with LCD__clear_video_ram, which in contrast just deletes
+;   Not to confuse with LCD_clear_video_ram, which in contrast just deletes
 ;   the stored RAM values which shall be displayed
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -817,16 +823,16 @@ LCD__initialize:
 ;
 ;================================================================================
 
-LCD__clear_screen:
+LCD_clear_screen:
     pha
     lda #%00000001                              ; clear display
-    jsr LCD__send_instruction
+    jsr LCD_send_instruction
     pla
     rts
 
 ;================================================================================
 ;
-;   LCD__set_cursor - sets the cursor on hardware level into upper or lower row
+;   LCD_set_cursor - sets the cursor on hardware level into upper or lower row
 ;
 ;   Always positions the cursor in the first column of the chosen row
 ;   ————————————————————————————————————
@@ -839,12 +845,12 @@ LCD__clear_screen:
 ;
 ;================================================================================
 
-LCD__set_cursor:
-    jmp LCD__send_instruction
+LCD_set_cursor:
+    jmp LCD_send_instruction
 
 ;================================================================================
 ;
-;   LCD__set_cursor_second_line - sets cursor to second row, first column
+;   LCD_set_cursor_second_line - sets cursor to second row, first column
 ;
 ;   Low level convenience function
 ;   ————————————————————————————————————
@@ -857,16 +863,16 @@ LCD__set_cursor:
 ;
 ;================================================================================
 
-LCD__set_cursor_second_line:
+LCD_set_cursor_second_line:
     pha                                         ; preserve A
     lda #%11000000                              ; set cursor to line 2 hardly
-    jsr LCD__send_instruction
+    jsr LCD_send_instruction
     pla                                         ; restore A
     rts
 
 ;================================================================================
 ;
-;   LCD__render - transfers Video Ram contents onto the LCD display
+;   LCD_render - transfers Video Ram contents onto the LCD display
 ;
 ;   Automatically breaks text into the second row if necessary but takes the
 ;   additional LCD memory into account
@@ -880,9 +886,9 @@ LCD__set_cursor_second_line:
 ;
 ;================================================================================
 
-LCD__render:
+LCD_render:
     lda #%10000000                              ; force cursor to first line
-    jsr LCD__set_cursor                         
+    jsr LCD_set_cursor                         
     ldx #0
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
@@ -890,12 +896,12 @@ LCD__render:
     beq @next_line                              ; yes - move on to second line
     cpx #$20                                    ; are we done with 32 chars?
     beq @return                                 ; yes, return from routine
-    jsr LCD__send_data                          ; no, send data to lcd
+    jsr LCD_send_data                           ; no, send data to lcd
     inx
     jmp @write_char                             ; repeat with next char
 @next_line:
-    jsr LCD__set_cursor_second_line             ; set cursort into line 2
-    jsr LCD__send_data                          ; send data to lcd
+    jsr LCD_set_cursor_second_line              ; set cursort into line 2
+    jsr LCD_send_data                           ; send data to lcd
     inx
     jmp @write_char                             ; repear with next char
 @return:
@@ -903,7 +909,7 @@ LCD__render:
 
 ;================================================================================
 ;
-;   LCD__wait_busy - Check if LCD is busy and, if so, loop until not
+;   LCD_wait_busy - Check if LCD is busy and, if so, loop until not
 ;
 ;   Since the LCD needs clock cycles internally to process instructions, it can
 ;   not handle instructions at all times. Therefore it provides a busy flag,
@@ -918,7 +924,7 @@ LCD__render:
 ;
 ;================================================================================
 
-LCD__wait_busy:
+LCD_wait_busy:
     pha                                         ; preserve A
     sei                                         ; hold off on interrupts
 
@@ -944,7 +950,7 @@ LCD__wait_busy:
 
 ;================================================================================
 ;
-;   LCD__send_instruction - sends a control instruction to the LCD display
+;   LCD_send_instruction - sends a control instruction to the LCD display
 ;
 ;   In contrast to data, the LCD accepts a number of control instructions as well
 ;   This routine can be used, to send arbitrary instructions following the LCD's
@@ -959,8 +965,8 @@ LCD__wait_busy:
 ;
 ;================================================================================
 
-LCD__send_instruction:
-    jsr LCD__wait_busy
+LCD_send_instruction:
+    jsr LCD_wait_busy
 
     sta PORTB                                   ; write accumulator content into PORTB
     lda #0
@@ -973,10 +979,10 @@ LCD__send_instruction:
 
 ;================================================================================
 ;
-;   LCD__send_data - sends content data to the LCD controller
+;   LCD_send_data - sends content data to the LCD controller
 ;
 ;   In contrast to instructions, there seems to be no constraint, and data can
-;   be sent at any rate to the display (see LCD__send_instruction)
+;   be sent at any rate to the display (see LCD_send_instruction)
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A: Content Byte
 ;
@@ -987,8 +993,8 @@ LCD__send_instruction:
 ;
 ;================================================================================
 
-LCD__send_data:
-    jsr LCD__wait_busy
+LCD_send_data:
+    jsr LCD_wait_busy
 
     sta PORTB                                   ; write accumulator content into PORTB
     lda #RS
@@ -1001,7 +1007,7 @@ LCD__send_data:
 
 ;================================================================================
 ;
-;   LIB__bin_to_hex: CONVERT BINARY BYTE TO HEX ASCII CHARS - THX Woz!
+;   LIB_bin_to_hex: CONVERT BINARY BYTE TO HEX ASCII CHARS - THX Woz!
 ;
 ;   Slighty modified version - original from Steven Wozniak for Apple I
 ;   ————————————————————————————————————
@@ -1013,7 +1019,7 @@ LCD__send_data:
 ;
 ;================================================================================
 
-LIB__bin_to_hex:
+LIB_bin_to_hex:
     ldy #$ff                                    ; state for output switching #TODO
     pha                                         ; save A for LSD
     lsr
@@ -1037,7 +1043,7 @@ LIB__bin_to_hex:
 
 ;================================================================================
 ;
-;   LIB__delay10ms - "sleeps" for about 10ms
+;   LIB_delay10ms - "sleeps" for about 10ms
 ;
 ;   The routine does not actually sleep, but delays by burning cycles in TWO(!)
 ;   nested loops. The user must configure the number 10ms delays in .A
@@ -1051,7 +1057,7 @@ LIB__bin_to_hex:
 ;
 ;================================================================================
 
-LIB__delay10ms:
+LIB_delay10ms:
     sta DELAY1                                  ; store away .A
     phx                                         ; save .X
     phy                                         ; and .Y
@@ -1084,7 +1090,7 @@ LIB__delay10ms:
 ;   BOOTLOADER_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
 ;
 ;   This routine simply updates the internal setting for the clock speed of the
-;   system, in Mhz. This only currently affects LIB__delay10ms so that depending
+;   system, in Mhz. This only currently affects LIB_delay10ms so that depending
 ;   on the setting here, and it matching the actual clock speed, we get close
 ;   to an actual 10ms delay
 ;   ————————————————————————————————————
@@ -1097,14 +1103,14 @@ LIB__delay10ms:
 ;
 ;================================================================================
 
-BOOTLOADER__adj_clock:
+BOOTLOADER_adj_clock:
     pha                                         ; Save .A, .X, .Y
     phx
     phy
     lda CLK_SPD
     sta Z0
 @redisplay:
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
     ldx #0
 @fill_vram:
     lda clock_spd,X
@@ -1125,10 +1131,10 @@ BOOTLOADER__adj_clock:
     adc Z0
     ldx #9
     sta VIDEO_RAM,X
-    jsr LCD__render
+    jsr LCD_render
 
 @wait_for_input:                                ; wait for key press
-    jsr VIA__read_keyboard_input
+    jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:                         ; determine action for key pressed
     cmp #$01
@@ -1155,12 +1161,12 @@ BOOTLOADER__adj_clock:
 @save_spd:
     lda Z0
     sta CLK_SPD
-    jsr LCD__clear_video_ram
+    jsr LCD_clear_video_ram
     lda #<message9                              ; saved feedback
     ldy #>message9
-    jsr LCD__print
+    jsr LCD_print
     lda #50
-    jsr LIB__delay10ms                          ; let them see know it
+    jsr LIB_delay10ms                           ; let them see know it
     jmp @redisplay
 @exit_adj:
     ply                                         ; Restore .Y, .X, .A
@@ -1186,13 +1192,13 @@ message7:
     .asciiz "Running $0x0230"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
-MON__position_map:
+MON_position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
     .byte " Load & Run     "
     .byte " Load           "
     .byte " Run            "
-    .byte " Monitor        "
+    .byte " Hexdump        "
     .byte " Clear RAM      "
     .byte " Adjust Clk Spd "
     .byte " About          "
@@ -1222,7 +1228,7 @@ message9:
 ;   The routine reads the current byte from VIA PortB, writes it to the RAM and
 ;   increases the RAM address by $01.
 ;
-;   In addition it REsets the LOADING_STATE byte, so the BOOTLOADER__program_ram
+;   In addition it REsets the LOADING_STATE byte, so the BOOTLOADER_program_ram
 ;   routine knows, there is still data flowing in. Since there is no "Control Byte"
 ;   that can be used to determine EOF, it is ust assumed, that EOF is reached, when
 ;   no data came in for a defined number of cycles.
