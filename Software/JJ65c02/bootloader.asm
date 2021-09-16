@@ -18,7 +18,7 @@
 ;
 ;   Updated by Jim Jagielski for the JJ65c02 Hobby Breadboard Project
 ;      ==> https://github.com/jimjag/JJ65c02
-;   
+;
 ;   Credits:
 ;               - Jan Roesner <jan@roesner.it>     Original Sixty/5o2 project
 ;               - Ben Eater                        (Project 6502)
@@ -130,7 +130,7 @@ main:                                           ; boot routine, first thing load
 ;   Preparatory Ops: none
 ;
 ;   Returned Values: none
-;                    
+;
 ;   Destroys:        .A, .X, .Y
 ;   ————————————————————————————————————
 ;
@@ -175,9 +175,9 @@ MENU_main:
 
 @wait_for_input:                                ; handle keyboard input
     jsr VIA_read_mini_keyboard
-      
+
 @handle_keyboard_input:
-    cmp #$01    
+    cmp #$01
     beq @move_up                                ; UP key pressed
     cmp #$02
     beq @move_down                              ; DOWN key pressed
@@ -188,7 +188,7 @@ MENU_main:
 @move_up:
     lda POSITION_CURSOR                         ; load cursor position
     beq @dec_menu_offset                        ; is cursor in up position? yes?
-    lda #0                                      ; no? 
+    lda #0                                      ; no?
     sta POSITION_CURSOR                         ; set cursor in up position
     jmp @start                                  ; re-render the whole menu
 @dec_menu_offset:
@@ -274,7 +274,7 @@ MENU_main:
 @do_load:                                       ; orchestration of program loading
     lda #10                                     ; wait a bit, say 100ms
     jsr LIB_delay10ms
-    jsr BOOTLOADER_program_ram                 ; call the bootloaders programming routine
+    jsr BOOTLOADER_program_ram                  ; call the bootloaders programming routine
 
     rts
 @do_run:                                        ; orchestration of running a program
@@ -336,7 +336,7 @@ BOOTLOADER_program_ram:
     lda LOADING_STATE                           ; check back loading state, which was eventually updated by the ISR
     cmp #$02
     bne @loading_data
-                                                ; when no data came in in last * cycles, we're done loading  
+                                                ; when no data came in in last * cycles, we're done loading
 @done_loading:
     lda #%11111111                              ; Reset VIA ports for output, set all pins on port B to output
     ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
@@ -360,7 +360,7 @@ BOOTLOADER_program_ram:
 ;   Preparatory Ops: none
 ;
 ;   Returned Values: none
-;                    
+;
 ;   Destroys:        .A, .Y
 ;   ————————————————————————————————————
 ;
@@ -368,7 +368,7 @@ BOOTLOADER_program_ram:
 
 BOOTLOADER_execute:
     sei                                         ; disable interrupt handling
-    jsr LCD_clear_video_ram                    ; print a message
+    jsr LCD_clear_video_ram                     ; print a message
     lda #<message7
     ldy #>message7
     jsr LCD_print
@@ -391,7 +391,7 @@ BOOTLOADER_execute:
 ;================================================================================
 
 BOOTLOADER_clear_ram:
-    jsr LCD_clear_video_ram                    ; render message 
+    jsr LCD_clear_video_ram                     ; render message
     lda #<message8
     ldy #>message8
     jsr LCD_print
@@ -457,9 +457,9 @@ HEXDUMP_main:
 
 @wait_for_input:                                ; wait for key press
     jsr VIA_read_mini_keyboard
- 
+
 @handle_keyboard_input:                         ; determine action for key pressed
-    cmp #$01    
+    cmp #$01
     beq @move_up                                ; UP key pressed
     cmp #$02
     beq @move_down                              ; DOWN key pressed
@@ -504,7 +504,7 @@ HEXDUMP_main:
 
     lda Z0                                      ; transfer the matching address bytes to stack too
     pha
-    lda Z1 
+    lda Z1
     pha
 
     ldy #0
@@ -519,7 +519,7 @@ HEXDUMP_main:
     phx                                         ; push most sign. nibble (MSN) too
 
     tya                                         ; calculate nibble positions in video ram
-    adc MON_position_map,Y                     ; use the static map for that
+    adc MON_position_map,Y                      ; use the static map for that
     tax
     pla
     jsr @store_nibble                           ; store MSN to video ram
@@ -575,7 +575,7 @@ VIA_read_mini_keyboard:
                                                 ; is built with buttons tied normal low, when
                                                 ; pushed turning high (in contrast to Ben's schematics)
 
-    beq @waiting                         ; no
+    beq @waiting                                ; no
     rts
 
 ;================================================================================
@@ -720,7 +720,7 @@ LCD_print_text:
     lda #0
     sta Z3
 @render_page:
-    jsr LCD_clear_video_ram                    ; clear video ram
+    jsr LCD_clear_video_ram                     ; clear video ram
     ldy #0                                      ; reset character index
 @render_chars:
     lda (Z0),Y                                  ; load character from given text at current character index
@@ -736,7 +736,7 @@ LCD_print_text:
     jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:
-    cmp #$01    
+    cmp #$01
     beq @move_up                                ; UP key pressed
     cmp #$02
     beq @move_down                              ; DOWN key pressed
@@ -801,7 +801,7 @@ LCD_initialize:
 
     lda #%00001110                              ; display on, cursor on, blink off
     jsr LCD_send_instruction
-    
+
     lda #%00000110                              ; increment and shift cursor, don't shift display
     jsr LCD_send_instruction
 
@@ -888,7 +888,7 @@ LCD_set_cursor_second_line:
 
 LCD_render:
     lda #%10000000                              ; force cursor to first line
-    jsr LCD_set_cursor                         
+    jsr LCD_set_cursor
     ldx #0
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
@@ -1024,7 +1024,7 @@ LIB_bin_to_hex:
     pha                                         ; save A for LSD
     lsr
     lsr
-    lsr                     
+    lsr
     lsr                                         ; MSD to LSD position
     jsr @to_hex                                 ; output hex digit, using internal recursion
     pla                                         ; restore A
@@ -1121,7 +1121,7 @@ BOOTLOADER_adj_clock:
 
 ; Now convert the value of Z0 (from 1 to 14) to ASCII
     lda Z0
-    cmp #10                                      ; 1 or 2 digits?
+    cmp #10                                     ; 1 or 2 digits?
     bcc @ones_place
     lda #'1'
     ldx #8
@@ -1233,7 +1233,7 @@ message9:
 ;   that can be used to determine EOF, it is ust assumed, that EOF is reached, when
 ;   no data came in for a defined number of cycles.
 ;
-;   Important: Due to the current hardware design (interrupt line) there is no 
+;   Important: Due to the current hardware design (interrupt line) there is no
 ;              way to have the ISR service different interrupt calls.
 ;
 ;   Important: The routine is put as close to the end of the ROM as possible to
@@ -1250,7 +1250,7 @@ message9:
 ;
 ;================================================================================
 
-    .SEGMENT "ISR"                                  ; as close as possible to the ROM's end
+    .SEGMENT "ISR"                              ; as close as possible to the ROM's end
 
 ISR_RAMWRITE:
     pha
@@ -1272,7 +1272,7 @@ ISR_RAMWRITE:
     ldy #0
     sta (CURRENT_RAM_ADDRESS),Y                 ; store byte at current RAM location
 
-                                               ; increase the 16bit RAM location
+                                                ; increase the 16bit RAM location
     inc CURRENT_RAM_ADDRESS_L
     bne @doneisr
     inc CURRENT_RAM_ADDRESS_H
