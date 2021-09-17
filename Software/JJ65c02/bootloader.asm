@@ -41,14 +41,14 @@
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
 ;      . $0200 - $022f      RAM: Bootloader set-aside / Page 2
-;      . $0230 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
-;    $8000 - $8fff      VIA 2: 4K (not currently used)
-;    $9000 - $9fff      VIA 1: 4K
+;      . $0260 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;    $8000 - $8fff      IO Blk: 4K
+;    $9000 - $9fff      VIA1: 4K
 ;    $a000 - $ffff      ROM: 24K
 ;--------
 
 ;
-; Assemble with: cl65 --cpu 65c02 -t none -C jj65c02.cfg -v bootloader.asm -o a.out
+; Assemble with: cl65 -t none --cpu 65c02 -C jj65c02.cfg -v bootloader.asm -o a.out
 ;
 
 PORTB = $9000                                   ; VIA port B
@@ -68,14 +68,16 @@ Z1 = $01
 Z2 = $02
 Z3 = $03
 
-VIDEO_RAM = $0210                               ; $0210 - $022f - Video RAM for 32 char LCD display
+LCD_COLS = 20
+LCD_ROWS = 4
+VIDEO_RAM = $0210                               ; $0210 - $025f - Video RAM for 80 char (max) LCD display
 POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR = $0205
 CLK_SPD = $0200                                 ; Clock speed, in MHz
 ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
 ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, $0207)
 
-PROGRAM_START = $0230                           ; memory location for user programs
+PROGRAM_START = $0260                           ; memory location for user programs
 PROGRAM_END = $8000                             ; End of RAM
 
 CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indirect writing
@@ -1115,11 +1117,11 @@ BOOTLOADER_adj_clock:
     pha                                         ; Save .A, .X, .Y
     phx
     phy
-    lda CLK_SPD
-    sta Z0
 @redisplay:
     jsr LCD_clear_video_ram
     ldx #0
+    lda CLK_SPD
+    sta Z0
 @fill_vram:
     lda clock_spd,X
     sta VIDEO_RAM,X
@@ -1127,7 +1129,7 @@ BOOTLOADER_adj_clock:
     cpx #14
     bne @fill_vram
 
-; Now convert the value of Z0 (from 1 to 14) to ASCII
+; Now convert the value of Z0 (from 1 to 16) to ASCII
     lda Z0
     cmp #10                                     ; 1 or 2 digits?
     bcc @ones_place
@@ -1156,7 +1158,7 @@ BOOTLOADER_adj_clock:
     bne @wait_for_input
 @increase_spd:
     lda Z0
-    cmp #14
+    cmp #16
     beq @redisplay
     inc Z0
     bne @redisplay
@@ -1173,7 +1175,7 @@ BOOTLOADER_adj_clock:
     lda #<message9                              ; saved feedback
     ldy #>message9
     jsr LCD_print
-    lda #50
+    lda #100
     jsr LIB_delay10ms                           ; let them see know it
     jmp @redisplay
 @exit_adj:
@@ -1197,7 +1199,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0230"
+    .asciiz "Running $0x0260"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
