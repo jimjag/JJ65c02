@@ -19,6 +19,9 @@ the dependency on a Nano seems limiting to me. Bite
 the bullet and decide to instead use the 6551 ACIA
 chip for serial I/O. This will eventually also allow
 me to connect to the system via a serial `tty` interface.
+Although old, and somewhat limited, common knowledge seem
+to be to use the old Rockwell R6551, instead of the newer
+65c51, because the latter has some nasty timing bugs.
 
 I've seen some people add in USB and VGA to their 6502
 projects. This seems like overkill. The whole allure, for
@@ -27,10 +30,10 @@ Another reason to drop the Nano. Will keep the
 mini-keyboard and the LCD display though: will likely
 use that as the main menu and as supplemental IO.
 
-With both the VIA and the ACIA chip, I think that
-simply tying both to the `IRQ` line will likely
-work, but isn't ideal. Instead, I use a 4.7K pullup
-on both lines and feed them into a 74HC08 `AND` gate
+With both the VIA (65c22) and the ACIA chip (R6551), I think that
+simply tying both to the `IRQ` line will likely work, but isn't
+ideal. Since the R6551 is an open drain design, I use a 4.7K pullup
+on its IRQ line and feed it and the 65c22 IRQ  into a 74HC08 `AND` gate
 and use that output to drive the `IRQ` input to the 6502.
 
 Looked around for a TTL-serial converter. Found one on
