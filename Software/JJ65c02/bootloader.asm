@@ -8,7 +8,7 @@
 .export LCD_initialize
 .export LCD_clear_screen
 .export LCD_set_cursor
-.export LCD_set_cursor_second_line
+.export LCD_set_cursor_next_line
 .export LCD_render
 .export LCD_wait_busy
 .export LCD_send_instruction
@@ -166,7 +166,7 @@ MENU_main:
     sta VIDEO_RAM,X                             ; store in video ram at X
     iny
     inx
-    cpx #$20                                    ; repeat 32 times
+    cpx #(LCD_COLS * 2)                          ; repeat for 2 whole
     bne @loop
 
 @render_cursor:                                 ; render cursor position based on current state
@@ -177,7 +177,7 @@ MENU_main:
     jmp @render
 
 @lower_cursor:
-    sta VIDEO_RAM+$10
+    sta VIDEO_RAM+$1a
 
 @render:                                        ; and update the screen
     jsr LCD_render
@@ -626,7 +626,7 @@ VIA_configure_ddrs:
 LCD_clear_video_ram:
     pha                                         ; preserve A via stack
     phy                                         ; same for Y
-    ldy #$1f                                    ; set index to 31
+    ldy #((LCD_COLS * LCD_ROWS) - 1)            ; set to last index
     lda #$20                                    ; set character to 'space'
 @loop:
     sta VIDEO_RAM,Y                             ; clean video ram
@@ -859,7 +859,7 @@ LCD_set_cursor:
 
 ;================================================================================
 ;
-;   LCD_set_cursor_second_line - sets cursor to second row, first column
+;   LCD_set_cursor_next_line - sets cursor to second row, first column
 ;
 ;   Low level convenience function
 ;   ————————————————————————————————————
@@ -872,7 +872,7 @@ LCD_set_cursor:
 ;
 ;================================================================================
 
-LCD_set_cursor_second_line:
+LCD_set_cursor_next_line:
     pha                                         ; preserve A
     lda #%11000000                              ; set cursor to line 2 hardly
     jsr LCD_send_instruction
@@ -901,15 +901,15 @@ LCD_render:
     ldx #0
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
-    cpx #$10                                    ; are we done with the first line?
+    cpx #(LCD_COLS)                             ; are we done with the first line?
     beq @next_line                              ; yes - move on to second line
-    cpx #$20                                    ; are we done with 32 chars?
+    cpx #(LCD_COLS * 2)                         ; are we done with 2 lines?
     beq @return                                 ; yes, return from routine
     jsr LCD_send_data                           ; no, send data to lcd
     inx
     jmp @write_char                             ; repeat with next char
 @next_line:
-    jsr LCD_set_cursor_second_line              ; set cursort into line 2
+    jsr LCD_set_cursor_next_line              ; set cursor into line 2
     jsr LCD_send_data                           ; send data to lcd
     inx
     jmp @write_char                             ; repear with next char
@@ -1189,7 +1189,7 @@ BOOTLOADER_adj_clock:
     .SEGMENT "RODATA"
 
 message:
-    .asciiz "     JJ65c02    Bootloader v0.7 "
+    .asciiz "       JJ65c02        Bootloader v0.7   "
 message2:
     .asciiz "Enter Command..."
 message3:
@@ -1205,18 +1205,18 @@ message8:
 MON_position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
-    .byte " Load & Run     "
-    .byte " Load           "
-    .byte " Run            "
-    .byte " Hexdump        "
-    .byte " Clear RAM      "
-    .byte " Adjust Clk Spd "
-    .byte " About          "
-    .byte " Credits        "
+    .byte " Load & Run         "
+    .byte " Load               "
+    .byte " Run                "
+    .byte " Hexdump            "
+    .byte " Clear RAM          "
+    .byte " Adjust Clk Spd     "
+    .byte " About              "
+    .byte " Credits            "
 about:
-    .asciiz "github.com/      jimjag/JJ65c02 "
+    .asciiz "github.com/          jimjag/JJ65c02     "
 credits:
-    .asciiz "Jan Roesner      Orig sixty/5o2 Ben Eater       6502 Project    Steven Wozniak  bin2hex routine "
+    .asciiz "Jan Roesner          Orig sixty/5o2     Ben Eater           6502 Project        Steven Wozniak      bin2hex routine     "
 clock_spd:
     .byte " Clock:  % Mhz"
 message9:
