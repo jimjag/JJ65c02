@@ -9,7 +9,7 @@ Date ""
 Rev ""
 Comp ""
 Comment1 ""
-Comment2 "Arduino Nano: 60/5co2 bootloader support"
+Comment2 ""
 Comment3 "Inspiration: Ben Eater (et.al) 6502 project"
 Comment4 "Author: Jim Jagielski"
 $EndDescr
@@ -40,12 +40,12 @@ $EndComp
 $Comp
 L Oscillator:CXO_DIP14 X1
 U 1 1 6133A5A7
-P 1300 5200
-F 0 "X1" H 1400 5450 50  0000 L CNN
-F 1 "1Mhz" H 1450 5550 50  0000 L CNN
-F 2 "Oscillator:Oscillator_DIP-14" H 1750 4850 50  0001 C CNN
-F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 1200 5200 50  0001 C CNN
-	1    1300 5200
+P 10100 2200
+F 0 "X1" H 10200 2450 50  0000 L CNN
+F 1 "1Mhz" H 10250 2550 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 10550 1850 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 10000 2200 50  0001 C CNN
+	1    10100 2200
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -62,12 +62,12 @@ $EndComp
 $Comp
 L power:GND #PWR0101
 U 1 1 61341A23
-P 1300 5500
-F 0 "#PWR0101" H 1300 5250 50  0001 C CNN
-F 1 "GND" H 1305 5327 50  0000 C CNN
-F 2 "" H 1300 5500 50  0001 C CNN
-F 3 "" H 1300 5500 50  0001 C CNN
-	1    1300 5500
+P 10100 2500
+F 0 "#PWR0101" H 10100 2250 50  0001 C CNN
+F 1 "GND" H 10105 2327 50  0000 C CNN
+F 2 "" H 10100 2500 50  0001 C CNN
+F 3 "" H 10100 2500 50  0001 C CNN
+	1    10100 2500
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -92,7 +92,7 @@ F 3 "" H 5450 7250 50  0001 C CNN
 	1    5450 7250
 	1    0    0    -1  
 $EndComp
-Text GLabel 1600 5200 2    43   Output ~ 0
+Text GLabel 10400 2200 2    43   Output ~ 0
 CLK
 Text GLabel 2900 2100 2    43   Input ~ 0
 CLK
@@ -101,15 +101,15 @@ Wire Wire Line
 $Comp
 L power:+5V #PWR0104
 U 1 1 6132AB75
-P 1300 4900
-F 0 "#PWR0104" H 1300 4750 50  0001 C CNN
-F 1 "+5V" H 1315 5073 50  0000 C CNN
-F 2 "" H 1300 4900 50  0001 C CNN
-F 3 "" H 1300 4900 50  0001 C CNN
-	1    1300 4900
+P 10100 1900
+F 0 "#PWR0104" H 10100 1750 50  0001 C CNN
+F 1 "+5V" H 10115 2073 50  0000 C CNN
+F 2 "" H 10100 1900 50  0001 C CNN
+F 3 "" H 10100 1900 50  0001 C CNN
+	1    10100 1900
 	1    0    0    -1  
 $EndComp
-NoConn ~ 1000 5200
+NoConn ~ 9800 2200
 NoConn ~ 1800 1800
 NoConn ~ 1800 2000
 NoConn ~ 1800 2200
@@ -799,9 +799,9 @@ Entry Wire Line
 NoConn ~ 3700 4700
 NoConn ~ 3700 4600
 Wire Wire Line
-	3350 950  3350 5150
+	3350 950  3350 4300
 Wire Wire Line
-	4850 6750 4850 2050
+	4850 6750 4850 4200
 Wire Wire Line
 	3550 4800 3800 4800
 Wire Wire Line
@@ -1040,16 +1040,6 @@ RW
 Text GLabel 3700 6400 0    47   Input Italic 0
 RW
 Wire Wire Line
-	3700 6500 2250 6500
-Wire Wire Line
-	2250 6500 2250 4400
-Wire Wire Line
-	2250 4400 1050 4400
-Wire Wire Line
-	1050 4400 1050 2100
-Wire Wire Line
-	1050 2100 1800 2100
-Wire Wire Line
 	850  1900 1000 1900
 Wire Wire Line
 	850  900  850  1900
@@ -1259,17 +1249,6 @@ Wire Wire Line
 Connection ~ 7100 5600
 Wire Wire Line
 	7100 5600 7100 5850
-$Comp
-L MCU_Module:Arduino_Nano_v3.x A1
-U 1 1 616348A2
-P 9850 5000
-F 0 "A1" H 9850 3911 50  0001 C CNN
-F 1 "Arduino_Nano_v3.x" H 9850 6150 50  0000 C CNN
-F 2 "Module:Arduino_Nano" H 9850 5000 50  0001 C CIN
-F 3 "http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf" H 9850 5000 50  0001 C CNN
-	1    9850 5000
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	4700 5500 5250 5500
 Entry Wire Line
@@ -1336,24 +1315,6 @@ Entry Wire Line
 	5450 6200 5350 6300
 Text GLabel 5250 6350 2    35   BiDi ~ 0
 pb[0..7]
-Entry Wire Line
-	9000 4900 8900 4800
-Entry Wire Line
-	9000 5000 8900 4900
-Entry Wire Line
-	9000 5100 8900 5000
-Entry Wire Line
-	9000 5200 8900 5100
-Entry Wire Line
-	9000 5300 8900 5200
-Entry Wire Line
-	9000 5400 8900 5300
-Entry Wire Line
-	9000 5500 8900 5400
-Entry Wire Line
-	9000 5600 8900 5500
-Text GLabel 8800 4750 2    35   BiDi ~ 0
-pb[0..7]
 Text Notes 5650 5500 0    47   ~ 0
 pb0
 Text Notes 5650 5600 0    47   ~ 0
@@ -1370,38 +1331,6 @@ Text Notes 5650 6100 0    47   ~ 0
 pb6
 Text Notes 5650 6200 0    47   ~ 0
 pb7
-Text Notes 9050 4900 0    47   ~ 0
-pb0
-Text Notes 9050 5000 0    47   ~ 0
-pb1
-Text Notes 9050 5100 0    47   ~ 0
-pb2
-Text Notes 9050 5200 0    47   ~ 0
-pb3
-Text Notes 9050 5300 0    47   ~ 0
-pb4
-Text Notes 9050 5400 0    47   ~ 0
-pb5
-Text Notes 9050 5500 0    47   ~ 0
-pb6
-Text Notes 9050 5600 0    47   ~ 0
-pb7
-Wire Wire Line
-	9000 4900 9350 4900
-Wire Wire Line
-	9000 5000 9350 5000
-Wire Wire Line
-	9000 5100 9350 5100
-Wire Wire Line
-	9000 5200 9350 5200
-Wire Wire Line
-	9000 5300 9350 5300
-Wire Wire Line
-	9000 5400 9350 5400
-Wire Wire Line
-	9000 5500 9350 5500
-Wire Wire Line
-	9000 5600 9350 5600
 Wire Wire Line
 	4950 4250 7000 4250
 Wire Wire Line
@@ -1422,53 +1351,6 @@ Connection ~ 7700 5850
 Wire Wire Line
 	7700 5850 8000 5850
 Wire Wire Line
-	9350 5700 8550 5700
-Wire Wire Line
-	8550 5700 8550 6350
-Wire Wire Line
-	8550 6350 6750 6350
-Wire Wire Line
-	6750 6350 6750 7600
-Wire Wire Line
-	6750 7600 2250 7600
-Wire Wire Line
-	2250 7600 2250 6500
-Connection ~ 2250 6500
-$Comp
-L power:GND #PWR0114
-U 1 1 61B496FC
-P 9900 6050
-F 0 "#PWR0114" H 9900 5800 50  0001 C CNN
-F 1 "GND" H 9905 5877 50  0000 C CNN
-F 2 "" H 9900 6050 50  0001 C CNN
-F 3 "" H 9900 6050 50  0001 C CNN
-	1    9900 6050
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9850 6000 9850 6050
-Wire Wire Line
-	9850 6050 9900 6050
-Wire Wire Line
-	9950 6000 9950 6050
-Wire Wire Line
-	9950 6050 9900 6050
-Connection ~ 9900 6050
-$Comp
-L power:+5V #PWR0115
-U 1 1 61B7801F
-P 10550 4000
-F 0 "#PWR0115" H 10550 3850 50  0001 C CNN
-F 1 "+5V" H 10565 4173 50  0000 C CNN
-F 2 "" H 10550 4000 50  0001 C CNN
-F 3 "" H 10550 4000 50  0001 C CNN
-	1    10550 4000
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	10050 4000 10550 4000
-NoConn ~ 9950 4000
-Wire Wire Line
 	7200 3900 7200 4000
 Connection ~ 7200 3900
 Wire Wire Line
@@ -1476,7 +1358,299 @@ Wire Wire Line
 Wire Wire Line
 	7550 5850 7550 5950
 Text Notes 9000 1100 0    47   ~ 0
-Memory Map:\n$0000 - $7fff      RAM: 32k\n  $0000 - $00ff      RAM: Zero Page\n  $0100 - $01ff      RAM: Stack pointer (sp) / Page 1\n$8000 - $8fff      VIA 2: 4K (not used) (a11 ->CS1)\n$9000 - $9fff      VIA 1: 4K (a12 -> CS1)\n$a000 - $ffff      ROM: 24K
+Memory Map:\n$0000 - $7fff      RAM: 32k\n  $0000 - $00ff      RAM: Zero Page\n  $0100 - $01ff      RAM: Stack pointer (sp) / Page 1\n$8000 - $8fff      IO: 4K\n$9000 - $9fff      VIA 1: 4K (a12 -> CS1)\n$a000 - $ffff      ROM: 24K
+$Comp
+L Switch:SW_Push LB1
+U 1 1 613599F4
+P 7100 5000
+F 0 "LB1" V 7000 5150 50  0000 C CNN
+F 1 "SW_Push" H 7100 5150 50  0001 C CNN
+F 2 "" H 7100 5200 50  0001 C CNN
+F 3 "~" H 7100 5200 50  0001 C CNN
+	1    7100 5000
+	0    1    1    0   
+$EndComp
+$Comp
+L 6502:65C51N ACIA1
+U 1 1 614BD6C2
+P 1900 5600
+F 0 "ACIA1" H 1900 6515 50  0000 C CNN
+F 1 "65C51N" H 1900 6424 50  0000 C CNN
+F 2 "Package_DIP:DIP-28_W15.24mm_Socket" H 1850 6400 50  0001 C CNN
+F 3 "" H 1900 5600 50  0001 C CNN
+	1    1900 5600
+	1    0    0    -1  
+$EndComp
+Entry Wire Line
+	2750 5350 2650 5250
+Entry Wire Line
+	2750 5450 2650 5350
+Entry Wire Line
+	2750 5550 2650 5450
+Entry Wire Line
+	2750 5650 2650 5550
+Entry Wire Line
+	2750 5750 2650 5650
+Entry Wire Line
+	2750 5850 2650 5750
+Entry Wire Line
+	2750 5950 2650 5850
+Entry Wire Line
+	2750 6050 2650 5950
+Text Notes 2650 5950 2    47   ~ 0
+d0
+Text Notes 2650 5850 2    47   ~ 0
+d1
+Text Notes 2650 5750 2    47   ~ 0
+d2
+Text Notes 2650 5650 2    47   ~ 0
+d3
+Text Notes 2650 5550 2    47   ~ 0
+d4
+Text Notes 2650 5450 2    47   ~ 0
+d5
+Text Notes 2650 5350 2    47   ~ 0
+d6
+Text Notes 2650 5250 2    47   ~ 0
+d7
+Text GLabel 2750 5650 2    35   BiDi ~ 0
+d[0..7]
+Wire Wire Line
+	2650 5250 2400 5250
+Wire Wire Line
+	2650 5950 2400 5950
+Wire Wire Line
+	2650 5750 2400 5750
+Wire Wire Line
+	2650 5650 2400 5650
+Wire Wire Line
+	2650 5550 2400 5550
+Wire Wire Line
+	2650 5350 2400 5350
+Wire Wire Line
+	2650 5450 2400 5450
+Wire Wire Line
+	2650 5850 2400 5850
+Wire Wire Line
+	2400 6250 2650 6250
+$Comp
+L power:+5V #PWR?
+U 1 1 61574455
+P 2650 6250
+F 0 "#PWR?" H 2650 6100 50  0001 C CNN
+F 1 "+5V" H 2650 6400 50  0000 C CNN
+F 2 "" H 2650 6250 50  0001 C CNN
+F 3 "" H 2650 6250 50  0001 C CNN
+	1    2650 6250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 4200 1200 4200
+Wire Wire Line
+	1200 4200 1200 5150
+Wire Wire Line
+	1200 5150 1400 5150
+Connection ~ 4850 4200
+Wire Wire Line
+	4850 4200 4850 2050
+Entry Wire Line
+	1100 6250 1200 6150
+Text Notes 1250 6150 0    47   ~ 0
+a0
+Text GLabel 800  6250 2    35   BiDi ~ 0
+a[0..15]
+Entry Wire Line
+	1100 6350 1200 6250
+Wire Wire Line
+	1400 6150 1200 6150
+Wire Wire Line
+	1400 6250 1200 6250
+Text Notes 1250 6250 0    47   ~ 0
+a1
+Entry Wire Line
+	850  5150 950  5050
+Text Notes 1000 5050 0    47   ~ 0
+a4
+Text GLabel 550  5150 2    35   BiDi ~ 0
+a[0..15]
+Wire Wire Line
+	950  5050 1400 5050
+$Comp
+L power:GND #PWR?
+U 1 1 6171B199
+P 950 4600
+F 0 "#PWR?" H 950 4350 50  0001 C CNN
+F 1 "GND" H 955 4427 50  0000 C CNN
+F 2 "" H 950 4600 50  0001 C CNN
+F 3 "" H 950 4600 50  0001 C CNN
+	1    950  4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 4950 1400 4500
+Wire Wire Line
+	1400 4500 950  4500
+Wire Wire Line
+	950  4500 950  4600
+Wire Wire Line
+	3350 4300 1300 4300
+Wire Wire Line
+	1300 4300 1300 5250
+Wire Wire Line
+	1300 5250 1400 5250
+Connection ~ 3350 4300
+Wire Wire Line
+	3350 4300 3350 5150
+Text GLabel 2500 5050 2    43   Input ~ 0
+CLK
+$Comp
+L Oscillator:CXO_DIP14 X?
+U 1 1 61768F06
+P 10100 3550
+F 0 "X?" H 10200 3800 50  0000 L CNN
+F 1 "1.8Mhz" H 10250 3900 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 10550 3200 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 10000 3550 50  0001 C CNN
+	1    10100 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 61768F10
+P 10100 3850
+F 0 "#PWR?" H 10100 3600 50  0001 C CNN
+F 1 "GND" H 10105 3677 50  0000 C CNN
+F 2 "" H 10100 3850 50  0001 C CNN
+F 3 "" H 10100 3850 50  0001 C CNN
+	1    10100 3850
+	1    0    0    -1  
+$EndComp
+Text GLabel 10400 3550 2    43   Output ~ 0
+ACIA-CLK
+$Comp
+L power:+5V #PWR?
+U 1 1 61768F1B
+P 10100 3250
+F 0 "#PWR?" H 10100 3100 50  0001 C CNN
+F 1 "+5V" H 10115 3423 50  0000 C CNN
+F 2 "" H 10100 3250 50  0001 C CNN
+F 3 "" H 10100 3250 50  0001 C CNN
+	1    10100 3250
+	1    0    0    -1  
+$EndComp
+NoConn ~ 9800 3550
+Text GLabel 1350 5450 0    43   Input ~ 0
+ACIA-CLK
+Wire Wire Line
+	1400 5450 1350 5450
+Wire Wire Line
+	2400 5050 2500 5050
+Text GLabel 2450 4950 2    47   Input Italic 0
+RW
+Wire Wire Line
+	2400 4950 2450 4950
+Text GLabel 2750 5150 2    43   Output ~ 0
+AIRQ
+Wire Wire Line
+	2400 5150 2750 5150
+Text GLabel 3400 6500 0    43   Output ~ 0
+VIRQ
+Wire Wire Line
+	3700 6500 3400 6500
+Text GLabel 1650 2100 0    43   Input ~ 0
+IRQ
+Wire Wire Line
+	1650 2100 1800 2100
+Wire Wire Line
+	1800 2300 850  2300
+Wire Wire Line
+	850  2300 850  1900
+Connection ~ 850  1900
+Text GLabel 9600 5050 0    43   Input ~ 0
+AIRQ
+Text GLabel 9600 5350 0    43   Input ~ 0
+VIRQ
+Text GLabel 10650 5250 2    43   Output ~ 0
+IRQ
+$Comp
+L 74xx:74LS08 U?
+U 1 1 618F68A5
+P 10250 5250
+F 0 "U?" H 10250 5575 50  0000 C CNN
+F 1 "74HC08" H 10250 5484 50  0000 C CNN
+F 2 "" H 10250 5250 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS08" H 10250 5250 50  0001 C CNN
+	1    10250 5250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10650 5250 10550 5250
+$Comp
+L power:+5V #PWR?
+U 1 1 61931DD3
+P 9200 4750
+F 0 "#PWR?" H 9200 4600 50  0001 C CNN
+F 1 "+5V" H 9215 4923 50  0000 C CNN
+F 2 "" H 9200 4750 50  0001 C CNN
+F 3 "" H 9200 4750 50  0001 C CNN
+	1    9200 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 619503E5
+P 9500 4800
+F 0 "R?" V 9295 4800 50  0000 C CNN
+F 1 "4.7K" V 9386 4800 50  0000 C CNN
+F 2 "" V 9540 4790 50  0001 C CNN
+F 3 "~" H 9500 4800 50  0001 C CNN
+	1    9500 4800
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9350 4800 9200 4800
+Wire Wire Line
+	9200 4800 9200 4750
+Wire Wire Line
+	9600 5050 9700 5050
+Wire Wire Line
+	9850 5150 9950 5150
+Wire Wire Line
+	9700 5050 9700 4950
+Wire Wire Line
+	9700 4800 9650 4800
+Wire Wire Line
+	9850 5150 9850 4950
+Wire Wire Line
+	9850 4950 9700 4950
+Connection ~ 9700 4950
+Wire Wire Line
+	9700 4950 9700 4800
+Wire Wire Line
+	9950 5350 9600 5350
+NoConn ~ 1400 5350
+$Comp
+L power:GND #PWR?
+U 1 1 614C272B
+P 2500 6500
+F 0 "#PWR?" H 2500 6250 50  0001 C CNN
+F 1 "GND" H 2505 6327 50  0000 C CNN
+F 2 "" H 2500 6500 50  0001 C CNN
+F 3 "" H 2500 6500 50  0001 C CNN
+	1    2500 6500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 6050 2500 6050
+Wire Wire Line
+	2500 6150 2400 6150
+Wire Wire Line
+	2500 6050 2500 6150
+Connection ~ 2500 6150
+Wire Wire Line
+	2500 6150 2500 6500
+NoConn ~ 1400 5550
+NoConn ~ 1400 5950
 Wire Bus Line
 	5150 3500 5150 3700
 Wire Bus Line
@@ -1486,7 +1660,11 @@ Wire Bus Line
 Wire Wire Line
 	2800 2400 3450 2400
 Wire Bus Line
+	850  5000 850  5250
+Wire Bus Line
 	3450 4700 3450 5000
+Wire Bus Line
+	1100 6150 1100 6400
 Wire Bus Line
 	8650 3400 8650 3800
 Wire Bus Line
@@ -1502,22 +1680,11 @@ Wire Bus Line
 Wire Bus Line
 	5350 5600 5350 6300
 Wire Bus Line
-	8900 4800 8900 5500
-Wire Bus Line
 	7150 2300 7150 3200
 Wire Bus Line
 	5150 2300 5150 3200
 Wire Bus Line
+	2750 5300 2750 6100
+Wire Bus Line
 	1550 2700 1550 4100
-$Comp
-L Switch:SW_Push LB1
-U 1 1 613599F4
-P 7100 5000
-F 0 "LB1" V 7000 5150 50  0000 C CNN
-F 1 "SW_Push" H 7100 5150 50  0001 C CNN
-F 2 "" H 7100 5200 50  0001 C CNN
-F 3 "~" H 7100 5200 50  0001 C CNN
-	1    7100 5000
-	0    1    1    0   
-$EndComp
 $EndSCHEMATC
