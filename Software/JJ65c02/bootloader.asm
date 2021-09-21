@@ -685,18 +685,17 @@ LCD_print_with_offset:
 STRING_ADDRESS_PTR = Z0
     sta STRING_ADDRESS_PTR                      ; load t_string lsb
     sty STRING_ADDRESS_PTR+1                    ; load t_string msb
-    stx Z2                                      ; X can not directly be added to A, therefore we store it #TODO
     ldy #0
 @loop:
     clc
-    tya
-    adc Z2                                      ; compute offset based on given offset and current cursor position
-    tax
+    cpx #(LCD_COLS * LCD_ROWS)
+    bcs @return
     lda (STRING_ADDRESS_PTR),Y                  ; load char from given string at position Y
     beq @return                                 ; is string terminated via 0x00? yes
     sta VIDEO_RAM,X                             ; no - store char to video ram
     iny
-    jmp @loop                                   ; loop until we find 0x00
+    inx
+    bra @loop                                   ; loop until we find 0x00
 @return:
     jsr LCD_render                              ; render video ram contents to LCD screen aka scanline
     rts
