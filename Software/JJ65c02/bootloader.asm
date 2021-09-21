@@ -7,14 +7,13 @@
 .export LCD_print_text
 .export LCD_initialize
 .export LCD_clear_screen
-.export LCD_set_cursor
-.export LCD_set_cursor_second_line
 .export LCD_render
 .export LCD_wait_busy
 .export LCD_send_instruction
 .export LCD_send_data
 .export LIB_delay10ms
 .export LIB_bin_to_hex
+.export VIDEO_RAM
 
 ;================================================================================
 ;
@@ -154,7 +153,7 @@ MENU_main:
 @MAX_SCREEN_POS:                                ; define some constants in ROM
     .byte $06                                   ; its always number of items - 2, here its 7 windows ($00-$06) in 8 items
 @OFFSETS:
-    .byte $00, $10, $20, $30, $40, $50, $60     ; content offsets for all 6 screen windows
+    .byte 0, 20, 40, 60, 80, 100, 120           ; content offsets for all 6 screen windows
 @start:                                         ; and off we go
     jsr LCD_clear_video_ram
     ldx POSITION_MENU
@@ -166,7 +165,7 @@ MENU_main:
     sta VIDEO_RAM,X                             ; store in video ram at X
     iny
     inx
-    cpx #$20                                    ; repeat 32 times
+    cpx #40                                     ; repeat 40 times
     bne @loop
 
 @render_cursor:                                 ; render cursor position based on current state
@@ -177,7 +176,7 @@ MENU_main:
     jmp @render
 
 @lower_cursor:
-    sta VIDEO_RAM+$10
+    sta VIDEO_RAM+20
 
 @render:                                        ; and update the screen
     jsr LCD_render
@@ -543,7 +542,7 @@ HEXDUMP_main:
     lda Z3
     beq @store_upper_line                       ; should we store in upper line? yes
     pla                                         ; no, store in lower line
-    sta VIDEO_RAM+$10,X
+    sta VIDEO_RAM+20,X
     jmp @end_store
 @store_upper_line:                              ; upper line storage
     pla
@@ -626,7 +625,7 @@ VIA_configure_ddrs:
 LCD_clear_video_ram:
     pha                                         ; preserve A via stack
     phy                                         ; same for Y
-    ldy #$1f                                    ; set index to 31
+    ldy #((LCD_ROWS * LCD_COLS) - 1)            ; set index to last byte
     lda #$20                                    ; set character to 'space'
 @loop:
     sta VIDEO_RAM,Y                             ; clean video ram
@@ -760,9 +759,9 @@ LCD_print_text:
 
     dec @CURRENT_PAGE                           ; no, decrease current page by 1
 
-    sec                                         ; decrease reading pointer by 32 bytes
+    sec                                         ; decrease reading pointer by 40 bytes
     lda Z0
-    sbc #$20
+    sbc #40
     sta Z0
     bcs @skipdec
     dec Z1
@@ -776,9 +775,9 @@ LCD_print_text:
 
     inc @CURRENT_PAGE                           ; no, increase current page by 1
 
-    clc                                         ; add 32 to the text pointer
+    clc                                         ; add 40 to the text pointer
     lda Z0
-    adc #$20
+    adc #40
     sta Z0
     bcc @skipinc
     inc Z1
@@ -873,7 +872,7 @@ LCD_set_cursor:
 
 LCD_set_cursor_second_line:
     pha                                         ; preserve A
-    lda #%11000000                              ; set cursor to line 2 hardly
+    lda #%10101000                              ; set cursor to line 2 hardly
     jsr LCD_send_instruction
     pla                                         ; restore A
     rts
@@ -900,9 +899,9 @@ LCD_render:
     ldx #0
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
-    cpx #$10                                    ; are we done with the first line?
+    cpx #20                                    ; are we done with the first line?
     beq @next_line                              ; yes - move on to second line
-    cpx #$20                                    ; are we done with 32 chars?
+    cpx #40                                    ; are we done with 32 chars?
     beq @return                                 ; yes, return from routine
     jsr LCD_send_data                           ; no, send data to lcd
     inx
@@ -1204,18 +1203,20 @@ message8:
 MON_position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
-    .byte " Load & Run     "
-    .byte " Load           "
-    .byte " Run            "
-    .byte " Hexdump        "
-    .byte " Clear RAM      "
-    .byte " Adjust Clk Spd "
-    .byte " About          "
-    .byte " Credits        "
+    .byte " Load & Run         "
+    .byte " Load               "
+    .byte " Run                "
+    .byte " Hexdump            "
+    .byte " Clear RAM          "
+    .byte " Adjust Clk Speed   "
+    .byte " About              "
+    .byte " Credits            "
 about:
-    .asciiz "github.com/      jimjag/JJ65c02 "
+    .asciiz "github.com/            jimjag/JJ65c02   "
 credits:
-    .asciiz "Jan Roesner      Orig sixty/5o2 Ben Eater       6502 Project    Steven Wozniak  bin2hex routine "
+    .byte "Jan Roesner            Orig sixty/5o2   "
+    .byte "Ben Eater              6502 Project     "
+    .byte "Steven Wozniak         bin2hex routine  ",$00
 clock_spd:
     .byte " Clock:  % Mhz"
 message9:
