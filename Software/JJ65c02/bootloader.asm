@@ -7,6 +7,7 @@
 .export LCD_print_text
 .export LCD_initialize
 .export LCD_clear_screen
+.export LCD_set_cursor
 .export LCD_render
 .export LCD_wait_busy
 .export LCD_send_instruction
@@ -69,6 +70,8 @@ Z3 = $03
 
 LCD_COLS = 20
 LCD_ROWS = 4
+LCD_SIZE = LCD_COLS * LCD_ROWS
+LCD_LASTIDX = LCD_SIZE - 1
 VIDEO_RAM = $0210                               ; $0210 - $025f - Video RAM for 80 char (max) LCD display
 POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR = $0205
@@ -107,6 +110,7 @@ LOADING_STATE = Z2
 main:                                           ; boot routine, first thing loaded
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
+    cld
 
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
@@ -123,6 +127,8 @@ main:                                           ; boot routine, first thing load
     ldy #>message
     jsr LCD_print
 
+    lda #255
+    jsr LIB_delay10ms
     lda #255
     jsr LIB_delay10ms
 
@@ -573,7 +579,7 @@ HEXDUMP_main:
 
 VIA_read_mini_keyboard:
 @waiting:
-    lda #DEBOUNCE                               ; debounce
+    lda #(DEBOUNCE)                               ; debounce
     jsr LIB_delay10ms                           ; ~150ms
 
     lda PORTA                                   ; load current key status from VIA
@@ -625,8 +631,8 @@ VIA_configure_ddrs:
 LCD_clear_video_ram:
     pha                                         ; preserve A via stack
     phy                                         ; same for Y
-    ldy #((LCD_ROWS * LCD_COLS) - 1)            ; set index to last byte
-    lda #$20                                    ; set character to 'space'
+    ldy #(LCD_LASTIDX)                          ; set index to last byte
+    lda #' '                                    ; set character to 'space'
 @loop:
     sta VIDEO_RAM,Y                             ; clean video ram
     dey                                         ; decrease index
@@ -662,13 +668,13 @@ LCD_print:
 
 ;================================================================================
 ;
-;   LCD_print_with_offset - prints string on LCD screen at given offset
+;   LCD_print_with_offset - prints string on LCD screen at given offset in Vram
 ;
 ;   String must be given as address pointer, subroutines are called
 ;   The given string is automatically broken into the second display line and
 ;   the render routines are called automatically
 ;
-;   Important: String MUST NOT be zero terminated
+;   Important: String MUST be zero terminated
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A: LSN String Address
 ;                    .Y: MSN String Address
@@ -686,15 +692,14 @@ STRING_ADDRESS_PTR = Z0
     sty STRING_ADDRESS_PTR+1                    ; load t_string msb
     ldy #0
 @loop:
-    clc
-    cpx #(LCD_COLS * LCD_ROWS)
-    bcs @return
+    cpx #(LCD_SIZE)
+    beq @return
     lda (STRING_ADDRESS_PTR),Y                  ; load char from given string at position Y
     beq @return                                 ; is string terminated via 0x00? yes
     sta VIDEO_RAM,X                             ; no - store char to video ram
     iny
     inx
-    bra @loop                                   ; loop until we find 0x00
+    bne @loop                                   ; loop until we find 0x00
 @return:
     jsr LCD_render                              ; render video ram contents to LCD screen aka scanline
     rts
@@ -806,7 +811,7 @@ LCD_initialize:
     lda #%00111000                              ; set 8-bit mode, 2-line display, 5x8 font
     jsr LCD_send_instruction
 
-    lda #%00001110                              ; display on, cursor on, blink off
+    lda #%00001100                              ; display on, cursor off, blink off
     jsr LCD_send_instruction
 
     lda #%00000110                              ; increment and shift cursor, don't shift display
@@ -839,29 +844,12 @@ LCD_clear_screen:
 
 ;================================================================================
 ;
-;   LCD_set_cursor - sets the cursor on hardware level into upper or lower row
+;   LCD_set_cursor - sets the cursor on hardware level
 ;
 ;   Always positions the cursor in the first column of the chosen row
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A: byte representing upper or lower row
-;
-;   Returned Values: none
-;
-;   Destroys:        .A
-;   ————————————————————————————————————
-;
-;================================================================================
-
-LCD_set_cursor:
-    jmp LCD_send_instruction
-
-;================================================================================
-;
-;   LCD_set_cursor_second_line - sets cursor to second row, first column
-;
-;   Low level convenience function
-;   ————————————————————————————————————
-;   Preparatory Ops: none
+;   Preparatory Ops: .Y: byte representing row number
+;                    .X: col number
 ;
 ;   Returned Values: none
 ;
@@ -870,12 +858,17 @@ LCD_set_cursor:
 ;
 ;================================================================================
 
-LCD_set_cursor_second_line:
+LCD_set_cursor:
     pha                                         ; preserve A
-    lda #%10101000                              ; set cursor to line 2 hardly
+    txa
+    clc
+    adc DDRAM,Y
+    clc
+    ora #$80
     jsr LCD_send_instruction
     pla                                         ; restore A
     rts
+
 
 ;================================================================================
 ;
@@ -894,23 +887,31 @@ LCD_set_cursor_second_line:
 ;================================================================================
 
 LCD_render:
-    lda #%10000000                              ; force cursor to first line
-    jsr LCD_set_cursor
     ldx #0
+    ldy #0
+    jsr LCD_set_cursor
+    stz Z3
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,X                             ; read video ram char at X
-    cpx #20                                    ; are we done with the first line?
-    beq @next_line                              ; yes - move on to second line
-    cpx #40                                    ; are we done with 32 chars?
-    beq @return                                 ; yes, return from routine
-    jsr LCD_send_data                           ; no, send data to lcd
+    cpx #(LCD_SIZE)
+    beq @return
+    cpy #(LCD_COLS)
+    beq @next_line
+    jsr LCD_send_data
     inx
-    jmp @write_char                             ; repeat with next char
+    iny
+    bne @write_char
 @next_line:
-    jsr LCD_set_cursor_second_line              ; set cursort into line 2
-    jsr LCD_send_data                           ; send data to lcd
+    inc Z3
+    ldy Z3
+    phx
+    ldx #0
+    jsr LCD_set_cursor
+    plx
+    jsr LCD_send_data
+    ldy #1
     inx
-    jmp @write_char                             ; repear with next char
+    bne @write_char
 @return:
     rts
 
@@ -938,7 +939,7 @@ LCD_wait_busy:
     lda #0
     sta DDRB
 @not_ready:
-    lda #RW                                     ; prepare read mode
+    lda #(RW)                                     ; prepare read mode
     sta PORTA
     lda #(RW | E)                               ; prepare execution
     sta PORTA
@@ -947,7 +948,7 @@ LCD_wait_busy:
     bit PORTB                                   ; read data from LCD
     bne @not_ready                              ; bit 7 set, LCD is still busy, need waiting
 
-    lda #RW
+    lda #(RW)
     sta PORTA
     lda #%11111111
     sta DDRB
@@ -978,7 +979,7 @@ LCD_send_instruction:
     sta PORTB                                   ; write accumulator content into PORTB
     lda #0
     sta PORTA                                   ; clear RS/RW/E bits
-    lda #E
+    lda #(E)
     sta PORTA                                   ; set E bit to send instruction
     lda #0
     sta PORTA                                   ; clear RS/RW/E bits
@@ -1004,11 +1005,11 @@ LCD_send_data:
     jsr LCD_wait_busy
 
     sta PORTB                                   ; write accumulator content into PORTB
-    lda #RS
+    lda #(RS)
     sta PORTA                                   ; clear RW/E bits
     lda #(RS | E)
     sta PORTA                                   ; set E bit AND register select bit to send instruction
-    lda #RS
+    lda #(RS)
     sta PORTA                                   ; clear E bit
     rts
 
@@ -1221,6 +1222,11 @@ clock_spd:
     .byte " Clock:  % Mhz"
 message9:
     .asciiz "Clk Spd Saved"
+DDRAM:
+    .byte $00
+    .byte $40
+    .byte LCD_COLS
+    .byte $40+LCD_COLS
 
 ;================================================================================
 ;
