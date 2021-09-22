@@ -15,7 +15,9 @@ to use, and re-use, what you need.
 
 Not a lot of good info about the 20x4 LED Displays and what
 there is is kind of conflicting. But finally figured out how
-to set the cursor to the row and column I need.
+to set the cursor to the row and column I need. Started adjusting
+the code and libraries to both use the 20x4 display but also
+be backwards compatible with the 16x2.
 
 For Up/Down scrolling right now I use large blocks of text,
 already fixed in a 20 column format, padded with spaces. This
@@ -27,6 +29,8 @@ Got the MAX232 in the mail so went ahead and soldered the
 pins in. Still need to wire it in but we're making progress!
 
 ![max232](./Images/max232.png)
+
+--
 
 ### Sept 18, 2021
 
@@ -113,11 +117,12 @@ Decide to put everything up on [Github](https://github.com/jimjag/JJ65c02).
 
 ### Sept 3, 2021
 
-Decided that I really need to start generating [schematics](./Images/phase2-schematic.jpg). I don't
+Decided that I really need to start generating schematics. I don't
 ever expect to go the PCB route, but will likely end
 up wire-wrapping at some point. Plus, it's good to actually
 document what connects to what, etc. Chose KiCad.
 
+![schematics](./Images/phase2-schematic.jpg)
 --
 
 ### Sept 1, 2021
@@ -167,6 +172,5 @@ valuable to this day.
 So when I saw Ben's videos, I was hooked.
 
 I ordered Ben's kit (I always like supporting people)
-and jumped into making my own version. As can be seen from
-the [photo](./Images/phase1.jpg), it's pretty much a 1-1
-match of Ben's version.
+and jumped into making my own version. As can be seen, it's pretty much a 1-1 match of Ben's version.
+![photo](./Images/phase1.jpg)
