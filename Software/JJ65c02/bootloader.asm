@@ -1,5 +1,6 @@
 .FEATURE leading_dot_in_identifiers
 .setcpu "65C02"
+.MACPACK generic
 
 .export LCD_clear_video_ram
 .export LCD_print
@@ -12,9 +13,13 @@
 .export LCD_wait_busy
 .export LCD_send_instruction
 .export LCD_send_data
+
 .export LIB_delay10ms
 .export LIB_bin_to_hex
+
 .export VIDEO_RAM
+.export LCD_COLS
+.export LCD_ROWS
 
 ;================================================================================
 ;
@@ -129,8 +134,6 @@ main:                                           ; boot routine, first thing load
 
     lda #255
     jsr LIB_delay10ms
-    lda #255
-    jsr LIB_delay10ms
 
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
@@ -158,12 +161,10 @@ MENU_main:
     jmp @start
 @MAX_SCREEN_POS:                                ; define some constants in ROM
     .byte $06                                   ; its always number of items - 2, here its 7 windows ($00-$06) in 8 items
-@OFFSETS:
-    .byte 0, 20, 40, 60, 80, 100, 120           ; content offsets for all 6 screen windows
 @start:                                         ; and off we go
     jsr LCD_clear_video_ram
     ldx POSITION_MENU
-    ldy @OFFSETS,X
+    ldy VRAM_OFFSETS,X
                                                 ; load first offset into Y
     ldx #0                                      ; set X to 0
 @loop:
@@ -177,7 +178,7 @@ MENU_main:
 @render_cursor:                                 ; render cursor position based on current state
     lda #'>'
     ldy POSITION_CURSOR
-    ldx @OFFSETS,Y
+    ldx VRAM_OFFSETS,Y
     sta VIDEO_RAM, X
 
 @render:                                        ; and update the screen
@@ -544,7 +545,7 @@ HEXDUMP_main:
     lda Z3
     beq @store_upper_line                       ; should we store in upper line? yes
     pla                                         ; no, store in lower line
-    sta VIDEO_RAM+20,X
+    sta VIDEO_RAM+LCD_COLS,X
     jmp @end_store
 @store_upper_line:                              ; upper line storage
     pla
@@ -553,8 +554,8 @@ HEXDUMP_main:
     rts
 @end_mon:
     lda #':'                                    ; writing the two colons
-    sta VIDEO_RAM+$4
-    sta VIDEO_RAM+$14
+    sta VIDEO_RAM+4
+    sta VIDEO_RAM+4+LCD_COLS
     rts
 
 ;================================================================================
@@ -1184,7 +1185,8 @@ BOOTLOADER_adj_clock:
     .SEGMENT "RODATA"
 
 message:
-    .asciiz "     JJ65c02    Bootloader v0.7 "
+    .byte "      JJ65c02       "
+    .byte "   Bootloader v0.7a ", $00
 message2:
     .asciiz "Enter Command..."
 message3:
@@ -1223,6 +1225,9 @@ DDRAM:
     .byte $40
     .byte LCD_COLS
     .byte $40+LCD_COLS
+VRAM_OFFSETS:
+    .byte 0, LCD_COLS, 2*LCD_COLS, 3*LCD_COLS, 4*LCD_COLS, 5*LCD_COLS
+    .byte 6*LCD_COLS, 7*LCD_COLS, 8*LCD_COLS, 9*LCD_COLS, 10*LCD_COLS
 
 ;================================================================================
 ;
