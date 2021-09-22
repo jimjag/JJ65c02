@@ -53,7 +53,8 @@
 ;--------
 
 ;
-; Assemble with: cl65 -t none --cpu 65c02 -C jj65c02.cfg -v bootloader.asm -o a.out
+; Assemble with:
+;   cl65 -t none --cpu 65c02 -C jj65c02.cfg -v -vm --mapfile bootloader.lst bootloader.asm -o a.out
 ;
 
 PORTB = $9000                                   ; VIA port B
