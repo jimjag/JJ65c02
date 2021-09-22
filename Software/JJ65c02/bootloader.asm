@@ -171,18 +171,14 @@ MENU_main:
     sta VIDEO_RAM,X                             ; store in video ram at X
     iny
     inx
-    cpx #40                                     ; repeat 40 times
+    cpx #(LCD_SIZE)                             ; fill LCD
     bne @loop
 
 @render_cursor:                                 ; render cursor position based on current state
     lda #'>'
     ldy POSITION_CURSOR
-    bne @lower_cursor
-    sta VIDEO_RAM
-    jmp @render
-
-@lower_cursor:
-    sta VIDEO_RAM+20
+    ldx @OFFSETS,Y
+    sta VIDEO_RAM, X
 
 @render:                                        ; and update the screen
     jsr LCD_render
@@ -202,7 +198,7 @@ MENU_main:
 @move_up:
     lda POSITION_CURSOR                         ; load cursor position
     beq @dec_menu_offset                        ; is cursor in up position? yes?
-    lda #0                                      ; no?
+    dec A                                       ; no?
     sta POSITION_CURSOR                         ; set cursor in up position
     jmp @start                                  ; re-render the whole menu
 @dec_menu_offset:
@@ -214,9 +210,9 @@ MENU_main:
 
 @move_down:
     lda POSITION_CURSOR                         ; load cursor position
-    cmp #1                                      ; is cursor in lower position?
+    cmp #(LCD_ROWS-1)                           ; is cursor in lower position?
     beq @inc_menu_offset                        ; yes?
-    lda #1                                      ; no?
+    inc A                                       ; no?
     sta POSITION_CURSOR                         ; set cursor in lower position
     jmp @start                                  ; and re-render the whole menu
 @inc_menu_offset:
