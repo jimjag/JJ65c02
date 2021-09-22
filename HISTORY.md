@@ -11,6 +11,23 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Sept 21, 2021
+
+Not a lot of good info about the 20x4 LED Displays and what
+there is is kind of conflicting. But finally figured out how
+to set the cursor to the row and column I need.
+
+For Up/Down scrolling right now I use large blocks of text,
+already fixed in a 20 column format, padded with spaces. This
+makes the code and implementation easier, but is quite wasteful.
+Thinking about using pointers, but is it worth the time and
+effort?
+
+Got the MAX232 in the mail so went ahead and soldered the
+pins in. Still need to wire it in but we're making progress!
+
+![max232](./Images/max232.png)
+
 ### Sept 18, 2021
 
 I decided I needed a better way to load programs into
