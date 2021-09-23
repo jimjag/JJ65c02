@@ -39,6 +39,9 @@ void handle_io(cpu *m, bool rwb) {
         case 0x03:
           m->v1->ddra = m->mem[addr];
           break;
+        case 0x0e:
+          m->v1->ier = m->mem[addr];
+          break;
         }
 
         if (m->lcd_8_bit) {
@@ -59,6 +62,7 @@ void handle_io(cpu *m, bool rwb) {
     m->v1->porta |= m->k->key_down ? 0x04 : 0;
     m->v1->porta |= m->k->key_left ? 0x08 : 0;
     m->v1->porta |= m->k->key_right ? 0x10 : 0;
+    m->v1->ier = 0;
 
     if (old_porta_input != (m->v1->porta & ~m->v1->ddra)) {
       m->interrupt_waiting = 0x01;
@@ -69,5 +73,6 @@ void handle_io(cpu *m, bool rwb) {
     m->mem[0x9001] = m->v1->porta;
     m->mem[0x9002] = m->v1->ddrb;
     m->mem[0x9003] = m->v1->ddra;
+    m->mem[0x900e] = m->v1->ier;
   }
 }

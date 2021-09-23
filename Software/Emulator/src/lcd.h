@@ -37,8 +37,8 @@
 
 #define LCD_MEM_SIZE          80
 
-#define LCD_ROWS              2
-#define LCD_COLS              40  // In 16 col chunks
+#define LCD_ROWS              4
+#define LCD_COLS              20
 
 typedef struct {
   bool initialized;

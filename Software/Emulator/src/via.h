@@ -12,6 +12,8 @@ typedef struct {
   uint8_t ddrb;
   // Current contents of Data Direction Register A
   uint8_t ddra;
+  // Current contents of IER
+  uint8_t ier;
 } via;
 
 via * new_via();

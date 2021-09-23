@@ -22,6 +22,7 @@
 #define VIA1_PORTA         (VIA1_ADDRESS + 0x01)
 #define VIA1_DDRB          (VIA1_ADDRESS + 0x02)
 #define VIA1_DDRA          (VIA1_ADDRESS + 0x03)
+#define VIA1_IER           (VIA1_ADDRESS + 0x0e)
 
 void init_io();
 void finish_io();

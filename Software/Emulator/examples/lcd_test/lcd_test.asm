@@ -7,6 +7,13 @@ E  = %10000000
 RW = %01000000
 RS = %00100000
 
+;
+; Even though we only have 24k of ROM space, our ROM images should
+; be 32k. Force this size.
+;
+  .org $8000
+  nop
+
   .org $a000
 reset:
   ldx #$ff

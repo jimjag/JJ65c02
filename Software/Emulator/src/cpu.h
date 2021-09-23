@@ -7,7 +7,7 @@
 #include "lcd.h"
 #include "keys.h"
 
-#define MEMORY_SIZE 65536
+#define MEMORY_SIZE (64*1024)
 #define STACK_START 0x0100
 
 #define FLAG_NEGATIVE 0x80

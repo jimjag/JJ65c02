@@ -8,6 +8,7 @@ via * new_via() {
   v->porta=0x00;
   v->ddrb=0x00;
   v->ddrb=0x00;
+  v->ier=0x00;
   return v;
 }
 

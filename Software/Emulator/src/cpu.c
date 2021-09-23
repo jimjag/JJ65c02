@@ -13,7 +13,7 @@ cpu * new_cpu() {
     m->sr = FLAG_INTERRUPT;
     m->sp = 0xFF;
     m->interrupt_waiting = 0x00;
-    memset(m->mem, 0xFF, MEMORY_SIZE);
+    memset(m->mem, 0x00, MEMORY_SIZE);
     m->v1 = new_via();
     m->l = new_lcd();
     m->k = new_keys();
