@@ -1,28 +1,27 @@
 # The Software
 
-There are 4 main codebases included:
+There are 3 main codebases included:
 
-* The bootloader
-* The Arduino Nano Receiver
+* The minios
 * The host Sender
 * The x65c02 Emulator (which has its own [README.md](Emulator/README.md))
 
-The bootloader itself is standalone, which means that it provides limited functionality all on its own. But the main function of the bootloader is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM, and for this you need the other 2 programs
+The minios itself is standalone, which means that it provides limited functionality all on its own. But the main function of the minios is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM, and for this you need the other 2 programs
 
 The way this works is that you "send" the object file to the serial port that the Arduino Nano is connected to on your host computer (mac, Windows, whatever). This is the _Sender_. On the Arduino, you run a sketch which listens on that serial port for the data, and then works with the JJ65c02 board to copy it to RAM. This is the _Receiver_.
 
-## JJ65c02: The bootloader
+## JJ65c02: The minios
 
-`bootloader.asm` is a minimalist bootloader/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
+`minios.asm` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
 
 1. __Load__ externally assembled __programs__ into RAM via serial connection to Arduino Nano
 2. __Run__ programs that were previously loaded into RAM
 3. __Load & Run__ programs in one go
 4. __Debug__ the full address space via an integrated __hex monitor__ (currently read only)
 5. __Clean RAM__ for use with non-volatile RAM or during development
-6. __Adjust__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
+6. __Adjust Clock Speed__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
 
-The bootloader also provides some helper library functions to handle delays, driving the __LCD__ display, and reading the __mini keyboard__.
+The minios also provides some helper library functions to handle delays, driving the __LCD__ display, and reading the __mini keyboard__.
 
 
 ### Software Requirements
@@ -33,17 +32,17 @@ The following software components are must have's:
 - The [cl65 Assembler](https://cc65.github.io) to build for the 6502
 - Node.js 8+ to be able to use the serial program loading functionality via the Arduino
 
-### Install the bootloader
+### Install the minios
 
-Assemble the bootloader:
+Assemble the minios:
 
 ```
-cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -m bootloader.lst -vm bootloader.asm -o a.out
+cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -m minios.lst -vm minios.s -o a.out
 ```
 
 Burn it (`a.out`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
-The `bootloader.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the bootloader exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
+The `minios.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
 
 ## Arduino: Receiver
 
@@ -125,7 +124,7 @@ Now you can upload your program using the Sender.js CLI tool like so:
 node Sender.js /examples/hello_world.bin
 ```
 
-The upload process will inform you when it's done. The bootloader automatically switches back into the main menu after the upload finished.
+The upload process will inform you when it's done. The minios automatically switches back into the main menu after the upload finished.
 
 Should you encounter any errors during upload, check the `tty` setting in `.sender_config.json` and adjust it to your Arduinos device port. In addition you can lower the transfer speed to values to 4800, 2400 or 1200 baud. Don't use values above 9600 baud, they won't work.
 
@@ -149,11 +148,11 @@ The **hex monitor** is very useful during development and debugging. It lets you
 
 ### 1. Allocated Zero Page Locations
 
-The bootloader needs to use some Zero Page locations: `$00 - $03`. Expect trouble if you overwrite / use them from within your own programs.
+The minios needs to use some Zero Page locations: `$00 - $03`. Expect trouble if you overwrite / use them from within your own programs.
 
 ### 2. Allocated RAM
 
-The bootloader also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD. Another few RAM bytes are used by the bootloader itself.
+The minios also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD. Another few RAM bytes are used by the minios itself.
 
 **However, don't use RAM from `$0200 - $021f`. Expect problems if you do so.**
 
@@ -168,10 +167,4 @@ Happy to accept PR's with improvement here. On the other hands, it's not that we
 
 ## Known Problems
 
-Despite the fact that the bootloader and all of it's components are quite stable, there are some problems, which are to be found via a #TODO in the source.
-
-Worth mentioning are the following:
-
-- Simple delay-based EOF detection during data transfer - if more than a few packages fail to transfer and need to be repeated by the sender, it might happen, that the `BOOTLOADER__program_ram` routine interprets this as EOF, since no data is coming in no more. This problem can not be "easily" solved, since there are no control characters that can be transferred between the Arduino and the 6522. There are solutions, but first there needs to be a problem.
-- sub optimal register preservation - the (reduced) 6502 instruction set makes it hard to preserve all registers w/o wasting RAM locations. The current implementation does put focus on register preservation only where explicitly needed.
-- the ISR is currently static, so it can handle only interrupt requests which come from the Arduino. If you want to use other interrupts of the 6522 or software interrupts, you need to implement a priorization mechanism as well as a branching in the ISR, since (to my knowledge) there is only one interrupt vector, the 6502 can handle.
+Despite the fact that the minios and all of it's components are quite stable, there are some problems, which are to be found via a #TODO in the source.

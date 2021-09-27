@@ -11,6 +11,10 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Sept 27, 2021
+
+Simple name-change from `bootloader` to `minios`.
+
 ### Sept 21, 2021
 
 Not a lot of good info about the 20x4 LED Displays and what

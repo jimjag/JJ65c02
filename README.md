@@ -7,8 +7,7 @@ This project contains 3 main sections:
 
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
-  * The ROM bootloader
-  * Arduino code
+  * The miniOS ROM bootloader
   * Host code
   * x65c02 Emulator
 * [Datasheets](./Datasheets)
