@@ -1,7 +1,7 @@
 .include "minios.inc"
 .include "acia.h"
+.include "lib.inc"
     
-.import LIB_delay1ms
 .export ACIA_DATA
 .export ACIA_STATUS
 .export ACIA_COMMAND
@@ -11,7 +11,7 @@
 .export ACIA_read_byte
 .export ACIA_write_byte
 .export ACIA_write_string
-
+.exportzp ptr1
 
 .segment "ZEROPAGE"
 ptr1:       .res 2
@@ -112,8 +112,13 @@ ACIA_write_string:
     lda (ptr1),y
     beq @end_loop
     jsr ACIA_write_byte
+    cpy #$ff
+    beq @cross_page
     iny 
-    beq @end_loop
+    bra @string_loop
+@cross_page:
+    inc ptr1+1
+    ldy #$00
     bra @string_loop
 @end_loop:
     ply

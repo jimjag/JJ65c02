@@ -15,4 +15,11 @@
 .import POSITION_MENU
 .import POSITION_CURSOR
 
+.macro LCD_writeln str_addr
+    lda #<str_addr
+    ldy #>str_addr
+    jsr LCD_print
+.endmacro
+
+
 .include "lcd.h"

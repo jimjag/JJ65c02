@@ -1,5 +1,6 @@
 .include "minios.inc"
 .include "via.inc"
+.include "acia.inc"
 .include "lcd.h"
 .include "sysram.inc"
 
@@ -19,9 +20,6 @@
 
 .export POSITION_MENU
 .export POSITION_CURSOR
-
-.import VIA_read_mini_keyboard
-.import VIA_configure_ddrs
 
 E =  %10000000
 RW = %01000000
@@ -83,7 +81,7 @@ LCD_clear_video_ram:
 ;   The given string is automatically broken into the second display line and
 ;   the render routines are called automatically
 ;
-;   Important: String MUST NOT be zero terminated
+;   Important: String MUST be zero terminated
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A: LSN String Address
 ;                    .Y: MSN String Address

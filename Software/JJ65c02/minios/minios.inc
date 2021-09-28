@@ -6,9 +6,7 @@
 ;
 ;                                    "JJ65c02"
 ;                                    _________
-;
-;                                      v0.7
-;
+;;
 ;   miniOS: RAM bootloader and viewer (r/o) w/ serial connection support
 ;
 ;   Updated by Jim Jagielski for the JJ65c02 Hobby Breadboard Project
@@ -26,8 +24,8 @@
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $022f      RAM: miniOS set-aside / Page 2
-;      . $0260 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0200 - $02ff      RAM: miniOS set-aside / Page 2
+;      . $0300 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8000 - $8fff      IO Blk: 4K
 ;    $9000 - $9fff      VIA1: 4K
 ;    $a000 - $ffff      ROM: 24K

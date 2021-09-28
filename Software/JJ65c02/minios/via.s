@@ -1,7 +1,6 @@
 .include "minios.inc"
 .include "via.h"
-
-.import LIB_delay1ms
+.include "lib.inc"
 
 .export VIA_configure_ddrs
 .export VIA_read_mini_keyboard

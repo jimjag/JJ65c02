@@ -16,18 +16,11 @@ LOADING_STATE = Z2
 ;
 ;                                    "JJ65c02"
 ;                                    _________
-;
-;                                      v0.7
-;
+;;
 ;   miniOS: RAM bootloader and viewer (r/o) w/ serial connection support
 ;
 ;   Updated by Jim Jagielski for the JJ65c02 Hobby Breadboard Project
 ;      ==> https://github.com/jimjag/JJ65c02
-;
-;   Credits:
-;               - Jan Roesner <jan@roesner.it>     Original Sixty/5o2 project
-;               - Ben Eater                        (Project 6502)
-;               - Steven Wozniak                   (bin2hex routine)
 ;
 ;================================================================================
 
@@ -36,9 +29,9 @@ LOADING_STATE = Z2
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $0300      RAM: miniOS set-aside / Page 2
+;      . $0200 - $02ff      RAM: miniOS set-aside / Page 2
 ;      . $0300 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
-;    $8010 - $801f      ACIA Blk:
+;    $8000 - $8fff      ACIA: 4k
 ;    $9000 - $9fff      VIA1: 4K
 ;    $a000 - $ffff      ROM: 24K
 ;--------
@@ -82,9 +75,7 @@ main:                                           ; boot routine, first thing load
     jsr LCD_clear_video_ram
     jsr LCD_initialize
 
-    lda #<message                               ; render the boot screen
-    ldy #>message
-    jsr LCD_print
+    LCD_writeln message                         ; render the boot screen
 
     lda #25
     jsr LIB_delay100ms

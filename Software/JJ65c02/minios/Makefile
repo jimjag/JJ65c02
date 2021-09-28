@@ -8,7 +8,9 @@ SRCS =  minios.s \
 	via.s \
 	lcd.s \
 	lib.s \
-	acia.s
+	acia.s \
+	tty.s \
+	xmodem.s
 
 all: $(TARGET)
 
