@@ -82,7 +82,7 @@ retry2:     .res 1              ; 2nd counter
 ;
 ;
 XMODEM_send:
-    ;writeln start_msg           ; send prompt and info
+    ACIA_writeln start_msg      ; send prompt and info
     lda #$00
     sta errcnt                  ; error counter set to 0
     sta lastblk                 ; set flag to false
@@ -185,15 +185,15 @@ XMODEM_send:
     bne @Resend                 ; no, resend block
 @PrtAbort:
     jsr Flush                   ; yes, too many errors, flush buffer,
-    ;writeln error_msg           ; print error msg and exit
+    ACIA_writeln error_msg      ; print error msg and exit
 @Done:
     lda #EOT
     jsr ACIA_write_byte
-    ;writeln success_msg         ; All Done..Print msg and exit
+    ACIA_writeln success_msg    ; All Done..Print msg and exit
     rts
 
 XMODEM_recv:
-    ;writeln start_msg           ; send prompt and info
+    ACIA_writeln start_msg      ; send prompt and info
     lda #$01
     sta blkno                   ; set block # to 1
     sta bflag                   ; set flag to get address from block 1
@@ -243,7 +243,7 @@ XMODEM_recv:
     lda Rbuff,x                 ; get block # from buffer
     cmp blkno                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
-    ;writeln error_msg           ; Unexpected block number - abort
+    ACIA_writeln error_msg      ; Unexpected block number - abort
     jsr Flush                   ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     sta $1000                   ; XXX DEBUGGING
@@ -253,7 +253,7 @@ XMODEM_recv:
     inx
     cmp Rbuff,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
-    ;writeln error_msg           ; Unexpected block number - abort
+    ACIA_writeln error_msg      ; Unexpected block number - abort
     jsr Flush                   ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     sta $1000                   ; XXX DEBUGGING
@@ -310,7 +310,7 @@ XMODEM_recv:
     jsr Flush                   ; get leftover characters, if any
     lda #EOT
     jsr ACIA_write_byte
-    ;writeln success_msg
+    ACIA_writeln success_msg
     rts
 ;
 ;=========================================================================
@@ -322,13 +322,13 @@ GetByte:
     sta retry                   ; set low value of timing loop
 @StartCrcLp:
     jsr ACIA_read_byte          ; get chr from serial port, don't wait
-    bcs @GetByte1               ; got one, so exit
+    bcs @GotByte                ; got one, so exit
     dec retry                   ; no character received, so dec counter
     bne @StartCrcLp
     dec retry2                  ; dec hi byte of counter
     bne @StartCrcLp             ; look for character again
     clc                         ; if loop times out, CLC, else SEC and return
-@GetByte1:
+@GotByte:
     rts                         ; with character in "A"
 ;
 Flush:

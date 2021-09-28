@@ -598,7 +598,7 @@ BOOTLOADER_adj_clock:
 
 message:
     .byte "      JJ65c02       "
-    .byte "   miniOS v0.7b     ", $00
+    .byte "   miniOS v0.8      ", $00
 message2:
     .asciiz "Enter Command..."
 message3:
@@ -608,7 +608,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0200"
+    .asciiz "Running $0x0300"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
