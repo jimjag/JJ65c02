@@ -1,10 +1,13 @@
 .include "minios.inc"
 
-.export LIB_delay10ms
+.import CLK_SPD
+
+.export LIB_delay1ms
+.export LIB_delay100ms
 .export LIB_bin_to_hex
 
-    ; Actual start of ROM code
-    .SEGMENT "CODE"
+; Actual start of ROM code
+.segment "CODE"
 
 ;================================================================================
 ;
@@ -44,46 +47,67 @@ LIB_bin_to_hex:
 
 ;================================================================================
 ;
-;   LIB_delay10ms - "sleeps" for about 10ms
+;   LIB_delay1ms - "sleeps" for about 1ms
 ;
 ;   The routine does not actually sleep, but delays by burning cycles in TWO(!)
-;   nested loops. The user must configure the number 10ms delays in .A
+;   nested loops. The user must configure the number 1ms delays in .A
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A: byte representing the sleep duration
 ;
 ;   Returned Values: none
 ;
-;   Destroys:       .A
+;   Destroys:       none
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
-LIB_delay10ms:
+LIB_delay1ms:
+    pha
     phx                                         ; save .X
     phy                                         ; and .Y
-    ldy CLK_SPD
-    phy
-@sleep_4:                                       ; Reset CLK_SPD
-    ply
-    sty CLK_SPD
-    phy
 @sleep_3:
-    ldy #12                                      ; 12 externals of 119 internals is ~10ms
+    ldy CLK_SPD
 @sleep_2:
-    ldx #119
+    ldx #142
 @sleep_1:
     nop                                         ; 2 cycles
     dex                                         ; 2 cycles
     bne @sleep_1                                ; 3 cycles
     dey
     bne @sleep_2
-    dec CLK_SPD                                 ; Adj for clock speed
+    dec                                         ; dec .A !
     bne @sleep_3
-    dec
-    bne @sleep_4                                ; Faster clocks means more loops
-    pla                                         ; pop the stored CLK_SPD
-    sta CLK_SPD
     ply
-    plx                                         ; and .X
+    plx
+    pla
+    rts
+
+
+;================================================================================
+;
+;   LIB_delay100ms - "sleeps" for about 100ms
+;
+;   The user must configure the number 100ms delays in .A
+;   ————————————————————————————————————
+;   Preparatory Ops: .A: byte representing the sleep duration
+;
+;   Returned Values: none
+;
+;   Destroys:       none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_delay100ms:
+    pha
+    phx
+    tax
+@loop:
+    lda #100
+    jsr LIB_delay1ms
+    dex
+    bne @loop
+    plx
+    pla
     rts
 

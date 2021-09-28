@@ -1,4 +1,7 @@
 .include "minios.inc"
+.include "via.inc"
+.include "lcd.h"
+.include "sysram.inc"
 
 .export LCD_clear_video_ram
 .export LCD_print
@@ -12,15 +15,24 @@
 .export LCD_send_instruction
 .export LCD_send_data
 
-.export VIDEO_RAM
-.export LCD_COLS
-.export LCD_ROWS
 .export VRAM_OFFSETS
+
+.export POSITION_MENU
+.export POSITION_CURSOR
 
 .import VIA_read_mini_keyboard
 .import VIA_configure_ddrs
 
-    .SEGMENT "RODATA"
+E =  %10000000
+RW = %01000000
+RS = %00100000
+
+.segment "SYSRAM"
+    
+POSITION_MENU:      .res 1              ; initialize positions for menu and cursor in RAM
+POSITION_CURSOR:    .res 1
+
+.segment "RODATA"
 
 DDRAM:
     .byte $00
@@ -31,9 +43,8 @@ VRAM_OFFSETS:
     .byte 0, LCD_COLS, 2*LCD_COLS, 3*LCD_COLS, 4*LCD_COLS, 5*LCD_COLS
     .byte 6*LCD_COLS, 7*LCD_COLS, 8*LCD_COLS, 9*LCD_COLS, 10*LCD_COLS
 
-
-    ; Actual start of ROM code
-    .SEGMENT "CODE"
+; Actual start of ROM code
+.segment "CODE"
 
 ;================================================================================
 ;

@@ -34,39 +34,4 @@
 ;--------
 
 
-PORTB = $9000                                   ; VIA port B
-PORTA = $9001                                   ; VIA port A
-DDRB = $9002                                    ; Data Direction Register B
-DDRA = $9003                                    ; Data Direction Register A
-IER = $900e                                     ; VIA Interrupt Enable Register
-
-E =  %10000000
-RW = %01000000
-RS = %00100000
-
-DEBOUNCE = 15                                   ; 150ms seems about right
-
-Z0 = $00                                        ; General purpose ZP memory locations
-Z1 = $01
-Z2 = $02
-Z3 = $03
-
-LCD_COLS = 20
-LCD_ROWS = 4
-LCD_SIZE = LCD_COLS * LCD_ROWS
-LCD_LASTIDX = LCD_SIZE - 1
-VIDEO_RAM = $0210                               ; $0210 - $025f - Video RAM for 80 char (max) LCD display
-POSITION_MENU = $0204                           ; initialize positions for menu and cursor in RAM
-POSITION_CURSOR = $0205
-CLK_SPD = $0200                                 ; Clock speed, in MHz
-ISR_FIRST_RUN = $0203                           ; used to determine first run of the ISRD
-ISR_VECTOR = $0206                              ; Store true ISR vector ($0206, $0207)
-
-PROGRAM_START = $0260                           ; memory location for user programs
-PROGRAM_END = $8000                             ; End of RAM
-
-CURRENT_RAM_ADDRESS = Z0                        ; a RAM address handle for indirect writing
-CURRENT_RAM_ADDRESS_L = Z0
-CURRENT_RAM_ADDRESS_H = Z1
-
-LOADING_STATE = Z2
+.include "minios.h"

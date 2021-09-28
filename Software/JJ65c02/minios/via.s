@@ -1,9 +1,13 @@
 .include "minios.inc"
+.include "via.h"
 
-.import LIB_delay10ms
+.import LIB_delay1ms
 
 .export VIA_configure_ddrs
 .export VIA_read_mini_keyboard
+
+; Actual start of ROM code
+.segment "CODE"
 
 ;================================================================================
 ;
@@ -23,8 +27,8 @@
 
 VIA_read_mini_keyboard:
 @waiting:
-    lda #(DEBOUNCE)                               ; debounce
-    jsr LIB_delay10ms                           ; ~150ms
+    lda #(DEBOUNCE)                             ; debounce
+    jsr LIB_delay1ms                            ; ~150ms
 
     lda PORTA                                   ; load current key status from VIA
     ror                                         ; normalize the input to $1, $2, $4 and $8

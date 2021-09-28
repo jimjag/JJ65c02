@@ -1,24 +1,16 @@
 .include "minios.inc"
+.include "sysram.inc"
+.include "lcd.inc"
+.include "via.inc"
 
-.import LCD_clear_video_ram
-.import LCD_print
-.import LCD_print_with_offset
-.import LCD_print_text
-.import LCD_initialize
-.import LCD_clear_screen
-.import LCD_set_cursor
-.import LCD_render
-.import LCD_wait_busy
-.import LCD_send_instruction
-.import LCD_send_data
-
-.import LIB_delay10ms
+.import LIB_delay1ms
+.import LIB_delay100ms
 .import LIB_bin_to_hex
 
-.import VIA_read_mini_keyboard
-.import VIA_configure_ddrs
-
-.import VRAM_OFFSETS
+CURRENT_RAM_ADDRESS = Z0                ; a RAM address handle for indirect writing
+CURRENT_RAM_ADDRESS_L = Z0
+CURRENT_RAM_ADDRESS_H = Z1
+LOADING_STATE = Z2
 
 ;================================================================================
 ;
@@ -44,16 +36,19 @@
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $022f      RAM: miniOS set-aside / Page 2
-;      . $0260 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
-;    $8000 - $8fff      IO Blk: 4K
+;      . $0200 - $0300      RAM: miniOS set-aside / Page 2
+;      . $0300 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;    $8010 - $801f      ACIA Blk:
 ;    $9000 - $9fff      VIA1: 4K
 ;    $a000 - $ffff      ROM: 24K
 ;--------
 
+    .segment "SYSRAM"
+ISR_FIRST_RUN:  .res 1          ; used to determine first run of the ISRD
 
-    ; Actual start of ROM code
-    .SEGMENT "CODE"
+
+; Actual start of ROM code
+.segment "CODE"
 
 
 ;================================================================================
@@ -91,8 +86,8 @@ main:                                           ; boot routine, first thing load
     ldy #>message
     jsr LCD_print
 
-    lda #255
-    jsr LIB_delay10ms
+    lda #25
+    jsr LIB_delay100ms
 
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
@@ -242,8 +237,8 @@ MENU_main:
     jsr LCD_print_text
     jmp @start
 @do_load:                                       ; orchestration of program loading
-    lda #10                                     ; wait a bit, say 100ms
-    jsr LIB_delay10ms
+    lda #100                                    ; wait a bit, say 100ms
+    jsr LIB_delay1ms
     jsr BOOTLOADER_program_ram                  ; call the bootloaders programming routine
 
     rts
@@ -301,7 +296,7 @@ BOOTLOADER_program_ram:
     sta LOADING_STATE
 
     lda #120
-    jsr LIB_delay10ms
+    jsr LIB_delay1ms
 
     lda LOADING_STATE                           ; check back loading state, which was eventually updated by the ISR
     cmp #$02
@@ -317,8 +312,8 @@ BOOTLOADER_program_ram:
     ldy #>message6
     jsr LCD_print
 
-    lda #250
-    jsr LIB_delay10ms
+    lda #25
+    jsr LIB_delay100ms
     rts
 
 ;================================================================================
@@ -522,7 +517,7 @@ HEXDUMP_main:
 ;   BOOTLOADER_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
 ;
 ;   This routine simply updates the internal setting for the clock speed of the
-;   system, in Mhz. This only currently affects LIB_delay10ms so that depending
+;   system, in Mhz. This only currently affects LIB_delay1ms so that depending
 ;   on the setting here, and it matching the actual clock speed, we get close
 ;   to an actual 10ms delay
 ;   ————————————————————————————————————
@@ -597,8 +592,8 @@ BOOTLOADER_adj_clock:
     lda #<message9                              ; saved feedback
     ldy #>message9
     jsr LCD_print
-    lda #100
-    jsr LIB_delay10ms                           ; let them see know it
+    lda #25
+    jsr LIB_delay100ms                           ; let them see know it
     jmp @redisplay
 @exit_adj:
     ply                                         ; Restore .Y, .X, .A
@@ -608,11 +603,11 @@ BOOTLOADER_adj_clock:
 
 ;----------------------------------------------------
 
-    .SEGMENT "RODATA"
+.segment "RODATA"
 
 message:
     .byte "      JJ65c02       "
-    .byte "   Bootloader v0.7b ", $00
+    .byte "   miniOS v0.7b     ", $00
 message2:
     .asciiz "Enter Command..."
 message3:
@@ -622,7 +617,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0260"
+    .asciiz "Running $0x0200"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
@@ -685,7 +680,7 @@ message9:
 ;
 ;================================================================================
 
-    .SEGMENT "ISR"                              ; as close as possible to the ROM's end
+.segment "ISR"                              ; as close as possible to the ROM's end
 
 ISR_RAMWRITE:
     pha
@@ -719,7 +714,7 @@ ISR_RAMWRITE:
 ISR:
     jmp (ISR_VECTOR)
 
-    .SEGMENT "VECTORS"
+.segment "VECTORS"
 
     .word $0000
     .word main                                  ; entry vector main routine
