@@ -114,7 +114,7 @@ XMODEM_send:
 @LdBuffer:
     lda lastblk                 ; Was the last block sent?
     beq @LdBuff0                ; no, send the next one
-    bra @Done                   ; yes, we're done
+    jmp @Done                   ; yes, we're done
 @LdBuff0:
     ldx #$02                    ; init pointers
     ldy #$00
@@ -271,7 +271,7 @@ XMODEM_recv:
     jsr Flush                   ; flush the input port
     lda #NAK
     jsr ACIA_write_byte         ; send NAK to resend block
-    bra @StartBlk               ; Start over, get the block again
+    jmp @StartBlk               ; Start over, get the block again
 @GoodCrc:
     ldx #$02
     lda blkno                   ; get the block number

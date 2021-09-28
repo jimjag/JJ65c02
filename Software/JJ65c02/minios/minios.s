@@ -36,7 +36,7 @@ LOADING_STATE = Z2
 ;    $a000 - $ffff      ROM: 24K
 ;--------
 
-    .segment "SYSRAM"
+.segment "SYSRAM"
 ISR_FIRST_RUN:  .res 1          ; used to determine first run of the ISRD
 
 
@@ -259,9 +259,7 @@ BOOTLOADER_program_ram:
     sta ISR_FIRST_RUN                           ; one time before the first byte arrives, so we mitigate here
 
     jsr LCD_clear_video_ram
-    lda #<message4                              ; Rendering a message
-    ldy #>message4
-    jsr LCD_print
+    LCD_writeln message4
 
     lda #$00                                    ; initializing loading state byte
     sta LOADING_STATE
@@ -299,9 +297,7 @@ BOOTLOADER_program_ram:
     jsr VIA_configure_ddrs
 
     jsr LCD_clear_video_ram
-    lda #<message6
-    ldy #>message6
-    jsr LCD_print
+    LCD_writeln message6
 
     lda #25
     jsr LIB_delay100ms
@@ -325,9 +321,7 @@ BOOTLOADER_program_ram:
 BOOTLOADER_execute:
     sei                                         ; disable interrupt handling
     jsr LCD_clear_video_ram                     ; print a message
-    lda #<message7
-    ldy #>message7
-    jsr LCD_print
+    LCD_writeln message7
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
@@ -348,9 +342,7 @@ BOOTLOADER_execute:
 
 BOOTLOADER_clear_ram:
     jsr LCD_clear_video_ram                     ; render message
-    lda #<message8
-    ldy #>message8
-    jsr LCD_print
+    LCD_writeln message8
 
     ldy #<PROGRAM_START                         ; load start location into zero page
     sty Z0
@@ -525,11 +517,11 @@ BOOTLOADER_adj_clock:
     pha                                         ; Save .A, .X, .Y
     phx
     phy
+    lda CLK_SPD
+    sta Z2
 @redisplay:
     jsr LCD_clear_video_ram
     ldx #0
-    lda CLK_SPD
-    sta Z0
 @fill_vram:
     lda clock_spd,X
     sta VIDEO_RAM,X
@@ -537,8 +529,8 @@ BOOTLOADER_adj_clock:
     cpx #14
     bne @fill_vram
 
-; Now convert the value of Z0 (from 1 to 16) to ASCII
-    lda Z0
+; Now convert the value of Z2 (from 1 to 16) to ASCII
+    lda Z2
     cmp #10                                     ; 1 or 2 digits?
     bcc @ones_place
     lda #'1'
@@ -546,7 +538,7 @@ BOOTLOADER_adj_clock:
     sta VIDEO_RAM,X
 @ones_place:
     lda #'0'
-    adc Z0
+    adc Z2
     ldx #9
     sta VIDEO_RAM,X
     jsr LCD_render
@@ -565,26 +557,24 @@ BOOTLOADER_adj_clock:
     beq @save_spd                               ; RIGHT key pressed
     bne @wait_for_input
 @increase_spd:
-    lda Z0
+    lda Z2
     cmp #16
     beq @redisplay
-    inc Z0
+    inc Z2
     bne @redisplay
 @decrease_spd:
-    lda Z0
+    lda Z2
     cmp #1
     beq @redisplay
-    dec Z0
+    dec Z2
     bne @redisplay
 @save_spd:
-    lda Z0
+    lda Z2
     sta CLK_SPD
     jsr LCD_clear_video_ram
-    lda #<message9                              ; saved feedback
-    ldy #>message9
-    jsr LCD_print
-    lda #25
-    jsr LIB_delay100ms                           ; let them see know it
+    LCD_writeln message9
+    lda #10
+    jsr LIB_delay100ms                          ; let them see know it
     jmp @redisplay
 @exit_adj:
     ply                                         ; Restore .Y, .X, .A
