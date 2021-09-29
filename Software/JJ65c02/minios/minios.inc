@@ -1,3 +1,6 @@
+.ifndef _MINIOS_INC_
+_MINIOS_INC_ = 1
+
 .FEATURE leading_dot_in_identifiers
 .setcpu "65C02"
 .MACPACK generic
@@ -33,3 +36,5 @@
 
 
 .include "minios.h"
+
+.endif

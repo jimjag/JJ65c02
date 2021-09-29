@@ -1,3 +1,7 @@
+.ifndef _TTY_H_
+_TTY_H_ = 1
+
+
 .feature string_escapes
 
 ; Non-visible ASCII codes
@@ -38,3 +42,5 @@ US      = $1F   ; Unit Separator
 SPACE   = $20   ; Space
 DEL     = $7F   ; Delete
 BS      = $7F   ; Backspace on Mac
+
+.endif

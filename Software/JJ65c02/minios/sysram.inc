@@ -1,3 +1,6 @@
+.ifndef _SYSRAM_INC_
+_SYSRAM_INC_ = 1
+
 ;--------
 ; Assumed memory map (based on the JJ65c02):
 ;    $0000 - $7fff      RAM: 32k
@@ -18,3 +21,5 @@
 .import VIDEO_RAM
 .import CLK_SPD
 .import ISR_VECTOR
+
+.endif

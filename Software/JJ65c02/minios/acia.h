@@ -1,3 +1,6 @@
+.ifndef _ACIA_H_
+_ACIA_H_ = 1
+
 .import __ACIA_START__
 
 ACIA_DATA    = __ACIA_START__ + $10
@@ -66,3 +69,5 @@ ACIA_DATA_AVAILABLE    = $01
 ACIA_NO_DATA_AVAILABLE = $00
 
 ACIA_BUFFER_SIZE       = 32
+
+.endif

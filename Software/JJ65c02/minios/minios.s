@@ -2,6 +2,9 @@
 .include "sysram.inc"
 .include "lcd.inc"
 .include "via.inc"
+.include "lib.inc"
+.include "acia.inc"
+.include "tty.inc"
 
 .import LIB_delay1ms
 .import LIB_delay100ms

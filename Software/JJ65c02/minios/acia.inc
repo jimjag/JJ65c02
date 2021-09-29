@@ -1,3 +1,6 @@
+.ifndef _ACIA_INC_
+_ACIA_INC_ = 1
+
 .import ACIA_init
 .import ACIA_read_byte
 .import ACIA_write_byte
@@ -14,3 +17,5 @@
 .endmacro
 
 .include "acia.h"
+
+.endif

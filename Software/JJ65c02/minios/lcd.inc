@@ -1,3 +1,6 @@
+.ifndef _LCD_INC_
+_LCD_INC_ = 1
+
 .import LCD_clear_video_ram
 .import LCD_print
 .import LCD_print_with_offset
@@ -23,3 +26,5 @@
 
 
 .include "lcd.h"
+
+.endif
