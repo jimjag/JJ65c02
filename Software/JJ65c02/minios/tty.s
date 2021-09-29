@@ -6,6 +6,7 @@
 .export TTY_read
 .export TTY_clear_screen
 .export TTY_reset_user_input
+.export welcome_msg
 
 UI_BUFSIZE = $20
 

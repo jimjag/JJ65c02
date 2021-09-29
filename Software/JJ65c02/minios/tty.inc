@@ -5,6 +5,7 @@ _TTY_INC_ = 1
 .import TTY_read
 .import TTY_clear_screen
 .import TTY_reset_user_input
+.import welcome_msg
 
 .include "tty.h"
 

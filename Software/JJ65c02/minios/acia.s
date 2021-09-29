@@ -1,7 +1,7 @@
 .include "minios.inc"
 .include "acia.h"
 .include "lib.inc"
-    
+
 .export ACIA_DATA
 .export ACIA_STATUS
 .export ACIA_COMMAND
@@ -28,18 +28,20 @@ ptr1:       .res 2
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A
+;   Destroys:        none
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 ACIA_init:
+    pha
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS
     lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_DISABLE | ACIA_DTR_LOW)
     sta ACIA_COMMAND
-    lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
+    lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_9600)
     sta ACIA_CONTROL
+    pla
     rts
 
 ;================================================================================
@@ -82,8 +84,8 @@ ACIA_read_byte:
 ;================================================================================
 
 ACIA_write_byte:
-    sta ACIA_DATA
     pha
+    sta ACIA_DATA
     lda #$01                            ; wait 1ms (more than 520us for 19200 baud)
     jsr LIB_delay1ms
     pla
@@ -114,7 +116,7 @@ ACIA_write_string:
     jsr ACIA_write_byte
     cpy #$ff
     beq @cross_page
-    iny 
+    iny
     bra @string_loop
 @cross_page:
     inc ptr1+1

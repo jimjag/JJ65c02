@@ -63,6 +63,7 @@ ISR_FIRST_RUN:  .res 1          ; used to determine first run of the ISRD
 ;================================================================================
 
 main:                                           ; boot routine, first thing loaded
+    sei                                         ; disable all interupts as we boot
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
     cld
@@ -75,7 +76,14 @@ main:                                           ; boot routine, first thing load
     lda #>ISR_RAMWRITE
     sta ISR_VECTOR + 1
 
+    ; Init the 6551
+    jsr ACIA_init
+    jsr TTY_setup_term
+    TTY_writeln welcome_msg
+
     jsr LCD_clear_video_ram
+
+    ; This also inits the VIA chip
     jsr LCD_initialize
 
     LCD_writeln message                         ; render the boot screen
@@ -83,6 +91,7 @@ main:                                           ; boot routine, first thing load
     lda #25
     jsr LIB_delay100ms
 
+    cli                                         ; interupts are back on
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 
