@@ -11,9 +11,38 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Sept 29, 2021
+
+Decided to take full advantage of `cc65` and started a major refactoring
+of the codebase. Now, each functional aspect is separated out into their
+own individual files, with `.h` and `.inc` files to allow reuse by other
+ROM and (User) RAM programs.
+
+Also added in some initial attempts of `xmodem` and `tty` access modules
+to take full advantage of the ACIA/6551 chip. This means that we'll start
+using the serial functions of the chip for the `bootloader`.
+
+My initial thoughts were to use the `R6551`, and that's still the one
+wired in. The main reason was that it supported `IRQ` notices, whereas
+the more recent `W65C51` chip is known to be broken in that regard.
+So whereas you can use `IRQ` to know when various buffers are ready with
+the `R6551`, you need to simply poll-and-wait with the newer one.
+But I really want to see how fast I can reliably run the `JJ65c02`
+and the older chip is limited to 2Mhz, whereas the newer one can
+go as fast as the `65c02`.
+
+Although some people support both options, it requires a re-assembly
+of the source. I've decided to keep things simple and will just
+use poll-and-wait universally. It makes the code easier and is
+really just as efficient as using `IRQ` at this level.
+
+--
+
 ### Sept 27, 2021
 
 Simple name-change from `bootloader` to `minios`.
+
+--
 
 ### Sept 21, 2021
 
