@@ -76,18 +76,26 @@ main:                                           ; boot routine, first thing load
     lda #>ISR_RAMWRITE
     sta ISR_VECTOR + 1
 
-    jsr LCD_clear_video_ram
-
-    ; This also inits the VIA chip
-    jsr LCD_initialize
-
     ; Init the 6551
     jsr ACIA_init
     jsr TTY_setup_term
     TTY_writeln welcome_msg
 
+    jsr LCD_clear_video_ram
+
+    ; This also inits the VIA chip
+    jsr LCD_initialize
+
+    ; Are we serial enabled?
+    lda #1
+    cmp acia_active
+    bne @no_acia
+    LCD_writeln message1
+    bra @delay
+@no_acia:
     LCD_writeln message                         ; render the boot screen
 
+@delay:
     lda #25
     jsr LIB_delay100ms
 
@@ -601,6 +609,9 @@ BOOTLOADER_adj_clock:
 message:
     .byte "      JJ65c02       "
     .byte "   miniOS v0.8      ", $00
+message1:
+    .byte "      JJ65c02       "
+    .byte "  miniOS v0.8 ACIA  ", $00
 message2:
     .asciiz "Enter Command..."
 message3:

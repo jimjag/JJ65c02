@@ -1,6 +1,7 @@
 .ifndef _ACIA_H_
 _ACIA_H_ = 1
 
+;ACIA_6551 = $8010
 .import __ACIA_START__
 
 ACIA_DATA    = __ACIA_START__ + $10

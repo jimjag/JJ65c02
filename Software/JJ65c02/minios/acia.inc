@@ -6,6 +6,7 @@ _ACIA_INC_ = 1
 .import ACIA_write_byte
 .import ACIA_write_string
 .importzp ptr1
+.importzp acia_active
 
 
 .macro ACIA_writeln str_addr
