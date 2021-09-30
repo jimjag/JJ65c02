@@ -9,6 +9,9 @@ _TTY_INC_ = 1
 
 .include "tty.h"
 
+.define TTY_write_char ACIA_write_byte
+.define TTY_read_char ACIA_read_byte
+
 .macro TTY_writeln str_addr
     lda #<str_addr
     sta ptr1

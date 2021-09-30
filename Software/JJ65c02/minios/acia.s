@@ -37,6 +37,7 @@ ACIA_init:
     pha
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS
+    ;lda ACIA_DATA
     lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_DISABLE | ACIA_DTR_LOW)
     sta ACIA_COMMAND
     lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_9600)
@@ -61,7 +62,7 @@ ACIA_init:
 ACIA_read_byte:
     clc                         ; no chr present
     lda ACIA_STATUS
-    and #$08                    ; mask rcvr full bit
+    and #(ACIA_STATUS_RX_FULL)  ; mask rcvr full bit
     beq @done
     lda ACIA_DATA               ; else get chr
     sec                         ; and set the Carry Flag
@@ -85,6 +86,12 @@ ACIA_read_byte:
 
 ACIA_write_byte:
     pha
+@wait_txd_empty_char:
+    lda ACIA_STATUS
+    and #(ACIA_STATUS_TX_EMPTY)
+    beq @wait_txd_empty_char
+    pla
+    pha
     sta ACIA_DATA
     lda #$01                            ; wait 1ms (more than 520us for 19200 baud)
     jsr LIB_delay1ms
@@ -96,7 +103,7 @@ ACIA_write_byte:
 ;   ACIA_write_string - Write null-terminated string
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A, .X: Input pointer (.A low, .X high)
+;   Preparatory Ops: ptr1, ptr+1 string pointer
 ;
 ;   Returned Values: none
 ;
@@ -106,21 +113,17 @@ ACIA_write_byte:
 ;================================================================================
 
 ACIA_write_string:
-    sta ptr1
-    stx ptr1+1
     phy
     ldy #$00
 @string_loop:
     lda (ptr1),y
     beq @end_loop
     jsr ACIA_write_byte
-    cpy #$ff
-    beq @cross_page
     iny
-    bra @string_loop
+    beq @cross_page
+    bne @string_loop
 @cross_page:
     inc ptr1+1
-    ldy #$00
     bra @string_loop
 @end_loop:
     ply

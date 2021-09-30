@@ -76,15 +76,15 @@ main:                                           ; boot routine, first thing load
     lda #>ISR_RAMWRITE
     sta ISR_VECTOR + 1
 
-    ; Init the 6551
-    jsr ACIA_init
-    jsr TTY_setup_term
-    TTY_writeln welcome_msg
-
     jsr LCD_clear_video_ram
 
     ; This also inits the VIA chip
     jsr LCD_initialize
+
+    ; Init the 6551
+    jsr ACIA_init
+    jsr TTY_setup_term
+    TTY_writeln welcome_msg
 
     LCD_writeln message                         ; render the boot screen
 

@@ -50,15 +50,15 @@ panic_msg:      .asciiz "!PANIC!\n\r"
 .segment "CODE"
 
 TTY_setup_term:
-    jsr TTY_clear_screen
-    rts 
+    ;jmp TTY_clear_screen
+    rts
 
 ; Code below has been cribbed from
 ; https://www.grappendorf.net/projects/6502-home-computer/acia-serial-interface-hello-world.html
 
 TTY_read:
-    pha 
-    phy 
+    pha
+    phy
     lda #<user_input
     sta user_input_ptr          ; Lo address
     lda #>user_input
@@ -66,7 +66,7 @@ TTY_read:
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
     lda ACIA_STATUS
-    and #$08
+    and #(ACIA_STATUS_RX_FULL)
     beq @read_next
     lda ACIA_DATA
 @enter_pressed:
@@ -86,7 +86,7 @@ TTY_read:
     sta ACIA_DATA                ; Otherwise, echo the char
 @save_char:
     sta (user_input_ptr),y       ; And save it
-    cpy #$0e                     ; Our 16 char buffer full? (incl null)
+    cpy #(UI_BUFSIZE-1)          ; Our char buffer full? (incl null)
     beq @read_done               ; Yes, get out of here
     iny                          ; Otherwise, move to the next position in the buffer
     bra @read_next               ; And read the next key
@@ -95,10 +95,9 @@ TTY_read:
     lda #NULL
     sta (user_input_ptr),y       ; Make sure the last char is null
     ACIA_writeln new_line
-    ply 
-    pla 
-    rts 
-
+    ply
+    pla
+    rts
 
 TTY_clear_screen:
     ACIA_writeln x_set_fg_white
@@ -106,8 +105,8 @@ TTY_clear_screen:
     ACIA_writeln x_home_position
     ACIA_writeln x_erase_display
     ACIA_writeln x_set_normal        ; Reset to a normal font
-    ACIA_writeln x_set_not_underlined 
-    rts 
+    ACIA_writeln x_set_not_underlined
+    rts
 
 TTY_reset_user_input:
     pha
