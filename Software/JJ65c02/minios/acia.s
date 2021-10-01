@@ -1,4 +1,5 @@
 .include "minios.inc"
+.include "sysram.inc"
 .include "acia.h"
 .include "lib.inc"
 
@@ -12,11 +13,9 @@
 .export ACIA_write_byte
 .export ACIA_write_string
 .exportzp ptr1
-.exportzp acia_active
 
 .segment "ZEROPAGE"
 ptr1:           .res 2
-acia_active:    .res 1
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -37,7 +36,6 @@ acia_active:    .res 1
 
 ACIA_init:
     pha
-    stz acia_active
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS
     lda ACIA_DATA
@@ -48,8 +46,8 @@ ACIA_init:
     lda ACIA_CONTROL
     cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     bne @done
-    lda #1
-    sta acia_active
+    lda #(MINIOS_ACIA_ENABLED)
+    tsb minios_status
 @done:
     pla
     rts

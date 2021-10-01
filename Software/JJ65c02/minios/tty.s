@@ -27,8 +27,8 @@ x_set_bold:             .byte ESC,"[1m",NULL
 x_set_underlined:       .byte ESC,"[4m",NULL
 x_set_normal:           .byte ESC,"[22m",NULL
 x_set_not_underlined:   .byte ESC,"[24m",NULL
-x_set_bg_blue:          .byte ESC,"[44m",NULL
-x_set_fg_white:         .byte ESC,"[37m",NULL
+x_set_bg_black:         .byte ESC,"[40m",NULL
+x_set_fg_green:         .byte ESC,"[32m",NULL
 
 ; Cursor
 x_home_position:        .byte ESC,"[H",NULL
@@ -50,7 +50,7 @@ panic_msg:      .asciiz "!PANIC!\n\r"
 .segment "CODE"
 
 TTY_setup_term:
-    ;jmp TTY_clear_screen
+    jmp TTY_clear_screen
     rts
 
 ; Code below has been cribbed from
@@ -100,8 +100,8 @@ TTY_read:
     rts
 
 TTY_clear_screen:
-    ACIA_writeln x_set_fg_white
-    ACIA_writeln x_set_bg_blue
+    ACIA_writeln x_set_bg_black
+    ACIA_writeln x_set_fg_green
     ACIA_writeln x_home_position
     ACIA_writeln x_erase_display
     ACIA_writeln x_set_normal        ; Reset to a normal font

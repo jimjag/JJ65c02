@@ -6,10 +6,6 @@
 .include "acia.inc"
 .include "tty.inc"
 
-.import LIB_delay1ms
-.import LIB_delay100ms
-.import LIB_bin_to_hex
-
 CURRENT_RAM_ADDRESS = Z0                ; a RAM address handle for indirect writing
 CURRENT_RAM_ADDRESS_L = Z0
 CURRENT_RAM_ADDRESS_H = Z1
@@ -67,6 +63,7 @@ main:                                           ; boot routine, first thing load
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
     cld
+    stz minios_status
 
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
@@ -87,9 +84,9 @@ main:                                           ; boot routine, first thing load
     jsr LCD_initialize
 
     ; Are we serial enabled?
-    lda #1
-    cmp acia_active
-    bne @no_acia
+    lda #(MINIOS_ACIA_ENABLED)
+    bit minios_status
+    beq @no_acia
     LCD_writeln message1
     bra @delay
 @no_acia:

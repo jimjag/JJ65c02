@@ -17,9 +17,11 @@ _SYSRAM_INC_ = 1
 .importzp Z1
 .importzp Z2
 .importzp Z3
+.importzp minios_status
 
 .import VIDEO_RAM
 .import CLK_SPD
 .import ISR_VECTOR
 
+.include "sysram.h"
 .endif
