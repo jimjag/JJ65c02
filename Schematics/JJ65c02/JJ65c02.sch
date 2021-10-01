@@ -1651,6 +1651,22 @@ Wire Wire Line
 	2500 6150 2500 6500
 NoConn ~ 1400 5550
 NoConn ~ 1400 5950
+NoConn ~ 1400 5650
+$Comp
+L power:GND #PWR?
+U 1 1 615AC011
+P 900 5950
+F 0 "#PWR?" H 900 5700 50  0001 C CNN
+F 1 "GND" H 905 5777 50  0000 C CNN
+F 2 "" H 900 5950 50  0001 C CNN
+F 3 "" H 900 5950 50  0001 C CNN
+	1    900  5950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 5750 900  5750
+Wire Wire Line
+	900  5750 900  5950
 Wire Bus Line
 	5150 3500 5150 3700
 Wire Bus Line
