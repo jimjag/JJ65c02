@@ -11,6 +11,25 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 2, 2021
+
+Switched out the `R6551` for the `WDC65C51`. Finished all the wiring
+and did a quick smoke test of the TTY interface at 19200 baud. Works
+like a dream. Next step is to rip out the IRQ-based bootloader and
+use the ACIA to handle the transfer. The newer chip also allows me
+to simplify the IRQ bus as well, and remove the `AND` logic and
+simply wire-OR the pins. This saves a chip and removes a small
+propagation delay.
+
+I have been mulling over 2 improvements to the setup. One is a
+automated power-on delay reset, which is a pretty common, standard,
+and easy improvement. The 2nd is readjusting my memory map, again.
+8k set aside for I/O (VIA and ACIA address space) just seems like
+overkill. Using my present glue logic with a `74HC138` would make
+it easy to allocate just $8000-$8fff to I/O and reclaim 4k for ROM.
+
+--
+
 ### Sept 29, 2021
 
 Decided to take full advantage of `cc65` and started a major refactoring
