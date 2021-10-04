@@ -49,12 +49,40 @@ panic_msg:      .asciiz "!PANIC!\n\r"
 
 .segment "CODE"
 
+;================================================================================
+;
+;   TTY_setup_term - routine to initialize the TTY system
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
 TTY_setup_term:
     jmp TTY_clear_screen
     rts
 
 ; Code below has been cribbed from
 ; https://www.grappendorf.net/projects/6502-home-computer/acia-serial-interface-hello-world.html
+
+;================================================================================
+;
+;   TTY_read - read up to 32 chars from serial input and store in user_input:
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
 
 TTY_read:
     pha
@@ -99,6 +127,20 @@ TTY_read:
     pla
     rts
 
+;================================================================================
+;
+;   TTY_clear_screen - clear TTY screen and set some defaulys
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
 TTY_clear_screen:
     ACIA_writeln x_set_bg_black
     ACIA_writeln x_set_fg_green
@@ -107,6 +149,20 @@ TTY_clear_screen:
     ACIA_writeln x_set_normal        ; Reset to a normal font
     ACIA_writeln x_set_not_underlined
     rts
+
+;================================================================================
+;
+;   TTY_reset_user_input - clean out TTY input buffer
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X
+;   ————————————————————————————————————
+;
+;================================================================================
 
 TTY_reset_user_input:
     pha
