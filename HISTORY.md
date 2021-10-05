@@ -11,6 +11,16 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 5, 2021
+
+Updated the schematics and the code for the new memory map. Kinda premature
+though since I haven't yet physically changed the breadboard yet. Still,
+I think there should be no problem.
+
+![](./Images/phase3-schematics.jpg)
+
+--
+
 ### Oct 2, 2021
 
 Switched out the `R6551` for the `WDC65C51`. Finished all the wiring
