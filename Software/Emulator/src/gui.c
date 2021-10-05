@@ -60,7 +60,7 @@ uint8_t io_supports_paint;
 
 uint8_t memory_start = 0x00;
 
-int input_cycle_skip = 0; 
+int input_cycle_skip = 0;
 
 WINDOW *window = NULL;
 WINDOW *wnd_lcd = NULL;
@@ -184,7 +184,7 @@ void update_gui(cpu *m) {
       m->sr & 0x02 ? 'Z' : '-',
       m->sr & 0x01 ? 'C' : '-',
       m->cycle);
-    mvwprintw(wnd_monitor_content, 3, 0, "Clock mode: %s", m->clock_mode == CLOCK_FAST ? "FAST" : m->clock_mode == CLOCK_SLOW ? "SLOW" : "STEP");
+    mvwprintw(wnd_monitor_content, 3, 0, "Clock mode: %s", m->clock_mode == CLOCK_SPRINT ? "SPRINT" : m->clock_mode == CLOCK_FAST ? "FAST  " : m->clock_mode == CLOCK_SLOW ? "SLOW  " : "STEP  ");
     wrefresh(wnd_monitor_content);
 
     // populate memory monitor
@@ -197,7 +197,7 @@ void update_gui(cpu *m) {
       for (int offset=0; offset<16; offset++) {
         mvwprintw(wnd_memory_content, off16, 6+offset*3, "%02x ", m->mem[(memory_start << 8) + off16 * 0x10 + offset]);
         mvwprintw(wnd_memory_content, off16, 56+offset, "%c", isprint(m->mem[(memory_start << 8) + off16 * 0x10 + offset]) ?
-          m->mem[(memory_start << 8) + off16 * 0x10 + offset] : '.');          
+          m->mem[(memory_start << 8) + off16 * 0x10 + offset] : '.');
       }
     }
     wrefresh(wnd_memory_content);
@@ -205,7 +205,7 @@ void update_gui(cpu *m) {
     // populate ports monitor
     mvwprintw(wnd_portmon_content, 0, 0, "0-V1PA-7 0-V1PB-7 0-V2PA-7 0-V2PB-7");
     uint8_t bitmask = 0x01;
-    for (int bit=0; bit<8; bit++) {      
+    for (int bit=0; bit<8; bit++) {
       mvwprintw(wnd_portmon_content, 1, bit, "%c", m->v1->ddra & bitmask ? 'O' : 'i');
       mvwprintw(wnd_portmon_content, 2, bit, "%c", m->v1->porta & bitmask ? '1' : '0');
       mvwprintw(wnd_portmon_content, 1, bit+9, "%c", m->v1->ddrb & bitmask ? 'O' : 'i');
@@ -214,10 +214,10 @@ void update_gui(cpu *m) {
     }
     wrefresh(wnd_portmon_content);
 
-    if (m->clock_mode == CLOCK_SPRINT && input_cycle_skip < CYCLES_SKIP) 
-    {      
-      input_cycle_skip++;      
-    } else {      
+    if (m->clock_mode == CLOCK_SPRINT && input_cycle_skip < CYCLES_SKIP)
+    {
+      input_cycle_skip++;
+    } else {
       input_cycle_skip=0;
 
       m->k->key_up=false;
@@ -305,7 +305,7 @@ void update_gui(cpu *m) {
             memory_start = 0xfe;
           }
           break;
-      } 
+      }
     }
   } while (!m->shutdown && !keep_going && m->clock_mode != CLOCK_SPRINT);
 }

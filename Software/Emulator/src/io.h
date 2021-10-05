@@ -17,7 +17,7 @@
 #define IO_PAINT_CYAN      0x06
 #define IO_PAINT_WHITE     0x07
 
-#define VIA1_ADDRESS       0x9000   // VIA1 address space
+#define VIA1_ADDRESS       0x8020   // VIA1 address space
 #define VIA1_PORTB         (VIA1_ADDRESS + 0x00)
 #define VIA1_PORTA         (VIA1_ADDRESS + 0x01)
 #define VIA1_DDRB          (VIA1_ADDRESS + 0x02)

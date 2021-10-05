@@ -23,23 +23,23 @@ void handle_io(cpu *m, bool rwb) {
     if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
       uint16_t addr = m->dirty_mem_addr;
 
-      if (addr & 0x9000) {  // in VIA1 address space?
-        switch (addr & 0x0f) {
-        case 0x00:
+      if (addr & 0x8000) {  // in VIA1 address space?
+        switch (addr & 0xff) {
+        case 0x20:
           m->v1->portb &= (~m->v1->ddrb);
           m->v1->portb |= (m->mem[addr] & m->v1->ddrb);
           break;
-        case 0x01:
+        case 0x21:
           m->v1->porta &= (~m->v1->ddra);
           m->v1->porta |= (m->mem[addr] & m->v1->ddra);
           break;
-        case 0x02:
+        case 0x22:
           m->v1->ddrb = m->mem[addr];
           break;
-        case 0x03:
+        case 0x23:
           m->v1->ddra = m->mem[addr];
           break;
-        case 0x0e:
+        case 0x2e:
           m->v1->ier = m->mem[addr];
           break;
         }
@@ -69,10 +69,10 @@ void handle_io(cpu *m, bool rwb) {
     }
 
     // read operation
-    m->mem[0x9000] = m->v1->portb;
-    m->mem[0x9001] = m->v1->porta;
-    m->mem[0x9002] = m->v1->ddrb;
-    m->mem[0x9003] = m->v1->ddra;
-    m->mem[0x900e] = m->v1->ier;
+    m->mem[0x8020] = m->v1->portb;
+    m->mem[0x8021] = m->v1->porta;
+    m->mem[0x8022] = m->v1->ddrb;
+    m->mem[0x8023] = m->v1->ddra;
+    m->mem[0x802e] = m->v1->ier;
   }
 }

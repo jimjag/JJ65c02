@@ -1,7 +1,7 @@
-PORTB = $9000
-PORTA = $9001
-DDRB = $9002
-DDRA = $9003
+PORTB = $8020
+PORTA = $8021
+DDRB = $8022
+DDRA = $8023
 
 E  = %10000000
 RW = %01000000
@@ -95,7 +95,7 @@ print_char:
   lda #RS         ; Clear E bits
   sta PORTA
   rts
-  
+
   .org $fffc
   .word reset
   .word $0000
