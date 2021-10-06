@@ -17,7 +17,7 @@ Updated the schematics and the code for the new memory map. Kinda premature
 though since I haven't yet physically changed the breadboard yet. Still,
 I think there should be no problem.
 
-![](./Images/phase3-schematics.jpg)
+![](./Images/phase3-schematics.png)
 
 --
 
@@ -26,10 +26,7 @@ I think there should be no problem.
 Switched out the `R6551` for the `WDC65C51`. Finished all the wiring
 and did a quick smoke test of the TTY interface at 19200 baud. Works
 like a dream. Next step is to rip out the IRQ-based bootloader and
-use the ACIA to handle the transfer. The newer chip also allows me
-to simplify the IRQ bus as well, and remove the `AND` logic and
-simply wire-OR the pins. This saves a chip and removes a small
-propagation delay.
+use the ACIA to handle the transfer.
 
 I have been mulling over 2 improvements to the setup. One is a
 automated power-on delay reset, which is a pretty common, standard,

@@ -85,7 +85,7 @@ main:                                           ; boot routine, first thing load
     jsr LCD_initialize
 
     ; Are we serial enabled?
-    lda #(MINIOS_ACIA_ENABLED)
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit minios_status
     beq @no_acia
     LCD_writeln message1

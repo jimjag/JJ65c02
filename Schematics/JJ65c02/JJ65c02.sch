@@ -24,28 +24,6 @@ F 3 "" H 7900 2600 50  0001 C CNN
 	1    7900 2600
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:GND #PWR012
-U 1 1 613439D4
-P 7200 4000
-F 0 "#PWR012" H 7200 3750 50  0001 C CNN
-F 1 "GND" H 7205 3827 50  0000 C CNN
-F 2 "" H 7200 4000 50  0001 C CNN
-F 3 "" H 7200 4000 50  0001 C CNN
-	1    7200 4000
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR08
-U 1 1 61344B95
-P 7050 5950
-F 0 "#PWR08" H 7050 5700 50  0001 C CNN
-F 1 "GND" H 7055 5777 50  0000 C CNN
-F 2 "" H 7050 5950 50  0001 C CNN
-F 3 "" H 7050 5950 50  0001 C CNN
-	1    7050 5950
-	1    0    0    -1  
-$EndComp
 Text GLabel 2900 2100 2    43   Input ~ 0
 CLK
 Wire Wire Line
@@ -163,17 +141,6 @@ Wire Wire Line
 	6800 2550 6800 2750
 Wire Wire Line
 	8650 2550 8400 2550
-$Comp
-L power:+5V #PWR01
-U 1 1 6145A724
-P 850 900
-F 0 "#PWR01" H 850 750 50  0001 C CNN
-F 1 "+5V" H 865 1073 50  0000 C CNN
-F 2 "" H 850 900 50  0001 C CNN
-F 3 "" H 850 900 50  0001 C CNN
-	1    850  900 
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2800 1800 2900 1800
 Wire Wire Line
@@ -181,7 +148,7 @@ Wire Wire Line
 Wire Wire Line
 	3350 950  2900 950 
 $Comp
-L Device:R_POT_TRIM RV1
+L Device:R_POT RV1
 U 1 1 615573C8
 P 7050 5650
 F 0 "RV1" H 6982 5696 50  0001 R CNN
@@ -512,17 +479,6 @@ Entry Wire Line
 	8550 3250 8650 3350
 Text GLabel 8700 3150 2    35   BiDi ~ 0
 d[0..7]
-$Comp
-L power:+5V #PWR011
-U 1 1 619AB91A
-P 6450 1900
-F 0 "#PWR011" H 6450 1750 50  0001 C CNN
-F 1 "+5V" H 6450 2050 50  0000 C CNN
-F 2 "" H 6450 1900 50  0001 C CNN
-F 3 "" H 6450 1900 50  0001 C CNN
-	1    6450 1900
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	6400 1950 6450 1950
 Wire Wire Line
@@ -533,28 +489,6 @@ Wire Wire Line
 	8400 1950 8800 1950
 Wire Wire Line
 	9350 1800 9350 1500
-$Comp
-L power:+5V #PWR015
-U 1 1 61A2C840
-P 9350 1500
-F 0 "#PWR015" H 9350 1350 50  0001 C CNN
-F 1 "+5V" H 9350 1650 50  0000 C CNN
-F 2 "" H 9350 1500 50  0001 C CNN
-F 3 "" H 9350 1500 50  0001 C CNN
-	1    9350 1500
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR09
-U 1 1 61A2D633
-P 6300 4800
-F 0 "#PWR09" H 6300 4650 50  0001 C CNN
-F 1 "+5V" H 6300 4950 50  0000 C CNN
-F 2 "" H 6300 4800 50  0001 C CNN
-F 3 "" H 6300 4800 50  0001 C CNN
-	1    6300 4800
-	1    0    0    -1  
-$EndComp
 Text GLabel 3450 2400 2    47   Output Italic 0
 R~W
 Text GLabel 6400 2050 2    47   Input Italic 0
@@ -587,28 +521,6 @@ Wire Wire Line
 NoConn ~ 4700 4700
 Wire Wire Line
 	3500 2200 3500 2050
-$Comp
-L power:+5V #PWR06
-U 1 1 61CD962C
-P 3500 2050
-F 0 "#PWR06" H 3500 1900 50  0001 C CNN
-F 1 "+5V" H 3515 2223 50  0000 C CNN
-F 2 "" H 3500 2050 50  0001 C CNN
-F 3 "" H 3500 2050 50  0001 C CNN
-	1    3500 2050
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR07
-U 1 1 6134E201
-P 4950 6500
-F 0 "#PWR07" H 4950 6350 50  0001 C CNN
-F 1 "+5V" H 4950 6650 50  0000 C CNN
-F 2 "" H 4950 6500 50  0001 C CNN
-F 3 "" H 4950 6500 50  0001 C CNN
-	1    4950 6500
-	1    0    0    -1  
-$EndComp
 $Comp
 L Switch:SW_Push UB1
 U 1 1 6136A5EF
@@ -685,28 +597,6 @@ F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" H 8100 5250 
 F 3 "~" H 8100 5250 50  0001 C CNN
 	1    8100 5250
 	-1   0    0    1   
-$EndComp
-$Comp
-L power:GND #PWR014
-U 1 1 613C16E8
-P 8550 5950
-F 0 "#PWR014" H 8550 5700 50  0001 C CNN
-F 1 "GND" H 8555 5777 50  0000 C CNN
-F 2 "" H 8550 5950 50  0001 C CNN
-F 3 "" H 8550 5950 50  0001 C CNN
-	1    8550 5950
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR013
-U 1 1 614170CA
-P 8550 4600
-F 0 "#PWR013" H 8550 4450 50  0001 C CNN
-F 1 "+5V" H 8565 4773 50  0000 C CNN
-F 2 "" H 8550 4600 50  0001 C CNN
-F 3 "" H 8550 4600 50  0001 C CNN
-	1    8550 4600
-	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	9000 4700 8700 4700
@@ -905,19 +795,6 @@ Wire Wire Line
 Wire Wire Line
 	2650 5850 2400 5850
 Wire Wire Line
-	2400 6250 2650 6250
-$Comp
-L power:+5V #PWR05
-U 1 1 61574455
-P 2650 6250
-F 0 "#PWR05" H 2650 6100 50  0001 C CNN
-F 1 "+5V" H 2650 6400 50  0000 C CNN
-F 2 "" H 2650 6250 50  0001 C CNN
-F 3 "" H 2650 6250 50  0001 C CNN
-	1    2650 6250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
 	4850 4200 1200 4200
 Wire Wire Line
 	1200 4200 1200 5150
@@ -939,17 +816,6 @@ Text GLabel 550  5150 2    35   BiDi ~ 0
 a[0..15]
 Wire Wire Line
 	950  5050 1400 5050
-$Comp
-L power:GND #PWR03
-U 1 1 6171B199
-P 950 4600
-F 0 "#PWR03" H 950 4350 50  0001 C CNN
-F 1 "GND" H 955 4427 50  0000 C CNN
-F 2 "" H 950 4600 50  0001 C CNN
-F 3 "" H 950 4600 50  0001 C CNN
-	1    950  4600
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	1400 4950 1400 4500
 Wire Wire Line
@@ -978,30 +844,17 @@ R~W
 Wire Wire Line
 	2400 4950 2450 4950
 Text GLabel 2750 5150 2    43   Output ~ 0
-~IRQ
+A~IRQ
 Wire Wire Line
 	2400 5150 2750 5150
 Text GLabel 3400 6500 0    43   Output ~ 0
-~IRQ
+V~IRQ
 Wire Wire Line
 	3700 6500 3400 6500
-Text GLabel 1050 2700 0    43   Input ~ 0
+Text GLabel 1400 2100 0    43   Input ~ 0
 ~IRQ
-Wire Wire Line
-	850  2300 850  2100
 Connection ~ 850  1900
 NoConn ~ 1400 5350
-$Comp
-L power:GND #PWR04
-U 1 1 614C272B
-P 2500 6500
-F 0 "#PWR04" H 2500 6250 50  0001 C CNN
-F 1 "GND" H 2505 6327 50  0000 C CNN
-F 2 "" H 2500 6500 50  0001 C CNN
-F 3 "" H 2500 6500 50  0001 C CNN
-	1    2500 6500
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2400 6050 2500 6050
 Wire Wire Line
@@ -1014,21 +867,8 @@ Wire Wire Line
 NoConn ~ 1400 5550
 NoConn ~ 1400 5950
 NoConn ~ 1400 5650
-$Comp
-L power:GND #PWR02
-U 1 1 615AC011
-P 900 5950
-F 0 "#PWR02" H 900 5700 50  0001 C CNN
-F 1 "GND" H 905 5777 50  0000 C CNN
-F 2 "" H 900 5950 50  0001 C CNN
-F 3 "" H 900 5950 50  0001 C CNN
-	1    900  5950
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	1400 5750 900  5750
-Wire Wire Line
-	900  5750 900  5950
 $Sheet
 S 10050 4800 1000 1600
 U 61660CAC
@@ -1045,22 +885,6 @@ Text GLabel 8150 1350 0    47   Input Italic 0
 ROM~CE
 Text GLabel 8150 1050 0    47   Input Italic 0
 ROM~OE
-$Comp
-L Device:R R2
-U 1 1 615CB631
-P 1150 2100
-F 0 "R2" V 1050 2100 50  0000 C CNN
-F 1 "3.7K" V 1150 2100 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" H 1150 2100 50  0001 C CNN
-F 3 "~" H 1150 2100 50  0001 C CNN
-	1    1150 2100
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	850  2100 1000 2100
-Connection ~ 850  2100
-Wire Wire Line
-	850  2100 850  1900
 Wire Wire Line
 	6800 1400 6800 2550
 Wire Wire Line
@@ -1375,8 +1199,8 @@ $Comp
 L Display_Character:NHD-0420H1Z LEDDisplay1
 U 1 1 61334BF5
 P 6300 5600
-F 0 "LEDDisplay1" H 6300 4450 50  0000 C CNN
-F 1 "HD44780" H 6300 4350 50  0000 C CNN
+F 0 "LEDDisplay1" H 6300 6600 50  0000 C CNN
+F 1 "HD44780" H 6300 6500 50  0000 C CNN
 F 2 "Display:WC1602A" H 6300 5600 50  0001 L BNN
 F 3 "" H 6300 5600 50  0001 L BNN
 F 4 "N/A" H 6300 5600 50  0001 L BNN "MGF#"
@@ -1384,23 +1208,6 @@ F 5 "5V" H 6300 5600 50  0001 L BNN "VOLTAGE"
 	1    6300 5600
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:GND #PWR0106
-U 1 1 615D7846
-P 6300 6400
-F 0 "#PWR0106" H 6300 6150 50  0001 C CNN
-F 1 "GND" H 6305 6227 50  0000 C CNN
-F 2 "" H 6300 6400 50  0001 C CNN
-F 3 "" H 6300 6400 50  0001 C CNN
-	1    6300 6400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7200 5650 7300 5650
-Wire Wire Line
-	7300 5650 7300 4800
-Wire Wire Line
-	7300 4800 6400 4800
 Wire Wire Line
 	7050 5800 7050 5900
 Wire Wire Line
@@ -1414,19 +1221,6 @@ Wire Wire Line
 	7050 5900 7050 5950
 Wire Wire Line
 	6700 5900 6700 6400
-Wire Wire Line
-	6700 6400 6800 6400
-$Comp
-L power:+5V #PWR0107
-U 1 1 6168F0BD
-P 6800 6400
-F 0 "#PWR0107" H 6800 6250 50  0001 C CNN
-F 1 "+5V" H 6800 6550 50  0000 C CNN
-F 2 "" H 6800 6400 50  0001 C CNN
-F 3 "" H 6800 6400 50  0001 C CNN
-	1    6800 6400
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	5900 5000 5400 5000
 Wire Wire Line
@@ -1474,12 +1268,49 @@ Wire Wire Line
 Wire Wire Line
 	1300 2300 1800 2300
 Wire Wire Line
-	1400 2700 1400 2100
+	6700 6400 6800 6400
+Text GLabel 850  900  1    47   Input ~ 0
++5V
+Text GLabel 3500 2050 1    47   Input ~ 0
++5V
+Text GLabel 9350 1500 1    47   Input ~ 0
++5V
+Text GLabel 6450 1900 1    47   Input ~ 0
++5V
+Text GLabel 8550 4600 1    47   Input ~ 0
++5V
+Text GLabel 5900 4800 0    47   Input ~ 0
++5V
+Text GLabel 6800 6400 2    47   Input ~ 0
++5V
+Text GLabel 4950 6500 2    47   Input ~ 0
++5V
+Text GLabel 2650 6250 2    47   Input ~ 0
++5V
+Text GLabel 8550 5950 3    47   Input ~ 0
+GND
+Text GLabel 7050 5950 3    47   Input ~ 0
+GND
+Text GLabel 2500 6500 3    47   Input ~ 0
+GND
+Text GLabel 6300 6400 3    47   Input ~ 0
+GND
+Text GLabel 950  4600 3    47   Input ~ 0
+GND
+Text GLabel 7200 4000 3    47   Input ~ 0
+GND
+Text GLabel 900  5750 0    47   Input ~ 0
+GND
 Wire Wire Line
-	1050 2700 1400 2700
-Connection ~ 1400 2100
+	2400 6250 2650 6250
 Wire Wire Line
-	1400 2100 1300 2100
+	7200 5650 7200 4800
+Wire Wire Line
+	7200 4800 6400 4800
+Wire Wire Line
+	850  1900 850  2300
+Wire Wire Line
+	6300 4800 5900 4800
 Wire Bus Line
 	5150 3050 5150 3250
 Wire Bus Line

@@ -46,7 +46,7 @@ ACIA_init:
     lda ACIA_CONTROL
     cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     bne @done
-    lda #(MINIOS_ACIA_ENABLED)
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
     tsb minios_status
 @done:
     pla

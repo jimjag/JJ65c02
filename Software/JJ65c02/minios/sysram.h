@@ -3,6 +3,6 @@ _SYSRAM_H_ = 1
 
 ; miniOS status/config bit masks
 
-MINIOS_ACIA_ENABLED = 1 << 0
+MINIOS_ACIA_ENABLED_FLAG = 1 << 0
 
 .endif
