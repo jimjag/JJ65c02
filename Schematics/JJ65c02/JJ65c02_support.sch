@@ -523,6 +523,35 @@ Wire Wire Line
 	1800 4050 1800 4150
 Text Notes 1350 4550 0    98   ~ 0
 ~IRQ~ Logic Glue
+$Comp
+L 6502:MAX232B U5
+U 1 1 616302EB
+P 9350 4350
+F 0 "U5" V 10100 4050 47  0000 R CNN
+F 1 "MAX232B" V 10000 4150 47  0000 R CNN
+F 2 "" H 9350 4350 47  0001 C CNN
+F 3 "" H 9350 4350 47  0001 C CNN
+	1    9350 4350
+	0    -1   -1   0   
+$EndComp
+Text GLabel 9150 3950 0    47   Input ~ 0
+RxD
+Text GLabel 9150 4050 0    47   Input ~ 0
+TxD
+Text GLabel 9150 4350 0    47   Input ~ 0
++5V
+Text GLabel 9150 4450 0    47   Input ~ 0
+GND
+Wire Wire Line
+	9150 3950 9450 3950
+Wire Wire Line
+	9150 4050 9450 4050
+Wire Wire Line
+	9150 4350 9450 4350
+Wire Wire Line
+	9150 4450 9450 4450
+NoConn ~ 9450 4150
+NoConn ~ 9450 4250
 Wire Bus Line
 	5000 2400 5000 3150
 $EndSCHEMATC

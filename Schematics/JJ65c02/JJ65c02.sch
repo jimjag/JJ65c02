@@ -1311,6 +1311,14 @@ Wire Wire Line
 	850  1900 850  2300
 Wire Wire Line
 	6300 4800 5900 4800
+Text GLabel 1150 5850 0    47   Output ~ 0
+TxD
+Text GLabel 1150 6050 0    47   Output ~ 0
+RxD
+Wire Wire Line
+	1400 5850 1150 5850
+Wire Wire Line
+	1150 6050 1400 6050
 Wire Bus Line
 	5150 3050 5150 3250
 Wire Bus Line
