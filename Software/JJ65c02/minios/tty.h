@@ -43,4 +43,6 @@ SPACE   = $20   ; Space
 DEL     = $7F   ; Delete
 BS      = $7F   ; Backspace on Mac
 
+UI_BUFSIZE = $80
+
 .endif

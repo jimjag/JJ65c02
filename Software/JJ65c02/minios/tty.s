@@ -3,12 +3,10 @@
 .include "tty.h"
 
 .export TTY_setup_term
-.export TTY_read
+.export TTY_readln
 .export TTY_clear_screen
 .export TTY_reset_user_input
 .export welcome_msg
-
-UI_BUFSIZE = $20
 
 .segment "ZEROPAGE"
 
@@ -72,7 +70,7 @@ TTY_setup_term:
 
 ;================================================================================
 ;
-;   TTY_read - read up to 32 chars from serial input and store in user_input:
+;   TTY_read - read up to 128 chars from serial input and store in user_input:
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -84,7 +82,7 @@ TTY_setup_term:
 ;
 ;================================================================================
 
-TTY_read:
+TTY_readln:
     pha
     phy
     lda #<user_input
@@ -98,16 +96,16 @@ TTY_read:
     beq @read_next
     lda ACIA_DATA
 @enter_pressed:
-    cmp #CR                      ; User pressed enter?
+    cmp #(CR)                      ; User pressed enter?
     beq @read_done               ; Yes, don't save the CR
 @is_backspace:
-    cmp #BS
+    cmp #(BS)
     bne @echo_char               ; Nope
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
     ACIA_writeln x_backspace     ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
-    lda #NULL
+    lda #(NULL)
     sta (user_input_ptr),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
 @echo_char:
@@ -120,7 +118,7 @@ TTY_read:
     bra @read_next               ; And read the next key
 @read_done:
     iny                          ; Add a NULL in the next position
-    lda #NULL
+    lda #(NULL)
     sta (user_input_ptr),y       ; Make sure the last char is null
     ACIA_writeln new_line
     ply
@@ -172,7 +170,7 @@ TTY_reset_user_input:
     sta user_input_ptr+1        ; Point or repoint at our user_input array
     ldy #$00
 @clear_user_input_loop:
-    lda #NULL
+    lda #(NULL)
     sta (user_input_ptr), y     ; Zero it out
     cpy #(UI_BUFSIZE)           ; 32 bytes in user_input
     beq @reset_user_input_done
