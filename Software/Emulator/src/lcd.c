@@ -48,7 +48,7 @@ void process_input(lcd* l, bool enable, bool rwb, bool data, uint8_t input)
     }
   } else {
     // simply move input to data latch
-    sprintf(message, "LCD received 8-bits: %02x\n", input);
+    sprintf(message, "LCD received 8-bits: 0x%02x\n", input);
     l->data = input;
   }
   trace_emu(message);
@@ -78,7 +78,7 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
 
     if ((input & CMD_FUNCTION_SET) && !(input & MASK_FUNCTION_SET)) {
       l->function_mode = input;
-      sprintf(message, "LCD function set to %02x\n", input);
+      sprintf(message, "LCD function set to 0x%02x\n", input);
       trace_emu(message);
       if (input & BIT_FS_8_BIT) {
         trace_emu("LCD set to 8-bit mode\n");
@@ -97,7 +97,7 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
       }
     } else if ((input & CMD_DISPLAY_SET) && !(input & MASK_DISPLAY_SET)) {
       l->display_mode = input;
-      sprintf(message, "LCD display mode set to %02x\n", input);
+      sprintf(message, "LCD display mode set to 0x%02x\n", input);
       trace_emu(message);
       if (input & BIT_DS_DISPLAY_ON) {
         trace_emu("LCD set to display on\n");
@@ -116,7 +116,7 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
       }
     } else if ((input & CMD_ENTRY_MODE) && !(input & MASK_ENTRY_MODE)) {
       l->entry_mode = input;
-      sprintf(message, "LCD entry mode set to %02x\n", input);
+      sprintf(message, "LCD entry mode set to 0x%02x\n", input);
       trace_emu(message);
       if (input & BIT_EM_INCREMENT) {
         trace_emu("LCD set to increment+shift cursor\n");
@@ -130,7 +130,7 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
       }
     } else if ((input & CMD_SET_DDRAM)) {
       input &= CMD_MASK_DDRAM;
-      sprintf(message, "LCD cursor set to %02x\n", input);
+      sprintf(message, "LCD cursor set to 0x%02x\n", input);
       trace_emu(message);
         l->cursor=input;
     }
@@ -141,7 +141,7 @@ void process_command(lcd* l, bool rwb, uint8_t input) {
 void process_data(lcd* l, bool rwb, uint8_t input) {
   char message[32];
   if (!rwb) { // write operation
-    sprintf(message, "LCD write %02x to location %02x\n", input, l->cursor);
+    sprintf(message, "LCD write 0x%02x to loc 0x%02x\n", input, l->cursor);
     trace_emu(message);
     l->ddram[l->cursor++] = input;
     if (l->cursor >= LCD_MEM_SIZE) {
