@@ -138,6 +138,29 @@ void trace_emu(char *msg) {
     wrefresh(wnd_trace_content);
 }
 
+void update_lcd(cpu *m, int x, int y) {
+  int offset;
+  switch (y) {
+    case 0:
+      offset = 0;
+      break;
+    case 1:
+      offset = LCD_MEM_SIZE/2;
+      break;
+    case 2:
+      offset = LCD_COLS;
+      break;
+    case 3:
+      offset = LCD_COLS + (LCD_MEM_SIZE/2);
+      break;
+  }
+  if (isprint(m->l->ddram[x+offset])) {
+    mvwprintw(wnd_lcd_content, y, x, "%c", m->l->ddram[x+offset]);
+  } else {
+    mvwprintw(wnd_lcd_content, y, x, " ");
+  }
+}
+
 void update_gui(cpu *m) {
   int read;
   bool keep_going = false;
@@ -146,7 +169,6 @@ void update_gui(cpu *m) {
   }
 
   do {
-
     // update LCD contents
     if (!(m->l->initialized)) {
       for (int y=0; y<LCD_ROWS; y+=2) {
@@ -161,12 +183,7 @@ void update_gui(cpu *m) {
     } else {
       for (int y=0; y<LCD_ROWS; y++) {
         for (int x=0; x<LCD_COLS; x++) {
-          int memloc = y*LCD_COLS + x;
-          if (isprint(m->l->ddram[memloc])) {
-            mvwprintw(wnd_lcd_content, y, x, "%c", m->l->ddram[memloc]);
-          } else {
-            mvwprintw(wnd_lcd_content, y, x, " ");
-          }
+          update_lcd(m, x, y);
         }
       }
     }

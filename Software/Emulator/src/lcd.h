@@ -34,12 +34,27 @@
 
 #define CMD_SET_CGRAM         0b01000000
 #define CMD_SET_DDRAM         0b10000000
+#define CMD_MASK_DDRAM        0b01111111
 
-#define LCD_MEM_SIZE          80
+#define LCD_MEM_SIZE          128
 
 #define LCD_ROWS              4
 #define LCD_COLS              20
 
+/*
+    The DDRAM of the LCDs are setup weirdly. Basically, it
+    looks like this:
+
+      0   1  2 ...  19
+      64 65 66 ...  83
+      20 21 21 ...  39
+      84 85 86 ... 103
+
+    Note how the index of line#2 is $40.
+
+    To make it easier, we simply emulate that storage and
+    then manipulate the display.
+ */
 typedef struct {
   bool initialized;
   uint8_t function_mode;
