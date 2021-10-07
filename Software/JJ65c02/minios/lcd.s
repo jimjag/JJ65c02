@@ -26,7 +26,7 @@ RW = %01000000
 RS = %00100000
 
 .segment "SYSRAM"
-    
+
 POSITION_MENU:      .res 1              ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR:    .res 1
 
@@ -275,9 +275,8 @@ LCD_clear_screen:
 
 ;================================================================================
 ;
-;   LCD_set_cursor - sets the cursor on hardware level
+;   LCD_set_cursor - positions the cursor on hardware level
 ;
-;   Always positions the cursor in the first column of the chosen row
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .Y: byte representing row number
 ;                    .X: col number
