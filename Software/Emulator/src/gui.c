@@ -138,7 +138,7 @@ void trace_emu(char *msg) {
     wrefresh(wnd_trace_content);
 }
 
-void update_lcd(cpu *m, int x, int y) {
+void update_lcd_cell(cpu *m, int x, int y) {
   int offset;
   switch (y) {
     case 0:
@@ -183,7 +183,7 @@ void update_gui(cpu *m) {
     } else {
       for (int y=0; y<LCD_ROWS; y++) {
         for (int x=0; x<LCD_COLS; x++) {
-          update_lcd(m, x, y);
+          update_lcd_cell(m, x, y);
         }
       }
     }
