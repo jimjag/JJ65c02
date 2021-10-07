@@ -17,7 +17,35 @@ Updated the schematics and the code for the new memory map. Kinda premature
 though since I haven't yet physically changed the breadboard yet. Still,
 I think there should be no problem.
 
+```
+MEMORY
+{
+  ZP:   start = $0,    size = $100,  type = rw, define = yes;
+  RAM:  start = $0200, size = $7e00, type = rw, define = yes, file = "%O.bin";
+  IO:   start = $8000, size = $1000, type = rw, define = yes, fill = yes, fillval = $ea, file = %O;
+  ROM:  start = $9000, size = $7000, type = ro, define = yes, fill = yes, fillval = $ea, file = %O;
+}
+
+SEGMENTS {
+  ZEROPAGE:  load = ZP,  type = zp,  define = yes;
+  SYSRAM:    load = RAM, type = rw,  define = yes, optional = yes, start = $0200;
+  PROG:      load = RAM, type = rw,  define = yes, optional = yes, start = $0300;
+  DATA:      load = ROM, type = rw,  define = yes, optional = yes, run = RAM;
+  BSS:       load = RAM, type = bss, define = yes, optional = yes;
+  HEAP:      load = RAM, type = bss, define = yes, optional = yes;
+  CODE:      load = ROM, type = ro,  define = yes,  start = $a000;
+  RODATA:    load = ROM, type = ro,  define = yes, optional = yes;
+  RODATA_PA: load = ROM, type = ro,  define = yes, optional = yes, align=$0100;
+  ISR:       load = ROM, type = ro,  start = $ffc0;
+  VECTORS:   load = ROM, type = ro,  start = $fffa;
+}
+```
+
 ![](./Images/phase3-schematics.png)
+
+Even though I don't ever expect to move to using PCBs, wirewrapping is the next and likely final step, I decided to play around with designing and laying
+out the design. Kicad makes it easy and the opensource `Freerouting` tool does a pretty good job auto-routing the traces. After all was said and done, I started
+rethinking whether or not one day I may just try implementing JJ65c02 on a PCB.
 
 --
 
