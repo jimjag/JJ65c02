@@ -411,7 +411,7 @@ Power On Delay Reset
 Text Notes 5600 5150 0    98   ~ 0
 Memory Map Logic Glue
 Text Notes 1050 7000 0    118  ~ 0
-Memory Map:\n$0000 - $7fff      RAM: 32k\n  $0000 - $00ff     RAM: Zero Page\n  $0100 - $01ff     RAM: Stack pointer (sp) / Page 1\n  $0200 - $02ff     RAM: miniOS system memory\n$8000 - $8fff      IO: 4K\n$9000 - $ffff      ROM: 28K
+Memory Map:\n$0000 - $7fff      RAM: 32k\n  $0000 - $00ff      RAM: Zero Page\n  $0100 - $01ff      RAM: Stack pointer (sp) / Page 1\n  $0200 - $02ff      RAM: miniOS system memory\n$8000 - $8fff      IO: 4K\n  $8010 - $801f     ACIA\n  $8020 - $802f     VIA\n$9000 - $ffff      ROM: 28K
 Text Notes 5200 700  0    98   ~ 0
 Support Schematics
 Text Label 5400 2500 2    47   ~ 0
