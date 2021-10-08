@@ -33,7 +33,7 @@
 ; Subsequent blocks
 ;     offset(n) = data byte (n)
 ;
-; One note, XMODEM send 128 byte blocks.  If the block of memory that
+; One note, XMODEM sends 128 byte blocks.  If the block of memory that
 ; you wish to save is smaller than the 128 byte block boundary, then
 ; the last block will be padded with zeros.  Upon reloading, the
 ; data will be written back to the original location.  In addition, the
@@ -44,6 +44,7 @@
 .include "minios.inc"
 .include "tty.h"
 .include "acia.inc"
+.include "lib.inc"
 
 .export XMODEM_send
 .export XMODEM_recv
@@ -61,8 +62,7 @@ bflag:      .res 1              ; block flag
 crc:        .res 2              ; CRC lo byte  (two byte variable)
 ptr:        .res 2              ; data pointer (two byte variable)
 eofp:       .res 2              ; end of file address pointer (2 bytes)
-retry:      .res 1              ; retry counter
-retry2:     .res 1              ; 2nd counter
+delay:      .res 1              ; delay counter
 
 .segment "CODE"
 
@@ -78,6 +78,19 @@ retry2:     .res 1              ; 2nd counter
 ; pointed to by eofp & eofp+1.
 ;
 ;
+
+;================================================================================
+;
+;   XMODEM_send: Send data via xmodem protocol through ACIA
+;
+;   ————————————————————————————————————
+;   Preparatory Ops:
+;
+;   Returned Values:
+;   ————————————————————————————————————
+;
+;================================================================================
+
 XMODEM_send:
     ACIA_writeln start_msg      ; send prompt and info
     lda #$00
@@ -86,8 +99,6 @@ XMODEM_send:
     lda #$01
     sta blkno                   ; set block # to 1
 @Wait4CRC:
-    lda #$ff                    ; 3 seconds
-    sta retry2
     jsr GetByte
     bcc @Wait4CRC               ; wait for something to come in...
     cmp #'C'                    ; is it the "C" to start a CRC xfer?
@@ -149,7 +160,7 @@ XMODEM_send:
     bne @LdBuff1                ; no, get the next
 @SCalcCRC:
     jsr CalcCRC
-    lda crc+1                    ; save Hi byte of CRC to buffer
+    lda crc+1                   ; save Hi byte of CRC to buffer
     sta recvb,y
     iny
     lda crc                     ; save lo byte of CRC to buffer
@@ -164,8 +175,6 @@ XMODEM_send:
     inx
     cpx #$84                    ; last byte?
     bne @SendBlk                ; no, get next
-    lda #$FF                    ; yes, set 3 second delay
-    sta retry2                  ; and
     jsr GetByte                 ; Wait for Ack/Nack
     bcc @Seterror               ; No chr received after 3 seconds, resend
     cmp #(ACK)                  ; Chr received... is it:
@@ -189,6 +198,18 @@ XMODEM_send:
     ACIA_writeln success_msg    ; All Done..Print msg and exit
     rts
 
+;================================================================================
+;
+;   XMODEM_recv: Receive data via xmodem protocol through ACIA
+;
+;   ————————————————————————————————————
+;   Preparatory Ops:
+;
+;   Returned Values:
+;   ————————————————————————————————————
+;
+;================================================================================
+
 XMODEM_recv:
     ACIA_writeln start_msg      ; send prompt and info
     lda #$01
@@ -199,15 +220,11 @@ XMODEM_recv:
 @StartCrc:
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
-    lda #$FF
-    sta retry2                  ; set loop counter for ~3 sec delay
     jsr GetByte                 ; wait for input
     bcs @GotByte                ; byte received, process it
     bcc @StartCrc               ; resend "C"
 
 @StartBlk:
-    lda #$FF
-    sta retry2                  ; set loop counter for ~3 sec delay
     jsr GetByte                 ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
 @GotByte:
@@ -225,9 +242,6 @@ XMODEM_recv:
 @BegBlk:
     ldx #$00
 @GetBlk:
-    lda #$ff                    ; 3 sec window to receive characters
-    sta retry2
-@GetBlk1:
     jsr GetByte                 ; get next character
     bcc @BadCrc                 ; chr rcv error, flush and send NAK
 @GetBlk2:
@@ -257,7 +271,7 @@ XMODEM_recv:
 @GoodBlk2:
     jsr CalcCRC                 ; calc CRC
     lda recvb,y                 ; get hi CRC from buffer
-    cmp crc+1                    ; compare to calculated hi CRC
+    cmp crc+1                   ; compare to calculated hi CRC
     bne @BadCrc                 ; bad crc, send NAK
     iny
     lda recvb,y                 ; get lo CRC from buffer
@@ -314,23 +328,20 @@ XMODEM_recv:
 ; subroutines
 ;
 GetByte:
-    lda #$00                    ; wait for chr input and cycle timing loop
-    sta retry                   ; set low value of timing loop
+    lda #150                    ; wait for chr input and cycle timing loop
+    sta delay                   ; set low value of timing loop
 @StartCrcLp:
     jsr ACIA_read_byte          ; get chr from serial port, don't wait
     bcs @GotByte                ; got one, so exit
-    dec retry                   ; no character received, so dec counter
-    bne @StartCrcLp
-    dec retry2                  ; dec hi byte of counter
+    lda #20
+    jsr LIB_delay1ms
+    dec delay                   ; 3 sec wait
     bne @StartCrcLp             ; look for character again
     clc                         ; if loop times out, CLC, else SEC and return
 @GotByte:
     rts                         ; with character in "A"
 ;
 Flush:
-    lda #$70                    ; flush receive buffer
-    sta retry2                  ; flush until empty for ~1 sec.
-@Flush1:
     jsr GetByte                 ; read the port
     bcs Flush                   ; if chr recvd, wait for another
     rts                         ; else done
