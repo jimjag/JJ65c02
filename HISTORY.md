@@ -11,6 +11,56 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 10, 2021
+
+#### The memory map:
+
+The current memory map is as efficient and as functional as
+I could devise (currently, that is). The intent was to maximize
+RAM, and then ROM, and then ensure adequate set-aside for I/O.
+
+To that end, the address and chip select decoder logic for
+RAM is super easy. If _a15_ is 0, then we're in RAM space,
+and we can use the full 32k. Alternatively, _a15_ high (1),
+means we are in ROM territory, but we also want to carve out
+a small chunk of that space for I/O.
+
+For I/O, the design uses the `W65c22` and the `w65c51`
+as the VIA and ACIA chips, respectively. Now most I/O, especially
+using these chip, don't need a large address space, and
+even 4K is excessive, but workable. To maximize ROM space,
+I use a `74hc138` and consider the states of address lines _a14_, _a13_
+and _a12_. If these are all low (0), then, with _a15_ also low,
+that maps to the $8000-$8fff address space. We can use that as
+a chip select for the I/O chips; If any are high however, that
+means that we are in ROM space, and so we can use that as the
+other ROM chip select signal.
+
+So now that we are choosing the I/O chips, how do we determine _which_ chip
+we actually want to enable? What I came up with is an elegant solution
+where address lines _a4_, _a5_,... are used for the secondary
+chip select. So, in this case, if _a4_ is high, we select the ACIA;
+if _a5_ is high, we pick the VIA. We can continue this way for up
+to 6 more chips. This leaves _a3_->_a0_ to select the actual address
+in these mini-blocks allocated per chip:
+
+```
+a11  a10  a9  a8  a7  a6  a5  a4  |  a3 a2 a1 a0  |    Address
+  0    0   0   0   0   0   0   1  |   x  x  x  x  |  $8010-$801f
+  0    0   0   0   0   0   1   0  |   x  x  x  x  |  $8020-$802f
+  0    0   0   0   0   1   0   0  |   x  x  x  x  |  $8040-$804f
+  0    0   0   0   1   0   0   0  |   x  x  x  x  |  $8080-$808f
+  0    0   0   1   0   0   0   0  |   x  x  x  x  |  $8100-$810f
+  0    0   1   0   0   0   0   0  |   x  x  x  x  |  $8200-$820f
+  0    1   0   0   0   0   0   0  |   x  x  x  x  |  $8400-$840f
+  1    0   0   0   0   0   0   0  |   x  x  x  x  |  $8800-$888f
+```
+
+Note that overlapping address spaces (like $8030, where _a4_ *and* _a5_
+are both 1) are not used since this would select multiple I/O chips.
+
+--
+
 ### Oct 5, 2021
 
 Updated the schematics and the code for the new memory map. Kinda premature
