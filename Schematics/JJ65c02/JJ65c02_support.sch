@@ -14,7 +14,7 @@ Comment3 "Author: Jim Jagielski"
 Comment4 "Support Circuits"
 $EndDescr
 $Comp
-L 6502:NE555-Timer U1
+L JJ65c02-rescue:NE555-Timer-6502 U1
 U 1 1 5E17C676
 P 2500 1700
 AR Path="/61660CAC/5E17C676" Ref="U1"  Part="1" 
@@ -93,10 +93,6 @@ F 3 "~" H 1750 2150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1600 2150 1600 2400
-Wire Wire Line
-	1600 2400 1750 2400
-Wire Wire Line
 	1750 2300 1750 2400
 Connection ~ 1750 2400
 Wire Wire Line
@@ -171,35 +167,6 @@ Wire Wire Line
 	4000 1500 4100 1500
 Wire Wire Line
 	2500 1300 2500 1000
-Connection ~ 1600 2400
-Wire Wire Line
-	1100 1000 1200 1000
-Connection ~ 1750 1000
-Wire Wire Line
-	1050 2400 1200 2400
-$Comp
-L Device:C C1
-U 1 1 5E7C431C
-P 1200 1700
-AR Path="/61660CAC/5E7C431C" Ref="C1"  Part="1" 
-AR Path="/61610474/5E7C431C" Ref="C?"  Part="1" 
-F 0 "C1" H 1315 1746 50  0000 L CNN
-F 1 "0.1uF" H 1315 1655 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 1238 1550 50  0001 C CNN
-F 3 "~" H 1200 1700 50  0001 C CNN
-	1    1200 1700
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1200 1850 1200 2400
-Connection ~ 1200 2400
-Wire Wire Line
-	1200 2400 1600 2400
-Wire Wire Line
-	1200 1550 1200 1000
-Connection ~ 1200 1000
-Wire Wire Line
-	1200 1000 1750 1000
 $Comp
 L 74xx:74HC00 U2
 U 4 1 5E218D59
@@ -458,9 +425,9 @@ Wire Wire Line
 	6750 3250 6750 3300
 Wire Wire Line
 	6750 3300 6350 3300
-Text GLabel 1100 1000 0    47   Input ~ 0
+Text GLabel 1250 1000 0    47   Input ~ 0
 +5V
-Text GLabel 1050 2400 0    47   Input ~ 0
+Text GLabel 1200 2400 0    47   Input ~ 0
 GND
 Text GLabel 9450 2850 3    47   Input ~ 0
 GND
@@ -524,9 +491,11 @@ Wire Wire Line
 Text Notes 1350 4550 0    98   ~ 0
 ~IRQ~ Logic Glue
 $Comp
-L 6502:MAX232B U5
+L JJ65c02-rescue:MAX232B-6502 U5
 U 1 1 616302EB
 P 9350 4350
+AR Path="/616302EB" Ref="U5"  Part="1" 
+AR Path="/61660CAC/616302EB" Ref="U5"  Part="1" 
 F 0 "U5" V 10100 4050 47  0000 R CNN
 F 1 "MAX232B" V 10000 4150 47  0000 R CNN
 F 2 "TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-6_1x06_P2.54mm_Horizontal" H 9350 4350 47  0001 C CNN
@@ -586,6 +555,16 @@ Wire Wire Line
 	3900 4450 4300 4450
 Wire Wire Line
 	4300 4450 4300 4500
+Wire Wire Line
+	1250 1000 1750 1000
+Connection ~ 1750 1000
+Wire Wire Line
+	1200 2400 1600 2400
+Wire Wire Line
+	1600 2150 1600 2400
 Wire Bus Line
 	5000 2400 5000 3150
+Connection ~ 1600 2400
+Wire Wire Line
+	1600 2400 1750 2400
 $EndSCHEMATC
