@@ -64,7 +64,7 @@ main:                                           ; boot routine, first thing load
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
     cld
-    stz minios_status
+    stz MINIOS_STATUS
 
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
@@ -86,7 +86,7 @@ main:                                           ; boot routine, first thing load
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
-    bit minios_status
+    bit MINIOS_STATUS
     beq @no_acia
     LCD_writeln message1
     bra @delay

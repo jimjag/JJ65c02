@@ -15,9 +15,6 @@ _LCD_INC_ = 1
 
 .import VRAM_OFFSETS
 
-.import POSITION_MENU
-.import POSITION_CURSOR
-
 .macro LCD_writeln str_addr
     lda #<str_addr
     ldy #>str_addr

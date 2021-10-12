@@ -12,10 +12,10 @@
 .export ACIA_read_byte
 .export ACIA_write_byte
 .export ACIA_write_string
-.exportzp ptr1
+.exportzp PTR1
 
 .segment "ZEROPAGE"
-ptr1:           .res 2
+PTR1:           .res 2
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -47,7 +47,7 @@ ACIA_init:
     cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     bne @done
     lda #(MINIOS_ACIA_ENABLED_FLAG)
-    tsb minios_status
+    tsb MINIOS_STATUS
 @done:
     pla
     rts
@@ -111,7 +111,7 @@ ACIA_write_byte:
 ;   ACIA_write_string - Write null-terminated string
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: ptr1, ptr+1 string pointer
+;   Preparatory Ops: PTR1, ptr+1 string pointer
 ;
 ;   Returned Values: none
 ;
@@ -124,14 +124,14 @@ ACIA_write_string:
     phy
     ldy #$00
 @string_loop:
-    lda (ptr1),y
+    lda (PTR1),y
     beq @end_loop
     jsr ACIA_write_byte
     iny
     beq @cross_page
     bne @string_loop
 @cross_page:
-    inc ptr1+1
+    inc PTR1+1
     bra @string_loop
 @end_loop:
     ply

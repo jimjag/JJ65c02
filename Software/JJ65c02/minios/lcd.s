@@ -18,17 +18,9 @@
 
 .export VRAM_OFFSETS
 
-.export POSITION_MENU
-.export POSITION_CURSOR
-
 E =  %10000000
 RW = %01000000
 RS = %00100000
-
-.segment "SYSRAM"
-
-POSITION_MENU:      .res 1              ; initialize positions for menu and cursor in RAM
-POSITION_CURSOR:    .res 1
 
 .segment "RODATA"
 
@@ -94,8 +86,8 @@ LCD_clear_video_ram:
 
 LCD_print:
     ldx #0                                      ; set offset to 0 as default
-    jsr LCD_print_with_offset                   ; call printing subroutine
-    rts
+    jmp LCD_print_with_offset                   ; call printing subroutine
+    ;rts
 
 ;================================================================================
 ;
@@ -132,8 +124,8 @@ STRING_ADDRESS_PTR = Z0
     inx
     bne @loop                                   ; loop until we find 0x00
 @return:
-    jsr LCD_render                              ; render video ram contents to LCD screen aka scanline
-    rts
+    jmp LCD_render                              ; render video ram contents to LCD screen aka scanline
+    ;rts
 
 ;================================================================================
 ;

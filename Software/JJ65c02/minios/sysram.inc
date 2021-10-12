@@ -18,11 +18,14 @@ _SYSRAM_INC_ = 1
 .importzp Z1
 .importzp Z2
 .importzp Z3
-.importzp minios_status
+.importzp MINIOS_STATUS
 
 .import VIDEO_RAM
 .import CLK_SPD
 .import ISR_VECTOR
+
+.import POSITION_MENU
+.import POSITION_CURSOR
 
 .include "sysram.h"
 .endif

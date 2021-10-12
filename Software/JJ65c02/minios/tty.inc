@@ -14,9 +14,9 @@ _TTY_INC_ = 1
 
 .macro TTY_writeln str_addr
     lda #<str_addr
-    sta ptr1
+    sta PTR1
     lda #>str_addr
-    sta ptr1+1
+    sta PTR1+1
     jsr ACIA_write_string
 .endmacro
 
