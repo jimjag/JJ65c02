@@ -11,9 +11,47 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 15, 2021
+
+##### How simple vs how complex
+
+There are almost always improvements that can be done, and the
+tough part is determining what to go ahead with and what to skip.
+I see a lot of the various BE6502 designs which have evolved into
+these wonderfully professional setups, with bank switching, VGA (at
+least) drivers, super high clock speeds, etc. and I marvel at, and
+respect the amount of work, skill and talent that have gone into
+them. But at some point, at least to me, that moves moving past
+what the original goal or intent was: a simple, basic but workable
+6502-based hobby "computer".
+
+All those cool features add a lot of complexity, a lot of chips and
+a lot more money. Yeah, it's cool to play around with how far one
+can stretch what a WDC65c02 chip can do (and [Dawid Buchwald](https://hackaday.io/project/174128/logs) is doing
+some impressive work there), but I'm resisting going too far in
+that direction.
+
+As an example, even though the WDC65c02 can be driven at upwards of
+14Mhz, doing so drastically changes the design and complexity. Heck,
+even going to around 5Mhz with the "basic" BE6502 design is hard,
+since the ROM itself limits you with its 150ns rating. Going faster
+means either adding some wait states, or clock manipulations, and
+well as increasing the complexity of the address decoder design
+and avoiding individual logic gates quite a bit. After a while the
+whole design starts looking like V'Ger from *Star Trek The Motion
+Picture* where you have this incredible complex and powerful machine
+build around an ancient, almost inconsequential core.
+
+So as much fun as it would be to see how I would approach that
+challenge, instead I want whatever I do to be usable, or at least
+approachable, by those with a basic BE6502 setup willing to make
+some small, minor changes/improvements.
+
+--
+
 ### Oct 10, 2021
 
-#### The memory map:
+##### The memory map:
 
 The current memory map is as efficient and as functional as
 I could devise (currently, that is). The intent was to maximize
