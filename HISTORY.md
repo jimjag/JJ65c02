@@ -11,6 +11,24 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 17, 2021
+
+Again considering design considerations which would allow
+the JJ65c02 to run as fast as possible, without major alterations
+to the BE6502 concept, I've started looking again at the chip
+select decoder logic. This is, after all, the slowest path,
+after the very slow ROM speed (150ns). The propagation delays
+in the chips are slow, but if you cascade enough of them, they
+become problematic, especially at faster speeds. Considering
+that at 4Mhz, for ROM access, the maximum that the propagation
+delay can be is ~60ns, the use of the `74HC138` is, although
+acceptable, maybe a little too short sighted. Instead, I'm moving
+to the faster `74AC138` and making some other slight changes to
+the glue logic. Worse case, I'm looking at a ~24ns delay, which
+leaves a small but allowable window.
+
+--
+
 ### Oct 15, 2021
 
 ##### How simple vs how complex
