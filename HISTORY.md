@@ -11,6 +11,36 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 20, 2021
+
+Over the last week or so, I've been focusing mostly on the hardware
+aspects of the JJ65c02 project. As noted below, this included some
+modifications to the address decoder and chip select circuits. Once
+I was happy with that, I decided to make the transition from breadboard
+to wirewrap.
+
+Obtaining wirewrap supplies was a bit more difficult than I expected,
+especially in the variety and selection of wirewrap tools and wire.
+Still, Jameco and DigiKey had all I needed and my orders were shipped
+and received in record time.
+
+One thing I recalled was that for cross-talk reduction (especially true
+for faster speeds), one needs to trade off beauty for function, and so
+for the most part I routed lines in the same generic path, I also ensured
+that I also choose different routes occasionally. I'm pretty happy with
+how it turned out.
+
+![](./Images/wirewrap-front.jpg)
+![](./Images/wirewrap-back.jpg)
+
+For the keen eyed among you, you may have noticed that I'm using
+an Arduino Nano for my on-board power supply. This means that it's
+available for any future tasks I may find for it. I've also added
+another empty socket for another VIA chip, again for future
+expansion.
+
+--
+
 ### Oct 17, 2021
 
 Again considering design considerations which would allow
