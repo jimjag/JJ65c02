@@ -279,8 +279,6 @@ Connection ~ 5500 2500
 Wire Wire Line
 	5500 2500 5650 2500
 Wire Wire Line
-	6250 2400 6350 2400
-Wire Wire Line
 	5100 2900 5200 2900
 Wire Wire Line
 	5200 2900 5200 3300
@@ -290,11 +288,6 @@ Wire Wire Line
 	5100 2700 5350 2700
 Text GLabel 6400 2600 0    43   Input ~ 0
 CLK
-Wire Wire Line
-	6350 2400 6350 2100
-Connection ~ 6350 2400
-Wire Wire Line
-	6350 2400 6500 2400
 Text GLabel 4725 2550 2    35   BiDi ~ 0
 a[0..15]
 Wire Wire Line
@@ -302,13 +295,7 @@ Wire Wire Line
 Text GLabel 7300 2500 2    47   Output ~ 0
 RAM~CS
 Wire Wire Line
-	7100 2500 7300 2500
-Text GLabel 7300 2100 2    47   Output ~ 0
-ROM~CE
-Wire Wire Line
-	6350 2100 7300 2100
-Wire Wire Line
-	7300 2100 7300 2150
+	7100 2500 7200 2500
 Entry Wire Line
 	5000 3000 5100 3100
 Wire Wire Line
@@ -334,7 +321,7 @@ Wire Wire Line
 Wire Wire Line
 	5500 4100 5850 4100
 Text GLabel 8050 4000 2    47   Output ~ 0
-ROM~OE
+ROM~CS
 Wire Wire Line
 	6850 3600 7100 3600
 Text GLabel 7300 3600 2    47   Output ~ 0
@@ -352,20 +339,11 @@ F 3 "http://www.ti.com/lit/gpn/sn74hc00" H 7600 4000 50  0001 C CNN
 	3    7600 4000
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7100 3600 7100 3900
-Wire Wire Line
-	7100 3900 7300 3900
 Connection ~ 7100 3600
 Wire Wire Line
 	7100 3600 7300 3600
 Wire Wire Line
-	7100 3900 7100 4100
-Wire Wire Line
 	7100 4100 7300 4100
-Connection ~ 7100 3900
-Wire Wire Line
-	7900 4000 8050 4000
 NoConn ~ 6850 3700
 NoConn ~ 6850 3800
 NoConn ~ 6850 3900
@@ -398,7 +376,7 @@ P 6350 3900
 AR Path="/61660CAC/615D1D41" Ref="U3"  Part="1" 
 AR Path="/61610474/615D1D41" Ref="U?"  Part="1" 
 F 0 "U3" H 6350 4681 50  0000 C CNN
-F 1 "74HC138" H 6350 4590 50  0000 C CNN
+F 1 "74AC138" H 6350 4590 50  0000 C CNN
 F 2 "Package_DIP:DIP-16_W7.62mm_Socket" H 6350 3900 50  0001 C CNN
 F 3 "http://www.ti.com/lit/gpn/sn74LS138" H 6350 3900 50  0001 C CNN
 	1    6350 3900
@@ -562,9 +540,22 @@ Wire Wire Line
 	1200 2400 1600 2400
 Wire Wire Line
 	1600 2150 1600 2400
-Wire Bus Line
-	5000 2400 5000 3150
 Connection ~ 1600 2400
 Wire Wire Line
 	1600 2400 1750 2400
+Wire Wire Line
+	6250 2400 6500 2400
+Wire Wire Line
+	8050 4000 7900 4000
+Wire Wire Line
+	7100 3600 7100 4100
+Wire Wire Line
+	7200 3900 7300 3900
+Wire Wire Line
+	7200 3900 7200 2500
+Wire Bus Line
+	5000 2400 5000 3150
+Connection ~ 7200 2500
+Wire Wire Line
+	7200 2500 7300 2500
 $EndSCHEMATC
