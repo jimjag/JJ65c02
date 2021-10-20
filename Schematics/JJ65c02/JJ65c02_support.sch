@@ -553,9 +553,43 @@ Wire Wire Line
 	7200 3900 7300 3900
 Wire Wire Line
 	7200 3900 7200 2500
-Wire Bus Line
-	5000 2400 5000 3150
 Connection ~ 7200 2500
 Wire Wire Line
 	7200 2500 7300 2500
+$Comp
+L Device:LED D1
+U 1 1 61721221
+P 8150 1450
+F 0 "D1" V 8189 1332 50  0000 R CNN
+F 1 "LED" V 8098 1332 50  0000 R CNN
+F 2 "" H 8150 1450 50  0001 C CNN
+F 3 "~" H 8150 1450 50  0001 C CNN
+	1    8150 1450
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 617239C1
+P 8150 1150
+AR Path="/61660CAC/617239C1" Ref="R?"  Part="1" 
+AR Path="/61610474/617239C1" Ref="R?"  Part="1" 
+F 0 "R?" V 8050 1150 50  0000 C CNN
+F 1 "220" V 8150 1150 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 8080 1150 50  0001 C CNN
+F 3 "~" H 8150 1150 50  0001 C CNN
+	1    8150 1150
+	1    0    0    -1  
+$EndComp
+Text GLabel 7800 1000 0    47   Input ~ 0
++5V
+Text GLabel 7800 1700 0    47   Input ~ 0
+GND
+Wire Wire Line
+	7800 1000 8150 1000
+Wire Wire Line
+	7800 1700 8150 1700
+Wire Wire Line
+	8150 1700 8150 1600
+Wire Bus Line
+	5000 2400 5000 3150
 $EndSCHEMATC

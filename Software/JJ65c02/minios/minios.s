@@ -606,10 +606,10 @@ BOOTLOADER_adj_clock:
 
 message:
     .byte "      JJ65c02       "
-    .byte "   miniOS v0.8      ", $00
+    .byte "   miniOS v0.9      ", $00
 message1:
     .byte "      JJ65c02       "
-    .byte "  miniOS v0.8 ACIA  ", $00
+    .byte "  miniOS v0.9 ACIA  ", $00
 message2:
     .asciiz "Enter Command..."
 message3:

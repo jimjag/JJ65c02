@@ -1321,6 +1321,9 @@ Wire Wire Line
 	7850 4400 7850 5350
 Wire Wire Line
 	7850 5350 8700 5350
+Connection ~ 8700 5350
+Wire Wire Line
+	8700 5350 8700 5450
 Wire Bus Line
 	5150 3050 5150 3250
 Wire Bus Line
@@ -1355,7 +1358,4 @@ Wire Bus Line
 	2750 5300 2750 6100
 Wire Bus Line
 	1550 2700 1550 4100
-Connection ~ 8700 5350
-Wire Wire Line
-	8700 5350 8700 5450
 $EndSCHEMATC
