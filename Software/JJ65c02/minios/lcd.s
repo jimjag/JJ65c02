@@ -2,6 +2,7 @@
 .include "sysram.inc"
 .include "via.inc"
 .include "acia.inc"
+.include "tty.inc"
 .include "lcd.h"
 
 .export LCD_clear_video_ram
@@ -120,50 +121,50 @@ LCD_write_string_with_offset:
 ;
 ;   Important: The text MUST be zero terminated
 ;   ————————————————————————————————————
-;   Preparatory Ops: .X: index into block
-;                    TEXT_BLK, TEXT_BLK+1: Pointer to sptr array
+;   Preparatory Ops: TEXT_BLK, TEXT_BLK+1: Pointer to sptr array
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y, Z0, Z1, Z2, Z3
+;   Destroys:        .A, .X, .Y, Z2, Z3
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 LCD_write_text:
+    stz Z2                                      ; Orig starting index
 @init:
-    stx Z2                                      ; Orig starting index
     stz Z3                                      ; row# for Vram
     jsr LCD_clear_video_ram                     ; clear video ram
 @setup_ptrs:                                    ; Called for each string/line
     lda Z2
-    asl A                                       ; 0->1, 1->2, 2->4, 3->6
+    asl a                                       ; 0->1, 1->2, 2->4, 3->6
     tax
-    lda TEXT_BLK,x                             ; get actual string address and tuck in Z0/Z1
-    sta Z0
-    lda TEXT_BLK+1,x
-    sta Z1
-    lda Z0                                      ; check for $0000
+    lda TEXT_BLK,x                              ; get actual string address and tuck in LCD_SPTR
+    sta LCD_SPTR
+    inx
+    lda TEXT_BLK,x
+    sta LCD_SPTR+1
+    lda LCD_SPTR                                ; check for $0000
     bne @setup_indexes
-    lda Z1
+    lda LCD_SPTR+1
     beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
 @setup_indexes:
     ldy Z3
     ldx VRAM_OFFSETS,y
     ldy #0
 @copy_chars:
-    lda (Z0),y                                  ; load character from given text at current character index
+    lda (LCD_SPTR),y                            ; load character from given text at current character index
     beq @next_line                              ; text ended? yes then next line
     sta VIDEO_RAM,x                             ; no, store char in video ram at current character index
     iny                                         ; increase index
     inx
-    bra @copy_chars                           ; repeat with next char
+    bne @copy_chars                             ; repeat with next char
 @next_line:
     inc Z2
     inc Z3
-    ldy Z3
-    cpy #(LCD_ROWS)
-    blt @setup_ptrs
+    lda Z3
+    cmp #(LCD_ROWS)
+    bne @setup_ptrs
 @do_render:
     jsr LCD_render                              ; render current content to screen
 
@@ -171,11 +172,11 @@ LCD_write_text:
     jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:
-    cmp #$01
+    cmp #(VIA_up_key)
     beq @move_up                                ; UP key pressed
-    cmp #$02
+    cmp #(VIA_down_key)
     beq @move_down                              ; DOWN key pressed
-    cmp #$04
+    cmp #(VIA_left_key)
     beq @exit                                   ; LEFT key pressed
     bne @wait_for_input
 @exit:
@@ -188,9 +189,9 @@ LCD_write_text:
     jmp @init                                   ; and re-render
 
 @move_down:
-    lda Z0
+    lda LCD_SPTR
     bne @not_at_end
-    lda Z1
+    lda LCD_SPTR+1
     beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
 @not_at_end:
     ldx Z2

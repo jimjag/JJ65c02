@@ -21,10 +21,10 @@ _LCD_INC_ = 1
     jsr LCD_write_string
 .endmacro
 
-.macro LCD_writetxt str_addr
-    lda #<str_addr
+.macro LCD_writetxt str_addr2
+    lda #<str_addr2
     sta TEXT_BLK
-    lda #>str_addr
+    lda #>str_addr2
     sta TEXT_BLK+1
     jsr LCD_write_text
 .endmacro

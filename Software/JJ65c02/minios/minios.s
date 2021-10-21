@@ -93,6 +93,7 @@ main:                                           ; boot routine, first thing load
     bit MINIOS_STATUS
     beq @no_acia
     LCD_writeln message1
+    TTY_writeln message1
     bra @delay
 @no_acia:
     LCD_writeln message                         ; render the boot screen
@@ -155,11 +156,11 @@ MENU_main:
     jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:
-    cmp #$01
+    cmp #(VIA_up_key)
     beq @move_up                                ; UP key pressed
-    cmp #$02
+    cmp #(VIA_down_key)
     beq @move_down                              ; DOWN key pressed
-    cmp #$08
+    cmp #(VIA_right_key)
     beq @select_option                          ; RIGHT key pressed
     bne @wait_for_input                         ; and go around
 
@@ -238,11 +239,9 @@ MENU_main:
     jsr BOOTLOADER_adj_clock
     jmp @start
 @about:                                         ; start the about routine
-    ldx #0
     LCD_writetxt about
     jmp @start
 @credits:                                       ; start the credits routine
-    ldx #0
     LCD_writetxt credits
     jmp @start
 @do_load:                                       ; orchestration of program loading
@@ -425,13 +424,13 @@ HEXDUMP_main:
     jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:                         ; determine action for key pressed
-    cmp #$01
+    cmp #(VIA_up_key)
     beq @move_up                                ; UP key pressed
-    cmp #$02
+    cmp #(VIA_down_key)
     beq @move_down                              ; DOWN key pressed
-    cmp #$04
+    cmp #(VIA_left_key)
     beq @exit_hexdump                           ; LEFT key pressed
-    cmp #$08
+    cmp #(VIA_right_key)
     beq @fast_forward                           ; RIGHT key pressed
     bne @wait_for_input
 @exit_hexdump:
@@ -565,13 +564,13 @@ BOOTLOADER_adj_clock:
     jsr VIA_read_mini_keyboard
 
 @handle_keyboard_input:                         ; determine action for key pressed
-    cmp #$01
+    cmp #(VIA_up_key)
     beq @increase_spd                           ; UP key pressed
-    cmp #$02
+    cmp #(VIA_down_key)
     beq @decrease_spd                           ; DOWN key pressed
-    cmp #$04
+    cmp #(VIA_left_key)
     beq @exit_adj                               ; LEFT key pressed
-    cmp #$08
+    cmp #(VIA_right_key)
     beq @save_spd                               ; RIGHT key pressed
     bne @wait_for_input
 @increase_spd:
@@ -640,15 +639,14 @@ a2: .asciiz "    jimjag/JJ65c02"
 about:
     .addr a1, a2, $0000
 
+credits:
+    .addr c1, c2, c3, c4, c5, c6, $0000
 c1: .asciiz "Jan Roesner"
 c2: .asciiz "   Orig sixty/5o2"
 c3: .asciiz "Ben Eater"
 c4: .asciiz "   6502 Project"
 c5: .asciiz "Steven Wozniak"
 c6: .asciiz "   bin2hex routine"
-
-credits:
-    .addr c1, c2, c3, c4, c5, c6, $0000
 
 clock_spd:
     .byte " Clock:  % Mhz"

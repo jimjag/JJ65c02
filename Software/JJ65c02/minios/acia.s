@@ -111,12 +111,14 @@ ACIA_write_byte:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X
+;   Destroys:        none
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 ACIA_write_string:
+    pha
+    phx
     phy
     ldy #$00
 @string_loop:
@@ -131,4 +133,6 @@ ACIA_write_string:
     bra @string_loop
 @end_loop:
     ply
+    plx
+    pla
     rts

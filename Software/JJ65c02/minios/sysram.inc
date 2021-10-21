@@ -38,11 +38,5 @@ _SYSRAM_INC_ = 1
 .import DDRAM
 .import VRAM_OFFSETS
 
-.import XM_start_msg
-.import XM_error_msg
-.import XM_success_msg
-.import CRClo
-.import CRChi
-
 .include "sysram.h"
 .endif
