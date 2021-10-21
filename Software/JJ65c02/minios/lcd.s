@@ -44,7 +44,7 @@ LCD_clear_video_ram:
     ldy #(LCD_LASTIDX)                          ; set index to last byte
     lda #' '                                    ; set character to 'space'
 @loop:
-    sta VIDEO_RAM,Y                             ; clean video ram
+    sta VIDEO_RAM,y                             ; clean video ram
     dey                                         ; decrease index
     bne @loop                                   ; are we done? no, repeat
     sta VIDEO_RAM                               ; yes, write zero'th location manually
@@ -101,9 +101,9 @@ LCD_write_string_with_offset:
 @loop:
     cpx #(LCD_SIZE)
     beq @return
-    lda (LCD_SPTR),Y                            ; load char from given string at position Y
+    lda (LCD_SPTR),y                            ; load char from given string at position Y
     beq @return                                 ; is string terminated via 0x00? yes
-    sta VIDEO_RAM,X                             ; no - store char to video ram
+    sta VIDEO_RAM,x                             ; no - store char to video ram
     iny
     inx
     bne @loop                                   ; loop until we find 0x00
@@ -137,26 +137,28 @@ LCD_write_text:
     jsr LCD_clear_video_ram                     ; clear video ram
 @setup_ptrs:                                    ; Called for each string/line
     lda Z2
-    asl a                                       ; 0->, 1->2, 2->4, 3->6
+    asl A                                       ; 0->1, 1->2, 2->4, 3->6
     tax
-    lda TEXT_BLK, X                             ; get actual string address and tuck in Z0/Z1
+    lda TEXT_BLK,x                             ; get actual string address and tuck in Z0/Z1
     sta Z0
-    lda TEXT_BLK+1, X
+    lda TEXT_BLK+1,x
     sta Z1
     lda Z0                                      ; check for $0000
-    bne @setup_y
+    bne @setup_indexes
     lda Z1
     beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
-@setup_y:
-    ldy Z3
-    lda VRAM_OFFSETS,Y
-    tay
+@setup_indexes:
+    ldx Z3
+    lda VRAM_OFFSETS,x
+    tax
+    ldy #0
 @copy_chars:
-    lda (Z0),Y                                  ; load character from given text at current character index
+    lda (Z0),y                                  ; load character from given text at current character index
     beq @next_line                              ; text ended? yes then next line
-    sta VIDEO_RAM,Y                             ; no, store char in video ram at current character index
+    sta VIDEO_RAM,x                             ; no, store char in video ram at current character index
     iny                                         ; increase index
-    bne @copy_chars                           ; repeat with next char
+    inx
+    bra @copy_chars                           ; repeat with next char
 @next_line:
     inc Z2
     inc Z3
@@ -268,7 +270,7 @@ LCD_set_cursor:
     pha                                         ; preserve A
     txa
     clc
-    adc DDRAM,Y
+    adc DDRAM,y
     clc
     ora #$80
     jsr LCD_send_instruction
@@ -298,7 +300,7 @@ LCD_render:
     jsr LCD_set_cursor
     stz Z3
 @write_char:                                    ; start writing chars from video ram
-    lda VIDEO_RAM,X                             ; read video ram char at X
+    lda VIDEO_RAM,x                             ; read video ram char at X
     cpx #(LCD_SIZE)
     beq @return
     cpy #(LCD_COLS)

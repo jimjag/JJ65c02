@@ -18,6 +18,7 @@ _SYSRAM_INC_ = 1
 .importzp Z1
 .importzp Z2
 .importzp Z3
+.importzp Z4
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
 .importzp LCD_SPTR
@@ -29,12 +30,19 @@ _SYSRAM_INC_ = 1
 .import ISR_VECTOR
 
 .import USER_INPUT
+.import RECVB
 
 .import POSITION_MENU
 .import POSITION_CURSOR
 
 .import DDRAM
 .import VRAM_OFFSETS
+
+.import XM_start_msg
+.import XM_error_msg
+.import XM_success_msg
+.import CRClo
+.import CRChi
 
 .include "sysram.h"
 .endif

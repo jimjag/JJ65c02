@@ -131,12 +131,12 @@ MENU_main:
 @start:                                         ; and off we go
     jsr LCD_clear_video_ram
     ldx POSITION_MENU
-    ldy VRAM_OFFSETS,X
+    ldy VRAM_OFFSETS,x
                                                 ; load first offset into Y
     ldx #0                                      ; set X to 0
 @loop:
-    lda menu_items,Y                            ; load string char for Y
-    sta VIDEO_RAM,X                             ; store in video ram at X
+    lda menu_items,y                            ; load string char for Y
+    sta VIDEO_RAM,x                             ; store in video ram at X
     iny
     inx
     cpx #(LCD_SIZE)                             ; fill LCD
@@ -145,8 +145,8 @@ MENU_main:
 @render_cursor:                                 ; render cursor position based on current state
     lda #'>'
     ldy POSITION_CURSOR
-    ldx VRAM_OFFSETS,Y
-    sta VIDEO_RAM, X
+    ldx VRAM_OFFSETS,y
+    sta VIDEO_RAM,x
 
 @render:                                        ; and update the screen
     jsr LCD_render
@@ -166,7 +166,7 @@ MENU_main:
 @move_up:
     lda POSITION_CURSOR                         ; load cursor position
     beq @dec_menu_offset                        ; is cursor in up position? yes?
-    dec A                                       ; no?
+    dec a                                       ; no?
     sta POSITION_CURSOR                         ; set cursor in up position
     jmp @start                                  ; re-render the whole menu
 @dec_menu_offset:
@@ -180,7 +180,7 @@ MENU_main:
     lda POSITION_CURSOR                         ; load cursor position
     cmp #(LCD_ROWS-1)                           ; is cursor in lower position?
     beq @inc_menu_offset                        ; yes?
-    inc A                                       ; no?
+    inc a                                       ; no?
     sta POSITION_CURSOR                         ; set cursor in lower position
     jmp @start                                  ; and re-render the whole menu
 @inc_menu_offset:
@@ -369,7 +369,7 @@ BOOTLOADER_clear_ram:
     lda #$00                                    ;  load 0x00 cleaner byte
     ldy #0
 @loop:
-    sta (Z0),Y                                  ; store it in current location
+    sta (Z0),y                                  ; store it in current location
     inc Z0
     bne @check_end                              ; rollover?
     inc Z1                                      ; Yes, so increment upper address byte
@@ -461,11 +461,11 @@ HEXDUMP_main:
 @transform_contents:                            ; start reading address and ram contents into stack
     ldy #3
 @iterate_ram:                                   ; transfer 4 ram bytes to stack
-    lda (Z0),Y
+    lda (Z0),y
     pha
     dey
     bne @iterate_ram
-    lda (Z0),Y
+    lda (Z0),y
     pha
 
     lda Z0                                      ; transfer the matching address bytes to stack too
@@ -485,7 +485,7 @@ HEXDUMP_main:
     phx                                         ; push most sign. nibble (MSN) too
 
     tya                                         ; calculate nibble positions in video ram
-    adc MON_position_map,Y                      ; use the static map for that
+    adc MON_position_map,y                      ; use the static map for that
     tax
     pla
     jsr @store_nibble                           ; store MSN to video ram
@@ -500,11 +500,11 @@ HEXDUMP_main:
     lda Z3
     beq @store_upper_line                       ; should we store in upper line? yes
     pla                                         ; no, store in lower line
-    sta VIDEO_RAM+LCD_COLS,X
+    sta VIDEO_RAM+LCD_COLS,x
     jmp @end_store
 @store_upper_line:                              ; upper line storage
     pla
-    sta VIDEO_RAM,X
+    sta VIDEO_RAM,x
 @end_store:
     rts
 @end_mon:
@@ -541,8 +541,8 @@ BOOTLOADER_adj_clock:
     jsr LCD_clear_video_ram
     ldx #0
 @fill_vram:
-    lda clock_spd,X
-    sta VIDEO_RAM,X
+    lda clock_spd,x
+    sta VIDEO_RAM,x
     inx
     cpx #14
     bne @fill_vram
@@ -553,12 +553,12 @@ BOOTLOADER_adj_clock:
     bcc @ones_place
     lda #'1'
     ldx #8
-    sta VIDEO_RAM,X
+    sta VIDEO_RAM,x
 @ones_place:
     lda #'0'
     adc Z2
     ldx #9
-    sta VIDEO_RAM,X
+    sta VIDEO_RAM,x
     jsr LCD_render
 
 @wait_for_input:                                ; wait for key press
@@ -713,7 +713,7 @@ ISR_RAMWRITE:
 
     lda PORTB                                   ; load serial data byte
     ldy #0
-    sta (CURRENT_RAM_ADDRESS),Y                 ; store byte at current RAM location
+    sta (CURRENT_RAM_ADDRESS),y                 ; store byte at current RAM location
 
                                                 ; increase the 16bit RAM location
     inc CURRENT_RAM_ADDRESS_L
