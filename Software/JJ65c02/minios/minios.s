@@ -128,7 +128,7 @@ MENU_main:
 
     jmp @start
 @MAX_SCREEN_POS:                                ; define some constants in ROM
-    .byte $06                                   ; its always number of items - 2, here its 7 windows ($00-$06) in 8 items
+    .byte $04                                   ; its always number of items - 4
 @start:                                         ; and off we go
     jsr LCD_clear_video_ram
     ldx POSITION_MENU
