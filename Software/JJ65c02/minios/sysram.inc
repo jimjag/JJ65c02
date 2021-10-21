@@ -19,13 +19,22 @@ _SYSRAM_INC_ = 1
 .importzp Z2
 .importzp Z3
 .importzp MINIOS_STATUS
+.importzp ACIA_SPTR
+.importzp LCD_SPTR
+.importzp USER_INPUT_PTR
+.importzp TEXT_BLK
 
 .import VIDEO_RAM
 .import CLK_SPD
 .import ISR_VECTOR
 
+.import USER_INPUT
+
 .import POSITION_MENU
 .import POSITION_CURSOR
+
+.import DDRAM
+.import VRAM_OFFSETS
 
 .include "sysram.h"
 .endif

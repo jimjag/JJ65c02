@@ -5,13 +5,12 @@ _ACIA_INC_ = 1
 .import ACIA_read_byte
 .import ACIA_write_byte
 .import ACIA_write_string
-.importzp PTR1
 
 .macro ACIA_writeln str_addr
     lda #<str_addr
-    sta PTR1
+    sta ACIA_SPTR
     lda #>str_addr
-    sta PTR1+1
+    sta ACIA_SPTR+1
     jsr ACIA_write_string
 .endmacro
 

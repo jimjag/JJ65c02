@@ -12,10 +12,6 @@
 .export ACIA_read_byte
 .export ACIA_write_byte
 .export ACIA_write_string
-.exportzp PTR1
-
-.segment "ZEROPAGE"
-PTR1:           .res 2
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -111,7 +107,7 @@ ACIA_write_byte:
 ;   ACIA_write_string - Write null-terminated string
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: PTR1, ptr+1 string pointer
+;   Preparatory Ops: ACIA_SPTR, ACIA_SPTR+1 string pointer
 ;
 ;   Returned Values: none
 ;
@@ -124,14 +120,14 @@ ACIA_write_string:
     phy
     ldy #$00
 @string_loop:
-    lda (PTR1),y
+    lda (ACIA_SPTR),y
     beq @end_loop
     jsr ACIA_write_byte
     iny
     beq @cross_page
     bne @string_loop
 @cross_page:
-    inc PTR1+1
+    inc ACIA_SPTR+1
     bra @string_loop
 @end_loop:
     ply

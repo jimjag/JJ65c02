@@ -1,4 +1,5 @@
 .include "minios.inc"
+.include "sysram.inc"
 .include "acia.inc"
 .include "tty.h"
 
@@ -7,14 +8,6 @@
 .export TTY_clear_screen
 .export TTY_reset_user_input
 .export welcome_msg
-
-.segment "ZEROPAGE"
-
-user_input_ptr: .res 2
-
-.segment "BSS"
-
-user_input: .res UI_BUFSIZE, NULL
 
 .segment "RODATA"
 ;
@@ -70,7 +63,7 @@ TTY_setup_term:
 
 ;================================================================================
 ;
-;   TTY_read - read up to 128 chars from serial input and store in user_input:
+;   TTY_read - read up to 128 chars from serial input and store in USER_INPUT:
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -85,10 +78,10 @@ TTY_setup_term:
 TTY_readln:
     pha
     phy
-    lda #<user_input
-    sta user_input_ptr          ; Lo address
-    lda #>user_input
-    sta user_input_ptr+1        ; Hi address
+    lda #<USER_INPUT
+    sta USER_INPUT_PTR          ; Lo address
+    lda #>USER_INPUT
+    sta USER_INPUT_PTR+1        ; Hi address
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
     lda ACIA_STATUS
@@ -106,12 +99,12 @@ TTY_readln:
     ACIA_writeln x_backspace     ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
     lda #(NULL)
-    sta (user_input_ptr),y       ; Delete the character in our buffer
+    sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
 @echo_char:
     sta ACIA_DATA                ; Otherwise, echo the char
 @save_char:
-    sta (user_input_ptr),y       ; And save it
+    sta (USER_INPUT_PTR),y       ; And save it
     cpy #(UI_BUFSIZE-1)          ; Our char buffer full? (incl null)
     beq @read_done               ; Yes, get out of here
     iny                          ; Otherwise, move to the next position in the buffer
@@ -119,7 +112,7 @@ TTY_readln:
 @read_done:
     iny                          ; Add a NULL in the next position
     lda #(NULL)
-    sta (user_input_ptr),y       ; Make sure the last char is null
+    sta (USER_INPUT_PTR),y       ; Make sure the last char is null
     ACIA_writeln new_line
     ply
     pla
@@ -164,14 +157,14 @@ TTY_clear_screen:
 
 TTY_reset_user_input:
     pha
-    lda #<user_input
-    sta user_input_ptr
-    lda #>user_input
-    sta user_input_ptr+1        ; Point or repoint at our user_input array
+    lda #<USER_INPUT
+    sta USER_INPUT_PTR
+    lda #>USER_INPUT
+    sta USER_INPUT_PTR+1        ; Point or repoint at our user_input array
     ldy #$00
 @clear_user_input_loop:
     lda #(NULL)
-    sta (user_input_ptr), y     ; Zero it out
+    sta (USER_INPUT_PTR), y     ; Zero it out
     cpy #(UI_BUFSIZE)           ; 32 bytes in user_input
     beq @reset_user_input_done
     iny

@@ -1,13 +1,13 @@
 .include "minios.inc"
+.include "sysram.inc"
 .include "via.inc"
 .include "acia.inc"
 .include "lcd.h"
-.include "sysram.inc"
 
 .export LCD_clear_video_ram
-.export LCD_print
-.export LCD_print_with_offset
-.export LCD_print_text
+.export LCD_write_string
+.export LCD_write_string_with_offset
+.export LCD_write_text
 .export LCD_initialize
 .export LCD_clear_screen
 .export LCD_set_cursor
@@ -16,22 +16,9 @@
 .export LCD_send_instruction
 .export LCD_send_data
 
-.export VRAM_OFFSETS
-
 E =  %10000000
 RW = %01000000
 RS = %00100000
-
-.segment "RODATA"
-
-DDRAM:
-    .byte $00
-    .byte $40
-    .byte LCD_COLS
-    .byte $40+LCD_COLS
-VRAM_OFFSETS:
-    .byte 0, LCD_COLS, 2*LCD_COLS, 3*LCD_COLS, 4*LCD_COLS, 5*LCD_COLS
-    .byte 6*LCD_COLS, 7*LCD_COLS, 8*LCD_COLS, 9*LCD_COLS, 10*LCD_COLS
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -67,7 +54,7 @@ LCD_clear_video_ram:
 
 ;================================================================================
 ;
-;   LCD_print - prints a string to the LCD (highlevel)
+;   LCD_write_string - prints a string to the LCD (highlevel)
 ;
 ;   String must be given as address pointer, subroutines are called
 ;   The given string is automatically broken into the second display line and
@@ -75,8 +62,8 @@ LCD_clear_video_ram:
 ;
 ;   Important: String MUST be zero terminated
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A: LSN String Address
-;                    .Y: MSN String Address
+;   Preparatory Ops: LCD_SPTR, LCD_SPTR+1: Pointer to null terminated string
+;
 ;   Returned Values: none
 ;
 ;   Destroys:        .A, .X, .Y
@@ -84,14 +71,14 @@ LCD_clear_video_ram:
 ;
 ;================================================================================
 
-LCD_print:
+LCD_write_string:
     ldx #0                                      ; set offset to 0 as default
-    jmp LCD_print_with_offset                   ; call printing subroutine
+    jmp LCD_write_string_with_offset                   ; call printing subroutine
     ;rts
 
 ;================================================================================
 ;
-;   LCD_print_with_offset - prints string on LCD screen at given offset in Vram
+;   LCD_write_string_with_offset - prints string on LCD screen at given offset in Vram
 ;
 ;   String must be given as address pointer, subroutines are called
 ;   The given string is automatically broken into the second display line and
@@ -99,25 +86,22 @@ LCD_print:
 ;
 ;   Important: String MUST be zero terminated
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A: LSN String Address
-;                    .Y: MSN String Address
-;                    .X: Offset Byte
+;   Preparatory Ops: .X: Offset Byte
+;                    LCD_SPTR LCD_SPTR+1: Pointer to null terminated string
+;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y, Z0, Z1
+;   Destroys:        .A, .X, .Y
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
-LCD_print_with_offset:
-STRING_ADDRESS_PTR = Z0
-    sta STRING_ADDRESS_PTR                      ; load t_string lsb
-    sty STRING_ADDRESS_PTR+1                    ; load t_string msb
+LCD_write_string_with_offset:
     ldy #0
 @loop:
     cpx #(LCD_SIZE)
     beq @return
-    lda (STRING_ADDRESS_PTR),Y                  ; load char from given string at position Y
+    lda (LCD_SPTR),Y                            ; load char from given string at position Y
     beq @return                                 ; is string terminated via 0x00? yes
     sta VIDEO_RAM,X                             ; no - store char to video ram
     iny
@@ -129,16 +113,16 @@ STRING_ADDRESS_PTR = Z0
 
 ;================================================================================
 ;
-;   LCD_print_text - prints a scrollable / escapeable multiline text (highlevel)
+;   LCD_write_text - prints a scrollable / escapeable multiline text (highlevel)
 ;
 ;   The text location must be given as memory pointer, the number of pages to
 ;   be rendered needs to be given as well
 ;
 ;   Important: The text MUST be zero terminated
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A: LSN Text Address
-;                    .Y: MSN Text Address
-;                    .X: Page Number Byte
+;   Preparatory Ops: .X: index into block
+;                    TEXT_BLK, TEXT_BLK+1: Pointer to sptr array
+;
 ;   Returned Values: none
 ;
 ;   Destroys:        .A, .X, .Y, Z0, Z1, Z2, Z3
@@ -146,24 +130,39 @@ STRING_ADDRESS_PTR = Z0
 ;
 ;================================================================================
 
-LCD_print_text:
-    sta Z0                                      ; store text pointer in zero page
-    sty Z1
-    dex                                         ; reduce X by one to get cardinality of pages
-    stx Z2                                      ; store given number of pages
-@CURRENT_PAGE = Z3
-    lda #0
-    sta Z3
-@render_page:
+LCD_write_text:
+@init:
+    stx Z2                                      ; Orig starting index
+    stz Z3                                      ; row# for Vram
     jsr LCD_clear_video_ram                     ; clear video ram
-    ldy #0                                      ; reset character index
-@render_chars:
+@setup_ptrs:                                    ; Called for each string/line
+    lda Z2
+    asl a                                       ; 0->, 1->2, 2->4, 3->6
+    tax
+    lda TEXT_BLK, X                             ; get actual string address and tuck in Z0/Z1
+    sta Z0
+    lda TEXT_BLK+1, X
+    sta Z1
+    lda Z0                                      ; check for $0000
+    bne @setup_y
+    lda Z1
+    beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
+@setup_y:
+    ldy Z3
+    lda VRAM_OFFSETS,Y
+    tay
+@copy_chars:
     lda (Z0),Y                                  ; load character from given text at current character index
-    cmp #$00
-    beq @do_render                              ; text ended? yes then render
+    beq @next_line                              ; text ended? yes then next line
     sta VIDEO_RAM,Y                             ; no, store char in video ram at current character index
     iny                                         ; increase index
-    bne @render_chars                           ; repeat with next char
+    bne @copy_chars                           ; repeat with next char
+@next_line:
+    inc Z2
+    inc Z3
+    ldy Z3
+    cpy #(LCD_ROWS)
+    blt @setup_ptrs
 @do_render:
     jsr LCD_render                              ; render current content to screen
 
@@ -182,35 +181,20 @@ LCD_print_text:
     rts
 
 @move_up:
-    lda @CURRENT_PAGE                           ; are we on the first page?
+    ldx Z2                                      ; are we on the first page?
     beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
-
-    dec @CURRENT_PAGE                           ; no, decrease current page by 1
-
-    sec                                         ; decrease reading pointer by 40 bytes
-    lda Z0
-    sbc #40
-    sta Z0
-    bcs @skipdec
-    dec Z1
-@skipdec:
-    jmp @render_page                            ; and re-render
+    dex                                         ; no, decrease current page by 1
+    jmp @init                                   ; and re-render
 
 @move_down:
-    lda @CURRENT_PAGE                           ; load current page
-    cmp Z2                                      ; are we on last page already
-    beq @wait_for_input                         ; yes, just ignore keypress and wait for next one
-
-    inc @CURRENT_PAGE                           ; no, increase current page by 1
-
-    clc                                         ; add 40 to the text pointer
     lda Z0
-    adc #40
-    sta Z0
-    bcc @skipinc
-    inc Z1
-@skipinc:
-    jmp @render_page                            ; and re-render
+    bne @not_at_end
+    lda Z1
+    beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
+@not_at_end:
+    ldx Z2
+    inx
+    jmp @init                            ; and re-render
 
 ;================================================================================
 ;

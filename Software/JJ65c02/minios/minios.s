@@ -6,6 +6,10 @@
 .include "acia.inc"
 .include "tty.inc"
 
+.export  credits
+.export c1
+.export c2
+
 CURRENT_RAM_ADDRESS = Z0                ; a RAM address handle for indirect writing
 CURRENT_RAM_ADDRESS_L = Z0
 CURRENT_RAM_ADDRESS_H = Z1
@@ -234,16 +238,12 @@ MENU_main:
     jsr BOOTLOADER_adj_clock
     jmp @start
 @about:                                         ; start the about routine
-    lda #<about
-    ldy #>about
-    ldx #1
-    jsr LCD_print_text
+    ldx #0
+    LCD_writetxt about
     jmp @start
 @credits:                                       ; start the credits routine
-    lda #<credits
-    ldy #>credits
-    ldx #3
-    jsr LCD_print_text
+    ldx #0
+    LCD_writetxt credits
     jmp @start
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
@@ -633,12 +633,23 @@ menu_items:
     .byte " Adjust Clk Speed   "
     .byte " About              "
     .byte " Credits            "
+
+a1: .asciiz "github.com/"
+a2: .asciiz "    jimjag/JJ65c02"
+
 about:
-    .asciiz "github.com/            jimjag/JJ65c02   "
+    .addr a1, a2, $0000
+
+c1: .asciiz "Jan Roesner"
+c2: .asciiz "   Orig sixty/5o2"
+c3: .asciiz "Ben Eater"
+c4: .asciiz "   6502 Project"
+c5: .asciiz "Steven Wozniak"
+c6: .asciiz "   bin2hex routine"
+
 credits:
-    .byte "Jan Roesner            Orig sixty/5o2   "
-    .byte "Ben Eater              6502 Project     "
-    .byte "Steven Wozniak         bin2hex routine  ",$00
+    .addr c1, c2, c3, c4, c5, c6, $0000
+
 clock_spd:
     .byte " Clock:  % Mhz"
 message9:
