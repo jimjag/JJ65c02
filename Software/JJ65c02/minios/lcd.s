@@ -148,9 +148,8 @@ LCD_write_text:
     lda Z1
     beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
 @setup_indexes:
-    ldx Z3
-    lda VRAM_OFFSETS,x
-    tax
+    ldy Z3
+    ldx VRAM_OFFSETS,y
     ldy #0
 @copy_chars:
     lda (Z0),y                                  ; load character from given text at current character index
@@ -289,7 +288,7 @@ LCD_set_cursor:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y, Z3
+;   Destroys:        .A, .X, .Y, Z4
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -298,7 +297,7 @@ LCD_render:
     ldx #0
     ldy #0
     jsr LCD_set_cursor
-    stz Z3
+    stz Z4
 @write_char:                                    ; start writing chars from video ram
     lda VIDEO_RAM,x                             ; read video ram char at X
     cpx #(LCD_SIZE)
@@ -310,8 +309,8 @@ LCD_render:
     iny
     bne @write_char
 @next_line:
-    inc Z3
-    ldy Z3
+    inc Z4
+    ldy Z4
     phx
     ldx #0
     jsr LCD_set_cursor

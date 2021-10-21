@@ -329,7 +329,7 @@ GetByte:
     jsr ACIA_read_byte          ; get chr from serial port, don't wait
     bcs @GotByte                ; got one, so exit
     lda #20
-    jsr LIB_DELAY1ms
+    jsr LIB_delay1ms
     dec DELAY                   ; 3 sec wait
     bne @StartCRCLp             ; look for character again
     clc                         ; if loop times out, CLC, else SEC and return
