@@ -17,9 +17,9 @@
 .export LCD_send_instruction
 .export LCD_send_data
 
-E =  %10000000
-RW = %01000000
-RS = %00100000
+E_bit =  %10000000
+RW_bit = %01000000
+RS_bit = %00100000
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -74,7 +74,7 @@ LCD_clear_video_ram:
 
 LCD_write_string:
     ldx #0                                      ; set offset to 0 as default
-    jmp LCD_write_string_with_offset                   ; call printing subroutine
+    jmp LCD_write_string_with_offset            ; call printing subroutine
     ;rts
 
 ;================================================================================
@@ -129,27 +129,29 @@ LCD_write_string_with_offset:
 ;   ————————————————————————————————————
 ;
 ;================================================================================
+TXT_IDX = Z2
+VRAM_IDX = Z3
 
 LCD_write_text:
-    stz Z2                                      ; Orig starting index
-@init:
-    stz Z3                                      ; row# for Vram
+    stz TXT_IDX                                 ; Orig starting index into string ptr "array"
+@redo:
+    stz VRAM_IDX                                ; row# for Vram
     jsr LCD_clear_video_ram                     ; clear video ram
 @setup_ptrs:                                    ; Called for each string/line
-    lda Z2
+    lda TXT_IDX
     asl a                                       ; 0->1, 1->2, 2->4, 3->6
-    tax
-    lda TEXT_BLK,x                              ; get actual string address and tuck in LCD_SPTR
+    tay
+    lda (TEXT_BLK),y                            ; get actual string address and tuck in LCD_SPTR
     sta LCD_SPTR
-    inx
-    lda TEXT_BLK,x
+    iny
+    lda (TEXT_BLK),y
     sta LCD_SPTR+1
     lda LCD_SPTR                                ; check for $0000
     bne @setup_indexes
     lda LCD_SPTR+1
     beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
 @setup_indexes:
-    ldy Z3
+    ldy VRAM_IDX
     ldx VRAM_OFFSETS,y
     ldy #0
 @copy_chars:
@@ -160,9 +162,9 @@ LCD_write_text:
     inx
     bne @copy_chars                             ; repeat with next char
 @next_line:
-    inc Z2
-    inc Z3
-    lda Z3
+    inc TXT_IDX
+    inc VRAM_IDX
+    lda VRAM_IDX
     cmp #(LCD_ROWS)
     bne @setup_ptrs
 @do_render:
@@ -183,10 +185,10 @@ LCD_write_text:
     rts
 
 @move_up:
-    ldx Z2                                      ; are we on the first page?
+    lda TXT_IDX                                 ; are we on the first page?
     beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
-    dex                                         ; no, decrease current page by 1
-    jmp @init                                   ; and re-render
+    dec TXT_IDX                                 ; no, decrease current page by 1
+    jmp @redo                                   ; and re-render
 
 @move_down:
     lda LCD_SPTR
@@ -194,9 +196,8 @@ LCD_write_text:
     lda LCD_SPTR+1
     beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
 @not_at_end:
-    ldx Z2
-    inx
-    jmp @init                            ; and re-render
+    inc TXT_IDX
+    jmp @redo                                   ; and re-render
 
 ;================================================================================
 ;
@@ -347,16 +348,16 @@ LCD_wait_busy:
     lda #0
     sta DDRB
 @not_ready:
-    lda #(RW)                                     ; prepare read mode
+    lda #(RW_bit)                               ; prepare read mode
     sta PORTA
-    lda #(RW | E)                               ; prepare execution
+    lda #(RW_bit | E_bit)                       ; prepare execution
     sta PORTA
 
     lda #%10000000                              ; for the bit test
     bit PORTB                                   ; read data from LCD
     bne @not_ready                              ; bit 7 set, LCD is still busy, need waiting
 
-    lda #(RW)
+    lda #(RW_bit)
     sta PORTA
     lda #%11111111
     sta DDRB
@@ -387,7 +388,7 @@ LCD_send_instruction:
     sta PORTB                                   ; write accumulator content into PORTB
     lda #0
     sta PORTA                                   ; clear RS/RW/E bits
-    lda #(E)
+    lda #(E_bit)
     sta PORTA                                   ; set E bit to send instruction
     lda #0
     sta PORTA                                   ; clear RS/RW/E bits
@@ -413,11 +414,11 @@ LCD_send_data:
     jsr LCD_wait_busy
 
     sta PORTB                                   ; write accumulator content into PORTB
-    lda #(RS)
+    lda #(RS_bit)
     sta PORTA                                   ; clear RW/E bits
-    lda #(RS | E)
+    lda #(RS_bit | E_bit)
     sta PORTA                                   ; set E bit AND register select bit to send instruction
-    lda #(RS)
+    lda #(RS_bit)
     sta PORTA                                   ; clear E bit
     rts
 
