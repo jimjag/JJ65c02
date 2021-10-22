@@ -6,10 +6,6 @@
 .include "acia.inc"
 .include "tty.inc"
 
-.export  credits
-.export c1
-.export c2
-
 CURRENT_RAM_ADDRESS = Z0                ; a RAM address handle for indirect writing
 CURRENT_RAM_ADDRESS_L = Z0
 CURRENT_RAM_ADDRESS_H = Z1
