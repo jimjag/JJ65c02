@@ -19,6 +19,9 @@ _SYSRAM_INC_ = 1
 .importzp Z2
 .importzp Z3
 .importzp Z4
+.importzp Z5
+.importzp LCD_START_IDX
+.importzp LCD_UPPER_IDX
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
 .importzp LCD_SPTR

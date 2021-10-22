@@ -9,6 +9,9 @@
 .exportzp Z2
 .exportzp Z3
 .exportzp Z4
+.exportzp Z5
+.exportzp LCD_START_IDX
+.exportzp LCD_UPPER_IDX
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
 .exportzp LCD_SPTR
@@ -42,6 +45,11 @@ Z1:     .res 1
 Z2:     .res 1
 Z3:     .res 1
 Z4:     .res 1
+Z5:     .res 1
+
+LCD_START_IDX:   .res 1
+LCD_UPPER_IDX:   .res 1
+
 MINIOS_STATUS:   .res 1
 ACIA_SPTR:       .res 2
 LCD_SPTR:        .res 2

@@ -129,17 +129,21 @@ LCD_write_string_with_offset:
 ;   ————————————————————————————————————
 ;
 ;================================================================================
-TXT_IDX = Z2
+CURRENT_PTR = Z2
 VRAM_IDX = Z3
 
 LCD_write_text:
-    stz TXT_IDX                                 ; Orig starting index into string ptr "array"
+    stz LCD_START_IDX                           ; Orig starting index into string ptr "array"
+    lda #$ff
+    sta LCD_UPPER_IDX
 @redo:
     stz VRAM_IDX                                ; row# for Vram
+    lda LCD_START_IDX
+    sta CURRENT_PTR
     jsr LCD_clear_video_ram                     ; clear video ram
 @setup_ptrs:                                    ; Called for each string/line
-    lda TXT_IDX
-    asl a                                       ; 0->1, 1->2, 2->4, 3->6
+    lda CURRENT_PTR
+    asl a
     tay
     lda (TEXT_BLK),y                            ; get actual string address and tuck in LCD_SPTR
     sta LCD_SPTR
@@ -149,7 +153,11 @@ LCD_write_text:
     lda LCD_SPTR                                ; check for $0000
     bne @setup_indexes
     lda LCD_SPTR+1
-    beq @do_render                              ; If $0000, then we hit the end of the block. Render what we have
+    bne @setup_indexes
+    lda CURRENT_PTR                             ; if we hit $0000, then we know now the index to the last element
+    dec a
+    sta LCD_UPPER_IDX
+    bra @do_render                              ; If $0000, then we hit the end of the block. Render what we have
 @setup_indexes:
     ldy VRAM_IDX
     ldx VRAM_OFFSETS,y
@@ -160,9 +168,10 @@ LCD_write_text:
     sta VIDEO_RAM,x                             ; no, store char in video ram at current character index
     iny                                         ; increase index
     inx
+    cpx #(LCD_SIZE)
     bne @copy_chars                             ; repeat with next char
 @next_line:
-    inc TXT_IDX
+    inc CURRENT_PTR
     inc VRAM_IDX
     lda VRAM_IDX
     cmp #(LCD_ROWS)
@@ -175,29 +184,27 @@ LCD_write_text:
 
 @handle_keyboard_input:
     cmp #(VIA_up_key)
-    beq @move_up                                ; UP key pressed
+    beq @scroll_down
     cmp #(VIA_down_key)
-    beq @move_down                              ; DOWN key pressed
+    beq @scroll_up
     cmp #(VIA_left_key)
-    beq @exit                                   ; LEFT key pressed
+    beq @exit
     bne @wait_for_input
 @exit:
     rts
 
-@move_up:
-    lda TXT_IDX                                 ; are we on the first page?
+@scroll_down:
+    lda LCD_START_IDX                           ; are we on the first page?
     beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
-    dec TXT_IDX                                 ; no, decrease current page by 1
-    jmp @redo                                   ; and re-render
+    dec LCD_START_IDX
+    jmp @redo
 
-@move_down:
-    lda LCD_SPTR
-    bne @not_at_end
-    lda LCD_SPTR+1
-    beq @wait_for_input                         ; yes, just ignore the keypress and wait for next one
-@not_at_end:
-    inc TXT_IDX
-    jmp @redo                                   ; and re-render
+@scroll_up:
+    lda LCD_START_IDX
+    cmp LCD_UPPER_IDX
+    beq @wait_for_input                         ; at the bottom, just ignore the keypress and wait for next one
+    inc LCD_START_IDX
+    jmp @redo
 
 ;================================================================================
 ;

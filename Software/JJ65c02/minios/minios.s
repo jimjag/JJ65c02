@@ -633,11 +633,10 @@ menu_items:
     .byte " About              "
     .byte " Credits            "
 
-a1: .asciiz "github.com/"
-a2: .asciiz "    jimjag/JJ65c02"
-
 about:
     .addr a1, a2, $0000
+a1: .asciiz "github.com/"
+a2: .asciiz "    jimjag/JJ65c02"
 
 credits:
     .addr c1, c2, c3, c4, c5, c6, $0000
