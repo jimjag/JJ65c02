@@ -1,4 +1,3 @@
-CL = cl65
 LDCFG = jj65c02.cfg
 LDMAP = minios.map
 TARGET = minios
@@ -12,11 +11,16 @@ SRCS =  minios.s \
 	tty.s \
 	xmodem.s
 
+OBJS=$(SRCS:%.s=%.o)
 all: $(TARGET)
 
-$(TARGET): $(SRCS)
-	$(CL) -t none --cpu 65c02 -C ../$(LDCFG) -v -vm -m $(LDMAP) -o $(TARGET) $(SRCS)
+$(OBJS): $(SRCS)
+	ca65 -t none --cpu 65c02 -U -o $@ $(@:.o=.s)
+
+$(TARGET): $(OBJS)
+	ld65 -C ../$(LDCFG) -v -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
+	rm -f $(TARGET).bin
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(LDMAP)
+	rm -f $(TARGET) $(LDMAP) $(OBJS)
