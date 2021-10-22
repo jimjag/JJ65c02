@@ -87,6 +87,7 @@ CRC = TEXT_BLK      ; CRC lo byte  (two byte variable)
 ;================================================================================
 
 XMODEM_send:
+/*
     ACIA_writeln XM_start_msg      ; send prompt and info
     lda #$00
     sta ERRCNT                  ; error counter set to 0
@@ -191,6 +192,7 @@ XMODEM_send:
     lda #(EOT)
     jsr ACIA_write_byte
     ACIA_writeln XM_success_msg    ; All Done..Print msg and exit
+*/
     rts
 
 ;================================================================================
@@ -212,6 +214,10 @@ XMODEM_recv:
     sta BFLAG                   ; set flag to get address from block 1
     stz CRC
     stz CRC+1
+    lda #<__RAM_START__
+    sta PTR
+    lda #>__RAM_START__
+    sta PTR+1
 @StartCRC:
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
@@ -279,6 +285,7 @@ XMODEM_recv:
     jmp @StartBlk               ; Start over, get the block again
 @GoodCRC:
     ldx #$02
+/*
     lda BLKNO                   ; get the block number
     cmp #$01                    ; 1st block?
     bne @CopyBlk                ; no, copy all 128 bytes
@@ -291,6 +298,7 @@ XMODEM_recv:
     sta PTR+1                   ; save it
     inx                         ; point to first byte of data
     dec BFLAG                   ; set the flag so we won't get another address
+*/
 @CopyBlk:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
