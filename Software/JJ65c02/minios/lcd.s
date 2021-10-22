@@ -116,8 +116,7 @@ LCD_write_string_with_offset:
 ;
 ;   LCD_write_text - prints a scrollable / escapeable multiline text (highlevel)
 ;
-;   The text location must be given as memory pointer, the number of pages to
-;   be rendered needs to be given as well
+;   The text location must be given as memory pointer
 ;
 ;   Important: The text MUST be zero terminated
 ;   ————————————————————————————————————
@@ -125,12 +124,14 @@ LCD_write_string_with_offset:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y, Z2, Z3
+;   Destroys:        .A, .X, .Y, Z2, Z3, Z6, Z7
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 CURRENT_PTR = Z2
 VRAM_IDX = Z3
+LCD_START_IDX = Z6
+LCD_UPPER_IDX = Z7
 
 LCD_write_text:
     stz LCD_START_IDX                           ; Orig starting index into string ptr "array"
