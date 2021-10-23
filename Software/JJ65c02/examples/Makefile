@@ -2,14 +2,17 @@ LDCFG = jj65c02.cfg
 LDMAP = hello_world_scroll.map
 TARGET = hello_world_scroll
 
-ROM =  ../minios/minios.o \
-	../minios/sysram.o \
-	../minios/via.o \
-	../minios/lcd.o \
-	../minios/lib.o \
-	../minios/acia.o \
-	../minios/tty.o \
-	../minios/xmodem.o
+# Point to location of where the ROM object files are
+ROMOBJs = ../minios/objs
+# These must be included in this order
+ROM =  $(ROMOBJs)/minios.o \
+	$(ROMOBJs)/sysram.o \
+	$(ROMOBJs)/via.o \
+	$(ROMOBJs)/lcd.o \
+	$(ROMOBJs)/lib.o \
+	$(ROMOBJs)/acia.o \
+	$(ROMOBJs)/tty.o \
+	$(ROMOBJs)/xmodem.o
 
 SRCS =  hello_world_scroll.s
 OBJS=$(SRCS:%.s=%.o)
@@ -21,8 +24,8 @@ $(OBJS): $(SRCS)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(ROM) $(OBJS)
-	rm -f $(TARGET).rom $(TARGET)
+	rm -f $(TARGET).rom
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(LDMAP) $(OBJS)
+	rm -f $(TARGET) $(LDMAP) $(OBJS) $(TARGET).bin

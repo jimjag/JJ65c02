@@ -11,16 +11,17 @@ SRCS =  minios.s \
 	tty.s \
 	xmodem.s
 
-OBJS=$(SRCS:%.s=%.o)
+OBJS=$(SRCS:%.s=objs/%.o)
 all: $(TARGET)
 
 $(OBJS): $(SRCS)
-	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:.o=.s)
+	mkdir -p objs
+	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(OBJS)
-	rm -f $(TARGET).bin $(TARGET)
+	rm -f $(TARGET).bin
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(LDMAP) $(OBJS)
+	rm -f $(TARGET) $(LDMAP) $(OBJS) $(TARGET).rom
