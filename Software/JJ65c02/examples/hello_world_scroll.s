@@ -1,6 +1,6 @@
-.include "../minios/minios.inc"
-.include "../minios/sysram.inc"
-.include "../minios/lcd.inc"
+.include "minios.inc"
+.include "sysram.inc"
+.include "lcd.inc"
 
 ; Actual start of RAM code
 .segment "PROG"

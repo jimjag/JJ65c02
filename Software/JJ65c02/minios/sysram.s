@@ -31,13 +31,6 @@
 
 ;===================================================================
 
-.segment "BSS"
-
-USER_INPUT: .res UI_BUFSIZE, NULL
-RECVB:      .res 132
-
-;===================================================================
-
 .segment "ZEROPAGE"
 
 Z0:     .res 1
@@ -77,6 +70,9 @@ CLK_SPD:        .res 1              ; Clock speed, in MHz
 ISR_VECTOR:     .res 2              ; Store true ISR vector
 POSITION_MENU:      .res 1              ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR:    .res 1
+USER_INPUT: .res UI_BUFSIZE, NULL
+RECVB:      .res 132
+
 
 ;===================================================================
 

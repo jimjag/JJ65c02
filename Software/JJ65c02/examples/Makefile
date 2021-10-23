@@ -17,7 +17,7 @@ OBJS=$(SRCS:%.s=%.o)
 all: $(TARGET)
 
 $(OBJS): $(SRCS)
-	ca65 -U -t none --cpu 65c02 -U -o $@ $(@:.o=.s)
+	ca65 -U -t none --cpu 65c02 -U -I ../minios/include -o $@ $(@:.o=.s)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -vm -m $(LDMAP) -o $(TARGET) $(OBJS) $(ROM)

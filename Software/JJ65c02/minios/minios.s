@@ -26,10 +26,10 @@ LOADING_STATE = Z2
 ;--------
 ; Assumed memory map (based on the JJ65c02):
 ;    $0000 - $7fff      RAM: 32k
-;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
+;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $02ff      RAM: miniOS set-aside / Page 2
-;      . $0300 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0200 - $03ff      RAM: miniOS set-aside / Page 2+3
+;      . $0400 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
 ;      . $8020 - $802f      VIA:
@@ -614,7 +614,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0300"
+    .asciiz "Running $0x0400"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
