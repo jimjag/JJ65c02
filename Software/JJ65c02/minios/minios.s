@@ -6,11 +6,6 @@
 .include "acia.inc"
 .include "tty.inc"
 
-CURRENT_RAM_ADDRESS = Z0                ; a RAM address handle for indirect writing
-CURRENT_RAM_ADDRESS_L = Z0
-CURRENT_RAM_ADDRESS_H = Z1
-LOADING_STATE = Z2
-
 ;================================================================================
 ;
 ;                                    "JJ65c02"
@@ -35,10 +30,6 @@ LOADING_STATE = Z2
 ;      . $8020 - $802f      VIA:
 ;    $9000 - $ffff      ROM: 28K
 ;--------
-
-.segment "SYSRAM"
-ISR_FIRST_RUN:  .res 1          ; used to determine first run of the ISRD
-
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -69,9 +60,9 @@ main:                                           ; boot routine, first thing load
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
 
-    lda #<ISR_RAMWRITE
+    lda #<ISR_HANDLER
     sta ISR_VECTOR
-    lda #>ISR_RAMWRITE
+    lda #>ISR_HANDLER
     sta ISR_VECTOR + 1
 
     ; Init the 6551
@@ -243,84 +234,39 @@ MENU_main:
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
-    jsr BOOTLOADER_program_ram                  ; call the bootloaders programming routine
-
-    rts
+    jsr BOOTLOADER_load_ram                     ; call the bootloaders programming routine
+    jmp @start
 @do_run:                                        ; orchestration of running a program
-    jmp BOOTLOADER_execute
+    jsr BOOTLOADER_execute
+    jmp @start
 
 ;================================================================================
 ;
-;   BOOTLOADER_program_ram - writes serial data to RAM
+;   BOOTLOADER_load_ram - Load program into RAM space
 ;
-;   Used in conjunction w/ the ISR, orchestrates user program reading
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
 ;   Returned Values: none
-;                    none
-;   Destroys:        .A, .X, .Y
+;
+;   Destroys:        none
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
-BOOTLOADER_program_ram:
-    lda #%01111111                              ; we disable all 6522 interrupts!!!
-    sta IER
-
-    lda #0                                      ; for a reason I dont get, the ISR is triggered...
-    sta ISR_FIRST_RUN                           ; one time before the first byte arrives, so we mitigate here
-
-    jsr LCD_clear_video_ram
-    LCD_writeln message4
-
-    lda #$00                                    ; initializing loading state byte
-    sta LOADING_STATE
-
-    lda #>PROGRAM_START                         ; initializing RAM address counter
-    sta CURRENT_RAM_ADDRESS_H
-    lda #<PROGRAM_START
-    sta CURRENT_RAM_ADDRESS_L
-
-    cli                                         ; enable interrupt handling
-
-    lda #%00000000                              ; set all pins on port B to input
-    ldx #%11100001                              ; set top 3 pins and bottom ones to on port A to output, 4 middle ones to input
-    jsr VIA_configure_ddrs
-
-@wait_for_first_data:
-    lda LOADING_STATE                           ; checking loading state
-    cmp #$00                                    ; the ISR will set to $01 as soon as a byte is read
-    beq @wait_for_first_data
-
-@loading_data:
-    lda #$02                                    ; assuming we're done loading, we set loading state to $02
-    sta LOADING_STATE
-
-    lda #120
-    jsr LIB_delay1ms
-
-    lda LOADING_STATE                           ; check back loading state, which was eventually updated by the ISR
-    cmp #$02
-    bne @loading_data
-                                                ; when no data came in in last * cycles, we're done loading
-@done_loading:
-    lda #%11111111                              ; Reset VIA ports for output, set all pins on port B to output
-    ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    jsr VIA_configure_ddrs
-
-    jsr LCD_clear_video_ram
-    LCD_writeln message6
-
-    lda #25
-    jsr LIB_delay100ms
-    rts
+BOOTLOADER_load_ram:
+    lda #<__RAM_START__
+    sta ACIA_SPTR
+    lda #>__RAM_START__
+    sta ACIA_SPTR+1
+    LCD_writeln message3
+    jsr VIA_read_mini_keyboard
+    jmp XMODEM_recv
 
 ;================================================================================
 ;
 ;   BOOTLOADER_execute - executes a user program in RAM
 ;
-;   Program needs to be loaded via serial loader or other mechanism beforehand
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
@@ -608,13 +554,16 @@ message1:
 message2:
     .asciiz "Enter Command..."
 message3:
-    .asciiz "Programming RAM"
+    .byte "Getting Ready To    "
+    .byte "LOAD RAM. Hit Mini  "
+    .byte "Keyboard Button To  "
+    .byte "Start:              ", $00
 message4:
     .asciiz "Awaiting data..."
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0x0400"
+    .asciiz "Running $0400"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
@@ -648,73 +597,9 @@ clock_spd:
 message9:
     .asciiz "Clk Spd Saved"
 
-;================================================================================
-;
-;   ISR_RAMWRITE - Interrupt Service Routine
-;
-;   This might be the most naive approach to serial RAM writing ever, but it is
-;   enormously stable and effective.
-;
-;   Whenever the Arduino set up a data bit on the 8 data lines of VIA PortB, it
-;   pulls the 6502's interrupt line low for 3 microseconds. This triggers an
-;   interrupt, and causes the 6502 to lookup the ISR entry vector in memory
-;   location $fffe and $ffff. This is, where this routines address is put, so
-;   each time an interrupt is triggered, this routine is called.
-;
-;   The routine reads the current byte from VIA PortB, writes it to the RAM and
-;   increases the RAM address by $01.
-;
-;   In addition it REsets the LOADING_STATE byte, so the BOOTLOADER_program_ram
-;   routine knows, there is still data flowing in. Since there is no "Control Byte"
-;   that can be used to determine EOF, it is ust assumed, that EOF is reached, when
-;   no data came in for a defined number of cycles.
-;
-;   Important: Due to the current hardware design (interrupt line) there is no
-;              way to have the ISR service different interrupt calls.
-;
-;   Important: The routine is put as close to the end of the ROM as possible to
-;              not fragment the ROM for additional routines. In case of additional
-;              operations, the entry address needs recalculation!
-;
-;   ————————————————————————————————————
-;   Preparatory Ops: none
-;
-;   Returned Values: none
-;
-;   Destroys:        none
-;   ————————————————————————————————————
-;
-;================================================================================
-
 .segment "ISR"                              ; as close as possible to the ROM's end
 
-ISR_RAMWRITE:
-    pha
-    phy
-                                                ; for a reason I dont get, the ISR is called once with 0x00
-    lda ISR_FIRST_RUN                           ; check whether we are called for the first time
-    bne @write_data                             ; if not, just continue writing
-
-    lda #1                                      ; otherwise set the first time marker
-    sta ISR_FIRST_RUN                           ; and return from the interrupt
-
-    jmp @doneisr
-
-@write_data:
-    lda #$01                                    ; progressing state of loading operation
-    sta LOADING_STATE                           ; so program_ram routine knows, data's still flowing
-
-    lda PORTB                                   ; load serial data byte
-    ldy #0
-    sta (CURRENT_RAM_ADDRESS),y                 ; store byte at current RAM location
-
-                                                ; increase the 16bit RAM location
-    inc CURRENT_RAM_ADDRESS_L
-    bne @doneisr
-    inc CURRENT_RAM_ADDRESS_H
-@doneisr:
-    ply                                         ; restore Y
-    pla                                         ; restore A
+ISR_HANDLER:
     rti
 
 ISR:

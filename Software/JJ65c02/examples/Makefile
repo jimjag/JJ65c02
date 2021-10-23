@@ -1,5 +1,6 @@
 LDCFG = jj65c02.cfg
 LDMAP = hello_world_scroll.map
+LBL = hello_world_scroll.lbl
 TARGET = hello_world_scroll
 
 # Point to location of where the ROM object files are
@@ -23,7 +24,7 @@ $(OBJS): $(SRCS)
 	ca65 -U -t none --cpu 65c02 -U -I ../minios/include -o $@ $(@:.o=.s)
 
 $(TARGET): $(OBJS)
-	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(ROM) $(OBJS)
+	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(ROM) $(OBJS)
 	rm -f $(TARGET).rom
 
 .PHONY: clean

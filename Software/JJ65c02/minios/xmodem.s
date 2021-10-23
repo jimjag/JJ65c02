@@ -200,7 +200,7 @@ XMODEM_send:
 ;   XMODEM_recv: Receive data via xmodem protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops:
+;   Preparatory Ops: Load address must be stored in PTR,PTR+1
 ;
 ;   Returned Values:
 ;   ————————————————————————————————————
@@ -214,10 +214,6 @@ XMODEM_recv:
     sta BFLAG                   ; set flag to get address from block 1
     stz CRC
     stz CRC+1
-    lda #<__RAM_START__
-    sta PTR
-    lda #>__RAM_START__
-    sta PTR+1
 @StartCRC:
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it

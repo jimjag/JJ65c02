@@ -1,5 +1,6 @@
 LDCFG = jj65c02.cfg
 LDMAP = minios.map
+LBL = minios.lbl
 TARGET = minios
 
 SRCS =  minios.s \
@@ -19,7 +20,7 @@ $(OBJS): $(SRCS)
 	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
 
 $(TARGET): $(OBJS)
-	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(OBJS)
+	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
 	rm -f $(TARGET).bin
 
 .PHONY: clean
