@@ -18,8 +18,8 @@ $(OBJS): $(SRCS)
 	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:.o=.s)
 
 $(TARGET): $(OBJS)
-	ld65 -C ../$(LDCFG) -v -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
-	rm -f $(TARGET).bin
+	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(OBJS)
+	rm -f $(TARGET).bin $(TARGET)
 
 .PHONY: clean
 clean:

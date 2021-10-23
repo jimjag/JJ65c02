@@ -20,8 +20,8 @@ $(OBJS): $(SRCS)
 	ca65 -U -t none --cpu 65c02 -U -I ../minios/include -o $@ $(@:.o=.s)
 
 $(TARGET): $(OBJS)
-	ld65 -C ../$(LDCFG) -v -vm -m $(LDMAP) -o $(TARGET) $(OBJS) $(ROM)
-	rm -f $(TARGET).rom
+	ld65 -C ../$(LDCFG) -v -Ln $(LDMAP) -o $(TARGET) $(ROM) $(OBJS)
+	rm -f $(TARGET).rom $(TARGET)
 
 .PHONY: clean
 clean:
