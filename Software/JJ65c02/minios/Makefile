@@ -10,13 +10,12 @@ SRCS =  minios.s \
 	lib.s \
 	acia.s \
 	tty.s \
-	xmodem.s
+	ymodem.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
 all: $(TARGET)
 
 $(OBJS): $(SRCS)
-	mkdir -p objs
 	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
 
 $(TARGET): $(OBJS)

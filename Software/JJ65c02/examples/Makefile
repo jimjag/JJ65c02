@@ -13,7 +13,7 @@ ROM =  $(ROMOBJs)/minios.o \
 	$(ROMOBJs)/lib.o \
 	$(ROMOBJs)/acia.o \
 	$(ROMOBJs)/tty.o \
-	$(ROMOBJs)/xmodem.o
+	$(ROMOBJs)/ymodem.o
 
 SRCS =  hello_world_scroll.s
 OBJS=$(SRCS:%.s=%.o)

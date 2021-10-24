@@ -67,7 +67,7 @@ LCD_clear_video_ram:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y
+;   Destroys:        .X
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -92,12 +92,14 @@ LCD_write_string:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y
+;   Destroys:        .X
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 LCD_write_string_with_offset:
+    pha
+    phy
     ldy #0
 @loop:
     cpx #(LCD_SIZE)
@@ -109,8 +111,10 @@ LCD_write_string_with_offset:
     inx
     bne @loop                                   ; loop until we find 0x00
 @return:
-    jmp LCD_render                              ; render video ram contents to LCD screen aka scanline
-    ;rts
+    jsr LCD_render                              ; render video ram contents to LCD screen aka scanline
+    ply
+    pla
+    rts
 
 ;================================================================================
 ;
@@ -298,12 +302,15 @@ LCD_set_cursor:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y, Z4
+;   Destroys:        Z4
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 LCD_render:
+    pha
+    phy
+    phx
     ldx #0
     ldy #0
     jsr LCD_set_cursor
@@ -330,6 +337,9 @@ LCD_render:
     inx
     bne @write_char
 @return:
+    plx
+    ply
+    pla
     rts
 
 ;================================================================================

@@ -1,4 +1,4 @@
-; XMODEM/CRC Sender/Receiver for the 65C02
+; YMODEM/CRC Sender/Receiver for the 65C02
 ;
 ; By Daryl Rictor Aug 2002
 ;
@@ -8,8 +8,8 @@
 ; and 12 bytes of zero page RAM for variable storage.
 ;
 ;**************************************************************************
-; This implementation of XMODEM/CRC does NOT conform strictly to the
-; XMODEM protocol standard in that it (1) does not accurately time character
+; This implementation of YMODEM/CRC does NOT conform strictly to the
+; YMODEM protocol standard in that it (1) does not accurately time character
 ; reception or (2) fall back to the Checksum mode.
 
 ; (1) For timing, it uses a crude timing loop to provide approximate
@@ -17,12 +17,12 @@
 ; found that CPU clock speed of up to 5MHz also work but may not in
 ; every case.  Windows HyperTerminal worked quite well at both speeds!
 ;
-; (2) Most modern terminal programs support XMODEM/CRC which can detect a
+; (2) Most modern terminal programs support YMODEM/CRC which can detect a
 ; wider range of transmission errors so the fallback to the simple checksum
 ; calculation was not implemented to save space.
 ;**************************************************************************
 ;
-; Files transferred via XMODEM-CRC will have the load address contained in
+; Files transferred via YMODEM-CRC will have the load address contained in
 ; the first two bytes in little-endian format:
 ;  FIRST BLOCK
 ;     offset(0) = lo(load start address),
@@ -33,7 +33,7 @@
 ; Subsequent blocks
 ;     offset(n) = data byte (n)
 ;
-; One note,xMODEM sends 128 byte blocks.  If the block of memory that
+; One note,YMODEM sends 128 byte blocks.  If the block of memory that
 ; you wish to save is smaller than the 128 byte block boundary, then
 ; the last block will be padded with zeros.  Upon reloading, the
 ; data will be written back to the original location.  In addition, the
@@ -46,9 +46,10 @@
 .include "tty.h"
 .include "acia.inc"
 .include "lib.inc"
+.include "lcd.inc"
 
-.export XMODEM_send
-.export XMODEM_recv
+.export YMODEM_send
+.export YMODEM_recv
 
 LASTBLK = Z0        ; flag for last block
 BLKNO = Z1          ; block number
@@ -63,7 +64,7 @@ CRC = TEXT_BLK      ; CRC lo byte  (two byte variable)
 
 ;^^^^^^^^^^^^^^^^^^^^^^ Start of Program ^^^^^^^^^^^^^^^^^^^^^^
 ;
-; Xmodem/CRC transfer routines
+; YMODEM/CRC transfer routines
 ; By Daryl Rictor, August 8, 2002
 ;
 ; v1.0  released on Aug 8, 2002.
@@ -76,7 +77,7 @@ CRC = TEXT_BLK      ; CRC lo byte  (two byte variable)
 
 ;================================================================================
 ;
-;   XMODEM_send: Send data via xmodem protocol through ACIA
+;   YMODEM_send: Send data via YMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops:
@@ -86,9 +87,9 @@ CRC = TEXT_BLK      ; CRC lo byte  (two byte variable)
 ;
 ;================================================================================
 
-XMODEM_send:
-.ifdef _BUILD_XMODEM_send_
-    ACIA_writeln XM_start_msg      ; send prompt and info
+YMODEM_send:
+.ifdef _BUILD_YMODEM_send_
+    ACIA_writeln YM_start_msg      ; send prompt and info
     lda #$00
     sta ERRCNT                  ; error counter set to 0
     sta LASTBLK                 ; set flag to false
@@ -183,21 +184,21 @@ XMODEM_send:
 @Seterror:
     inc ERRCNT                  ; INC error counter
     lda ERRCNT
-    cmp #$0A                    ; are there 10 errors? (Xmodem spec for failure)
+    cmp #$0A                    ; are there 10 errors? (YMODEM spec for failure)
     bne @Resend                 ; no, resend block
 @PrtAbort:
     jsr Flush                   ; yes, too many errors, flush buffer,
-    ACIA_writeln XM_error_msg      ; print error msg and exit
+    ACIA_writeln YM_error_msg      ; print error msg and exit
 @Done:
     lda #(EOT)
     jsr ACIA_write_byte
-    ACIA_writeln XM_success_msg    ; All Done..Print msg and exit
+    ACIA_writeln YM_success_msg    ; All Done..Print msg and exit
 .endif
     rts
 
 ;================================================================================
 ;
-;   XMODEM_recv: Receive data via xmodem protocol through ACIA
+;   YMODEM_recv: Receive data via YMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: Load address must be stored in PTR,PTR+1
@@ -207,9 +208,9 @@ XMODEM_send:
 ;
 ;================================================================================
 
-XMODEM_recv:
-    ACIA_writeln XM_start_msg      ; send prompt and info
-    lda #$01
+YMODEM_recv:
+    ACIA_writeln YM_start_msg      ; send prompt and info
+    lda #$00
     sta BLKNO                   ; set block # to 1
     sta BFLAG                   ; set flag to get address from block 1
     stz CRC
@@ -250,7 +251,8 @@ XMODEM_recv:
     lda RECVB,x                 ; get block # from buffer
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
-    ACIA_writeln XM_error_msg      ; Unexpected block number - abort
+    ACIA_writeln YM_error_msg      ; Unexpected block number - abort
+    LCD_writeln YM_error_msg      ; Unexpected block number - abort
     jsr Flush                   ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
@@ -260,7 +262,8 @@ XMODEM_recv:
     inx
     cmp RECVB,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
-    ACIA_writeln XM_error_msg      ; Unexpected block number - abort
+    ACIA_writeln YM_error_msg      ; Unexpected block number - abort
+    LCD_writeln YM_error_msg      ; Unexpected block number - abort
     jsr Flush                   ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
@@ -274,6 +277,7 @@ XMODEM_recv:
     lda RECVB,y                 ; get lo CRC from buffer
     cmp CRC                     ; compare to calculated lo CRC
     beq @GoodCRC                ; good CRC
+
 @BadCRC:
     jsr Flush                   ; flush the input port
     lda #(NAK)
@@ -281,20 +285,19 @@ XMODEM_recv:
     jmp @StartBlk               ; Start over, get the block again
 @GoodCRC:
     ldx #$02
-.ifdef _UGLY_LOAD_HACK
     lda BLKNO                   ; get the block number
-    cmp #$01                    ; 1st block?
+    cmp #$00                    ; YMODEM block #0?
     bne @CopyBlk                ; no, copy all 128 bytes
-    lda BFLAG                   ; is it really block 1, not block 257, 513 etc.
+    lda BFLAG                   ; is it really block 0
     beq @CopyBlk                ; no, copy all 128 bytes
-    lda RECVB,x                 ; get target address from 1st 2 bytes of blk 1
-    sta PTR                     ; save lo address
-    inx
-    lda RECVB,x                 ; get hi address
-    sta PTR+1                   ; save it
-    inx                         ; point to first byte of data
-    dec BFLAG                   ; set the flag so we won't get another address
-.endif
+    ;
+    ; What we have is YMODEM's blk 0, which we just ignore
+    ;
+    dec BFLAG                   ; set the flag so we won't trigger again
+    inc BLKNO                   ; done. INC the block #
+    lda #(ACK)                  ; send ACK
+    jsr ACIA_write_byte
+    jmp @StartCRC               ; and restart the actual data xfer
 @CopyBlk:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
@@ -319,7 +322,7 @@ XMODEM_recv:
     jsr Flush                   ; get leftover characters, if any
     lda #(EOT)
     jsr ACIA_write_byte
-    ACIA_writeln XM_success_msg
+    ACIA_writeln YM_success_msg
     rts
 ;
 ;=========================================================================
@@ -370,14 +373,14 @@ CalcCRC:
 
 .segment "RODATA"
 
-XM_start_msg:      .asciiz "Begin XMODEM/CRC transfer.  Press <Esc> to abort...\n\r"
-XM_error_msg:      .asciiz "Transfer Error!\n\r"
-XM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
+YM_start_msg:      .asciiz "Begin YMODEM transfer.  Press <Esc> to abort...\n\r"
+YM_error_msg:      .asciiz "Transfer Error!\n\r"
+YM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
 
 .segment "RODATA_PA"
 
 ; The following tables are used to calculate the CRC for the 128 bytes
-; in the xmodem data blocks.  You can use these tables if you plan to
+; in the YMODEM data blocks.  You can use these tables if you plan to
 ; store this program in ROM.  If you choose to build them at run-time,
 ; then just delete them and define the two labels: CRClo & CRChi.
 ;

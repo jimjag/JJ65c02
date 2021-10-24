@@ -261,7 +261,8 @@ BOOTLOADER_load_ram:
     sta ACIA_SPTR+1
     LCD_writeln message3
     jsr VIA_read_mini_keyboard
-    jmp XMODEM_recv
+    jsr LCD_clear_screen
+    jmp YMODEM_recv
 
 ;================================================================================
 ;
