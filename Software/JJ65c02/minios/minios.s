@@ -256,10 +256,6 @@ MENU_main:
 ;================================================================================
 
 BOOTLOADER_load_ram:
-    lda #<__RAM_START__
-    sta ACIA_SPTR
-    lda #>__RAM_START__
-    sta ACIA_SPTR+1
     LCD_writeln message3
     jsr VIA_read_mini_keyboard
     jsr LCD_clear_screen

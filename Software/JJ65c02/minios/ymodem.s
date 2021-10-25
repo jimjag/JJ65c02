@@ -1,46 +1,3 @@
-; YMODEM/CRC Sender/Receiver for the 65C02
-;
-; By Daryl Rictor Aug 2002
-;
-; A simple file transfer program to allow transfers between the SBC  and a
-; console device utilizing the x-modem/CRC transfer protocol.  Requires
-; ~1200 bytes of either RAM or ROM, 132 bytes of RAM for the receive buffer,
-; and 12 bytes of zero page RAM for variable storage.
-;
-;**************************************************************************
-; This implementation of YMODEM/CRC does NOT conform strictly to the
-; YMODEM protocol standard in that it (1) does not accurately time character
-; reception or (2) fall back to the Checksum mode.
-
-; (1) For timing, it uses a crude timing loop to provide approximate
-; DELAYs.  These have been calibrated against a 1MHz CPU clock.  I have
-; found that CPU clock speed of up to 5MHz also work but may not in
-; every case.  Windows HyperTerminal worked quite well at both speeds!
-;
-; (2) Most modern terminal programs support YMODEM/CRC which can detect a
-; wider range of transmission errors so the fallback to the simple checksum
-; calculation was not implemented to save space.
-;**************************************************************************
-;
-; Files transferred via YMODEM-CRC will have the load address contained in
-; the first two bytes in little-endian format:
-;  FIRST BLOCK
-;     offset(0) = lo(load start address),
-;     offset(1) = hi(load start address)
-;     offset(2) = data byte (0)
-;     offset(n) = data byte (n-2)
-;
-; Subsequent blocks
-;     offset(n) = data byte (n)
-;
-; One note,YMODEM sends 128 byte blocks.  If the block of memory that
-; you wish to save is smaller than the 128 byte block boundary, then
-; the last block will be padded with zeros.  Upon reloading, the
-; data will be written back to the original location.  In addition, the
-; padded zeros WILL also be written into RAM, which could overwrite other
-; data.
-;
-
 .include "minios.inc"
 .include "sysram.inc"
 .include "tty.h"
@@ -58,24 +15,11 @@ BFLAG = Z3          ; block flag
 DELAY = Z4          ; DELAY counter
 
 .segment "ZEROPAGE"
-PTR:    .res 2      ; data pointer (two byte variable)
+BLPTR:  .res 2      ; data pointer (two byte variable)
 EOFP:   .res 2      ; end of file address pointer (2 bytes)
 CRC:    .res 2      ; CRC lo byte  (two byte variable)
 
 .segment "CODE"
-
-;^^^^^^^^^^^^^^^^^^^^^^ Start of Program ^^^^^^^^^^^^^^^^^^^^^^
-;
-; YMODEM/CRC transfer routines
-; By Daryl Rictor, August 8, 2002
-;
-; v1.0  released on Aug 8, 2002.
-;
-; Enter this routine with the beginning address stored in the zero page address
-; pointed to by PTR & PTR+1 and the ending address stored in the zero page address
-; pointed to by EOFP & EOFP+1.
-;
-;
 
 ;================================================================================
 ;
@@ -112,9 +56,9 @@ YMODEM_send:
     sta RECVB                   ; into 1st byte
     lda #$FE                    ; load 1's comp of block #
     sta RECVB+1                 ; into 2nd byte
-    lda PTR                     ; load low byte of start address
+    lda BLPTR                   ; load low byte of start address
     sta RECVB+2                 ; into 3rd byte
-    lda PTR+1                   ; load hi byte of start address
+    lda BLPTR+1                 ; load hi byte of start address
     sta RECVB+3                 ; into 4th byte
     bra @LdBuff1                ; jump into buffer load routine
 
@@ -131,15 +75,15 @@ YMODEM_send:
     eor #$FF
     sta RECVB+1                 ; save 1's comp of BLKNO next
 @LdBuff1:
-    lda (PTR),y                 ; save 128 bytes of data
+    lda (BLPTR),y               ; save 128 bytes of data
     sta RECVB,x
 @LdBuff2:
     sec
     lda EOFP
-    sbc PTR                     ; Are we at the last address?
+    sbc BLPTR                   ; Are we at the last address?
     bne @LdBuff4                ; no, INC  pointer and continue
     lda EOFP+1
-    sbc PTR+1
+    sbc BLPTR+1
     bne @LdBuff4
     inc LASTBLK                 ; Yes, Set last byte flag
 @LdBuff3:
@@ -150,9 +94,9 @@ YMODEM_send:
     sta RECVB,x
     beq @LdBuff3                ; Branch always
 @LdBuff4:
-    inc PTR                     ; INC address pointer
+    inc BLPTR                   ; INC address pointer
     bne @LdBuff5
-    inc PTR+1
+    inc BLPTR+1
 @LdBuff5:
     inx
     cpx #$82                    ; last byte in block?
@@ -203,7 +147,7 @@ YMODEM_send:
 ;   YMODEM_recv: Receive data via YMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: Load address must be stored in PTR,PTR+1
+;   Preparatory Ops: Load address must be stored in BLPTR,BLPTR+1
 ;
 ;   Returned Values:
 ;   ————————————————————————————————————
@@ -211,6 +155,10 @@ YMODEM_send:
 ;================================================================================
 
 YMODEM_recv:
+    lda #<PROGRAM_START
+    sta BLPTR
+    lda #>PROGRAM_START
+    sta BLPTR+1
     ACIA_writeln YM_start_msg      ; send prompt and info
     jsr LCD_clear_video_ram
     jsr LCD_clear_screen
@@ -222,14 +170,15 @@ YMODEM_recv:
     jsr ACIA_flush_rbuff
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
-    jsr GetByte                 ; wait for input
-    bcs @GotByte                ; byte received, process it
+    jsr @GetByte                ; wait for input
+    bcs @GotByte0               ; byte received, process it
     bcc @StartCRC               ; resend "C"
 
 @StartBlk:
-    jsr GetByte                 ; get first byte of block
+    jsr @ShowBlkNo
+    jsr @GetByte                ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
-@GotByte:
+@GotByte0:
     cmp #(ESC)                  ; quitting?
     bne @GotByte1               ; no
     lda #$FE                    ; Error code in "A" of desired
@@ -246,9 +195,8 @@ YMODEM_recv:
 @BegBlk:
     ldx #$00
 @GetBlk:
-    jsr GetByte                 ; get next character
+    jsr @GetByte                ; get next character
     bcc @BadByte                ; chr rcv error, flush and send NAK
-@GetBlk2:
     sta RECVB,x                 ; good char, save it in the rcv buffer
     inx                         ; INC buffer pointer
     cpx #132                    ; <01> <FE> <128 bytes> <CRCH> <CRCL>
@@ -287,7 +235,7 @@ YMODEM_recv:
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; bad 1's comp of block#
 @GoodBlk2:
-    jsr CalcCRC                 ; calc CRC
+    jsr @CalcCRC                ; calc CRC
     lda RECVB,y                 ; get hi CRC from buffer
     cmp CRC+1                   ; compare to calculated hi CRC
     bne @BadCRCH                ; bad CRC, send NAK
@@ -344,10 +292,10 @@ YMODEM_recv:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
     lda RECVB,x                 ; get data byte from buffer
-    sta (PTR),y                 ; save to target
-    inc PTR                     ; point to next address
+    sta (BLPTR),y               ; save to target
+    inc BLPTR                   ; point to next address
     bne @CopyBlk4               ; did it step over page boundary?
-    inc PTR+1                   ; adjust high address for page crossing
+    inc BLPTR+1                 ; adjust high address for page crossing
 @CopyBlk4:
     inx                         ; point to next data byte
     cpx #$82                    ; is it the last byte (all 128)?
@@ -356,16 +304,6 @@ YMODEM_recv:
     inc BLKNO                   ; done. INC the block #
     lda #(ACK)                  ; send ACK
     jsr ACIA_write_byte
-    ldy #00
-    ldx #02
-    jsr LCD_set_cursor
-    lda BLKNO
-    jsr LIB_bin_to_hex
-    pha
-    txa
-    jsr LCD_send_data
-    pla
-    jsr LCD_send_data
     jmp @StartBlk               ; get next block
 
 @RDone:
@@ -375,13 +313,15 @@ YMODEM_recv:
     lda #(EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg
+    lda #30
+    jsr LIB_delay100ms
     rts
 ;
 ;=========================================================================
 ;
 ; subroutines
 ;
-GetByte:
+@GetByte:
     lda #150                    ; wait for chr input and cycle timing loop
     sta DELAY                   ; set low value of timing loop
 @StartCRCLp:
@@ -395,12 +335,24 @@ GetByte:
 @GotByte:
     rts                         ; with character in "A"
 
+@ShowBlkNo:
+    ldy #00
+    ldx #02
+    jsr LCD_set_cursor
+    lda BLKNO
+    jsr LIB_bin_to_hex
+    pha
+    txa
+    jsr LCD_send_data
+    pla
+    jsr LCD_send_data
+    rts
 ;
 ;=========================================================================
 ;
 ;  CRC subroutines
 ;
-CalcCRC:
+@CalcCRC:
     stz CRC
     stz CRC+1
     ldy #$02
@@ -469,3 +421,48 @@ CRChi:  .byte $00,$10,$20,$30,$40,$50,$60,$70,$81,$91,$A1,$B1,$C1,$D1,$E1,$F1
         .byte $FD,$ED,$DD,$CD,$BD,$AD,$9D,$8D,$7C,$6C,$5C,$4C,$3C,$2C,$1C,$0C
         .byte $EF,$FF,$CF,$DF,$AF,$BF,$8F,$9F,$6E,$7E,$4E,$5E,$2E,$3E,$0E,$1E
 
+;========
+;  Notes from orig source material:
+;
+; XMODEM/CRC Sender/Receiver for the 65C02
+;
+; By Daryl Rictor Aug 2002
+;
+; A simple file transfer program to allow transfers between the SBC  and a
+; console device utilizing the x-modem/CRC transfer protocol.  Requires
+; ~1200 bytes of either RAM or ROM, 132 bytes of RAM for the receive buffer,
+; and 12 bytes of zero page RAM for variable storage.
+;
+;**************************************************************************
+; This implementation of XMODEM/CRC does NOT conform strictly to the
+; XMODEM protocol standard in that it (1) does not accurately time character
+; reception or (2) fall back to the Checksum mode.
+
+; (1) For timing, it uses a crude timing loop to provide approximate
+; DELAYs.  These have been calibrated against a 1MHz CPU clock.  I have
+; found that CPU clock speed of up to 5MHz also work but may not in
+; every case.  Windows HyperTerminal worked quite well at both speeds!
+;
+; (2) Most modern terminal programs support XMODEM/CRC which can detect a
+; wider range of transmission errors so the fallback to the simple checksum
+; calculation was not implemented to save space.
+;**************************************************************************
+;
+; Files transferred via XMODEM-CRC will have the load address contained in
+; the first two bytes in little-endian format:
+;  FIRST BLOCK
+;     offset(0) = lo(load start address),
+;     offset(1) = hi(load start address)
+;     offset(2) = data byte (0)
+;     offset(n) = data byte (n-2)
+;
+; Subsequent blocks
+;     offset(n) = data byte (n)
+;
+; One note,XMODEM sends 128 byte blocks.  If the block of memory that
+; you wish to save is smaller than the 128 byte block boundary, then
+; the last block will be padded with zeros.  Upon reloading, the
+; data will be written back to the original location.  In addition, the
+; padded zeros WILL also be written into RAM, which could overwrite other
+; data.
+;

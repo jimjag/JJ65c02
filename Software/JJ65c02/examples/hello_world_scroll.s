@@ -15,6 +15,6 @@ scroll:
 c1: .asciiz "miniOS RAM program"
 c2: .asciiz "      ---         "
 c3: .asciiz "Loaded via xmodem"
-c4: .asciiz "into $0300"
+c4: .asciiz "into $0500"
 c5: .asciiz "and run from there."
 c6: .asciiz "Pretty cool, huh?"
