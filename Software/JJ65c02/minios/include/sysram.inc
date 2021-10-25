@@ -6,8 +6,8 @@ _SYSRAM_INC_ = 1
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $03ff      RAM: miniOS set-aside / Page 2+3
-;      . $0400 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2+3
+;      . $0500 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
 ;      . $8020 - $802f      VIA:
@@ -27,6 +27,9 @@ _SYSRAM_INC_ = 1
 .importzp LCD_SPTR
 .importzp USER_INPUT_PTR
 .importzp TEXT_BLK
+.importzp ACIA_RRPTR
+.importzp ACIA_RWPTR
+
 
 .import VIDEO_RAM
 .import CLK_SPD
@@ -40,6 +43,8 @@ _SYSRAM_INC_ = 1
 
 .import DDRAM
 .import VRAM_OFFSETS
+
+.import ACIA_RDBUFF
 
 .include "sysram.h"
 .endif

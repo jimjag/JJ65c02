@@ -56,9 +56,11 @@ BLKNO = Z1          ; block number
 ERRCNT = Z2         ; error counter 10 is the limit
 BFLAG = Z3          ; block flag
 DELAY = Z4          ; DELAY counter
-PTR = ACIA_SPTR     ; data pointer (two byte variable)
-EOFP = LCD_SPTR     ; end of file address pointer (2 bytes)
-CRC = TEXT_BLK      ; CRC lo byte  (two byte variable)
+
+.segment "ZEROPAGE"
+PTR:    .res 2      ; data pointer (two byte variable)
+EOFP:   .res 2      ; end of file address pointer (2 bytes)
+CRC:    .res 2      ; CRC lo byte  (two byte variable)
 
 .segment "CODE"
 
@@ -187,7 +189,7 @@ YMODEM_send:
     cmp #$0A                    ; are there 10 errors? (YMODEM spec for failure)
     bne @Resend                 ; no, resend block
 @PrtAbort:
-    jsr Flush                   ; yes, too many errors, flush buffer,
+    jsr ACIA_flush_rbuff
     ACIA_writeln YM_error_msg      ; print error msg and exit
 @Done:
     lda #(EOT)
@@ -210,12 +212,14 @@ YMODEM_send:
 
 YMODEM_recv:
     ACIA_writeln YM_start_msg      ; send prompt and info
-    lda #$00
-    sta BLKNO                   ; set block # to 1
-    sta BFLAG                   ; set flag to get address from block 1
+    jsr LCD_clear_video_ram
+    jsr LCD_clear_screen
+    stz BLKNO                   ; YMODEM starts w/ block #0, which we ignore
+    stz BFLAG
     stz CRC
     stz CRC+1
 @StartCRC:
+    jsr ACIA_flush_rbuff
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
     jsr GetByte                 ; wait for input
@@ -235,13 +239,15 @@ YMODEM_recv:
     cmp #(SOH)                  ; Start of block?
     beq @BegBlk                 ; yes
     cmp #(EOT)
-    bne @BadCRC                 ; Not SOH or EOT, so flush buffer & send NAK
+    beq @done                   ; Not SOH or EOT, so flush buffer & send NAK
+    jmp @BadByte1
+@done:
     jmp @RDone                  ; EOT - all done!
 @BegBlk:
     ldx #$00
 @GetBlk:
     jsr GetByte                 ; get next character
-    bcc @BadCRC                 ; chr rcv error, flush and send NAK
+    bcc @BadByte                ; chr rcv error, flush and send NAK
 @GetBlk2:
     sta RECVB,x                 ; good char, save it in the rcv buffer
     inx                         ; INC buffer pointer
@@ -251,20 +257,32 @@ YMODEM_recv:
     lda RECVB,x                 ; get block # from buffer
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
-    ACIA_writeln YM_error_msg      ; Unexpected block number - abort
-    LCD_writeln YM_error_msg      ; Unexpected block number - abort
-    jsr Flush                   ; mismatched - flush buffer and then do BRK
+    ACIA_writeln YM_error_msg   ; Unexpected block number - abort
+    LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    jsr ACIA_flush_rbuff        ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; unexpected block # - fatal error - BRK or RTS
+
+@BadByte:
+    ldy #02
+    ldx #00
+    jsr LCD_set_cursor
+    lda #'B'
+    jsr LCD_send_data
+    jsr ACIA_flush_rbuff
+    lda #(NAK)
+    jsr ACIA_write_byte         ; send NAK to resend block
+    jmp @StartBlk
+
 @GoodBlk1:
     eor #$ff                    ; 1's comp of block #
     inx
     cmp RECVB,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
-    ACIA_writeln YM_error_msg      ; Unexpected block number - abort
-    LCD_writeln YM_error_msg      ; Unexpected block number - abort
-    jsr Flush                   ; mismatched - flush buffer and then do BRK
+    ACIA_writeln YM_error_msg   ; Unexpected block number - abort
+    LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    jsr ACIA_flush_rbuff        ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; bad 1's comp of block#
@@ -272,14 +290,38 @@ YMODEM_recv:
     jsr CalcCRC                 ; calc CRC
     lda RECVB,y                 ; get hi CRC from buffer
     cmp CRC+1                   ; compare to calculated hi CRC
-    bne @BadCRC                 ; bad CRC, send NAK
+    bne @BadCRCH                ; bad CRC, send NAK
     iny
     lda RECVB,y                 ; get lo CRC from buffer
     cmp CRC                     ; compare to calculated lo CRC
-    beq @GoodCRC                ; good CRC
-
+    bne @BadCRCL
+    jmp @GoodCRC                ; good CRC
+@BadCRCH:
+    lda #'H'
+    bra @BadCRC
+@BadCRCL:
+    lda #'L'
 @BadCRC:
-    jsr Flush                   ; flush the input port
+    ldy #01
+    ldx #00
+    jsr LCD_set_cursor
+    jsr LCD_send_data
+    jsr ACIA_flush_rbuff
+    lda #(NAK)
+    jsr ACIA_write_byte         ; send NAK to resend block
+    jmp @StartBlk
+
+@BadByte1:
+    ldy #01
+    ldx #04
+    jsr LCD_set_cursor
+    jsr LIB_bin_to_hex
+    pha
+    txa
+    jsr LCD_send_data
+    pla
+    jsr LCD_send_data
+    jsr ACIA_flush_rbuff
     lda #(NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk               ; Start over, get the block again
@@ -289,11 +331,11 @@ YMODEM_recv:
     cmp #$00                    ; YMODEM block #0?
     bne @CopyBlk                ; no, copy all 128 bytes
     lda BFLAG                   ; is it really block 0
-    beq @CopyBlk                ; no, copy all 128 bytes
+    bne @CopyBlk                ; no, copy all 128 bytes
     ;
     ; What we have is YMODEM's blk 0, which we just ignore
     ;
-    dec BFLAG                   ; set the flag so we won't trigger again
+    inc BFLAG                   ; set the flag so we won't trigger again
     inc BLKNO                   ; done. INC the block #
     lda #(ACK)                  ; send ACK
     jsr ACIA_write_byte
@@ -314,12 +356,22 @@ YMODEM_recv:
     inc BLKNO                   ; done. INC the block #
     lda #(ACK)                  ; send ACK
     jsr ACIA_write_byte
+    ldy #00
+    ldx #02
+    jsr LCD_set_cursor
+    lda BLKNO
+    jsr LIB_bin_to_hex
+    pha
+    txa
+    jsr LCD_send_data
+    pla
+    jsr LCD_send_data
     jmp @StartBlk               ; get next block
 
 @RDone:
     lda #(ACK)                  ; last block, send ACK and exit.
     jsr ACIA_write_byte
-    jsr Flush                   ; get leftover characters, if any
+    jsr ACIA_flush_rbuff
     lda #(EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg
@@ -342,20 +394,15 @@ GetByte:
     clc                         ; if loop times out, CLC, else SEC and return
 @GotByte:
     rts                         ; with character in "A"
-;
-Flush:
-    jsr GetByte                 ; read the port
-    bcs Flush                   ; if chr recvd, wait for another
-    rts                         ; else done
+
 ;
 ;=========================================================================
 ;
 ;  CRC subroutines
 ;
 CalcCRC:
-    lda #$00                    ; yes, calculate the CRC for the 128 bytes
-    sta CRC
-    sta CRC+1
+    stz CRC
+    stz CRC+1
     ldy #$02
 @CalcCRC1:
     lda RECVB,y

@@ -23,8 +23,8 @@
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $03ff      RAM: miniOS set-aside / Page 2+3
-;      . $0400 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2+3
+;      . $0500 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
 ;      . $8020 - $802f      VIA:
@@ -60,10 +60,10 @@ main:                                           ; boot routine, first thing load
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
 
-    lda #<ISR_HANDLER
-    sta ISR_VECTOR
-    lda #>ISR_HANDLER
-    sta ISR_VECTOR + 1
+    ;lda #<ISR_HANDLER
+    ;sta ISR_VECTOR
+    ;lda #>ISR_HANDLER
+    ;sta ISR_VECTOR + 1
 
     ; Init the 6551
     jsr ACIA_init
@@ -90,6 +90,7 @@ main:                                           ; boot routine, first thing load
     jsr LIB_delay100ms
 
     cli                                         ; interupts are back on
+
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 
@@ -279,7 +280,6 @@ BOOTLOADER_load_ram:
 ;================================================================================
 
 BOOTLOADER_execute:
-    sei                                         ; disable interrupt handling
     jsr LCD_clear_video_ram                     ; print a message
     LCD_writeln message7
     jmp PROGRAM_START                           ; and jump to program location
@@ -542,6 +542,37 @@ BOOTLOADER_adj_clock:
     pla
     rts
 
+;================================================================================
+;
+;   IRQ - Interrupt Handler
+;
+;   Just handles reading data from ACIA for now
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+ISR:
+    pha
+    phx
+    lda ACIA_STATUS
+    and #(ACIA_STATUS_RX_FULL)
+    beq @done                                   ; Receive buffer full?
+    lda ACIA_DATA
+    ldx ACIA_RWPTR
+    sta ACIA_RDBUFF,x                           ; Store in rx buffer
+    inc ACIA_RWPTR                              ; Increase write buffer pointer
+@done:
+    plx
+    pla
+    rti
+
+
 ;----------------------------------------------------
 
 .segment "RODATA"
@@ -564,7 +595,7 @@ message4:
 message6:
     .asciiz "Loading done!"
 message7:
-    .asciiz "Running $0400"
+    .asciiz "Running RAM@$0500"
 message8:
     .asciiz "Cleaning RAM    Patience please!"
 MON_position_map:
@@ -597,14 +628,6 @@ clock_spd:
     .byte " Clock:  % Mhz"
 message9:
     .asciiz "Clk Spd Saved"
-
-.segment "ISR"                              ; as close as possible to the ROM's end
-
-ISR_HANDLER:
-    rti
-
-ISR:
-    jmp (ISR_VECTOR)
 
 .segment "VECTORS"
 

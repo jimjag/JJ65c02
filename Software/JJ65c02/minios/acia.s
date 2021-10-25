@@ -12,6 +12,8 @@
 .export ACIA_read_byte
 .export ACIA_write_byte
 .export ACIA_write_string
+.export ACIA_has_rdata
+.export ACIA_flush_rbuff
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -34,17 +36,18 @@ ACIA_init:
     pha
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS
-    lda ACIA_DATA
-    lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_DISABLE | ACIA_DTR_LOW)
+    lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_ENABLE | ACIA_DTR_LOW)
     sta ACIA_COMMAND
-    lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_9600)
+    lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     sta ACIA_CONTROL
     lda ACIA_CONTROL
-    cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_9600)
+    cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     bne @done
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     tsb MINIOS_STATUS
 @done:
+    stz ACIA_RWPTR
+    stz ACIA_RRPTR
     pla
     rts
 
@@ -63,15 +66,19 @@ ACIA_init:
 ;================================================================================
 
 ACIA_read_byte:
-    clc                         ; no chr present
-    lda ACIA_STATUS
-    and #(ACIA_STATUS_RX_FULL)  ; mask rcvr full bit
-    beq @done
-    lda ACIA_DATA               ; else get chr
-    sec                         ; and set the Carry Flag
-@done:
-    rts                         ; done
-
+    clc
+    jsr ACIA_has_rdata
+    cmp #1
+    beq @read_it
+    rts
+@read_it:
+    phx
+    ldx ACIA_RRPTR
+    lda ACIA_RDBUFF,x
+    inc ACIA_RRPTR
+    plx
+    sec
+    rts
 
 ;================================================================================
 ;
@@ -136,3 +143,47 @@ ACIA_write_string:
     plx
     pla
     rts
+
+;================================================================================
+;
+;   ACIA_has_rdata - Returns 1 if we have READ data in buffer, 0 otherwise
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: .A
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+ACIA_has_rdata:
+    lda ACIA_RWPTR
+    cmp ACIA_RRPTR
+    beq @no_data_found
+    lda #$1
+    rts
+@no_data_found:
+    lda #$0
+    rts
+
+;================================================================================
+;
+;   ACIA_flush_rbuff - "Flush" the read buffer
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+ACIA_flush_rbuff:
+    stz ACIA_RWPTR
+    stz ACIA_RRPTR
+    rts
+
