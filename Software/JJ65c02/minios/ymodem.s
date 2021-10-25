@@ -171,32 +171,33 @@ YMODEM_recv:
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
     jsr @GetByte                ; wait for input
-    bcs @GotByte0               ; byte received, process it
+    bcs @GotByte1               ; byte received, process it
     bcc @StartCRC               ; resend "C"
-
 @StartBlk:
     jsr @ShowBlkNo
     jsr @GetByte                ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
-@GotByte0:
+@GotByte1:
     cmp #(ESC)                  ; quitting?
-    bne @GotByte1               ; no
+    bne @CheckSOH               ; no
     lda #$FE                    ; Error code in "A" of desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; YES - do BRK or change to RTS if desired
-@GotByte1:
+@CheckSOH:
     cmp #(SOH)                  ; Start of block?
     beq @BegBlk                 ; yes
     cmp #(EOT)
-    beq @done                   ; Not SOH or EOT, so flush buffer & send NAK
-    jmp @BadByte1
+    beq @done
+    jmp @BadByte1               ; Not SOH or EOT, so flush buffer & send NAK
 @done:
     jmp @RDone                  ; EOT - all done!
 @BegBlk:
     ldx #$00
 @GetBlk:
     jsr @GetByte                ; get next character
-    bcc @BadByte                ; chr rcv error, flush and send NAK
+    bcs @StoreIt
+    jmp @BadByte                ; chr rcv error, flush and send NAK
+@StoreIt:
     sta RECVB,x                 ; good char, save it in the rcv buffer
     inx                         ; INC buffer pointer
     cpx #132                    ; <01> <FE> <128 bytes> <CRCH> <CRCL>
@@ -211,18 +212,6 @@ YMODEM_recv:
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; unexpected block # - fatal error - BRK or RTS
-
-@BadByte:
-    ldy #02
-    ldx #00
-    jsr LCD_set_cursor
-    lda #'B'
-    jsr LCD_send_data
-    jsr ACIA_flush_rbuff
-    lda #(NAK)
-    jsr ACIA_write_byte         ; send NAK to resend block
-    jmp @StartBlk
-
 @GoodBlk1:
     eor #$ff                    ; 1's comp of block #
     inx
@@ -244,6 +233,7 @@ YMODEM_recv:
     cmp CRC                     ; compare to calculated lo CRC
     bne @BadCRCL
     jmp @GoodCRC                ; good CRC
+
 @BadCRCH:
     lda #'H'
     bra @BadCRC
@@ -259,20 +249,6 @@ YMODEM_recv:
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
-@BadByte1:
-    ldy #01
-    ldx #04
-    jsr LCD_set_cursor
-    jsr LIB_bin_to_hex
-    pha
-    txa
-    jsr LCD_send_data
-    pla
-    jsr LCD_send_data
-    jsr ACIA_flush_rbuff
-    lda #(NAK)
-    jsr ACIA_write_byte         ; send NAK to resend block
-    jmp @StartBlk               ; Start over, get the block again
 @GoodCRC:
     ldx #$02
     lda BLKNO                   ; get the block number
@@ -316,6 +292,33 @@ YMODEM_recv:
     lda #30
     jsr LIB_delay100ms
     rts
+
+@BadByte:
+    ldy #02
+    ldx #00
+    jsr LCD_set_cursor
+    lda #'B'
+    jsr LCD_send_data
+    jsr ACIA_flush_rbuff
+    lda #(NAK)
+    jsr ACIA_write_byte         ; send NAK to resend block
+    jmp @StartBlk
+
+@BadByte1:
+    ldy #01
+    ldx #04
+    jsr LCD_set_cursor
+    jsr LIB_bin_to_hex
+    pha
+    txa
+    jsr LCD_send_data
+    pla
+    jsr LCD_send_data
+    jsr ACIA_flush_rbuff
+    lda #(NAK)
+    jsr ACIA_write_byte         ; send NAK to resend block
+    jmp @StartBlk               ; Start over, get the block again
+
 ;
 ;=========================================================================
 ;
