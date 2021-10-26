@@ -110,9 +110,8 @@ main:                                           ; boot routine, first thing load
 ;================================================================================
 
 MENU_main:
-    lda #0                                      ; since in RAM, positions need initialization
-    sta POSITION_MENU
-    sta POSITION_CURSOR
+    stz POSITION_MENU
+    stz POSITION_CURSOR
 
     jmp @start
 @MAX_SCREEN_POS:                                ; define some constants in ROM
@@ -202,7 +201,7 @@ MENU_main:
     cmp #6
     beq @about
     cmp #7
-    beq @credits
+    beq @thanks
     jmp @start                                  ; should we have an invalid option, restart
 
 @load_and_run:                                  ; load and directly run
@@ -229,8 +228,8 @@ MENU_main:
 @about:                                         ; start the about routine
     LCD_writetxt about
     jmp @start
-@credits:                                       ; start the credits routine
-    LCD_writetxt credits
+@thanks:                                        ; start the thanks routine
+    LCD_writetxt thanks
     jmp @start
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
@@ -575,15 +574,15 @@ ISR:
 
 message:
     .byte "      JJ65c02       "
-    .byte "   miniOS v0.9      ", $00
+    .byte "   miniOS v1.0      ", $00
 message1:
     .byte "      JJ65c02       "
-    .byte "  miniOS v0.9 ACIA  ", $00
+    .byte "  miniOS v1.0 ACIA  ", $00
 message2:
     .asciiz "Enter Command..."
 message3:
     .byte "Getting Ready To    "
-    .byte "LOAD RAM. Hit Mini  "
+    .byte "LOAD RAM. Tap Mini  "
     .byte "Keyboard Button To  "
     .byte "Start:              ", $00
 message4:
@@ -604,21 +603,23 @@ menu_items:
     .byte " Clear RAM          "
     .byte " Adjust Clk Speed   "
     .byte " About              "
-    .byte " Credits            "
+    .byte " Thanks             "
 
 about:
     .addr a1, a2, $0000
 a1: .asciiz "github.com/"
 a2: .asciiz "    jimjag/JJ65c02"
 
-credits:
-    .addr c1, c2, c3, c4, c5, c6, $0000
-c1: .asciiz "Jan Roesner"
-c2: .asciiz "   Orig sixty/5o2"
-c3: .asciiz "Ben Eater"
-c4: .asciiz "   6502 Project"
-c5: .asciiz "Steven Wozniak"
-c6: .asciiz "   bin2hex routine"
+thanks:
+    .addr c1, c2, c3, c4, c5, c6, c7, c8, $0000
+c1: .asciiz "Ben Eater"
+c2: .asciiz "  BE6502 Project"
+c3: .asciiz "Jan Roesner"
+c4: .asciiz "  Orig sixty/5o2"
+c5: .asciiz "Kris Foster"
+c6: .asciiz "  Ideas from KrisOS"
+c7: .asciiz "Dawid Buchwald"
+c8: .asciiz "  Ideas from OS1"
 
 clock_spd:
     .byte " Clock:  % Mhz"
