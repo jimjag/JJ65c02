@@ -18,7 +18,7 @@ The minios itself is standalone, which means that it provides limited functional
 5. __Clean RAM__ for use with non-volatile RAM or during development
 6. __Adjust Clock Speed__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
 
-The minios also provides some helper library functions to handle delays, driving the __LCD__ display, and reading the __mini keyboard__.
+The minios also provides some helper library functions to handle delays, serial and TTY I/O, driving the __LCD__ display, and reading the __mini keyboard__.
 
 ### Install the minios
 
@@ -96,7 +96,7 @@ RAM and run it from there. This uses the `W65c51` ACIA chip and the
 `MAX232` TTL-Serial converter card on the `JJ65c02` board.
 
 The serial connection is hardcoded as 19200 baud, 8 data bits, 1 stop
-bit and no parity. This is commonly refered to as `19200/8/1`. The
+bit and no parity. This is commonly refered to as `19200-8N1`. The
 current implementation does not support any flow control, so make sure
 that whatever serial/terminal connection program you use also has that
 configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac. Avoid `MacWise` because it lacks the
