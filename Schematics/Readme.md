@@ -15,8 +15,8 @@ So starting from Ben's design (as of Sept. 2021), here's a list of modifications
 * Different memory map
 * "Directional" keys tied low
 * Capability to add 2nd VIA chip
-* Support for bootloader
 * Dependent on 65c02 chip (not "generic" 6502)
+* Added W65c51 ACIA chip and TTL-serial converter.
 
 Let's look at each in more detail.
 
@@ -29,13 +29,14 @@ The design I came up with requires the addition of an another chip to Ben's, a 7
 
 ```
  $0000 - $7fff      RAM: 32k
-   $0000 - $00ff      RAM: Zero Page / we use $00-$03
+   $0000 - $00ff      RAM: Zero Page
    $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-   $0200 - $021f      RAM: Bootloader set-aside / Page 2
-   $0220 - $7fff      RAM: Runnable code area
- $8000 - $8fff      VIA 2: 4K (not currently used)
- $9000 - $9fff      VIA 1: 4K
- $a000 - $ffff      ROM: 24K
+   $0200 - $04ff      RAM: Bootloader set-aside / Page 2
+   $0500 - $7fff      RAM: Runnable code area
+ $8000 - $8fff      IO
+   $8010 - $801f      ACIA
+   $8020 - $802f      VIA
+ $9000 - $ffff      ROM: 28K
 ```
 
 This allows for a pretty sizable ROM-based loader and even OS, as well as extremely large (for a 6502) RAM-based code.
@@ -48,11 +49,10 @@ I only use 4 buttons on my setup, organized (and coded) as _Left_, _Up_, _Right_
 ### VIA2
 The [breadboard layout](../Images/JJ65c02-bootloader.png), as well as the memory map, allows for a 2nd VIA chip to be added relatively easily. As I investigate adding SPI capability, this will be very useful.
 
-### Bootloader
-Of course, the biggest part of bootloader support is, well, the bootloader itself. And, as mentioned, huge kudos to Jan Roesner for his _sixty5o2_ mini-bootloader, which I've hacked away on mercilessly. But the bootloader requires an Aduino Nano as an integral component, so it is both on the breadboard layout as well as included in the schematics.
-
-This also means that, since you can load code into RAM and run it there, you won't be constantly removing the ROM, flashing it, and reinstalling it.
-
 ### 65C02
 Ben's design, of course, also depends on the 65C02, in fact, the WDC65C02. However his code doesn't use any of the newer opcodes which this later version of the chip provides (like **PHY**). I've decided that as long as we are using the newer chip, we should take not only hardware but software advantage of that. This means, for example, that whatever assembler you use must honor the 65C02 opcode set. For `vasm`, this means you'll need to assemble with `vasm6502_oldstyle -wdc02 -dotdir -Fbin`
 
+### Serial Support
+Adding the `W65c51` ACIA chip and the `Max232` TTL-Serial
+converter board allows for true RS232 terminal support,
+vital for bootloader support.

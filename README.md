@@ -8,7 +8,6 @@ This project contains 3 main sections:
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
   * The miniOS ROM bootloader
-  * Host code
   * x65c02 Emulator
 * [Datasheets](./Datasheets)
 
@@ -27,6 +26,6 @@ You can, of course, contact me via the normal Github development methods, such a
 # Credits
 
 * Ben Eater : for the BB6502 system itself
-* Jan Roesner : for the [Sixty5o2](https://github.com/janroesner/sixty5o2) Bootloader, which serves as the origin of my fork
+* Jan Roesner : for the [Sixty5o2](https://github.com/janroesner/sixty5o2) Bootloader, which serves as the initial origin of my fork
 * Dawid Buchwald : Lots of other useful info.
 

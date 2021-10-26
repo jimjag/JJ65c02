@@ -1,20 +1,17 @@
 # The Software
 
-There are 3 main codebases included:
+There are 2 main codebases included:
 
-* The minios
-* The host Sender
+* The miniOS ROM Code + bootloader
 * The x65c02 Emulator (which has its own [README.md](Emulator/README.md))
 
-The minios itself is standalone, which means that it provides limited functionality all on its own. But the main function of the minios is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM, and for this you need the other 2 programs
-
-The way this works is that you "send" the object file to the serial port that the Arduino Nano is connected to on your host computer (mac, Windows, whatever). This is the _Sender_. On the Arduino, you run a sketch which listens on that serial port for the data, and then works with the JJ65c02 board to copy it to RAM. This is the _Receiver_.
+The minios itself is standalone, which means that it provides limited functionality all on its own. But the main function of the minios is to be able to transfer your "compiled" 6502 code to the JJ65c02's RAM.
 
 ## JJ65c02: The minios
 
 `minios.asm` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
 
-1. __Load__ externally assembled __programs__ into RAM via serial connection to Arduino Nano
+1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
 2. __Run__ programs that were previously loaded into RAM
 3. __Load & Run__ programs in one go
 4. __Debug__ the full address space via an integrated __hex monitor__ (currently read only)
@@ -23,148 +20,122 @@ The way this works is that you "send" the object file to the serial port that th
 
 The minios also provides some helper library functions to handle delays, driving the __LCD__ display, and reading the __mini keyboard__.
 
-
-### Software Requirements
-
-The following software components are must have's:
-
-- Arduino IDE to be found [here](https://www.arduino.cc/en/main/software)
-- The [cl65 Assembler](https://cc65.github.io) to build for the 6502
-- Node.js 8+ to be able to use the serial program loading functionality via the Arduino
-
 ### Install the minios
 
-Assemble the minios:
+minios requires the [cl65 Assembler](https://cc65.github.io) to assemble
+and link the required files. For ease of assembly, you'll find a `Makefile`
+in the JJ65c02/minios directory. From there simply type `make`:
 
 ```
-cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -m minios.lst -vm minios.s -o a.out
+$ make
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/minios.o minios.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/sysram.o sysram.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/via.o via.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/lcd.o lcd.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/lib.o lib.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/acia.o acia.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/tty.o tty.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/ymodem.o ymodem.s
+ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lcd.o objs/lib.o objs/acia.o objs/tty.o objs/ymodem.o
+Opened 'minios'...
+  Dumping 'ZP'
+    Writing 'ZEROPAGE'
+Opened '/dev/null'...
+  Dumping 'RAM0'
+    Writing 'SYSRAM'
+Opened 'minios.bin'...
+  Dumping 'RAM'
+    Writing 'BSS'
+Opened 'minios.rom'...
+  Dumping 'IO'
+  Dumping 'ROM'
+    Writing 'CODE'
+    Writing 'RODATA'
+    Writing 'RODATA_PA'
+    Writing 'VECTORS'
+rm -f minios.bin
 ```
 
-Burn it (`a.out`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
+Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
-The `minios.lst` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. Now you can use these addresses in a new program, that you assemble and upload to RAM.
+The `minios.lbl` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. There is also a more detailed `minios.map` file that provides even
+more in depth info. We will talk more about this when we discuss
+building and loading RAM-based programs.
 
-## Arduino: Receiver
-
-- Load `Receiver.ino` into your Arduino IDE.
-- Open the IDE's package library and search and install the `Base64` package by Arturo Guadalupi v0.0.1 also to be found [here](https://github.com/agdl/Base64)
-- Compile the source
-- Upload the program to your Arduino
-
-## Host: Sender (node.js)
-
-The sender code is written in node, so you'll need that.
-
-- Install the necessary npm support packages via:
-
-```
-npm install
-```
-or
-```
-yarn
-```
-- Adjust the `tty` setting in `.sender_config.json` to match the device file which represents your connected Arduino
-- **DO NOT** adjust any other value in there, as it will render the serial link unstable
-
-## Usage
-
-#### Arduino Port Setup
-
-Before you can upload a program to the 6502 through the Arduino, you need make sure that the Arduino Nano is connected as indicated in the Schematics. If instead you simply want to jumper the Nano to the board, you can do that too.
-
-- You need 8 jumper wires connecting the digital output ports of the Arduino with the PORTB of the VIA 6522 (See table 1 below)
-- You need 1 jumper wire connecting one digital output port of the Arduino with the IRQ line of the 6502 (See table 2 below)
-- You need 1 jumper wire connecting one of the `GND` pins of the Arduino with common ground of your 6502 breadboard
-
-**Table 1: Port Setup VIA 6522**
- 
-| Arduino | VIA 6522 |
-|---------|----------|
-|   D5    |   10     |
-|   D6    |   11     |
-|   D7    |   12     |
-|   D8    |   13     |
-|   D9    |   14     |
-|   D10   |   15     |
-|   D11   |   16     |
-|   D12   |   17     |
-
-If unsure, look up the pin setup of the VIA in the `Datasheets` folder.
-
-**Table 2: Port Setup 6502**
- 
-| Arduino |     6502    |
-|---------|-------------|
-|   D13   |   4 (IRQB)  |
-
-The pin setup of the 6502 can also be found in the `Datasheets` folder.
-
-**Important:** Make sure, you still have the IRQB pin (PIN 4) of the 6502 tied high via a 1k Ohm resistor as per the design. The jumper cable to pin D13 of the Arduino just pulls the pin low in short pulses. The line needs to be normal _high_.
-
-#### Uploading a Program
-
-You can now write a program in 65C02 assembly language and assemble it like so:
-
-```
-cl65 --cpu 65c02 -t none -C jj65c02.cfg -v -o /examples/hello_world /examples/hello_world.asm
-```
-
-**Important:** Since your programs now target RAM instead of ROM your program needs to have a different entry vector specified:
-
-```
-    .org $0300
-```
-
-To upload and run your program onto the JJ65c02, first power up the machine, and reset it. Using the keyboard, navigate to `Load` using the _Up_ and _Down_ keys in the main menu. To start the uploading process hit the _Right_ key which acts as `Enter` in most cases.
-
-Now you can upload your program using the Sender.js CLI tool like so:
-
-```
-node Sender.js /examples/hello_world.bin
-```
-
-The upload process will inform you when it's done. The minios automatically switches back into the main menu after the upload finished.
-
-Should you encounter any errors during upload, check the `tty` setting in `.sender_config.json` and adjust it to your Arduinos device port. In addition you can lower the transfer speed to values to 4800, 2400 or 1200 baud. Don't use values above 9600 baud, they won't work.
-
-Navigate to the menu entry `Run` and hit the _Right_ key to run your program.
-
-**Note:** You can also use `Load & Run` to streamline the process during debugging.
-
-**Also note:** Resetting your 6502 **DOES NOT** erase the RAM. So you can reset any time, and still `Run` your program afterwards.
-
-**And note:** The `Sender.js` accepts two commandline parameters. If you want, you can also specify your Arduino port manually, whithout having to hardwire it in the `.sender_config.json` like so:
-
-```
-node Sender.js /examples/hello_world.out /dev/path_to_arduino_port
-```
 
 ## Using the Monitor
 
-The **hex monitor** is very useful during development and debugging. It lets you inspect the whole address space, RAM and ROM. you can navigate using the _UP_ and _DOWN_ keys. The _RIGHT_ key performs a bigger jump in time and space and the _LEFT_ key returns you to the main menu. The monitor is currently read only and the keyboard debouncing is far from being good. But it works.
+The **hex monitor** is very useful during development and debugging. It lets you inspect the whole address space, RAM and ROM. you can navigate using the _UP_ and _DOWN_ keys. The _RIGHT_ key performs a bigger jump in time and space and the _LEFT_ key returns you to the main menu. The monitor is currently read only but it works well enough for an initial rough cut.
 
 ## Important to know - Allocated Resources
 
 ### 1. Allocated Zero Page Locations
 
-The minios needs to use some Zero Page locations: `$00 - $03`. Expect trouble if you overwrite / use them from within your own programs.
+The minios needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$19`, which can be confirmed via looking at the
+`__ZEROPAGE_LAST__` variable in the `minios.map` file. Now if you
+follow the below instuctions for assembling and building your own
+RAM programs, you don't need to worry about this, because during the
+build process `cc65` will handle the allocations and reservations of
+zeropage itself, and avoid any collisions. However, if you use some
+other method to compile your software, like `vasm`, then you'll need
+to take more direct action in both avoiding these zeropage collisions
+as well as hardcoding the minios library function addresses into your
+code (for now)
 
 ### 2. Allocated RAM
 
-The minios also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD. Another few RAM bytes are used by the minios itself.
+The minios also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD and as various I/O buffers. In the `jj65c02.cfg`
+file this is set-aside as `RAM0` and is typically refered to as `SYSRAM`.
+Your programs are free to use `BSS`, `HEAP` and `RWDATA` as needed.
 
-**However, don't use RAM from `$0200 - $021f`. Expect problems if you do so.**
+## Bootloader, aka Getting Programs into RAM
 
-### 3. Interrupt Service Routine - ISR
+As mentioned, one of the main functions of minios is as a bootloader,
+which allows your to download/transfer your own pre-assembled code to
+RAM and run it from there. This uses the `W65c51` ACIA chip and the
+`MAX232` TTL-Serial converter card on the `JJ65c02` board.
 
-The Interrupt Service Routine (ISR) implemented at the end of available ROM realizes the serial loading. The way it works is quite simple. As soon as the Arduino set up all 8 bit of a byte at the data ports, it pulls the interrupt pin of the 6502 low for 30 microseconds. This triggers the 6502 to halt the current program, put all registers onto the stack and execute any routine who's starting address can be found in the Interrupt Vector Address (`$fffe-$ffff`) - the ISR. This routine reads the byte, writes it into the RAM, increases the address pointer for the next byte to come and informs the main program that data is still flowing. Consult the source for further details, it's quite straight forward.
+The serial connection is hardcoded as 19200 baud, 8 data bits, 1 stop
+bit and no parity. This is commonly refered to as `19200/8/1`. The
+current implementation does not support any flow control, so make sure
+that whatever serial/terminal connection program you use also has that
+configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac. Avoid `MacWise` because it lacks the
+transfer capability we need.
 
-## Shortcomings
+To initiate the transfer, connect your "host" machine (the serial/terminal
+program) to the `JJ65c02` and power up the board. You should see a Welcome
+message on the Host's terminal window. If you don't, check your serial
+settings. You do ***not*** need a null modem connection.
 
-- The loader is slow. Quite slow. Even though 9600 baud as choosen transfer speed is not too bad, there are some significant idle timeouts implemented, to make the data transfer work reliably. You'll find it in `Receiver.ino`, the `Sender.js` does not have any timeouts left other than the necessary but unproblematic connection timeout once at the beginning. The worst is the timeout which allows to reliably read the UART buffer of the Arduino. When reduced, the whole data transfer becomes unreliable.
-Happy to accept PR's with improvement here. On the other hands, it's not that we transfer Gigabytes of data here ... not even Megabytes, so the current speed might suffice.
+If all looks good, using the mini-keyboard on the board and select *Load*.
+Confirm (again on the LCD and mini-keyboard) that you are ready to
+initiate the transfer and hit any button on the mini-keyboard. At this
+point you'll see on the Host terminal the message to *Begin YMODEM transfer.*
 
-## Known Problems
+From the Host machine chose to **upload** the program and select *YMODEM* as
+the transfer protocol. The transfer should take just a few seconds. The
+LCD screen will display any errors as well as the number of the blocks being
+currently transfered. This may happen so fast that you don't even see
+the numbers change; all you may see is the last block number.
 
-Despite the fact that the minios and all of it's components are quite stable, there are some problems, which are to be found via a #TODO in the source.
+Once complete, you will returned to minios, at which point you can
+chose to *Run* the just downloaded program. Have fun!
+
+### Why YMODEM?
+
+Other bootloaders I've checked out use *XMODEM* for the protocol.
+However, I found varying support for *XMODEM* in modern terminal
+emulation software, and where they do support *XMODEM*, it may not
+be the *CRC* version. Choosing *YMODEM* avoids that complication
+and confusion.
+
+## Assembling your own RAM based programs
+
+Included in the `examples` directory is a simple guide to how
+to build and assemble your own programs. You'll notice that you
+need to link against the minios object files so that when your
+program is assembled and links, it is automatically aware of the
+addresses and location of set-aside memory as well as the exported
+functions. In the example, you'll also notice that the resultant
+file has the `.bin` suffix. That is the file/image to be transfered
+to RAM.
