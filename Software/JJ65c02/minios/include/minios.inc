@@ -27,7 +27,7 @@ _MINIOS_INC_ = 1
 ;    $0000 - $7fff      RAM: 32k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2
+;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2-4
 ;      . $0500 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
