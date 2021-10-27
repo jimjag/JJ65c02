@@ -11,6 +11,77 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Oct 26, 2021
+
+Lots of updates since the last posting. So many, in fact, that I
+think I am just about ready for a 1.0 release of the ***minios*** ROM+Bootloader
+software.... Where to start?
+
+Well, first of all I started in earnest the whole "transfer the RAM
+image to RAM" stuff. I had already decided that I'd use the *XMODEM*
+protocol for that, mostly because there was a well-known and well-used
+6502-based software implementation already available. But that implementation
+used *XMODEM/CRC* and, at least on the various terminal emulation packages
+I tried, there was really spotty and/or buggy versions of that. Either
+the host software used *XMODEM* *Checksum* or else there was something else,
+but I had failures at least half the time.
+
+It wasn't all bad though, because while trying to track down the
+issues with *XMODEM*, I went ahead and implemented ACAI Rx IRQ handling;
+my thought was maybe it was overrun issues and buffering the input
+would address that. It didn't, but moving to an read buffer made sense
+no matter what. To make it super easy, I allocate 256bytes for the buffer,
+that way we automatically overwrite "old" data since the index pointers
+are 8bits and can just increment them and not worry about over-writing
+buffer space. And since my build doesn't include any hardware flow
+control, a read buffer is even more advantageous.
+
+After some reasearch, it looked like *YMODEM* and *ZMODEM* were viable
+options, but the amount of work required for *ZMODEM* hardly seemed
+worth the effort. *YMODEM* is basically a formal improvement over
+*XMODEM* and so the vast majority of the existing code could be re-used.
+And I found that *YMODEM* support was both more ubiquitous and standardized.
+So *YMODEM* was it. And it works like a dream
+
+Because of the read buffer, this meant that I needed to adjust my
+memory mapping again, although not the address decoder logic at all.
+I've set aside a full 768bytes for *SYSRAM* which give me some room
+for growth and allows me to finalize, at least for now, the
+starting address for RAM-based code.
+
+Next on task was working out the specifics of assembling loadable
+RAM images using `cc65` setup I have for building ***minios***. The
+only real tricky part was in ensuring that the RAM code had access
+to the exported functions and memory block of the ROM code. There are
+2 main ways of doing this.
+
+First of all, one could create an include file that defines the
+names of all such exports and associates them with their actual
+address. `cc65` can create both a "label" file and a "map" file
+that includes such info, but not in an easily consumable format.
+That would would require some sort of small scriptlet that reads
+one of those files and creates a `exports.h` file.
+
+The other is to simply have the build process for the RAM code
+link against the ROM code, and have `ld65` do all that for us
+automatically. My first attempt was to archive all the ROM code
+object files into a library using `ar65` and link against that,
+but the indexing that `ar65` does messed up the addressing. So
+instead it links against all the individual object files, which
+works great, but is ugly. I've included a small example in the
+***minios*** distro to explain the details and provide a template
+to follow.
+
+So at this point, both the hardware build and the software ROM
+has all the initial functionality I wanted, and it runs well
+and reliably up to 4Mhz. A 1.0 release is warranted for sure.
+
+But there's so, so much more I want to do...
+
+--
+
+
+
 ### Oct 20, 2021
 
 Over the last week or so, I've been focusing mostly on the hardware
@@ -319,6 +390,7 @@ MEMORY
    VECTORS:   load = ROM, type = ro,  start = $fffa;
  }
 ```
+
 --
 
 ### Sept 13, 2021
