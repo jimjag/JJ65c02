@@ -45,6 +45,16 @@
 #define TRACE_ORIGINX (PORTMON_ORIGINX)
 #define TRACE_ORIGINY (PORTMON_ORIGINY) + (PORTMON_HEIGHT)
 
+/* Apple ][ like */
+#define TERMINAL_ROWS 24
+#define TERMINAL_COLS 40
+
+#define TERMINAL_HEIGHT (TERMINAL_ROWS) + 2
+#define TERMINAL_WIDTH (TERMINAL_COLS) + 2
+
+#define TERMINAL_ORIGINX (TRACE_ORIGINX) + (TRACE_WIDTH)
+#define TERMINAL_ORIGINY 0
+
 #define MEMORY_ROWS 32
 #define MEMORY_COLS 74
 
@@ -52,7 +62,7 @@
 #define MEMORY_WIDTH  (MEMORY_COLS) + 2
 
 #define MEMORY_ORIGINX (TRACE_ORIGINX) + (TRACE_WIDTH)
-#define MEMORY_ORIGINY (MONITOR_ORIGINY)
+#define MEMORY_ORIGINY (TERMINAL_ORIGINY) + (TERMINAL_HEIGHT)
 
 #define CYCLES_SKIP 50
 
@@ -65,6 +75,8 @@ int input_cycle_skip = 0;
 WINDOW *window = NULL;
 WINDOW *wnd_lcd = NULL;
 WINDOW *wnd_lcd_content = NULL;
+WINDOW *wnd_terminal = NULL;
+WINDOW *wnd_terminal_content = NULL;
 WINDOW *wnd_monitor = NULL;
 WINDOW *wnd_monitor_content = NULL;
 WINDOW *wnd_portmon = NULL;
@@ -93,6 +105,8 @@ void init_gui() {
 
     wnd_lcd = newwin(LCD_HEIGHT, LCD_WIDTH, LCD_ORIGINY, LCD_ORIGINX);
     wnd_lcd_content = newwin(LCD_ROWS, LCD_COLS, LCD_ORIGINY+1, LCD_ORIGINX+1);
+    wnd_terminal = newwin(TERMINAL_HEIGHT, TERMINAL_WIDTH, TERMINAL_ORIGINY, TERMINAL_ORIGINX);
+    wnd_terminal_content = newwin(TERMINAL_ROWS, TERMINAL_COLS, TERMINAL_ORIGINY+1, TERMINAL_ORIGINX+1);
     wnd_monitor = newwin(MONITOR_HEIGHT, MONITOR_WIDTH, MONITOR_ORIGINY, MONITOR_ORIGINX);
     wnd_monitor_content = newwin(MONITOR_ROWS, MONITOR_COLS, MONITOR_ORIGINY+1, MONITOR_ORIGINX+1);
     wnd_portmon = newwin(PORTMON_HEIGHT, PORTMON_WIDTH, PORTMON_ORIGINY, PORTMON_ORIGINX);
@@ -106,6 +120,9 @@ void init_gui() {
     box(wnd_lcd, 0, 0);
     wcolor_set(wnd_lcd, 8, NULL);
     mvwprintw(wnd_lcd, 0, 1, " LCD ");
+    box(wnd_terminal, 0, 0);
+    wcolor_set(wnd_terminal, 8, NULL);
+    mvwprintw(wnd_terminal, 0, 1, " Terminal ");
     box(wnd_monitor, 0, 0);
     wcolor_set(wnd_monitor, 8, NULL);
     mvwprintw(wnd_monitor, 0, 1, " CPU Monitor ");
@@ -119,6 +136,7 @@ void init_gui() {
     wcolor_set(wnd_memory, 8, NULL);
     mvwprintw(wnd_memory, 0, 1, " Memory  ");
     wrefresh(wnd_lcd);
+    wrefresh(wnd_terminal);
     wrefresh(wnd_monitor);
     wrefresh(wnd_portmon);
     wrefresh(wnd_trace);

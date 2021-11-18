@@ -72,7 +72,8 @@ main:                                           ; boot routine, first thing load
 
     jsr LCD_clear_video_ram
 
-    ; This also inits the VIA chip
+    ; VIA1
+    jsr VIA_initialize
     jsr LCD_initialize
 
     ; Are we serial enabled?

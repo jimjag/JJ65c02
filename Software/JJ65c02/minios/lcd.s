@@ -220,16 +220,12 @@ LCD_write_text:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X
+;   Destroys:        .A
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 LCD_initialize:
-    lda #%11111111                              ; set all pins on port B to output
-    ldx #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    jsr VIA_configure_ddrs
-
     lda #%00111000                              ; set 8-bit mode, 2-line display, 5x8 font
     jsr LCD_send_instruction
 

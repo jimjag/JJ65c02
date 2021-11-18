@@ -2,11 +2,33 @@
 .include "via.h"
 .include "lib.inc"
 
-.export VIA_configure_ddrs
+.export VIA_initialize
 .export VIA_read_mini_keyboard
 
 ; Actual start of ROM code
 .segment "CODE"
+
+;================================================================================
+;
+;   VIA_initialize - initializes the VIA chip
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+VIA_initialize:
+    lda #%11111111                              ; set all pins on port B to output
+    sta DDRB                                    ; configure data direction for port B from A reg.
+    lda #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
+    sta DDRA                                    ; configure data direction for port A from X reg.
+    rts
+
 
 ;================================================================================
 ;
@@ -37,25 +59,4 @@ VIA_read_mini_keyboard:
                                                 ; pushed turning high (in contrast to Ben's schematics)
 
     beq @waiting                                ; no
-    rts
-
-;================================================================================
-;
-;   VIA_configure_ddrs - configures data direction registers of the VIA chip
-;
-;   Expects one byte per register with bitwise setup input/output directions
-;   ————————————————————————————————————
-;   Preparatory Ops: .A: Byte for DDRB
-;                    .X: Byte for DDRA
-;
-;   Returned Values: none
-;
-;   Destroys:        none
-;   ————————————————————————————————————
-;
-;================================================================================
-
-VIA_configure_ddrs:
-    sta DDRB                                    ; configure data direction for port B from A reg.
-    stx DDRA                                    ; configure data direction for port A from X reg.
     rts
