@@ -31,10 +31,11 @@ VIA_initialize:
     sta VIA1DDRB                                ; configure data direction for port B from A reg.
     lda #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
     sta VIA1DDRA                                ; configure data direction for port A from X reg.
-    stz VIA1SR
+    stz VIA1SR                                  ; clear all others
     stz VIA1ACR
     stz VIA1PCR
     stz VIA1T2CL
+    stz VIA1T2CH
     rts
 
 

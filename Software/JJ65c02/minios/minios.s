@@ -89,32 +89,7 @@ main:                                           ; boot routine, first thing load
 @welcome:
     cli                                         ; interupts are back on
 
-    jsr SND_on
-    lda SND_note_a
-    jsr SND_set_note
-    lda #$00
-    jsr SND_set_octave
-
-    lda #10
-    jsr LIB_delay100ms
-
-    lda SND_note_f
-    jsr SND_set_note
-    lda #$00
-    jsr SND_set_octave
-
-    lda #10
-    jsr LIB_delay100ms
-
-    lda SND_note_b
-    jsr SND_set_note
-    lda #$00
-    jsr SND_set_octave
-
-    lda #5
-    jsr LIB_delay100ms
-
-    jsr SND_off
+    jsr Welcome_tone
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 
@@ -559,6 +534,28 @@ BOOTLOADER_adj_clock:
     ply                                         ; Restore .Y, .X, .A
     plx
     pla
+    rts
+
+Welcome_tone:
+    jsr SND_on
+    lda #(SND_note_c)
+    jsr SND_set_note
+    lda #$00
+    jsr SND_set_octave
+    lda #10
+    jsr LIB_delay100ms
+
+    lda #(SND_note_d)
+    jsr SND_set_note
+    lda #10
+    jsr LIB_delay100ms
+
+    lda #(SND_note_g)
+    jsr SND_set_note
+    lda #20
+    jsr LIB_delay100ms
+    jsr SND_off
+
     rts
 
 ;================================================================================
