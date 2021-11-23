@@ -11,6 +11,18 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Nov 22, 2021
+
+Wow. Has it really been almost a month? Crazy. Anyway, I've been working off and on on the project since my last update. The 2 biggest changes have been, number 1: updates to the schematics (and wire-wrapping a new prototype) due to change number 2: adding in basic sound support.
+
+There were a few ways to fold in sound; one would have been to add a dedicated sound chip to the prototype, and this may actually happen at some point. But the easiest was to use the existing _VIA_ chip to generate a square wave output, and use that to drive a mini _LM386_ based amplifier, so that's what I did.
+
+Because the _PB7_ pin is already being used, I opted for the _CB2_ method, where we set a shift rate/pattern and shift register and then run the _VIA_ in free-running mode. This creates a user-specified square wave on _CB2_ that then gets fed into the _LM386_. The signal is quite low, and so I needed a pretty hefty gain on the amp, which caused it to pick up some noise, mostly from the clock signals. A low pass filter notched at around 10kHz worked well to clean that up. 
+
+The sound addition did result in an increase in parts, over-and-above the actual _LM386_ itself, but these were limited to standard resistors and caps. Still, maybe going a dedicated sound chip may have been the better choice.
+
+--
+
 ### Oct 26, 2021
 
 Lots of updates since the last posting. So many, in fact, that I
