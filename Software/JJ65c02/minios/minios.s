@@ -82,16 +82,39 @@ main:                                           ; boot routine, first thing load
     beq @no_acia
     LCD_writeln message1
     TTY_writeln message1
-    bra @delay
+    bra @welcome
 @no_acia:
     LCD_writeln message                         ; render the boot screen
 
-@delay:
-    lda #25
-    jsr LIB_delay100ms
-
+@welcome:
     cli                                         ; interupts are back on
 
+    jsr SND_on
+    lda SND_note_a
+    jsr SND_set_note
+    lda #$00
+    jsr SND_set_octave
+
+    lda #10
+    jsr LIB_delay100ms
+
+    lda SND_note_f
+    jsr SND_set_note
+    lda #$00
+    jsr SND_set_octave
+
+    lda #10
+    jsr LIB_delay100ms
+
+    lda SND_note_b
+    jsr SND_set_note
+    lda #$00
+    jsr SND_set_octave
+
+    lda #5
+    jsr LIB_delay100ms
+
+    jsr SND_off
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 

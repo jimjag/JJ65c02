@@ -346,7 +346,6 @@ Wire Wire Line
 Wire Wire Line
 	3550 5150 3350 5150
 NoConn ~ 4700 6300
-NoConn ~ 4700 6400
 Entry Wire Line
 	3200 6400 3300 6300
 Wire Wire Line
@@ -1324,6 +1323,10 @@ Wire Wire Line
 Connection ~ 8700 5350
 Wire Wire Line
 	8700 5350 8700 5450
+Text GLabel 4900 6400 2    47   Output ~ 0
+SND_IN
+Wire Wire Line
+	4900 6400 4700 6400
 Wire Bus Line
 	5150 3050 5150 3250
 Wire Bus Line

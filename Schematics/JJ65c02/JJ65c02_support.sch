@@ -589,324 +589,349 @@ Wire Wire Line
 Wire Wire Line
 	2450 3900 2450 3800
 Entry Wire Line
-	1950 5500 1850 5400
+	1500 5450 1400 5350
 Entry Wire Line
-	1950 5600 1850 5500
+	1500 5550 1400 5450
 Entry Wire Line
-	1950 5700 1850 5600
+	1500 5650 1400 5550
 Entry Wire Line
-	1950 5800 1850 5700
+	1500 5750 1400 5650
 Entry Wire Line
-	1950 5900 1850 5800
+	1500 5850 1400 5750
 Entry Wire Line
-	1950 6000 1850 5900
+	1500 5950 1400 5850
 Entry Wire Line
-	1950 6100 1850 6000
+	1500 6050 1400 5950
 Entry Wire Line
-	1950 6200 1850 6100
+	1500 6150 1400 6050
 $Comp
 L 6502:65C22S VIA?
 U 1 1 619CCF88
-P 2600 5700
+P 2150 5650
 AR Path="/619CCF88" Ref="VIA?"  Part="1" 
 AR Path="/61660CAC/619CCF88" Ref="VIA2"  Part="1" 
-F 0 "VIA2" H 2600 6865 50  0000 C CNN
-F 1 "65C22S" H 2600 6774 50  0000 C CNN
-F 2 "Package_DIP:DIP-40_W15.24mm_Socket" H 2600 6750 50  0001 C CNN
-F 3 "" H 2700 5700 50  0001 C CNN
-	1    2600 5700
+F 0 "VIA2" H 2150 6815 50  0000 C CNN
+F 1 "65C22S" H 2150 6724 50  0000 C CNN
+F 2 "Package_DIP:DIP-40_W15.24mm_Socket" H 2150 6700 50  0001 C CNN
+F 3 "" H 2250 5650 50  0001 C CNN
+	1    2150 5650
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
-	1750 6300 2100 6300
+	1300 6250 1650 6250
 Wire Wire Line
-	3100 6700 3350 6700
+	2650 6650 2900 6650
 Wire Wire Line
-	2100 5400 1950 5400
+	1650 5350 1500 5350
 Wire Wire Line
-	1950 5400 1950 5350
+	1500 5350 1500 5300
 Wire Wire Line
-	1950 5350 1750 5350
-Text GLabel 1600 5750 2    35   BiDi ~ 0
+	1500 5300 1300 5300
+Text GLabel 1150 5700 2    35   BiDi ~ 0
 d[0..7]
 Wire Bus Line
-	1850 5050 1700 5050
+	1400 5000 1250 5000
 Entry Wire Line
-	1950 5300 1850 5200
+	1500 5250 1400 5150
 Entry Wire Line
-	1950 5200 1850 5100
+	1500 5150 1400 5050
 Entry Wire Line
-	1950 5100 1850 5000
+	1500 5050 1400 4950
 Entry Wire Line
-	1950 5000 1850 4900
-NoConn ~ 2100 4900
-NoConn ~ 2100 4800
+	1500 4950 1400 4850
+NoConn ~ 1650 4850
+NoConn ~ 1650 4750
 Wire Wire Line
-	1950 6100 2100 6100
-Text GLabel 2100 6600 0    47   Input Italic 0
+	1500 6050 1650 6050
+Text GLabel 1650 6550 0    47   Input Italic 0
 R~W
-Text GLabel 1800 6700 0    43   Input ~ 0
+Text GLabel 1350 6650 0    43   Input ~ 0
 V~IRQ
-Text GLabel 1800 6500 0    47   Input Italic 0
+Text GLabel 1350 6450 0    47   Input Italic 0
 IO~CS
-Text Label 1950 5500 0    47   ~ 0
+Text Label 1500 5450 0    47   ~ 0
 d0
-Text Label 1950 5600 0    47   ~ 0
+Text Label 1500 5550 0    47   ~ 0
 d1
-Text Label 1950 5700 0    47   ~ 0
+Text Label 1500 5650 0    47   ~ 0
 d2
-Text Label 1950 5800 0    47   ~ 0
+Text Label 1500 5750 0    47   ~ 0
 d3
-Text Label 1950 5900 0    47   ~ 0
+Text Label 1500 5850 0    47   ~ 0
 d4
-Text Label 1950 6000 0    47   ~ 0
+Text Label 1500 5950 0    47   ~ 0
 d5
-Text Label 1950 6100 0    47   ~ 0
+Text Label 1500 6050 0    47   ~ 0
 d6
-Text Label 1950 6200 0    47   ~ 0
+Text Label 1500 6150 0    47   ~ 0
 d7
-Text Label 1950 6400 0    47   ~ 0
+Text Label 1500 6350 0    47   ~ 0
 a6
-Text Label 1975 5000 0    47   ~ 0
+Text Label 1525 4950 0    47   ~ 0
 a0
-Text Label 1975 5100 0    47   ~ 0
+Text Label 1525 5050 0    47   ~ 0
 a1
-Text Label 1975 5200 0    47   ~ 0
+Text Label 1525 5150 0    47   ~ 0
 a2
-Text Label 1975 5300 0    47   ~ 0
+Text Label 1525 5250 0    47   ~ 0
 a3
 Wire Wire Line
-	2100 5200 1950 5200
+	1650 5150 1500 5150
 Wire Wire Line
-	1950 5100 2100 5100
+	1500 5050 1650 5050
 Wire Wire Line
-	2100 5000 1950 5000
+	1650 4950 1500 4950
 Wire Wire Line
-	1950 6200 2100 6200
+	1500 6150 1650 6150
 Wire Wire Line
-	1950 6000 2100 6000
+	1500 5950 1650 5950
 Wire Wire Line
-	1950 5900 2100 5900
+	1500 5850 1650 5850
 Wire Wire Line
-	1950 5800 2100 5800
+	1500 5750 1650 5750
 Wire Wire Line
-	1950 5700 2100 5700
+	1500 5650 1650 5650
 Wire Wire Line
-	1950 5600 2100 5600
+	1500 5550 1650 5550
 Wire Wire Line
-	1950 5500 2100 5500
+	1500 5450 1650 5450
 Wire Wire Line
-	1950 5300 2100 5300
-Text GLabel 1600 5750 2    35   BiDi ~ 0
+	1500 5250 1650 5250
+Text GLabel 1150 5700 2    35   BiDi ~ 0
 d[0..7]
-Text GLabel 1425 5050 2    35   BiDi ~ 0
+Text GLabel 975  5000 2    35   BiDi ~ 0
 a[0..15]
-Text GLabel 1750 5350 0    50   Input ~ 0
+Text GLabel 1300 5300 0    50   Input ~ 0
 ~RES
-Text GLabel 1750 6300 0    43   Input ~ 0
+Text GLabel 1300 6250 0    43   Input ~ 0
 CLK
 Entry Wire Line
-	1450 6500 1550 6400
-Text GLabel 1150 6500 2    35   BiDi ~ 0
+	1000 6450 1100 6350
+Text GLabel 700  6450 2    35   BiDi ~ 0
 a[0..15]
 Wire Wire Line
-	1550 6400 2100 6400
+	1100 6350 1650 6350
 Wire Wire Line
-	1800 6500 2100 6500
-Text GLabel 3350 6700 2    47   Input ~ 0
+	1350 6450 1650 6450
+Text GLabel 2900 6650 2    47   Input ~ 0
 GND
-Text GLabel 3350 4800 2    47   Input ~ 0
+Text GLabel 2900 4750 2    47   Input ~ 0
 +5V
 Wire Wire Line
-	3100 4800 3350 4800
+	2650 4750 2900 4750
 Wire Wire Line
-	1800 6700 2100 6700
-Connection ~ 1850 5050
+	1350 6650 1650 6650
+Connection ~ 1400 5000
 $Comp
 L Amplifier_Audio:LM386 U6
 U 1 1 61AD8E1A
-P 5450 5350
-F 0 "U6" H 5700 5800 50  0000 L CNN
-F 1 "LM386" H 5600 5700 50  0000 L CNN
-F 2 "" H 5550 5450 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lm386.pdf" H 5650 5550 50  0001 C CNN
-	1    5450 5350
+P 5050 5150
+F 0 "U6" H 5300 5600 50  0000 L CNN
+F 1 "LM386" H 5200 5500 50  0000 L CNN
+F 2 "" H 5150 5250 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/lm386.pdf" H 5250 5350 50  0001 C CNN
+	1    5050 5150
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:R_POT RV?
 U 1 1 61AE5299
-P 4850 5250
+P 4450 5050
 AR Path="/61AE5299" Ref="RV?"  Part="1" 
 AR Path="/61660CAC/61AE5299" Ref="RV2"  Part="1" 
-F 0 "RV2" H 4782 5296 50  0001 R CNN
-F 1 "10k" H 4782 5250 50  0000 R CNN
-F 2 "Potentiometer_THT:Potentiometer_Bourns_3339P_Vertical" H 4850 5250 50  0001 C CNN
-F 3 "~" H 4850 5250 50  0001 C CNN
-	1    4850 5250
+F 0 "RV2" H 4382 5096 50  0001 R CNN
+F 1 "10k" H 4382 5050 50  0000 R CNN
+F 2 "Potentiometer_THT:Potentiometer_Bourns_3339P_Vertical" H 4450 5050 50  0001 C CNN
+F 3 "~" H 4450 5050 50  0001 C CNN
+	1    4450 5050
 	1    0    0    -1  
 $EndComp
-Text GLabel 4600 5000 0    47   Input ~ 0
+Text GLabel 4200 4800 0    47   Input ~ 0
 GND
 Wire Wire Line
-	4600 5000 4850 5000
+	4200 4800 4450 4800
 Wire Wire Line
-	4850 5000 4850 5100
+	4450 4800 4450 4900
 Wire Wire Line
-	5000 5250 5150 5250
-Text GLabel 5100 5550 0    47   Input ~ 0
-GND
-Text GLabel 5250 4850 0    47   Input ~ 0
+	4600 5050 4750 5050
+Text GLabel 4850 4650 0    47   Input ~ 0
 +5V
 Wire Wire Line
-	5250 4850 5350 4850
+	4850 4650 4950 4650
 Wire Wire Line
-	5350 4850 5350 5050
-Wire Wire Line
-	5100 5550 5150 5550
-Wire Wire Line
-	5150 5550 5150 5450
-Wire Wire Line
-	5150 5650 5350 5650
-Wire Wire Line
-	5150 5650 5150 5550
-Connection ~ 5150 5550
+	4950 4650 4950 4850
 $Comp
 L Device:Speaker LS1
 U 1 1 61B4EE2B
-P 6550 5350
-F 0 "LS1" H 6720 5346 50  0000 L CNN
-F 1 "Speaker" H 6720 5255 50  0000 L CNN
-F 2 "" H 6550 5150 50  0001 C CNN
-F 3 "~" H 6540 5300 50  0001 C CNN
-	1    6550 5350
+P 6700 5150
+F 0 "LS1" H 6870 5146 50  0000 L CNN
+F 1 "Speaker" H 6870 5055 50  0000 L CNN
+F 2 "" H 6700 4950 50  0001 C CNN
+F 3 "~" H 6690 5100 50  0001 C CNN
+	1    6700 5150
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:CP C4
 U 1 1 61B50526
-P 6200 5350
+P 5800 5150
 AR Path="/61660CAC/61B50526" Ref="C4"  Part="1" 
 AR Path="/61610474/61B50526" Ref="C?"  Part="1" 
-F 0 "C4" V 6500 5300 50  0000 L CNN
-F 1 "250uF" V 6400 5250 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 6238 5200 50  0001 C CNN
-F 3 "~" H 6200 5350 50  0001 C CNN
-	1    6200 5350
+F 0 "C4" V 6100 5100 50  0000 L CNN
+F 1 "220uF" V 6000 5050 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5838 5000 50  0001 C CNN
+F 3 "~" H 5800 5150 50  0001 C CNN
+	1    5800 5150
 	0    -1   -1   0   
 $EndComp
 $Comp
 L Device:R R15
 U 1 1 61B531C3
-P 5900 5600
+P 5500 5400
 AR Path="/61660CAC/61B531C3" Ref="R15"  Part="1" 
 AR Path="/61610474/61B531C3" Ref="R?"  Part="1" 
-F 0 "R15" V 5800 5600 50  0000 C CNN
-F 1 "10" V 5900 5600 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 5830 5600 50  0001 C CNN
-F 3 "~" H 5900 5600 50  0001 C CNN
-	1    5900 5600
+F 0 "R15" V 5400 5400 50  0000 C CNN
+F 1 "10" V 5500 5400 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 5430 5400 50  0001 C CNN
+F 3 "~" H 5500 5400 50  0001 C CNN
+	1    5500 5400
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:C C5
 U 1 1 61B5440E
-P 5900 6000
+P 5500 5800
 AR Path="/61660CAC/61B5440E" Ref="C5"  Part="1" 
 AR Path="/61610474/61B5440E" Ref="C?"  Part="1" 
-F 0 "C5" H 6015 6046 50  0000 L CNN
-F 1 "0.05uF" H 6015 5955 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5938 5850 50  0001 C CNN
-F 3 "~" H 5900 6000 50  0001 C CNN
-	1    5900 6000
+F 0 "C5" H 5615 5846 50  0000 L CNN
+F 1 "47pf" H 5615 5755 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5538 5650 50  0001 C CNN
+F 3 "~" H 5500 5800 50  0001 C CNN
+	1    5500 5800
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5750 5350 5900 5350
+	5350 5150 5500 5150
 Wire Wire Line
-	5900 5450 5900 5350
-Connection ~ 5900 5350
+	5500 5250 5500 5150
+Connection ~ 5500 5150
 Wire Wire Line
-	5900 5350 6050 5350
-Text GLabel 5900 6150 3    47   Input ~ 0
+	5500 5150 5650 5150
+Text GLabel 5950 6000 3    47   Input ~ 0
 GND
 Wire Wire Line
-	5900 5750 5900 5850
-Text GLabel 6350 5650 3    47   Input ~ 0
-GND
-Wire Wire Line
-	6350 5450 6350 5650
-$Comp
-L Device:R R14
-U 1 1 61B6DA7B
-P 5200 6050
-AR Path="/61660CAC/61B6DA7B" Ref="R14"  Part="1" 
-AR Path="/61610474/61B6DA7B" Ref="R?"  Part="1" 
-F 0 "R14" V 5100 6050 50  0000 C CNN
-F 1 "1.2K" V 5200 6050 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 5130 6050 50  0001 C CNN
-F 3 "~" H 5200 6050 50  0001 C CNN
-	1    5200 6050
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:CP C6
-U 1 1 61B6EC3A
-P 5550 6000
-AR Path="/61660CAC/61B6EC3A" Ref="C6"  Part="1" 
-AR Path="/61610474/61B6EC3A" Ref="C?"  Part="1" 
-F 0 "C6" H 5600 6200 50  0000 L CNN
-F 1 "10uF" H 5550 6100 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5588 5850 50  0001 C CNN
-F 3 "~" H 5550 6000 50  0001 C CNN
-	1    5550 6000
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	5450 5650 5450 5800
-Wire Wire Line
-	5450 5800 5200 5800
-Wire Wire Line
-	5200 5800 5200 5900
-Wire Wire Line
-	5200 6200 5200 6300
-Wire Wire Line
-	5200 6300 5550 6300
-Wire Wire Line
-	5550 6300 5550 6150
-Wire Wire Line
-	5550 5850 5550 5650
-Text Notes 5100 6600 0    98   ~ 0
-Sound Chip 50gain
+	5500 5550 5500 5650
+Text Notes 4850 6500 0    98   ~ 0
+Sound Ckt w/ Low Pass
 $Comp
 L Device:CP C7
 U 1 1 61B81FD0
-P 5450 4700
+P 5050 4500
 AR Path="/61660CAC/61B81FD0" Ref="C7"  Part="1" 
 AR Path="/61610474/61B81FD0" Ref="C?"  Part="1" 
-F 0 "C7" H 5150 4550 50  0000 L CNN
-F 1 "10uF" H 5100 4650 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5488 4550 50  0001 C CNN
-F 3 "~" H 5450 4700 50  0001 C CNN
-	1    5450 4700
+F 0 "C7" H 4750 4350 50  0000 L CNN
+F 1 "10uF" H 4700 4450 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5088 4350 50  0001 C CNN
+F 3 "~" H 5050 4500 50  0001 C CNN
+	1    5050 4500
 	-1   0    0    1   
 $EndComp
-Text GLabel 5450 4550 1    47   Input ~ 0
+Text GLabel 5050 4350 1    47   Input ~ 0
 GND
 Wire Wire Line
-	5450 4850 5450 5050
+	5050 4650 5050 4850
+$Comp
+L Device:R R16
+U 1 1 619F43A1
+P 6100 5150
+AR Path="/61660CAC/619F43A1" Ref="R16"  Part="1" 
+AR Path="/61610474/619F43A1" Ref="R?"  Part="1" 
+F 0 "R16" V 6200 5150 50  0000 C CNN
+F 1 "330" V 6100 5150 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 6030 5150 50  0001 C CNN
+F 3 "~" H 6100 5150 50  0001 C CNN
+	1    6100 5150
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 619FA8A5
+P 6300 5550
+AR Path="/61660CAC/619FA8A5" Ref="C1"  Part="1" 
+AR Path="/61610474/619FA8A5" Ref="C?"  Part="1" 
+F 0 "C1" H 6000 5650 50  0000 L CNN
+F 1 "47nf" H 6000 5550 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 6338 5400 50  0001 C CNN
+F 3 "~" H 6300 5550 50  0001 C CNN
+	1    6300 5550
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	3100 6400 4850 6400
+	6250 5150 6300 5150
 Wire Wire Line
-	4850 6400 4850 5400
+	6300 5400 6300 5150
+Connection ~ 6300 5150
+Wire Wire Line
+	6300 5150 6500 5150
+Wire Wire Line
+	5500 5950 5950 5950
+Wire Wire Line
+	6500 5250 6500 5950
+Wire Wire Line
+	6300 5700 6300 5950
+Connection ~ 6300 5950
+Wire Wire Line
+	6300 5950 6500 5950
+Wire Wire Line
+	5950 6000 5950 5950
+Connection ~ 5950 5950
+Wire Wire Line
+	5950 5950 6300 5950
+Wire Wire Line
+	5500 5950 4950 5950
+Wire Wire Line
+	4750 5950 4750 5250
+Connection ~ 5500 5950
+Wire Wire Line
+	4950 5450 4950 5950
+Connection ~ 4950 5950
+Wire Wire Line
+	4950 5950 4750 5950
+Text GLabel 4200 5400 0    47   Input ~ 0
+SND_IN
+Wire Wire Line
+	4450 5200 4450 5400
+Wire Wire Line
+	4450 5400 4200 5400
+$Comp
+L Device:CP C?
+U 1 1 61A13E6D
+P 5150 5600
+AR Path="/61660CAC/61A13E6D" Ref="C?"  Part="1" 
+AR Path="/61610474/61A13E6D" Ref="C?"  Part="1" 
+F 0 "C?" V 5000 5550 50  0000 L CNN
+F 1 "10uF" V 4900 5500 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.4mm_W2.1mm_P2.50mm" H 5188 5450 50  0001 C CNN
+F 3 "~" H 5150 5600 50  0001 C CNN
+	1    5150 5600
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5000 5450 5050 5450
+Wire Wire Line
+	5000 5450 5000 5600
+Wire Wire Line
+	5150 5450 5300 5450
+Wire Wire Line
+	5300 5450 5300 5600
 Wire Bus Line
-	1450 6450 1450 6550
+	1000 6400 1000 6500
 Wire Bus Line
-	1850 4900 1850 5050
+	1400 4850 1400 5000
 Wire Bus Line
-	1850 5050 1850 5200
+	1400 5000 1400 5150
 Wire Bus Line
 	4950 1200 4950 1950
 Wire Bus Line
-	1850 5400 1850 6100
+	1400 5350 1400 6050
 $EndSCHEMATC
