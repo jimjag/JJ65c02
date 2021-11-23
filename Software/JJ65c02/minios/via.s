@@ -125,7 +125,7 @@ SND_set_octave:
     cmp #$00
     beq @mid
     bmi @low
-    lda #$85
+    lda #$55
     bra @setit
 @mid:
     lda #$33
