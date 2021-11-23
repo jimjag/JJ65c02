@@ -108,11 +108,11 @@ SND_set_note:
 
 ;================================================================================
 ;
-;   SND_set_octave - Sets the octive of the note to be played.
+;   SND_set_octave - Sets the octave of the note to be played.
 ;                    Negative is low; 0 is mid; positive is high
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: .A contains the octive
+;   Preparatory Ops: .A contains the octave
 ;
 ;   Returned Values: none
 ;
