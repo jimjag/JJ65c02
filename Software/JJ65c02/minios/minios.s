@@ -538,19 +538,19 @@ BOOTLOADER_adj_clock:
 
 Welcome_tone:
     jsr SND_on
-    lda #(SND_note_c)
+    lda #(SND_note_c5)
     jsr SND_set_note
     lda #$00
     jsr SND_set_octave
     lda #10
     jsr LIB_delay100ms
 
-    lda #(SND_note_d)
+    lda #(SND_note_d5)
     jsr SND_set_note
     lda #10
     jsr LIB_delay100ms
 
-    lda #(SND_note_g)
+    lda #(SND_note_g5)
     jsr SND_set_note
     lda #20
     jsr LIB_delay100ms
