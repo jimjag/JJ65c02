@@ -28,14 +28,14 @@
 
 VIA_initialize:
     lda #%11111111                              ; set all pins on port B to output
-    sta VIA1DDRB                                ; configure data direction for port B from A reg.
+    sta VIA1_DDRB                                ; configure data direction for port B from A reg.
     lda #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    sta VIA1DDRA                                ; configure data direction for port A from X reg.
-    stz VIA1SR                                  ; clear all others
-    stz VIA1ACR
-    stz VIA1PCR
-    stz VIA1T2CL
-    stz VIA1T2CH
+    sta VIA1_DDRA                                ; configure data direction for port A from X reg.
+    stz VIA1_SR                                  ; clear all others
+    stz VIA1_ACR
+    stz VIA1_PCR
+    stz VIA1_T2CL
+    stz VIA1_T2CH
     rts
 
 
@@ -60,7 +60,7 @@ VIA_read_mini_keyboard:
     lda #(DEBOUNCE)                             ; debounce
     jsr LIB_delay1ms                            ; ~150ms
 
-    lda VIA1PORTA                               ; load current key status from VIA
+    lda VIA1_PORTA                               ; load current key status from VIA
     ror                                         ; normalize the input to $1, $2, $4 and $8
     and #$0f                                    ; ignore first 4 bits
     ;eor #$0f                                   ; deactivate / comment this line, if your keyboard
@@ -86,7 +86,7 @@ VIA_read_mini_keyboard:
 
 SND_on:
     lda #$10
-    sta VIA1ACR
+    sta VIA1_ACR
     rts
 
 ;================================================================================
@@ -104,7 +104,7 @@ SND_on:
 ;================================================================================
 
 SND_set_note:
-    sta VIA1T2CL
+    sta VIA1_T2CL
     rts
 
 ;================================================================================
@@ -134,7 +134,7 @@ SND_set_octave:
 @low:
     lda #$0f
 @setit:
-    sta VIA1SR
+    sta VIA1_SR
     rts
 
 ;================================================================================
@@ -152,5 +152,5 @@ SND_set_octave:
 ;================================================================================
 
 SND_off:
-    stz VIA1ACR
+    stz VIA1_ACR
     rts

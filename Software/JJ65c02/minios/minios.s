@@ -10,10 +10,10 @@
 ;
 ;                                    "JJ65c02"
 ;                                    _________
-;;
+;
 ;   miniOS: RAM bootloader and viewer (r/o) w/ serial connection support
 ;
-;   Updated by Jim Jagielski for the JJ65c02 Hobby Breadboard Project
+;   Jim Jagielski for the JJ65c02 Hobby Breadboard Project
 ;      ==> https://github.com/jimjag/JJ65c02
 ;
 ;================================================================================
@@ -27,7 +27,7 @@
 ;      . $0500 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
-;      . $8020 - $802f      VIA:
+;      . $8020 - $802f      VIA1:
 ;    $9000 - $ffff      ROM: 28K
 ;--------
 
@@ -72,7 +72,7 @@ main:                                           ; boot routine, first thing load
 
     jsr LCD_clear_video_ram
 
-    ; VIA1
+    ; VIA1_
     jsr VIA_initialize
     jsr LCD_initialize
 
@@ -595,10 +595,10 @@ ISR:
 
 message:
     .byte "      JJ65c02       "
-    .byte "   miniOS v1.0      ", $00
+    .byte "   miniOS v1.1      ", $00
 message1:
     .byte "      JJ65c02       "
-    .byte "  miniOS v1.0 ACIA  ", $00
+    .byte "  miniOS v1.1 ACIA  ", $00
 message2:
     .asciiz "Enter Command..."
 message3:

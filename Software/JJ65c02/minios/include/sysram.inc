@@ -10,7 +10,7 @@ _SYSRAM_INC_ = 1
 ;      . $0500 - $7fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;    $8010 - $8fff      IO Blk: 4k
 ;      . $8010 - $801f      ACIA:
-;      . $8020 - $802f      VIA:
+;      . $8020 - $802f      VIA1:
 ;    $9000 - $ffff      ROM: 28K
 ;--------
 

@@ -360,21 +360,21 @@ LCD_wait_busy:
     sei                                         ; hold off on interrupts
 
     lda #0
-    sta VIA1DDRB
+    sta VIA1_DDRB
 @not_ready:
     lda #(RW_bit)                               ; prepare read mode
-    sta VIA1PORTA
+    sta VIA1_PORTA
     lda #(RW_bit | E_bit)                       ; prepare execution
-    sta VIA1PORTA
+    sta VIA1_PORTA
 
     lda #%10000000                              ; for the bit test
-    bit VIA1PORTB                               ; read data from LCD
+    bit VIA1_PORTB                               ; read data from LCD
     bne @not_ready                              ; bit 7 set, LCD is still busy, need waiting
 
     lda #(RW_bit)
-    sta VIA1PORTA
+    sta VIA1_PORTA
     lda #%11111111
-    sta VIA1DDRB
+    sta VIA1_DDRB
     pla
     cli
     rts
@@ -399,13 +399,13 @@ LCD_wait_busy:
 LCD_send_instruction:
     jsr LCD_wait_busy
 
-    sta VIA1PORTB                               ; write accumulator content into PORTB
+    sta VIA1_PORTB                               ; write accumulator content into PORTB
     lda #0
-    sta VIA1PORTA                               ; clear RS/RW/E bits
+    sta VIA1_PORTA                               ; clear RS/RW/E bits
     lda #(E_bit)
-    sta VIA1PORTA                               ; set E bit to send instruction
+    sta VIA1_PORTA                               ; set E bit to send instruction
     lda #0
-    sta VIA1PORTA                               ; clear RS/RW/E bits
+    sta VIA1_PORTA                               ; clear RS/RW/E bits
     rts
 
 ;================================================================================
@@ -427,12 +427,12 @@ LCD_send_instruction:
 LCD_send_data:
     jsr LCD_wait_busy
 
-    sta VIA1PORTB                               ; write accumulator content into PORTB
+    sta VIA1_PORTB                               ; write accumulator content into PORTB
     lda #(RS_bit)
-    sta VIA1PORTA                               ; clear RW/E bits
+    sta VIA1_PORTA                               ; clear RW/E bits
     lda #(RS_bit | E_bit)
-    sta VIA1PORTA                               ; set E bit AND register select bit to send instruction
+    sta VIA1_PORTA                               ; set E bit AND register select bit to send instruction
     lda #(RS_bit)
-    sta VIA1PORTA                               ; clear E bit
+    sta VIA1_PORTA                               ; clear E bit
     rts
 
