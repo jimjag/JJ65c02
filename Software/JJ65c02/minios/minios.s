@@ -55,7 +55,8 @@ main:                                           ; boot routine, first thing load
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
     cld
-    ; Check RAM
+    ; Check RAM - since this is at boot time, we can also check the
+    ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)
     ldy #<__RAM0_START__
     sty Z0
     lda #>__RAM0_START__
@@ -90,11 +91,11 @@ main:                                           ; boot routine, first thing load
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
-    LCD_writeln message1
-    TTY_writeln message1
+    LCD_writeln message_welcomeacia
+    TTY_writeln message_welcomeacia
     bra @welcome
 @no_acia:
-    LCD_writeln message                         ; render the boot screen
+    LCD_writeln message_welcome                 ; render the boot screen
 
 @welcome:
     cli                                         ; interupts are back on
@@ -269,7 +270,7 @@ MENU_main:
 ;================================================================================
 
 BOOTLOADER_load_ram:
-    LCD_writeln message3
+    LCD_writeln message_readyload
     jsr VIA_read_mini_keyboard
     jsr LCD_clear_screen
     jmp YMODEM_recv
@@ -290,7 +291,7 @@ BOOTLOADER_load_ram:
 
 BOOTLOADER_execute:
     jsr LCD_clear_video_ram                     ; print a message
-    LCD_writeln message7
+    LCD_writeln message_runprog
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
@@ -376,7 +377,7 @@ BOOTLOADER_ram_set:
 
 BOOTLOADER_clear_ram:
     jsr LCD_clear_video_ram                     ; render message
-    LCD_writeln message8
+    LCD_writeln message_ramclean
 
     ldy #<PROGRAM_START                         ; load start location into zero page
     sty Z0
@@ -401,7 +402,7 @@ BOOTLOADER_clear_ram:
 
 BOOTLOADER_test_ram:
     jsr LCD_clear_video_ram                     ; render message
-    LCD_writeln message10
+    LCD_writeln message_ramtest
     ldy #1
     ldx #2
     jsr LCD_set_cursor
@@ -629,20 +630,13 @@ BOOTLOADER_adj_clock:
     lda clock_spd,x
     sta VIDEO_RAM,x
     inx
-    cpx #14
+    cpx #13
     bne @fill_vram
 
-; Now convert the value of Z2 (from 1 to 16) to ASCII
-    lda Z2
-    cmp #10                                     ; 1 or 2 digits?
-    bcc @ones_place
-    lda #'1'
-    ldx #8
-    sta VIDEO_RAM,x
-@ones_place:
+    ; Now convert the value of Z2 (from 1 to 8) to ASCII
     lda #'0'
     adc Z2
-    ldx #9
+    ldx #8
     sta VIDEO_RAM,x
     jsr LCD_render
 
@@ -661,7 +655,7 @@ BOOTLOADER_adj_clock:
     bne @wait_for_input
 @increase_spd:
     lda Z2
-    cmp #16
+    cmp #8
     beq @redisplay
     inc Z2
     bne @redisplay
@@ -742,28 +736,28 @@ ISR:
 
 .segment "RODATA"
 
-message:
+message_welcome:
     .byte "      JJ65c02       "
     .byte "   miniOS v1.1      ", $00
-message1:
+message_welcomeacia:
     .byte "      JJ65c02       "
     .byte "  miniOS v1.1 ACIA  ", $00
-message2:
+message_cmd:
     .asciiz "Enter Command..."
-message3:
+message_readyload:
     .byte "Getting Ready To    "
     .byte "LOAD RAM. Tap Mini  "
     .byte "Keyboard Button To  "
     .byte "Start:              ", $00
-message4:
+message_waitdata:
     .asciiz "Awaiting data..."
-message6:
+message_loaddone:
     .asciiz "Loading done!"
-message7:
+message_runprog:
     .asciiz "Running RAM@$0500"
-message8:
+message_ramclean:
     .asciiz "Cleaning RAM..."
-message10:
+message_ramtest:
     .asciiz "Testing RAM..."
 message_pass:
     .asciiz "PASS"
@@ -799,7 +793,7 @@ c7: .asciiz "Dawid Buchwald"
 c8: .asciiz "  Ideas from OS1"
 
 clock_spd:
-    .byte " Clock:  % Mhz"
+    .byte " Clock: % Mhz"
 message9:
     .asciiz "Clk Spd Saved"
 
