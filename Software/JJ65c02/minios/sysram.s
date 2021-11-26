@@ -46,13 +46,13 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
-MINIOS_STATUS:  .res 1
-ACIA_RRPTR:     .res 1
-ACIA_RWPTR:     .res 1
-ACIA_SPTR:      .res 2
-LCD_SPTR:       .res 2
-TEXT_BLK:       .res 2
-USER_INPUT_PTR: .res 2
+MINIOS_STATUS:  .res 1      ; miniOS Status Register
+ACIA_RRPTR:     .res 1      ; Read index pointer
+ACIA_RWPTR:     .res 1      ; Write index point
+ACIA_SPTR:      .res 2      ; String pointer - ACIA/TTY I/O
+LCD_SPTR:       .res 2      ; String pointer - LCD I/O
+TEXT_BLK:       .res 2      ; Scrollable text pointer
+USER_INPUT_PTR: .res 2      ; buffer pointer
 
 ;===================================================================
 

@@ -55,8 +55,18 @@ main:                                           ; boot routine, first thing load
     ldx #$ff                                    ; initialize the stackpointer with 0xff
     txs
     cld
+    ; Check RAM
+    ldy #<__RAM0_START__
+    sty Z0
+    lda #>__RAM0_START__
+    sta Z1
+    jsr BOOTLOADER_test_ram_core
     stz MINIOS_STATUS
+    bcs @continue
+    lda #(MINIOS_RAM_TEST_PASS_FLAG)
+    tsb MINIOS_STATUS
 
+@continue:
     lda #1
     sta CLK_SPD                                 ; Assume a 1Mhz clock to start
 
