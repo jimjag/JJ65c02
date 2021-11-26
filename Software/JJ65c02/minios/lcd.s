@@ -6,6 +6,7 @@
 .include "lcd.h"
 
 .export LCD_clear_video_ram
+.export LCD_write_string_direct
 .export LCD_write_string
 .export LCD_write_string_with_offset
 .export LCD_write_text
@@ -52,6 +53,41 @@ LCD_clear_video_ram:
     ply                                         ; restore Y
     pla                                         ; restore A
     rts
+
+;================================================================================
+;
+;   LCD_write_string_direct - prints a string directly to the LCD
+;
+;   String must be given as address pointer, subroutines are called
+;   The given string is automatically broken into the second display line and
+;   the render routines are called automatically
+;
+;   Important: String MUST be zero terminated
+;   ————————————————————————————————————
+;   Preparatory Ops: LCD_SPTR, LCD_SPTR+1: Pointer to null terminated string
+;
+;   Returned Values: none
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LCD_write_string_direct:
+    pha
+    phy
+    ldy #0
+@loop:
+    lda (LCD_SPTR),y                            ; load char from given string at position Y
+    beq @return                                 ; is string terminated via 0x00? yes
+    jsr LCD_send_data                           ; no - store char to LCD
+    iny
+    bne @loop                                   ; loop until we find 0x00
+@return:
+    ply
+    pla
+    rts
+
 
 ;================================================================================
 ;

@@ -196,10 +196,12 @@ MENU_main:
     cmp #4
     beq @clear_ram
     cmp #5
-    beq @adj_clock
+    beq @test_ram
     cmp #6
-    beq @about
+    beq @adj_clock
     cmp #7
+    beq @about
+    cmp #8
     beq @thanks
     jmp @start                                  ; should we have an invalid option, restart
 
@@ -220,6 +222,9 @@ MENU_main:
     jmp @start
 @clear_ram:                                     ; start the clear ram routine
     jsr BOOTLOADER_clear_ram
+    jmp @start
+@test_ram:                                      ; start the test ram routine
+    jsr BOOTLOADER_test_ram
     jmp @start
 @adj_clock:
     jsr BOOTLOADER_adj_clock
@@ -280,6 +285,71 @@ BOOTLOADER_execute:
 
 ;================================================================================
 ;
+;   BOOTLOADER_ram_check - checks RAM w/ .A from Z0/Z1 up to PROGRAM_END
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: Z0, Z1: address of start
+;
+;   Returned Values: none
+;
+;   Destroys:        .Y, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+BOOTLOADER_ram_check:
+    ldy #0
+@loop:
+    cmp (Z0),y
+    bne @mem_fail
+    inc Z0
+    bne @check_end
+    inc Z1
+@check_end:
+    ldx #<PROGRAM_END
+    cpx Z0
+    bne @loop
+    ldx #>PROGRAM_END
+    cpx Z1
+    bne @loop
+    clc
+    rts
+@mem_fail:
+    sec
+    rts
+
+;================================================================================
+;
+;   BOOTLOADER_ram_set - sets RAM w/ .A from Z0/Z1 up to PROGRAM_END
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: Z0, Z1: address of start
+;
+;   Returned Values: none
+;
+;   Destroys:        .Y, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+BOOTLOADER_ram_set:
+    ldy #0
+@loop:
+    sta (Z0),y                                  ; store it in current location
+    inc Z0
+    bne @check_end                              ; rollover?
+    inc Z1                                      ; Yes, so increment upper address byte
+@check_end:
+    ldx #<PROGRAM_END
+    cpx Z0
+    bne @loop
+    ldx #>PROGRAM_END
+    cpx Z1
+    bne @loop
+    rts
+
+;================================================================================
+;
 ;   BOOTLOADER_clear_ram - clears RAM from PROGRAM_START up to PROGRAM_END
 ;
 ;   Useful during debugging or when using non-volatile RAM chips. Because
@@ -303,19 +373,88 @@ BOOTLOADER_clear_ram:
     lda #>PROGRAM_START
     sta Z1
     lda #$00                                    ;  load 0x00 cleaner byte
-    ldy #0
-@loop:
-    sta (Z0),y                                  ; store it in current location
-    inc Z0
-    bne @check_end                              ; rollover?
-    inc Z1                                      ; Yes, so increment upper address byte
-@check_end:
-    ldx #<PROGRAM_END
-    cpx Z0
-    bne @loop
-    ldx #>PROGRAM_END
-    cpx Z1
-    bne @loop
+    jmp BOOTLOADER_ram_set
+
+;================================================================================
+;
+;   BOOTLOADER_test_ram - clears RAM from PROGRAM_START up to PROGRAM_END
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .Y, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+BOOTLOADER_test_ram:
+    jsr LCD_clear_video_ram                     ; render message
+    LCD_writeln message10
+    ldy #1
+    ldx #2
+    jsr LCD_set_cursor
+
+    ldy #<PROGRAM_START                         ; load start location into zero page
+    sty Z0
+    lda #>PROGRAM_START
+    sta Z1
+    jsr BOOTLOADER_test_ram_core
+    bcs @failed
+    LCD_writeln_direct message_pass
+    bra @done
+@failed:
+    LCD_writeln_direct message_fail
+@done:
+    lda #10
+    jsr LIB_delay100ms                          ; let them see know it
+    rts
+
+;================================================================================
+;
+;   BOOTLOADER_test_ram_core - tests RAM from Z0/Z1 up to PROGRAM_END
+;
+;   Useful during debugging or when using non-volatile RAM chips. Sets
+;   CARRY if error.
+;   ————————————————————————————————————
+;   Preparatory Ops: Z0, Z1: address of starting range
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .Y, .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+BOOTLOADER_test_ram_core:
+    lda Z0
+    sta Z2
+    lda Z1
+    sta Z3
+
+    lda #$5A
+    jsr BOOTLOADER_ram_set
+    lda Z2
+    sta Z0
+    lda Z3
+    sta Z1
+    lda #$5A
+    jsr BOOTLOADER_ram_check
+    bcs @skip
+    lda Z2
+    sta Z0
+    lda Z3
+    sta Z1
+    lda #$A5
+    jsr BOOTLOADER_ram_set
+    lda Z2
+    sta Z0
+    lda Z3
+    sta Z1
+    lda #$A5
+    jsr BOOTLOADER_ram_check
+@skip:
     rts
 
 ;================================================================================
@@ -613,7 +752,13 @@ message6:
 message7:
     .asciiz "Running RAM@$0500"
 message8:
-    .asciiz "Cleaning RAM    Patience please!"
+    .asciiz "Cleaning RAM..."
+message10:
+    .asciiz "Testing RAM..."
+message_pass:
+    .asciiz "PASS"
+message_fail:
+    .asciiz "FAIL"
 MON_position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
@@ -622,6 +767,7 @@ menu_items:
     .byte " Run                "
     .byte " Hexdump            "
     .byte " Clear RAM          "
+    .byte " Test RAM           "
     .byte " Adjust Clk Speed   "
     .byte " About              "
     .byte " Thanks             "

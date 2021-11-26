@@ -2,6 +2,7 @@
 _LCD_INC_ = 1
 
 .import LCD_clear_video_ram
+.import LCD_write_string_direct
 .import LCD_write_string
 .import LCD_write_string_with_offset
 .import LCD_write_text
@@ -19,6 +20,14 @@ _LCD_INC_ = 1
     lda #>str_addr
     sta LCD_SPTR+1
     jsr LCD_write_string
+.endmacro
+
+.macro LCD_writeln_direct str_addr
+    lda #<str_addr
+    sta LCD_SPTR
+    lda #>str_addr
+    sta LCD_SPTR+1
+    jsr LCD_write_string_direct
 .endmacro
 
 .macro LCD_writetxt str_addr2
