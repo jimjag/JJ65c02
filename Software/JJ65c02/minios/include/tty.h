@@ -15,7 +15,7 @@ EOT     = $04   ; End of Transmission
 ENQ     = $05   ; Enquiry
 ACK     = $06   ; Acknowledgement
 BEL     = $07   ; Bell
-;BS     = $08   ; Backspace, see DEL
+BS      = $08   ; Backspace, see DEL
 HT      = $09   ; Horizontal Tab
 LF      = $0A   ; Line Feed
 VT      = $0B   ; Vertical Tab
@@ -41,7 +41,7 @@ GS      = $1D   ; Group Separator
 US      = $1F   ; Unit Separator
 SPACE   = $20   ; Space
 DEL     = $7F   ; Delete
-BS      = $7F   ; Backspace on Mac
+;BS      = $7F   ; Backspace on Mac
 
 UI_BUFSIZE = $80
 

@@ -84,13 +84,14 @@ TTY_readln:
     sta USER_INPUT_PTR+1        ; Hi address
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
-    lda ACIA_STATUS
-    and #(ACIA_STATUS_RX_FULL)
-    beq @read_next
-    lda ACIA_DATA
+    jsr ACIA_read_byte
 @enter_pressed:
-    cmp #(CR)                      ; User pressed enter?
+    cmp #(CR)                    ; User pressed enter?
     beq @read_done               ; Yes, don't save the CR
+    cmp #(BS)
+    beq @is_backspace
+    cmp #(DEL)
+    bne @echo_char
 @is_backspace:
     cmp #(BS)
     bne @echo_char               ; Nope
@@ -102,7 +103,7 @@ TTY_readln:
     sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
 @echo_char:
-    sta ACIA_DATA                ; Otherwise, echo the char
+    jsr ACIA_write_byte          ; Otherwise, echo the char
 @save_char:
     sta (USER_INPUT_PTR),y       ; And save it
     cpy #(UI_BUFSIZE-1)          ; Our char buffer full? (incl null)
