@@ -99,7 +99,18 @@ main:                                           ; boot routine, first thing load
 
 @welcome:
     cli                                         ; interupts are back on
-
+    ldy #0
+    ldx #19
+    jsr LCD_set_cursor
+    lda #(MINIOS_RAM_TEST_PASS_FLAG)
+    bit MINIOS_STATUS
+    beq @ram_failed
+    lda #'+'
+    bra @cont2
+@ram_failed:
+    lda #'-'
+@cont2:
+    jsr LCD_send_data
     jsr Welcome_tone
     jsr MENU_main                               ; start the menu routine
     jmp main                                    ; should the menu ever return ...
