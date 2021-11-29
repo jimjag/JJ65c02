@@ -28,7 +28,8 @@
 .export DDRAM
 .export VRAM_OFFSETS
 
-.export USER_INPUT
+.export USER_BUFFLEN
+.export SYS_TTY_BUFFER
 .export RECVB
 
 .export ACIA_RDBUFF
@@ -76,7 +77,8 @@ CLK_SPD:        .res 1              ; Clock speed, in MHz
 ISR_VECTOR:     .res 2              ; Store true ISR vector
 POSITION_MENU:      .res 1          ; initialize positions for menu and cursor in RAM
 POSITION_CURSOR:    .res 1
-USER_INPUT:     .res UI_BUFSIZE, NULL
+USER_BUFFLEN:     .res 1
+SYS_TTY_BUFFER:    .res SYS_TTY_BUFFERLEN
 RECVB:          .res 132
 ACIA_RDBUFF:    .res    $FF
 

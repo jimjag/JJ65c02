@@ -5,8 +5,12 @@
 
 .export TTY_setup_term
 .export TTY_readln
+.export TTY_readln_sys
 .export TTY_clear_screen
 .export TTY_reset_user_input
+.export TTY_send_newline
+.export TTY_send_backspace
+
 .export welcome_msg
 
 .segment "RODATA"
@@ -63,10 +67,10 @@ TTY_setup_term:
 
 ;================================================================================
 ;
-;   TTY_read - read up to $80 chars from serial input and store in USER_INPUT:
+;   TTY_read - read up to $80 chars from serial input and store in buffer:
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: none
+;   Preparatory Ops: .A is Lo Address of buffer; .X is high; .Y is size of buffer
 ;
 ;   Returned Values: none
 ;
@@ -75,13 +79,27 @@ TTY_setup_term:
 ;
 ;================================================================================
 
-TTY_readln:
+;
+; This uses the system buffer
+TTY_readln_sys:
     pha
     phy
-    lda #<USER_INPUT
+    phx
+    lda #<SYS_TTY_BUFFER
+    ldx #>SYS_TTY_BUFFER
+    ldy #(SYS_TTY_BUFFERLEN)
+    jsr TTY_readln
+    plx
+    ply
+    pla
+    rts
+
+TTY_readln:
     sta USER_INPUT_PTR          ; Lo address
-    lda #>USER_INPUT
-    sta USER_INPUT_PTR+1        ; Hi address
+    stx USER_INPUT_PTR+1        ; Hi address
+    sty USER_BUFFLEN
+    jsr TTY_reset_user_input
+    dec USER_BUFFLEN
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
     jsr ACIA_read_byte
@@ -104,7 +122,7 @@ TTY_readln:
     jsr ACIA_write_byte          ; Otherwise, echo the char
 @save_char:
     sta (USER_INPUT_PTR),y       ; And save it
-    cpy #(UI_BUFSIZE-1)          ; Our char buffer full? (incl null)
+    cpy USER_BUFFLEN             ; Our char buffer full? (incl null)
     beq @read_done               ; Yes, get out of here
     iny                          ; Otherwise, move to the next position in the buffer
     bra @read_next               ; And read the next key
@@ -113,8 +131,6 @@ TTY_readln:
     lda #(NULL)
     sta (USER_INPUT_PTR),y       ; Make sure the last char is null
     ACIA_writeln new_line
-    ply
-    pla
     rts
 
 ;================================================================================
@@ -145,30 +161,33 @@ TTY_clear_screen:
 ;   TTY_reset_user_input - clean out TTY input buffer
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: none
+;   Preparatory Ops: USER_INPUT_PTR, UI_BUFSIZE must be set
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X
+;   Destroys:        .A, .Y
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 TTY_reset_user_input:
-    pha
-    lda #<USER_INPUT
-    sta USER_INPUT_PTR
-    lda #>USER_INPUT
-    sta USER_INPUT_PTR+1        ; Point or repoint at our user_input array
-    ldy #$00
+    ldy #0
 @clear_user_input_loop:
     lda #(NULL)
     sta (USER_INPUT_PTR),y      ; Zero it out
-    cpy #(UI_BUFSIZE)
+    cpy USER_BUFFLEN
     beq @reset_user_input_done
     iny
     bra @clear_user_input_loop
 @reset_user_input_done:
-    pla
     rts
 
+;;
+
+TTY_send_newline:
+    ACIA_writeln new_line
+    rts
+
+TTY_send_backspace:
+    ACIA_writeln x_backspace
+    rts

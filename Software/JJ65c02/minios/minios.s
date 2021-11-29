@@ -6,6 +6,8 @@
 .include "acia.inc"
 .include "tty.inc"
 
+.import BASIC_init
+
 ;================================================================================
 ;
 ;                                    "JJ65c02"
@@ -222,8 +224,10 @@ MENU_main:
     cmp #6
     beq @adj_clock
     cmp #7
-    beq @about
+    beq @start_basic
     cmp #8
+    beq @about
+    cmp #9
     beq @thanks
     jmp @start                                  ; should we have an invalid option, restart
 
@@ -250,6 +254,9 @@ MENU_main:
     jmp @start
 @adj_clock:
     jsr BOOTLOADER_adj_clock
+    jmp @start
+@start_basic:
+    jsr BASIC_init
     jmp @start
 @about:                                         ; start the about routine
     LCD_writetxt about
@@ -784,6 +791,7 @@ menu_items:
     .byte " Clear RAM          "
     .byte " Test RAM           "
     .byte " Adjust Clk Speed   "
+    .byte " Run BASIC Int      "
     .byte " About              "
     .byte " Thanks             "
 

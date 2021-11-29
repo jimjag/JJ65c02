@@ -10,7 +10,8 @@ SRCS =  minios.s \
 	lib.s \
 	acia.s \
 	tty.s \
-	ymodem.s
+	ymodem.s \
+        msbasic.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
 all: $(TARGET)

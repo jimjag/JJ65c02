@@ -66,10 +66,8 @@ ACIA_init:
 ;================================================================================
 
 ACIA_read_byte:
-    clc
     jsr ACIA_has_rdata
-    cmp #1
-    beq @read_it
+    bcs @read_it
     rts
 @read_it:
     phx
@@ -146,7 +144,7 @@ ACIA_write_string:
 
 ;================================================================================
 ;
-;   ACIA_has_rdata - Returns 1 if we have READ data in buffer, 0 otherwise
+;   ACIA_has_rdata - Carry Set if we have READ data in buffer, Clear otherwise
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -162,10 +160,10 @@ ACIA_has_rdata:
     lda ACIA_RWPTR
     cmp ACIA_RRPTR
     beq @no_data_found
-    lda #$1
+    sec
     rts
 @no_data_found:
-    lda #$0
+    clc
     rts
 
 ;================================================================================

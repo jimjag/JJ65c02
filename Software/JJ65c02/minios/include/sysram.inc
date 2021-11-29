@@ -35,7 +35,8 @@ _SYSRAM_INC_ = 1
 .import CLK_SPD
 .import ISR_VECTOR
 
-.import USER_INPUT
+.import USER_BUFFLEN
+.import SYS_TTY_BUFFER
 .import RECVB
 
 .import POSITION_MENU
