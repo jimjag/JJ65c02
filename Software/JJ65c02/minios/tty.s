@@ -63,7 +63,7 @@ TTY_setup_term:
 
 ;================================================================================
 ;
-;   TTY_read - read up to 128 chars from serial input and store in USER_INPUT:
+;   TTY_read - read up to $80 chars from serial input and store in USER_INPUT:
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -93,8 +93,6 @@ TTY_readln:
     cmp #(DEL)
     bne @echo_char
 @is_backspace:
-    cmp #(BS)
-    bne @echo_char               ; Nope
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
     ACIA_writeln x_backspace     ; left, space, left to delete the character
@@ -166,7 +164,7 @@ TTY_reset_user_input:
 @clear_user_input_loop:
     lda #(NULL)
     sta (USER_INPUT_PTR),y      ; Zero it out
-    cpy #(UI_BUFSIZE)           ; 32 bytes in user_input
+    cpy #(UI_BUFSIZE)
     beq @reset_user_input_done
     iny
     bra @clear_user_input_loop
