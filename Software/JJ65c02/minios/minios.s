@@ -63,9 +63,9 @@ main:                                           ; boot routine, first thing load
     sty Z0
     lda #>__RAM0_START__
     sta Z1
-    jsr BOOTLOADER_test_ram_core
+    ;jsr BOOTLOADER_test_ram_core
     stz MINIOS_STATUS
-    bcs @continue
+    ;bcs @continue
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     tsb MINIOS_STATUS
 
@@ -138,7 +138,7 @@ MENU_main:
 
     jmp @start
 @MAX_SCREEN_POS:                                ; define some constants in ROM
-    .byte $04                                   ; its always number of items - 4
+    .byte 6                                     ; its always: number of menu items - LCD_ROWS
 @start:                                         ; and off we go
     jsr LCD_clear_video_ram
     ldx POSITION_MENU
@@ -256,6 +256,11 @@ MENU_main:
     jsr BOOTLOADER_adj_clock
     jmp @start
 @start_basic:
+    lda #100                                    ; wait a bit, say 100ms
+    jsr LIB_delay1ms
+    LCD_writeln message_readybasic
+    jsr VIA_read_mini_keyboard
+    jsr LCD_clear_screen
     jsr BASIC_init
     jmp @start
 @about:                                         ; start the about routine
@@ -762,6 +767,11 @@ message_welcomeacia:
     .byte "  miniOS v1.1 ACIA  ", $00
 message_cmd:
     .asciiz "Enter Command..."
+message_readybasic:
+    .byte "Starting EhBASIC    "
+    .byte "Interpreter via TTY."
+    .byte "Press Mini Keyboard "
+    .byte "Button When Ready:  ", $00
 message_readyload:
     .byte "Getting Ready To    "
     .byte "LOAD RAM. Tap Mini  "
@@ -794,7 +804,6 @@ menu_items:
     .byte " Run BASIC Int      "
     .byte " About              "
     .byte " Thanks             "
-
 about:
     .addr a1, a2, $0000
 a1: .asciiz "github.com/"
