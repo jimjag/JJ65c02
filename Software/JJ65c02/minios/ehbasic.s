@@ -2,6 +2,12 @@
 .feature labels_without_colons
 
 .export BASIC_init
+;.export warm_start
+;.export LAB_IGBY
+;.export LAB_GBYT
+;.export Bpntrl
+;.export Bpntrh
+
 .include "minios.inc"
 .include "sysram.inc"
 .include "tty.inc"
@@ -48,7 +54,7 @@
 ;      5.6     floating point multiply rounding bug
 ;      5.7     VAL() may cause string variables to be trashed
 
-    .zeropage
+.segment "ZEROPAGE"
 
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
 warm_start      .res 1          ; BASIC warm start entry point
@@ -276,9 +282,9 @@ LAB_IGBY        .res 6          ; get next BASIC byte subroutine
 
 LAB_GBYT        .res 1          ; get current BASIC byte subroutine
 Bpntrl          .res 1          ; BASIC execute (get byte) pointer low byte
-Bpntrh          .res 1          ; BASIC execute (get byte) pointer high byte
-
-void            .res 19          ; end of get BASIC char subroutine
+Bpntrh          .res 20         ; BASIC execute (get byte) pointer high byte
+                                ; plus extra space
+; end of get BASIC char subroutine
 ; end bulk initialize from LAB_2CEE at LAB_2D4E
 
 Rbyte4          .res 1          ; extra PRNG byte
@@ -299,7 +305,7 @@ IrqBase         .res 3          ; IRQ handler enabled/setup/triggered flags
 ;               .res 1          ; IRQ handler addr high byte
 
 Decss           .res 1          ; number to decimal string start
-Decssp1         .res 16          ; number to decimal string start
+Decssp1         .res 16         ; number to decimal string start
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
@@ -447,7 +453,7 @@ VEC_SV            = VEC_LD+2        ; save vector
 ; program RAM pages!
 
 ;Ibuffs            = IRQ_vec+$14
-Ibuffs            = VEC_SV+$16
+Ibuffs            = $0700
                               ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
@@ -456,7 +462,7 @@ Ram_top           = $6000     ; end of user RAM+1 (set as needed, should be page
 
 Stack_floor       = 16        ; bytes left free on stack for background interrupts
 
-    .code
+.segment "CODE"
 
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ctrl_c_flag on
@@ -8745,83 +8751,92 @@ NMI_vec     = IRQ_vec+$0A     ; NMI code vector
 ; set up vectors and interrupt code, copy them to page 2
 
 BASIC_init
-      LDY   #END_CODE-LAB_vec ; set index/count
+    LDY   #END_CODE-LAB_vec ; set index/count
 LAB_stlp
-      LDA   LAB_vec-1,Y       ; get byte from interrupt code
-      STA   VEC_IN-1,Y        ; save to RAM
-      DEY                     ; decrement index/count
-      BNE   LAB_stlp          ; loop if more to do
+    LDA   LAB_vec-1,Y       ; get byte from interrupt code
+    STA   VEC_IN-1,Y        ; save to RAM
+    DEY                     ; decrement index/count
+    BNE   LAB_stlp          ; loop if more to do
 
 ; now do the signon message, Y = $00 here
 
 LAB_signon
-      LDA   LAB_mess,Y        ; get byte from sign on message
-      BEQ   LAB_nokey         ; exit loop if done
+    LDA   LAB_mess,Y        ; get byte from sign on message
+    BEQ   LAB_nokey         ; exit loop if done
 
-      JSR   V_OUTP            ; output character
-      INY                     ; increment index
-      BNE   LAB_signon        ; loop, branch always
+    JSR   V_OUTP            ; output character
+    INY                     ; increment index
+    BNE   LAB_signon        ; loop, branch always
 
 LAB_nokey
-      JSR   V_INPT            ; call scan input device
-      BCC   LAB_nokey         ; loop if no key
+    JSR   V_INPT            ; call scan input device
+    BCC   LAB_nokey         ; loop if no key
 
-      AND   #$DF              ; mask xx0x xxxx, ensure upper case
-      CMP   #'W'              ; compare with [W]arm start
-      BEQ   LAB_dowarm        ; branch if [W]arm start
+    AND   #$DF              ; mask xx0x xxxx, ensure upper case
+    CMP   #'W'              ; compare with [W]arm start
+    BEQ   LAB_dowarm        ; branch if [W]arm start
 
-      CMP   #'C'              ; compare with [C]old start
-      BNE   BASIC_init        ; loop if not [C]old start
+    CMP   #'C'              ; compare with [C]old start
+    BNE   BASIC_init        ; loop if not [C]old start
 
-      JMP   cold_start        ; do EhBASIC cold start
+    JMP   cold_start        ; do EhBASIC cold start
 
 LAB_dowarm
-      JMP   warm_start        ; do EhBASIC warm start
-
-ACIAin:
-    jsr TTY_read_char
-    rts
+    JMP   warm_start        ; do EhBASIC warm start
 
 ACIAout:
     jsr TTY_write_char
     rts
 
+ACIAin:
+    jsr TTY_read_char
+    bcc LAB_nobyw       ; No char avail
+    cmp #'a'            ; Is it < 'a'?
+    bcc @done           ; Yes, we're done
+    cmp #'{'            ; Is it >= '{'?
+    bcs @done           ; Yes, we're done
+    and #$5f            ; Otherwise, mask to uppercase
+@done
+    sec                 ; Flag byte received
+    rts
+LAB_nobyw
+    clc
 no_load                       ; empty load vector for EhBASIC
 no_save                       ; empty save vector for EhBASIC
-      RTS
+    rts
 
 ; vector tables
 
 LAB_vec
-      .word ACIAin            ; byte in from simulated ACIA
-      .word ACIAout           ; byte out to simulated ACIA
-      .word no_load           ; null load vector for EhBASIC
-      .word no_save           ; null save vector for EhBASIC
+    .word ACIAin            ; byte in from simulated ACIA
+    .word ACIAout           ; byte out to simulated ACIA
+    .word no_load           ; null load vector for EhBASIC
+    .word no_save           ; null save vector for EhBASIC
 
 ; EhBASIC IRQ support
 
 IRQ_CODE
-      PHA                     ; save A
-      LDA   IrqBase           ; get the IRQ flag byte
-      LSR                     ; shift the set b7 to b6, and on down ...
-      ORA   IrqBase           ; OR the original back in
-      STA   IrqBase           ; save the new IRQ flag byte
-      PLA                     ; restore A
-      RTI
+    PHA                     ; save A
+    LDA   IrqBase           ; get the IRQ flag byte
+    LSR                     ; shift the set b7 to b6, and on down ...
+    ORA   IrqBase           ; OR the original back in
+    STA   IrqBase           ; save the new IRQ flag byte
+    PLA                     ; restore A
+    RTI
 
 ; EhBASIC NMI support
 
 NMI_CODE
-      PHA                     ; save A
-      LDA   NmiBase           ; get the NMI flag byte
-      LSR                     ; shift the set b7 to b6, and on down ...
-      ORA   NmiBase           ; OR the original back in
-      STA   NmiBase           ; save the new NMI flag byte
-      PLA                     ; restore A
-      RTI
+    PHA                     ; save A
+    LDA   NmiBase           ; get the NMI flag byte
+    LSR                     ; shift the set b7 to b6, and on down ...
+    ORA   NmiBase           ; OR the original back in
+    STA   NmiBase           ; save the new NMI flag byte
+    PLA                     ; restore A
+    RTI
 
 END_CODE
 
 LAB_mess
-      .byte $0D,$0A,"6502 EhBASIC [C]old/[W]arm ?",$00
+    .byte $0D,$0A,"6502 EhBASIC [C]old/[W]arm ?",$00
                               ; sign on string
