@@ -14,6 +14,7 @@
 .export ACIA_write_string
 .export ACIA_has_rdata
 .export ACIA_flush_rbuff
+.export ACIA_reset_rbuff
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -46,8 +47,7 @@ ACIA_init:
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     tsb MINIOS_STATUS
 @done:
-    stz ACIA_RWPTR
-    stz ACIA_RRPTR
+    jsr ACIA_flush_rbuff
     pla
     rts
 
@@ -68,6 +68,7 @@ ACIA_init:
 ACIA_read_byte:
     jsr ACIA_has_rdata
     bcs @read_it
+    clc                 ; just in case
     rts
 @read_it:
     phx
@@ -175,12 +176,19 @@ ACIA_has_rdata:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        none
+;   Destroys:        .A, .Y
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 ACIA_flush_rbuff:
+    lda #0
+    ldy #0
+@flush:
+    sta ACIA_RDBUFF,y
+    iny
+    bne @flush
+ACIA_reset_rbuff:
     stz ACIA_RWPTR
     stz ACIA_RRPTR
     rts
