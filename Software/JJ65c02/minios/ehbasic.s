@@ -1,3 +1,10 @@
+.setcpu "65c02"
+.feature labels_without_colons
+
+.export BASIC_init
+.include "minios.inc"
+.include "sysram.inc"
+.include "tty.inc"
 
 ; Enhanced BASIC to assemble under 6502 simulator, $ver 2.22p5
 
@@ -41,15 +48,8 @@
 ;      5.6     floating point multiply rounding bug
 ;      5.7     VAL() may cause string variables to be trashed
 
-    .setcpu "6502"
-    .psc02                      ; We may use WDC65c02s opcodes
-
-    .feature labels_without_colons
-
-.export BASIC_init
-.include "tty.inc"
-
     .zeropage
+
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
 warm_start      .res 1          ; BASIC warm start entry point
 warm_start_lo   .res 1          ; BASIC warm start vector jump low byte
@@ -98,7 +98,7 @@ next_s          .res 1          ; next descriptor stack address
 last_sl         .res 1          ; last descriptor stack address low byte
 last_sh         .res 1          ; last descriptor stack address high byte (always $00)
 
-des_sk          .res 8          ; descriptor stack start address (temp strings)
+des_sk          .res 9          ; descriptor stack start address (temp strings)
 
 ;               .res 1          ; End of descriptor stack
 
@@ -187,7 +187,7 @@ Fnxjph          .res 1          ; functions jump vector high byte
 
 g_indx          = Fnxjpl        ; garbage collect temp index
 
-FAC2_r          .res 1          ; FAC2 rounding byte
+FAC2_r          = Fnxjph        ; FAC2 rounding byte
 
 Adatal          .res 1          ; array data pointer low byte
 Adatah          .res 1          ; array data pointer high  byte
@@ -488,7 +488,7 @@ LAB_GMEM
       LDX   #EndTab-StrTab-1  ; set byte count-1
 TabLoop
       LDA   StrTab,X          ; get byte from table
-      STA   PLUS_0,X          ; save byte in page zero
+      STA   warm_start,X          ; save byte in page zero
       DEX                     ; decrement count
       BPL   TabLoop           ; loop if not all done
 
