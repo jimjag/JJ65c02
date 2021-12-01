@@ -11,6 +11,18 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Dec 01, 2021
+
+I've planned on adding a ROM-based BASIC since the start, and now that the miniOS bootloader is "ready", I started the work in earnest. The question was, of course, which BASIC to use, with the top 3 contenders being [EhBASIC](http://retro.hansotten.nl/6502-sbc/lee-davison-web-site/enhanced-6502-basic/) (Enhanced BASIC), [MS BASIC](https://github.com/mist64/msbasic), and BBC BASIC. I decided on EhBASIC because it seemed the fastest and most capable, as well as having acceptable licensing terms (for non-commercial use). Unfortunately, the porting to the `cc65` toolchain required some work.
+
+I used the KrisOS work-in-progress version as a starting point, which had already changed some of the zeropage assignments to the standard `.res` formats. Unfortunately, there was still a lot of work needed to provide the correct spacing since EhBASIC loads some code chunks from ROM to RAM (in page0) and unless you have the spacing correct, you'll break everything. The fact that EhBASIC also re-uses the same zeropage allocations for different variables makes the situation even worse. So what I did was dump a full zeropage mapping of an unported EhBASIC and used that to work backwards on ensuring all variables and labels were where they were expected to be, regardless of where the starting point was.
+
+Once that was done, I jumped in on cleaning up the code and standardizing the syntax formatting. This involved lowercasing all opcodes and making sure that all labels used colons. After that, it was fixing CNTRL-C handing and then adding in an `EXIT` command to return from the Interpreter back to miniOS.
+
+Lots of work, but know there's an up-to-date version of EhBASIC ported to the `cc65` toolchain for others to use and expand on! My little contribution to the cause.
+
+--
+
 ### Nov 22, 2021
 
 Wow. Has it really been almost a month? Crazy. Anyway, I've been working off and on on the project since my last update. The 2 biggest changes have been, number 1: updates to the schematics (and wire-wrapping a new prototype) due to change number 2: adding in basic sound support.
