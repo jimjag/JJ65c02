@@ -7877,8 +7877,8 @@ LAB_MSZM:
 
 LAB_SMSG:
       .byte " Bytes free",$0D,$0A,$0A
-      .byte "Enhanced BASIC 2.22p5.9j",$0A
-      .byte "https://github.com/jimjag/JJ65c02",$0A,$00
+      .byte "Enhanced BASIC 2.22p5.9j",$0D,$0A
+      .byte "https://github.com/jimjag/JJ65c02",$0D,$0A,$00
 
 ; numeric constants and series
 
