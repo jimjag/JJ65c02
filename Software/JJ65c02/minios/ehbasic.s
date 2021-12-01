@@ -3053,12 +3053,12 @@ LAB_1B53:
 LAB_1B5B:
     pla                     ; get return addr low byte
     sta   ut1_pl            ; save it
-    inc   ut1_pl            ; increment it (was ret-1 pushed? yes!)
-                              ; note! no check is made on the high byte! if the calling
-                              ; routine assembles to a page edge then this all goes
-                              ; horribly wrong !!!
     pla                     ; get return addr high byte
     sta   ut1_ph            ; save it
+    inc   ut1_pl            ; increment it (was ret-1 pushed? yes!)
+    bne   @skip             ; page edge?
+    inc   ut1_ph            ; increment high byte
+@skip:
     lda   FAC1_s            ; get FAC1 sign (b7)
     pha                     ; push sign
 
