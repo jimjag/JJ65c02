@@ -352,6 +352,7 @@ Decssp1:         .res 16         ; number to decimal string start
     token_BITCLR
     token_IRQ
     token_NMI
+    token_EXIT
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -445,6 +446,7 @@ VEC_IN            = VEC_CC+2 ; input vector
 VEC_OUT           = VEC_IN+2        ; output vector
 VEC_LD            = VEC_OUT+2       ; load vector
 VEC_SV            = VEC_LD+2        ; save vector
+VEC_EXIT          = VEC_SV+2        ; exit vector
 ; end bulk initialize by min_mon.asm from LAB_vec at LAB_stlp
 
 ; Ibuffs can now be anywhere in RAM, ensure that the max length is < $80,
@@ -7787,6 +7789,8 @@ V_LOAD:
     jmp   (VEC_LD)          ; load BASIC program
 V_SAVE:
     jmp   (VEC_SV)          ; save BASIC program
+V_EXIT:
+    jmp   (VEC_EXIT)        ; EXIT back to miniOS
 
 ; The rest are tables messages and code for RAM
 
@@ -8032,6 +8036,7 @@ LAB_CTBL:
     .word LAB_BITCLR-1      ; BITCLR          new command
     .word LAB_IRQ-1         ; IRQ             new command
     .word LAB_NMI-1         ; NMI             new command
+    .word V_EXIT-1          ; EXIT            new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8292,6 +8297,8 @@ LBB_END:
       .byte "ND",token_END       ; END
 LBB_EOR:
       .byte "OR",token_EOR       ; EOR
+LBB_EXIT:
+      .byte "XIT",token_EXIT     ; EXIT
 LBB_EXP:
       .byte "XP(",token_EXP      ; EXP(
       .byte $00
@@ -8560,6 +8567,8 @@ LAB_KEYT:
       .word LBB_IRQ           ; IRQ
       .byte 3,'N'
       .word LBB_NMI           ; NMI
+      .byte 4,'E'
+      .word LBB_EXIT          ; EXIT
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'
@@ -8812,6 +8821,7 @@ LAB_vec:
     .word ACIAout           ; byte out to simulated ACIA
     .word no_load           ; null load vector for EhBASIC
     .word no_save           ; null save vector for EhBASIC
+    .word MINIOS_main_menu
 
 ; EhBASIC IRQ support
 

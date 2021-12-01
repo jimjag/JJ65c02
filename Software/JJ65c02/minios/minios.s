@@ -7,6 +7,7 @@
 .include "tty.inc"
 
 .import BASIC_init
+.export MINIOS_main_menu
 
 ;================================================================================
 ;
@@ -63,7 +64,7 @@ main:                                           ; boot routine, first thing load
     sty Z0
     lda #>__RAM0_START__
     sta Z1
-    ;jsr BOOTLOADER_test_ram_core
+    ;jsr MINIOS_test_ram_core
     stz MINIOS_STATUS
     ;bcs @continue
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
@@ -114,13 +115,13 @@ main:                                           ; boot routine, first thing load
 @cont2:
     jsr LCD_send_data
     jsr Welcome_tone
-    jsr MENU_main                               ; start the menu routine
+    jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 
 
 ;================================================================================
 ;
-;   MENU_main - renders a scrollable menu w/ dynamic number of entries
+;   MINIOS_main_menu - renders a scrollable menu w/ dynamic number of entries
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -132,7 +133,7 @@ main:                                           ; boot routine, first thing load
 ;
 ;================================================================================
 
-MENU_main:
+MINIOS_main_menu:
     stz POSITION_MENU
     stz POSITION_CURSOR
 
@@ -247,13 +248,13 @@ MENU_main:
     jsr HEXDUMP_main
     jmp @start
 @clear_ram:                                     ; start the clear ram routine
-    jsr BOOTLOADER_clear_ram
+    jsr MINIOS_clear_ram
     jmp @start
 @test_ram:                                      ; start the test ram routine
-    jsr BOOTLOADER_test_ram
+    jsr MINIOS_test_ram
     jmp @start
 @adj_clock:
-    jsr BOOTLOADER_adj_clock
+    jsr MINIOS_adj_clock
     jmp @start
 @start_basic:
     lda #100                                    ; wait a bit, say 100ms
@@ -272,15 +273,15 @@ MENU_main:
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
-    jsr BOOTLOADER_load_ram                     ; call the bootloaders programming routine
+    jsr MINIOS_load_ram                     ; call the bootloaders programming routine
     jmp @start
 @do_run:                                        ; orchestration of running a program
-    jsr BOOTLOADER_execute
+    jsr MINIOS_execute
     jmp @start
 
 ;================================================================================
 ;
-;   BOOTLOADER_load_ram - Load program into RAM space
+;   MINIOS_load_ram - Load program into RAM space
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -292,7 +293,7 @@ MENU_main:
 ;
 ;================================================================================
 
-BOOTLOADER_load_ram:
+MINIOS_load_ram:
     LCD_writeln message_readyload
     jsr VIA_read_mini_keyboard
     jsr LCD_clear_screen
@@ -300,7 +301,7 @@ BOOTLOADER_load_ram:
 
 ;================================================================================
 ;
-;   BOOTLOADER_execute - executes a user program in RAM
+;   MINIOS_execute - executes a user program in RAM
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -312,14 +313,14 @@ BOOTLOADER_load_ram:
 ;
 ;================================================================================
 
-BOOTLOADER_execute:
+MINIOS_execute:
     jsr LCD_clear_video_ram                     ; print a message
     LCD_writeln message_runprog
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
 ;
-;   BOOTLOADER_ram_check - checks RAM w/ .A from Z0/Z1 up to PROGRAM_END
+;   MINIOS_ram_check - checks RAM w/ .A from Z0/Z1 up to PROGRAM_END
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: Z0, Z1: address of start
@@ -331,7 +332,7 @@ BOOTLOADER_execute:
 ;
 ;================================================================================
 
-BOOTLOADER_ram_check:
+MINIOS_ram_check:
     ldy #0
 @loop:
     cmp (Z0),y
@@ -354,7 +355,7 @@ BOOTLOADER_ram_check:
 
 ;================================================================================
 ;
-;   BOOTLOADER_ram_set - sets RAM w/ .A from Z0/Z1 up to PROGRAM_END
+;   MINIOS_ram_set - sets RAM w/ .A from Z0/Z1 up to PROGRAM_END
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: Z0, Z1: address of start
@@ -366,7 +367,7 @@ BOOTLOADER_ram_check:
 ;
 ;================================================================================
 
-BOOTLOADER_ram_set:
+MINIOS_ram_set:
     ldy #0
 @loop:
     sta (Z0),y                                  ; store it in current location
@@ -384,7 +385,7 @@ BOOTLOADER_ram_set:
 
 ;================================================================================
 ;
-;   BOOTLOADER_clear_ram - clears RAM from PROGRAM_START up to PROGRAM_END
+;   MINIOS_clear_ram - clears RAM from PROGRAM_START up to PROGRAM_END
 ;
 ;   Useful during debugging or when using non-volatile RAM chips. Because
 ;   START and END are arbitrary addresses, we need a super generic routine
@@ -398,7 +399,7 @@ BOOTLOADER_ram_set:
 ;
 ;================================================================================
 
-BOOTLOADER_clear_ram:
+MINIOS_clear_ram:
     jsr LCD_clear_video_ram                     ; render message
     LCD_writeln message_ramclean
 
@@ -407,11 +408,11 @@ BOOTLOADER_clear_ram:
     lda #>PROGRAM_START
     sta Z1
     lda #$00                                    ;  load 0x00 cleaner byte
-    jmp BOOTLOADER_ram_set
+    jmp MINIOS_ram_set
 
 ;================================================================================
 ;
-;   BOOTLOADER_test_ram - clears RAM from PROGRAM_START up to PROGRAM_END
+;   MINIOS_test_ram - clears RAM from PROGRAM_START up to PROGRAM_END
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -423,7 +424,7 @@ BOOTLOADER_clear_ram:
 ;
 ;================================================================================
 
-BOOTLOADER_test_ram:
+MINIOS_test_ram:
     jsr LCD_clear_video_ram                     ; render message
     LCD_writeln message_ramtest
     ldy #1
@@ -434,7 +435,7 @@ BOOTLOADER_test_ram:
     sty Z0
     lda #>PROGRAM_START
     sta Z1
-    jsr BOOTLOADER_test_ram_core
+    jsr MINIOS_test_ram_core
     bcs @failed
     LCD_writeln_direct message_pass
     bra @done
@@ -447,7 +448,7 @@ BOOTLOADER_test_ram:
 
 ;================================================================================
 ;
-;   BOOTLOADER_test_ram_core - tests RAM from Z0/Z1 up to PROGRAM_END
+;   MINIOS_test_ram_core - tests RAM from Z0/Z1 up to PROGRAM_END
 ;
 ;   Useful during debugging or when using non-volatile RAM chips. Sets
 ;   CARRY if error.
@@ -461,33 +462,33 @@ BOOTLOADER_test_ram:
 ;
 ;================================================================================
 
-BOOTLOADER_test_ram_core:
+MINIOS_test_ram_core:
     lda Z0
     sta Z2
     lda Z1
     sta Z3
 
     lda #$5A
-    jsr BOOTLOADER_ram_set
+    jsr MINIOS_ram_set
     lda Z2
     sta Z0
     lda Z3
     sta Z1
     lda #$5A
-    jsr BOOTLOADER_ram_check
+    jsr MINIOS_ram_check
     bcs @skip
     lda Z2
     sta Z0
     lda Z3
     sta Z1
     lda #$A5
-    jsr BOOTLOADER_ram_set
+    jsr MINIOS_ram_set
     lda Z2
     sta Z0
     lda Z3
     sta Z1
     lda #$A5
-    jsr BOOTLOADER_ram_check
+    jsr MINIOS_ram_check
 @skip:
     rts
 
@@ -624,7 +625,7 @@ HEXDUMP_main:
 
 ;================================================================================
 ;
-;   BOOTLOADER_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
+;   MINIOS_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
 ;
 ;   This routine simply updates the internal setting for the clock speed of the
 ;   system, in Mhz. This only currently affects LIB_delay1ms so that depending
@@ -640,7 +641,7 @@ HEXDUMP_main:
 ;
 ;================================================================================
 
-BOOTLOADER_adj_clock:
+MINIOS_adj_clock:
     pha                                         ; Save .A, .X, .Y
     phx
     phy
