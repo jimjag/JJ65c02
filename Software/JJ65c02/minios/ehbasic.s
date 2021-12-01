@@ -11,7 +11,7 @@
 .include "sysram.inc"
 .include "tty.inc"
 
-; Enhanced BASIC to assemble under 6502 simulator, $ver 2.22p5
+; Enhanced BASIC to assemble under 6502 simulator, $ver 2.22p5.9j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
@@ -52,6 +52,8 @@
 ;      5.5     garbage collection may cause an overlap with temporary strings
 ;      5.6     floating point multiply rounding bug
 ;      5.7     VAL() may cause string variables to be trashed
+;      5.8j    Fix LAB_1B5B if we hit page edge
+;      5.9j    Add EXIT command to return to bootloader/ROM
 
 .segment "ZEROPAGE"
 
@@ -7875,7 +7877,8 @@ LAB_MSZM:
 
 LAB_SMSG:
       .byte " Bytes free",$0D,$0A,$0A
-      .byte "Enhanced BASIC 2.22p5",$0A,$00
+      .byte "Enhanced BASIC 2.22p5.9j",$0A
+      .byte "https://github.com/jimjag/JJ65c02",$0A,$00
 
 ; numeric constants and series
 
@@ -8848,5 +8851,5 @@ NMI_CODE:
 END_CODE:
 
 LAB_mess:
-    .byte $0D,$0A,"6502 EhBASIC ver 2.22p5 [C]old/[W]arm ?",$00
+    .byte $0D,$0A,"6502 EhBASIC ver 2.22p5.9j [C]old/[W]arm ?",$00
                               ; sign on string
