@@ -261,6 +261,10 @@ MINIOS_main_menu:
     jsr LIB_delay1ms
     LCD_writeln message_readybasic
     jsr VIA_read_mini_keyboard
+    cmp #(VIA_right_key)
+    beq @go_basic
+    jmp @start
+@go_basic:
     jsr LCD_clear_screen
     jsr BASIC_init
     jmp @start
@@ -273,7 +277,7 @@ MINIOS_main_menu:
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
-    jsr MINIOS_load_ram                     ; call the bootloaders programming routine
+    jsr MINIOS_load_ram                         ; call the bootloaders programming routine
     jmp @start
 @do_run:                                        ; orchestration of running a program
     jsr MINIOS_execute
@@ -296,6 +300,10 @@ MINIOS_main_menu:
 MINIOS_load_ram:
     LCD_writeln message_readyload
     jsr VIA_read_mini_keyboard
+    cmp #(VIA_right_key)
+    beq @start_load
+    rts
+@start_load:
     jsr LCD_clear_screen
     jmp YMODEM_recv
 
@@ -772,11 +780,11 @@ message_readybasic:
     .byte "Starting EhBASIC    "
     .byte "Interpreter via TTY."
     .byte "Press Mini Keyboard "
-    .byte "Button When Ready:  ", $00
+    .byte "R Button When Ready:", $00
 message_readyload:
     .byte "Getting Ready To    "
     .byte "LOAD RAM. Tap Mini  "
-    .byte "Keyboard Button To  "
+    .byte "Keyboard R Button To"
     .byte "Start:              ", $00
 message_waitdata:
     .asciiz "Awaiting data..."
