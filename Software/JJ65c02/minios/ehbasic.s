@@ -11,6 +11,11 @@
 .include "sysram.inc"
 .include "tty.inc"
 
+;=====================================================================
+; look for "SYSTEM SPECIFIC VALUE!" for values/settings/functions
+; that need to be updated for *your* system
+;=====================================================================
+
 ; Enhanced BASIC to assemble under 6502 simulator, $ver 2.22p5.9j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
@@ -437,7 +442,7 @@ LAB_SKFF          = LAB_STAK+$FF
                               ; flushed stack address
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
-ccflag     = $0500             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis
+ccflag     = $0500             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte     = ccflag+1     ; BASIC CTRL-C byte
 ccnull  = ccbyte+1     ; BASIC CTRL-C byte timeout
 VEC_CC            = ccnull+1  ; ctrl c check vector
@@ -456,12 +461,12 @@ VEC_EXIT          = VEC_SV+2        ; exit vector
 ; program RAM pages!
 
 ;Ibuffs            = IRQ_vec+$14
-Ibuffs            = $0700
+Ibuffs            = $0700     ; SYSTEM SPECIFIC VALUE!
                               ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
-Ram_base          = $1000     ; start of user RAM (set as needed, should be page aligned)
-Ram_top           = $6000     ; end of user RAM+1 (set as needed, should be page aligned)
+Ram_base          = $1000     ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+Ram_top           = $6000     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 
 Stack_floor       = 16        ; bytes left free on stack for background interrupts
 
@@ -8796,10 +8801,12 @@ LAB_nokey:
 LAB_dowarm:
     jmp   LAB_WARM        ; do EhBASIC warm start
 
+; : SYSTEM SPECIFIC VALUE!
 ACIAout:
     jsr TTY_write_char
     rts
 
+; : SYSTEM SPECIFIC VALUE!
 ACIAin:
     jsr TTY_read_char
     bcc LAB_nobyw       ; No char avail
@@ -8824,7 +8831,7 @@ LAB_vec:
     .word ACIAout           ; byte out to simulated ACIA
     .word no_load           ; null load vector for EhBASIC
     .word no_save           ; null save vector for EhBASIC
-    .word MINIOS_main_menu
+    .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!
 
 ; EhBASIC IRQ support
 

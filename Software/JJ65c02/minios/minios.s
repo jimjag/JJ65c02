@@ -762,10 +762,10 @@ ISR:
 
 message_welcome:
     .byte "      JJ65c02       "
-    .byte "   miniOS v1.1      ", $00
+    .byte "   miniOS v1.2      ", $00
 message_welcomeacia:
     .byte "      JJ65c02       "
-    .byte "  miniOS v1.1 ACIA  ", $00
+    .byte "  miniOS v1.2 ACIA  ", $00
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
