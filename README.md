@@ -25,7 +25,7 @@ You can, of course, contact me via the normal Github development methods, such a
 
 # Credits
 
-* Ben Eater : for the BB6502 system itself
-* Jan Roesner : for the [Sixty5o2](https://github.com/janroesner/sixty5o2) Bootloader, which serves as the initial origin of my fork
-* Dawid Buchwald : Lots of other useful info.
-
+* Ben Eater
+* Jan Roesner
+* Dawid Buchwald
+* all the helpful peeps on reddit r/beneater/
