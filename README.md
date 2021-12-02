@@ -15,6 +15,8 @@ The Software itself is my fork of the open source codebases mentioned above, wit
 
 Each section has its own Readme.md and Folder under this repo.
 
+Keep up to date by reading the [History](./HISTORY.md) file, which serves as a running log of additions and improvements.
+
 # Pull Requests
 
 If you would like to see any particular feature I would be happy to accept any actual code contributions via Pull Requests, or even Enhancement requests. I am happy to screen, test and merge any valuable PR.
