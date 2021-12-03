@@ -758,6 +758,14 @@ ISR:
     ldx ACIA_RWPTR
     sta ACIA_RDBUFF,x                           ; Store in rx buffer
     inc ACIA_RWPTR                              ; Increase write buffer pointer
+.ifdef __HW_FLOW_CONTROL__
+    lda ACIA_RWPTR
+    cmp ACIA_RRPTR                              ; are we buffer full?
+    bne @done
+    lda ACIA_COMMAND                            ; bring RTS high
+    and #%11110011
+    sta ACIA_COMMAND
+.endif
 @done:
     plx
     pla

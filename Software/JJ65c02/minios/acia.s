@@ -75,6 +75,22 @@ ACIA_read_byte:
     ldx ACIA_RRPTR
     lda ACIA_RDBUFF,x
     inc ACIA_RRPTR
+.ifdef __HW_FLOW_CONTROL__
+    pha
+    lda ACIA_RRPTR
+    sec
+    sbc ACIA_RWPTR
+    cmp #$80                        ; TODO: check this... 
+    bcs @done                       ; consume buffer
+    pha
+    lda ACIA_COMMAND
+    and #%11110011
+    ora #(ACIA_TX_INT_ENABLE_RTS_LOW)
+    sta ACIA_COMMAND
+    pla
+@done:
+    pla
+.endif
     plx
     sec
     rts
