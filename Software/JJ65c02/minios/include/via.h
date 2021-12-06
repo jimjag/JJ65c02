@@ -44,4 +44,20 @@ VIA2_IFR =    __IO_START__ + $4d                    ; Interrupt Flag Register
 VIA2_IER =    __IO_START__ + $4e                    ; Interrupt Enable Register
 VIA2_ORA =    __IO_START__ + $4e                    ; Port A - no handshake
 
+; Peripheral Control Register flags
+VIA_PCR_CA1_INTERRUPT_NEGATIVE     = %00000000
+VIA_PCR_CA1_INTERRUPT_POSITIVE     = %00000001
+VIA_PCR_CA2_OUTPUT_HANDSHAKE       = %00001000
+VIA_PCR_CA2_OUTPUT_PULSE           = %00001010
+VIA_PCR_CB1_INTERRUPT_NEGATIVE     = %00000000
+VIA_PCR_CB1_INTERRUPT_POSITIVE     = %00010000
+VIA_PCR_CB2_OUTPUT_LOW             = %11000000
+VIA_PCR_CB2_OUTPUT_HIGH            = %11100000
+
+; Interrupt Enable Register flags
+VIA_IER_CLEAR_FLAGS                = %00000000
+VIA_IER_SET_FLAGS                  = %10000000
+VIA_IER_CA1_FLAG                   = %00000010
+VIA_IER_CA2_FLAG                   = %00000001
+
 .endif

@@ -11,6 +11,7 @@ SRCS =  minios.s \
 	lib.s \
 	acia.s \
 	tty.s \
+	keyboard.s \
 	ymodem.s \
 	ehbasic.s
 
