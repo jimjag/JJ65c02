@@ -23,15 +23,20 @@
 ;================================================================================
 
 VIA_initialize:
+    ; First VIA1: LCD display and mini keyboard
     lda #%11111111                              ; set all pins on port B to output
-    sta VIA1_DDRB                                ; configure data direction for port B from A reg.
+    sta VIA1_DDRB                               ; configure data direction for port B from A reg.
     lda #%11100000                              ; set top 3 pins and bottom ones to on port A to output, 5 middle ones to input
-    sta VIA1_DDRA                                ; configure data direction for port A from X reg.
-    stz VIA1_SR                                  ; clear all others
+    sta VIA1_DDRA                               ; configure data direction for port A from X reg.
+    stz VIA1_SR                                 ; clear all others
     stz VIA1_ACR
     stz VIA1_PCR
     stz VIA1_T2CL
     stz VIA1_T2CH
+
+    ; Now VIA2: Keyboard and sound
+    stz VIA2_DDRA                               ; Port A all input (keyboard)
+    stz VIA2_PCR
     rts
 
 
@@ -56,7 +61,7 @@ VIA_read_mini_keyboard:
     lda #(DEBOUNCE)                             ; debounce
     jsr LIB_delay1ms                            ; ~150ms
 
-    lda VIA1_PORTA                               ; load current key status from VIA
+    lda VIA1_PORTA                              ; load current key status from VIA
     ror                                         ; normalize the input to $1, $2, $4 and $8
     and #$0f                                    ; ignore first 4 bits
     ;eor #$0f                                   ; deactivate / comment this line, if your keyboard

@@ -192,51 +192,51 @@ Wire Wire Line
 $Comp
 L Oscillator:CXO_DIP14 X?
 U 1 1 6171CEB1
-P 8800 3650
+P 8700 3300
 AR Path="/6171CEB1" Ref="X?"  Part="1" 
 AR Path="/61660CAC/6171CEB1" Ref="X1"  Part="1" 
 AR Path="/61610474/6171CEB1" Ref="X?"  Part="1" 
-F 0 "X1" H 8900 3900 50  0000 L CNN
-F 1 "1Mhz" H 8950 4000 50  0000 L CNN
-F 2 "Oscillator:Oscillator_DIP-14" H 9250 3300 50  0001 C CNN
-F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 8700 3650 50  0001 C CNN
-	1    8800 3650
+F 0 "X1" H 8800 3550 50  0000 L CNN
+F 1 "1Mhz" H 8850 3650 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 9150 2950 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 8600 3300 50  0001 C CNN
+	1    8700 3300
 	1    0    0    -1  
 $EndComp
-Text GLabel 9100 3650 2    43   Output ~ 0
+Text GLabel 9000 3300 2    43   Output ~ 0
 CLK
 $Comp
 L power:+5V #PWR?
 U 1 1 6171CEBE
-P 8850 3700
+P 8750 3350
 AR Path="/6171CEBE" Ref="#PWR?"  Part="1" 
 AR Path="/61660CAC/6171CEBE" Ref="#PWR020"  Part="1" 
 AR Path="/61610474/6171CEBE" Ref="#PWR?"  Part="1" 
-F 0 "#PWR020" H 8850 3550 50  0001 C CNN
-F 1 "+5V" H 8865 3873 50  0000 C CNN
-F 2 "" H 8850 3700 50  0001 C CNN
-F 3 "" H 8850 3700 50  0001 C CNN
-	1    8850 3700
+F 0 "#PWR020" H 8750 3200 50  0001 C CNN
+F 1 "+5V" H 8765 3523 50  0000 C CNN
+F 2 "" H 8750 3350 50  0001 C CNN
+F 3 "" H 8750 3350 50  0001 C CNN
+	1    8750 3350
 	1    0    0    -1  
 $EndComp
-NoConn ~ 8500 3650
+NoConn ~ 8400 3300
 $Comp
 L Oscillator:CXO_DIP14 X?
 U 1 1 6171CEC5
-P 10150 3650
+P 10050 3300
 AR Path="/6171CEC5" Ref="X?"  Part="1" 
 AR Path="/61660CAC/6171CEC5" Ref="X2"  Part="1" 
 AR Path="/61610474/6171CEC5" Ref="X?"  Part="1" 
-F 0 "X2" H 10250 3900 50  0000 L CNN
-F 1 "1.8Mhz" H 10300 4000 50  0000 L CNN
-F 2 "Oscillator:Oscillator_DIP-14" H 10600 3300 50  0001 C CNN
-F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 10050 3650 50  0001 C CNN
-	1    10150 3650
+F 0 "X2" H 10150 3550 50  0000 L CNN
+F 1 "1.8Mhz" H 10200 3650 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 10500 2950 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 9950 3300 50  0001 C CNN
+	1    10050 3300
 	1    0    0    -1  
 $EndComp
-Text GLabel 10450 3650 2    43   Output ~ 0
+Text GLabel 10350 3300 2    43   Output ~ 0
 ACIA-CLK
-NoConn ~ 9850 3650
+NoConn ~ 9750 3300
 $Comp
 L 74xx:74HC00 U2
 U 1 1 61753EE9
@@ -366,7 +366,7 @@ a13
 Text Label 5600 2300 2    47   ~ 0
 a12
 Wire Wire Line
-	8800 3300 8800 3350
+	8700 2950 8700 3000
 $Comp
 L 74xx:74LS138 U3
 U 1 1 615D1D41
@@ -405,22 +405,22 @@ Text GLabel 1250 1000 0    47   Input ~ 0
 +5V
 Text GLabel 1200 2400 0    47   Input ~ 0
 GND
-Text GLabel 10150 4000 3    47   Input ~ 0
+Text GLabel 10050 3650 3    47   Input ~ 0
 GND
 Text GLabel 6300 3500 3    47   Input ~ 0
 GND
 Text GLabel 6700 2050 1    47   Input ~ 0
 +5V
-Text GLabel 8800 3300 1    47   Input ~ 0
+Text GLabel 8700 2950 1    47   Input ~ 0
 +5V
-Text GLabel 10150 3250 1    47   Input ~ 0
+Text GLabel 10050 2900 1    47   Input ~ 0
 +5V
-Text GLabel 8800 3950 3    47   Input ~ 0
+Text GLabel 8700 3600 3    47   Input ~ 0
 GND
 Wire Wire Line
-	10150 3250 10150 3350
+	10050 2900 10050 3000
 Wire Wire Line
-	10150 3950 10150 4000
+	10050 3600 10050 3650
 $Comp
 L 74xx:74LS08 U4
 U 1 1 615F5956
@@ -958,6 +958,28 @@ Wire Wire Line
 	4200 5650 4450 5650
 Wire Wire Line
 	4450 6350 4200 6350
+$Comp
+L MCU_Module:Arduino_Nano_v2.x A?
+U 1 1 61B02721
+P 7950 5150
+F 0 "A?" H 7950 4061 50  0000 C CNN
+F 1 "Arduino_Nano_v2.x" H 7950 3970 50  0000 C CNN
+F 2 "Module:Arduino_Nano" H 7950 5150 50  0001 C CIN
+F 3 "https://www.arduino.cc/en/uploads/Main/ArduinoNanoManual23.pdf" H 7950 5150 50  0001 C CNN
+	1    7950 5150
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Mini-DIN-6 J?
+U 1 1 61B062BD
+P 9800 5200
+F 0 "J?" H 9800 5567 50  0000 C CNN
+F 1 "Mini-DIN-6" H 9800 5476 50  0000 C CNN
+F 2 "" H 9800 5200 50  0001 C CNN
+F 3 "http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf" H 9800 5200 50  0001 C CNN
+	1    9800 5200
+	1    0    0    -1  
+$EndComp
 Wire Bus Line
 	1000 6400 1000 6500
 Wire Bus Line
