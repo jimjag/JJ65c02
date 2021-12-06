@@ -178,15 +178,15 @@ YMODEM_recv:
     jsr @GetByte                ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
 @GotByte1:
-    cmp #(ESC)                  ; quitting?
+    cmp #(TTY_char_ESC)         ; quitting?
     bne @CheckSOH               ; no
     lda #$FE                    ; Error code in "A" of desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; YES - do BRK or change to RTS if desired
 @CheckSOH:
-    cmp #(SOH)                  ; Start of block?
+    cmp #(TTY_char_SOH)         ; Start of block?
     beq @BegBlk                 ; yes
-    cmp #(EOT)
+    cmp #(TTY_char_EOT)
     beq @done
     jmp @BadByte1               ; Not SOH or EOT, so flush buffer & send NAK
 @done:
@@ -245,7 +245,7 @@ YMODEM_recv:
     jsr LCD_set_cursor
     jsr LCD_send_data
     jsr LIB_flush_rbuff
-    lda #(NAK)
+    lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
@@ -261,7 +261,7 @@ YMODEM_recv:
     ;
     inc BFLAG                   ; set the flag so we won't trigger again
     inc BLKNO                   ; done. INC the block #
-    lda #(ACK)                  ; send ACK
+    lda #(TTY_char_ACK)         ; send ACK
     jsr ACIA_write_byte
     jmp @StartCRC               ; and restart the actual data xfer
 @CopyBlk:
@@ -278,15 +278,15 @@ YMODEM_recv:
     bne @CopyBlk3               ; no, get the next one
 @IncBlk:
     inc BLKNO                   ; done. INC the block #
-    lda #(ACK)                  ; send ACK
+    lda #(TTY_char_ACK)         ; send ACK
     jsr ACIA_write_byte
     jmp @StartBlk               ; get next block
 
 @RDone:
-    lda #(ACK)                  ; last block, send ACK and exit.
+    lda #(TTY_char_ACK)          ; last block, send ACK and exit.
     jsr ACIA_write_byte
     jsr LIB_flush_rbuff
-    lda #(EOT)
+    lda #(TTY_char_EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg
     lda #30
@@ -300,7 +300,7 @@ YMODEM_recv:
     lda #'B'
     jsr LCD_send_data
     jsr LIB_flush_rbuff
-    lda #(NAK)
+    lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
@@ -315,7 +315,7 @@ YMODEM_recv:
     pla
     jsr LCD_send_data
     jsr LIB_flush_rbuff
-    lda #(NAK)
+    lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk               ; Start over, get the block again
 

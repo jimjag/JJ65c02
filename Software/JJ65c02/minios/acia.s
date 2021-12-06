@@ -53,6 +53,8 @@ ACIA_init:
 ;
 ;   ACIA_read_byte - Return one byte from RX buffer in .A
 ;
+;   NOTE: This also reads any Keyboard data as well, since it all goes into
+;   the same circular buffer. To avoid confusion, use TTY_read_char()
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;

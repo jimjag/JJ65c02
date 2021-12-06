@@ -18,21 +18,21 @@
 ; xterm control sequences
 ; https://www.xfree86.org/current/ctlseqs.html
 ;
-x_set_bold:             .byte ESC,"[1m",NULL
-x_set_underlined:       .byte ESC,"[4m",NULL
-x_set_normal:           .byte ESC,"[22m",NULL
-x_set_not_underlined:   .byte ESC,"[24m",NULL
-x_set_bg_black:         .byte ESC,"[40m",NULL
-x_set_fg_green:         .byte ESC,"[32m",NULL
+x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
+x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL
+x_set_normal:           .byte TTY_char_ESC,"[22m",TTY_char_NULL
+x_set_not_underlined:   .byte TTY_char_ESC,"[24m",TTY_char_NULL
+x_set_bg_black:         .byte TTY_char_ESC,"[40m",TTY_char_NULL
+x_set_fg_green:         .byte TTY_char_ESC,"[32m",TTY_char_NULL
 
 ; Cursor
-x_home_position:        .byte ESC,"[H",NULL
-x_left:                 .byte ESC,"[D",NULL
-x_backspace:            .byte ESC,"[D",SPACE,ESC,"[D", NULL
+x_home_position:        .byte TTY_char_ESC,"[H",TTY_char_NULL
+x_left:                 .byte TTY_char_ESC,"[D",TTY_char_NULL
+x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D", TTY_char_NULL
 
 ; Erasing
-x_erase_display:        .byte ESC,"[2J", NULL
-x_erase_line:           .byte ESC,"[2K", NULL
+x_erase_display:        .byte TTY_char_ESC,"[2J", TTY_char_NULL
+x_erase_line:           .byte TTY_char_ESC,"[2K", TTY_char_NULL
 
 ; Other
 new_line:               .asciiz "\n\r"
@@ -104,18 +104,18 @@ TTY_readln:
 @read_next:
     jsr ACIA_read_byte
 @enter_pressed:
-    cmp #(CR)                    ; User pressed enter?
+    cmp #(TTY_char_CR)           ; User pressed enter?
     beq @read_done               ; Yes, don't save the CR
-    cmp #(BS)
+    cmp #(TTY_char_BS)
     beq @is_backspace
-    cmp #(DEL)
+    cmp #(TTY_char_DEL)
     bne @echo_char
 @is_backspace:
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
     ACIA_writeln x_backspace     ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
-    lda #(NULL)
+    lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
 @echo_char:
@@ -128,7 +128,7 @@ TTY_readln:
     bra @read_next               ; And read the next key
 @read_done:
     iny                          ; Add a NULL in the next position
-    lda #(NULL)
+    lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y       ; Make sure the last char is null
     ACIA_writeln new_line
     rts
@@ -173,7 +173,7 @@ TTY_clear_screen:
 TTY_reset_user_input:
     ldy #0
 @clear_user_input_loop:
-    lda #(NULL)
+    lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y      ; Zero it out
     cpy USER_BUFFLEN
     beq @reset_user_input_done
