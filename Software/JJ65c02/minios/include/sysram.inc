@@ -27,8 +27,8 @@ _SYSRAM_INC_ = 1
 .importzp LCD_SPTR
 .importzp USER_INPUT_PTR
 .importzp TEXT_BLK
-.importzp ACIA_RRPTR
-.importzp ACIA_RWPTR
+.importzp INPUT_RRPTR
+.importzp INPUT_RWPTR
 
 
 .import VIDEO_RAM
@@ -45,7 +45,7 @@ _SYSRAM_INC_ = 1
 .import DDRAM
 .import VRAM_OFFSETS
 
-.import ACIA_RDBUFF
+.import INPUT_RDBUFF
 
 .include "sysram.h"
 .endif

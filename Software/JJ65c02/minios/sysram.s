@@ -17,8 +17,8 @@
 .exportzp LCD_SPTR
 .exportzp USER_INPUT_PTR
 .exportzp TEXT_BLK
-.exportzp ACIA_RRPTR
-.exportzp ACIA_RWPTR
+.exportzp INPUT_RRPTR
+.exportzp INPUT_RWPTR
 
 .export VIDEO_RAM
 .export CLK_SPD
@@ -32,7 +32,7 @@
 .export SYS_TTY_BUFFER
 .export RECVB
 
-.export ACIA_RDBUFF
+.export INPUT_RDBUFF
 
 ;===================================================================
 
@@ -48,8 +48,8 @@ Z6:     .res 1
 Z7:     .res 1
 
 MINIOS_STATUS:  .res 1      ; miniOS Status Register
-ACIA_RRPTR:     .res 1      ; Read index pointer
-ACIA_RWPTR:     .res 1      ; Write index point
+INPUT_RRPTR:     .res 1      ; Read index pointer
+INPUT_RWPTR:     .res 1      ; Write index point
 ACIA_SPTR:      .res 2      ; String pointer - ACIA/TTY I/O
 LCD_SPTR:       .res 2      ; String pointer - LCD I/O
 TEXT_BLK:       .res 2      ; Scrollable text pointer
@@ -80,7 +80,7 @@ POSITION_CURSOR:    .res 1
 USER_BUFFLEN:     .res 1
 SYS_TTY_BUFFER:    .res SYS_TTY_BUFFERLEN
 RECVB:          .res 132
-ACIA_RDBUFF:    .res    $FF
+INPUT_RDBUFF:    .res    $FF
 
 ;===================================================================
 

@@ -1,10 +1,14 @@
 .include "minios.inc"
+.include "sysram.inc"
 
 .import CLK_SPD
 
 .export LIB_delay1ms
 .export LIB_delay100ms
 .export LIB_bin_to_hex
+.export LIB_have_rdata
+.export LIB_flush_rbuff
+.export LIB_reset_rbuff
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -109,5 +113,55 @@ LIB_delay100ms:
     bne @loop
     plx
     pla
+    rts
+
+;================================================================================
+;
+;   LIB_have_rdata - Carry Set if we have READ data in buffer, Clear otherwise
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: .A
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_have_rdata:
+    lda INPUT_RWPTR
+    cmp INPUT_RRPTR
+    beq @no_data_found
+    sec
+    rts
+@no_data_found:
+    clc
+    rts
+
+;================================================================================
+;
+;   LIB_flush_rbuff - "Flush" the read buffer
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_flush_rbuff:
+    lda #0
+    ldy #0
+@flush:
+    sta INPUT_RDBUFF,y
+    iny
+    bne @flush
+LIB_reset_rbuff:
+    stz INPUT_RWPTR
+    stz INPUT_RRPTR
     rts
 

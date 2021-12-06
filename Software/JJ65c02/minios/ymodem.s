@@ -133,7 +133,7 @@ YMODEM_send:
     cmp #$0A                    ; are there 10 errors? (YMODEM spec for failure)
     bne @Resend                 ; no, resend block
 @PrtAbort:
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     ACIA_writeln YM_error_msg      ; print error msg and exit
 @Done:
     lda #(EOT)
@@ -167,7 +167,7 @@ YMODEM_recv:
     stz CRC
     stz CRC+1
 @StartCRC:
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
     jsr @GetByte                ; wait for input
@@ -208,7 +208,7 @@ YMODEM_recv:
     beq @GoodBlk1               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
     LCD_writeln YM_error_msg    ; Unexpected block number - abort
-    jsr ACIA_flush_rbuff        ; mismatched - flush buffer and then do BRK
+    jsr LIB_flush_rbuff        ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; unexpected block # - fatal error - BRK or RTS
@@ -219,7 +219,7 @@ YMODEM_recv:
     beq @GoodBlk2               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
     LCD_writeln YM_error_msg    ; Unexpected block number - abort
-    jsr ACIA_flush_rbuff        ; mismatched - flush buffer and then do BRK
+    jsr LIB_flush_rbuff        ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; bad 1's comp of block#
@@ -244,7 +244,7 @@ YMODEM_recv:
     ldx #00
     jsr LCD_set_cursor
     jsr LCD_send_data
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     lda #(NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
@@ -285,7 +285,7 @@ YMODEM_recv:
 @RDone:
     lda #(ACK)                  ; last block, send ACK and exit.
     jsr ACIA_write_byte
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     lda #(EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg
@@ -299,7 +299,7 @@ YMODEM_recv:
     jsr LCD_set_cursor
     lda #'B'
     jsr LCD_send_data
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     lda #(NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
@@ -314,7 +314,7 @@ YMODEM_recv:
     jsr LCD_send_data
     pla
     jsr LCD_send_data
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     lda #(NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk               ; Start over, get the block again

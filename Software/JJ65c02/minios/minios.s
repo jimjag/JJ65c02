@@ -2,6 +2,7 @@
 .include "sysram.inc"
 .include "lcd.inc"
 .include "via.inc"
+.include "sound.inc"
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
@@ -737,7 +738,7 @@ Welcome_tone:
 ;
 ;   IRQ - Interrupt Handler
 ;
-;   Just handles reading data from ACIA for now
+;   Just handles reading data from ACIA and VIA for now
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
@@ -751,21 +752,18 @@ Welcome_tone:
 ISR:
     pha
     phx
-    lda ACIA_STATUS
-    and #(ACIA_STATUS_RX_FULL)
-    beq @done                                   ; Receive buffer full?
-    lda ACIA_DATA
-    ldx ACIA_RWPTR
-    sta ACIA_RDBUFF,x                           ; Store in rx buffer
-    inc ACIA_RWPTR                              ; Increase write buffer pointer
-.ifdef __HW_FLOW_CONTROL__
-    lda ACIA_RWPTR
-    cmp ACIA_RRPTR                              ; are we buffer full?
-    bne @done
-    lda ACIA_COMMAND                            ; bring RTS high
-    and #%11110011
-    sta ACIA_COMMAND
-.endif
+    ; First see if this was an ACIA IRQ
+    bit ACIA_STATUS
+    bpl @end_acia                               ; Nope
+    jsr ACIA_ihandler
+@end_acia:
+    ;bit VIA2_IFR
+    ;bpl @done
+    ;lda VIA2_IFR
+    ;and VIA2_IER
+    ;and #%00000010 ; IFR_CA1
+    ;beq @done
+    ;jsr VIA2_ihandler
 @done:
     plx
     pla

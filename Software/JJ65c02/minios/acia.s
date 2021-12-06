@@ -12,9 +12,7 @@
 .export ACIA_read_byte
 .export ACIA_write_byte
 .export ACIA_write_string
-.export ACIA_has_rdata
-.export ACIA_flush_rbuff
-.export ACIA_reset_rbuff
+.export ACIA_ihandler
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -47,7 +45,7 @@ ACIA_init:
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     tsb MINIOS_STATUS
 @done:
-    jsr ACIA_flush_rbuff
+    jsr LIB_flush_rbuff
     pla
     rts
 
@@ -66,21 +64,21 @@ ACIA_init:
 ;================================================================================
 
 ACIA_read_byte:
-    jsr ACIA_has_rdata
+    jsr LIB_have_rdata
     bcs @read_it
     clc                 ; just in case
     rts
 @read_it:
     phx
-    ldx ACIA_RRPTR
-    lda ACIA_RDBUFF,x
-    inc ACIA_RRPTR
+    ldx INPUT_RRPTR
+    lda INPUT_RDBUFF,x
+    inc INPUT_RRPTR
 .ifdef __HW_FLOW_CONTROL__
     pha
-    lda ACIA_RRPTR
+    lda INPUT_RRPTR
     sec
-    sbc ACIA_RWPTR
-    cmp #$80                        ; TODO: check this... 
+    sbc INPUT_RWPTR
+    cmp #$80                        ; TODO: check this...
     bcs @done                       ; consume buffer
     pha
     lda ACIA_COMMAND
@@ -161,51 +159,37 @@ ACIA_write_string:
 
 ;================================================================================
 ;
-;   ACIA_has_rdata - Carry Set if we have READ data in buffer, Clear otherwise
-;
-;   ————————————————————————————————————
-;   Preparatory Ops: none
-;
-;   Returned Values: .A
-;
-;   Destroys:        none
-;   ————————————————————————————————————
-;
-;================================================================================
-
-ACIA_has_rdata:
-    lda ACIA_RWPTR
-    cmp ACIA_RRPTR
-    beq @no_data_found
-    sec
-    rts
-@no_data_found:
-    clc
-    rts
-
-;================================================================================
-;
-;   ACIA_flush_rbuff - "Flush" the read buffer
+;   ACIA_ihandler - IRQ Handler
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .Y
+;   Destroys:        none
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
-ACIA_flush_rbuff:
-    lda #0
-    ldy #0
-@flush:
-    sta ACIA_RDBUFF,y
-    iny
-    bne @flush
-ACIA_reset_rbuff:
-    stz ACIA_RWPTR
-    stz ACIA_RRPTR
+ACIA_ihandler:
+    pha
+    phx
+    lda ACIA_STATUS
+    and #(ACIA_STATUS_RX_FULL)
+    beq @done                                   ; Receive buffer full?
+    lda ACIA_DATA
+    ldx INPUT_RWPTR
+    sta INPUT_RDBUFF,x                           ; Store in rx buffer
+    inc INPUT_RWPTR                              ; Increase write buffer pointer
+.ifdef __HW_FLOW_CONTROL__
+    lda INPUT_RWPTR
+    cmp INPUT_RRPTR                              ; are we buffer full?
+    bne @done
+    lda ACIA_COMMAND                            ; bring RTS high
+    and #%11110011
+    sta ACIA_COMMAND
+.endif
+@done:
+    plx
+    pla
     rts
-

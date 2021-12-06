@@ -6,6 +6,7 @@ TARGET = minios
 SRCS =  minios.s \
 	sysram.s \
 	via.s \
+	sound.s \
 	lcd.s \
 	lib.s \
 	acia.s \
