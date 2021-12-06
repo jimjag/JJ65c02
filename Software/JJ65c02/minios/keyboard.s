@@ -4,10 +4,19 @@
 .include "lib.inc"
 
 .export KBD_initialize
+.export KBD_ihandler
 
 ; Actual start of ROM code
 .segment "CODE"
 
+;
+;  This keyboard interface assumes that an Arduino running
+;  PS2KeyAdvanced and PS2KeyMap handles the heavy lifting
+;  of responding to the clk/interrupt of the PS2 keyboard
+;  and figuring out the scancode and then translating that
+;  to UTF8. It then pushes that that PORTA of VIA2 and then
+;  triggers an interrupt via CA1
+;
 ;================================================================================
 ;
 ;   KBD_initialize - Setup read handshake on VIA2 CA1/CA2

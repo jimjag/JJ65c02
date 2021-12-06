@@ -6,6 +6,7 @@
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
+.include "keyboard.inc"
 
 .import BASIC_init
 .export MINIOS_main_menu
@@ -754,16 +755,17 @@ ISR:
     phx
     ; First see if this was an ACIA IRQ
     bit ACIA_STATUS
-    bpl @end_acia                               ; Nope
+    bpl @not_acia                               ; Nope
     jsr ACIA_ihandler
-@end_acia:
-    ;bit VIA2_IFR
-    ;bpl @done
-    ;lda VIA2_IFR
-    ;and VIA2_IER
-    ;and #%00000010 ; IFR_CA1
-    ;beq @done
-    ;jsr VIA2_ihandler
+@not_acia:
+    ; Possibly KBD then
+    bit VIA2_IFR
+    bpl @done
+    lda VIA2_IFR
+    and VIA2_IER
+    and #%00000010                              ; IFR_CA1?
+    beq @done
+    jsr KBD_ihandler
 @done:
     plx
     pla
