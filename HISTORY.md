@@ -11,6 +11,18 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Dec 11, 2021
+
+In the spirit of "every onwards and upwards" I've decided to take the plunge and try my hand at creating a PCB. What's great is that Kicad includes that capability natively, and so the real work is in making sure that the part footprints are correct, and then in the actual routing of the traces.
+
+There is a LOT of debate regarding manual-vs-auto routing, but I'll be honest, I found autorouting pretty good. Now, Kicad doesn't natively support it, so I had to export a DSN file and then use the Open Source Freerouting tool, but that was pretty easy. And the routes that it generated were, at least to me untrained eye, pretty good. I did do some manual cleanups when I imported the SES file back into Kicad, but I was happy with the result.
+
+As my initial PCB, I didn't push things too hard. I left a somewhat generous amount of room on the board and used 12mil traces for power, and 10 for the default trace widths. I also used 4 layers, again making things as easy as possible.
+
+The files have been shipped to JLCPCB for production and I should get them before the holiday, so I'll have some updates once they get delivered and I populate them.
+
+![PCB](./Images/JJ65c02-pcb1.png)
+
 ### Dec 01, 2021
 
 I've planned on adding a ROM-based BASIC since the start, and now that the miniOS bootloader is "ready", I started the work in earnest. The question was, of course, which BASIC to use, with the top 3 contenders being [EhBASIC](http://retro.hansotten.nl/6502-sbc/lee-davison-web-site/enhanced-6502-basic/) (Enhanced BASIC), [MS BASIC](https://github.com/mist64/msbasic), and BBC BASIC. I decided on EhBASIC because it seemed the fastest and most capable, as well as having acceptable licensing terms (for non-commercial use). Unfortunately, the porting to the `cc65` toolchain required some work.
