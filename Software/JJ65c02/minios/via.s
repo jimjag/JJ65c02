@@ -34,7 +34,7 @@ VIA_initialize:
     stz VIA1_T2CL
     stz VIA1_T2CH
 
-    ; Now VIA2: Keyboard and sound
+    ; Now VIA2: Keyboard
     stz VIA2_DDRA                               ; Port A all input (keyboard)
     stz VIA2_PORTA
     stz VIA2_PCR

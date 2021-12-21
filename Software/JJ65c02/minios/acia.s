@@ -38,9 +38,11 @@ ACIA_init:
     lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_ENABLE | ACIA_DTR_LOW)
     sta ACIA_COMMAND
     lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
+    ;lda #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_EXT | ACIA_BAUD_16XEXT)
     sta ACIA_CONTROL
     lda ACIA_CONTROL
     cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
+    ;cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_EXT | ACIA_BAUD_16XEXT)
     bne @done
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     tsb MINIOS_STATUS
@@ -76,18 +78,25 @@ ACIA_read_byte:
     lda INPUT_RDBUFF,x
     inc INPUT_RRPTR
 .ifdef __HW_FLOW_CONTROL__
-    pha
-    lda INPUT_RRPTR
+    pha                             ; Store the byte
+    lda #(MINIOS_RTS_HIGH_FLAG)     ; Are we currently in RTS high/buffer full?
+    bit MINIOS_STATUS
+    beq @done                       ; No, so don't bother checking if we are ready
+                                    ; to drive RTS low, and allow rec'ing data again
+    lda INPUT_RWPTR
     sec
-    sbc INPUT_RWPTR
-    cmp #$80                        ; TODO: check this...
-    bcs @done                       ; consume buffer
-    pha
+    sbc INPUT_RRPTR
+    bcs @ok                         ; INPUT_RWPTR >= INPUT_RRPTR
+    adc #$ff                        ; .A == amount available in buffer
+@ok:
+    cmp #192
+    blt @done                       ; Re-enable if we have 3/4 available
     lda ACIA_COMMAND
     and #%11110011
     ora #(ACIA_TX_INT_ENABLE_RTS_LOW)
     sta ACIA_COMMAND
-    pla
+    lda #(MINIOS_RTS_HIGH_FLAG)
+    trb MINIOS_STATUS
 @done:
     pla
 .endif
@@ -181,15 +190,17 @@ ACIA_ihandler:
     beq @done                                   ; Receive buffer full?
     lda ACIA_DATA
     ldx INPUT_RWPTR
-    sta INPUT_RDBUFF,x                           ; Store in rx buffer
-    inc INPUT_RWPTR                              ; Increase write buffer pointer
+    sta INPUT_RDBUFF,x                          ; Store in rx buffer
+    inc INPUT_RWPTR                             ; Increase write buffer pointer
 .ifdef __HW_FLOW_CONTROL__
     lda INPUT_RWPTR
-    cmp INPUT_RRPTR                              ; are we buffer full?
+    cmp INPUT_RRPTR                             ; are we buffer full?
     bne @done
     lda ACIA_COMMAND                            ; bring RTS high
     and #%11110011
     sta ACIA_COMMAND
+    lda #(MINIOS_RTS_HIGH_FLAG)
+    tsb MINIOS_STATUS
 .endif
 @done:
     plx
