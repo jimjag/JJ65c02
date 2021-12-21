@@ -11,6 +11,24 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Dec 20, 2021
+
+So while waiting for my PCBs, which were actually received about a week before they were expected, I put some thought and effort in the direction I wanted to go on the project from this point. Following on what others have done, their projects have really taken on a reality of their own. It is sometimes overwhelming to follow the posts on [https://new.reddit.com/r/beneater/](https://new.reddit.com/r/beneater/) and see some of the really extensive work people have put into this.
+
+For example, so many people have now added VGA capability, so that along with their PS2 keyboards, they can get the full experience without using a PC. Currently, all my "real" I/O is done via TTY-RS232 and so my main interface with the system is using my Mac as a terminal (*vt200* and/or *Xterm*). Not needing that sure seemed alluring to me, at least for awhile.
+
+But then I started thinking about how I'll be using my breadboard (funny how I'm still calling it a "breadboard" when I moved on from that for awhile now), and the need to be able to transfer data and files from my Mac to the breadboard is a vital part of that. In other words, even if I did fully add VGA and PS2 keyboard capability, I'd _still_ need a RS232 connection to transfer over BASIC programs and RAM-based 6502 assembled code. At which point, I thought, what does the VGA and PS2 stuff even do for me, other than add complexity, chip-count, and costs. Also, to be honest, I feel that moving too much in that directly makes less and less of what I'm doing usable by "rank and file" BE6502 enthusiasts... my system would be so specialized that little of what I do could be used by others.
+
+And so I've decided on keeping things somewhat "basic" and "old school" with the hope that whatever I do, either hardware or software-wise, others will find usefulness, or, at least, inspiration, from my work. I also am cost-conscious as well, knowing that boards and chips aren't cheap, and so I'm careful in choosing what extra capability I add based on the costs associated with it.
+
+But that doesn't mean that I'm not using newer technology where appropriate. For example, I've used the MAX323 UART board for my RS232 interface, and this seems in keeping with the spirit of the effort. I'm also working on migrating to the FT234 chip instead, for full hardware handshaking support, but also to avoid having to use the old DB9 connections.
+
+The other big effort I'm looking into as well is using the Arduino Nano, or more than likely just the bare ATMega328p chip, as a soundwave generator. Right now what I have is super basic, just generating square waves on a VIA pin (pretty much what the Apple][ did), but I'd like a little more flexibility. Also, offloading sound generating to specialized hardware is something that even old-school 6502-based systems did, so I don't feel like I'm cheating all that much.
+
+The unfortunate point of all this is that my newly delivered PCB boards were obsolete even before I got them. So it's back to revising schematics and layouts as I test options on my wirewrap-breadboard hybrid.
+
+--
+
 ### Dec 11, 2021
 
 In the spirit of "every onwards and upwards" I've decided to take the plunge and try my hand at creating a PCB. What's great is that Kicad includes that capability natively, and so the real work is in making sure that the part footprints are correct, and then in the actual routing of the traces.
