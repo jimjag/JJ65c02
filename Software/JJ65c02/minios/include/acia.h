@@ -69,6 +69,6 @@ ACIA_STATUS_FRAME_ERR  = 1 << 1
 ACIA_STATUS_PARITY_ERR = 1 << 0
 
 ; We are using RTS/DTS h/w flow control
-__HW_FLOW_CONTROL__ = 1
+;__HW_FLOW_CONTROL__ = 1
 
 .endif

@@ -2,7 +2,7 @@
 .include "sysram.inc"
 .include "lcd.inc"
 .include "via.inc"
-.include "sound.inc"
+;.include "sound.inc"
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
@@ -116,7 +116,7 @@ main:                                           ; boot routine, first thing load
     lda #'-'
 @cont2:
     jsr LCD_send_data
-    jsr Welcome_tone
+    ;jsr Welcome_tone
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                    ; should the menu ever return ...
 
@@ -713,28 +713,6 @@ MINIOS_adj_clock:
     pla
     rts
 
-Welcome_tone:
-    jsr SND_on
-    lda #(SND_note_c5)
-    jsr SND_set_note
-    lda #$00
-    jsr SND_set_octave
-    lda #10
-    jsr LIB_delay100ms
-
-    lda #(SND_note_d5)
-    jsr SND_set_note
-    lda #10
-    jsr LIB_delay100ms
-
-    lda #(SND_note_g5)
-    jsr SND_set_note
-    lda #20
-    jsr LIB_delay100ms
-    jsr SND_off
-
-    rts
-
 ;================================================================================
 ;
 ;   IRQ - Interrupt Handler
@@ -758,14 +736,6 @@ ISR:
     bpl @not_acia                               ; Nope
     jsr ACIA_ihandler
 @not_acia:
-    ; Possibly KBD then
-    bit VIA2_IFR
-    bpl @done
-    lda VIA2_IFR
-    and VIA2_IER
-    and #%00000010                              ; IFR_CA1?
-    beq @done
-    jsr KBD_ihandler
 @done:
     plx
     pla
