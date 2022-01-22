@@ -11,6 +11,20 @@ to use, and re-use, what you need.
 
 ## The Historical Documents
 
+### Jan 22, 2022
+
+Apologies for such the long delay between updates. There has actually been a lot done over the last month, even though the amount of free time available to work on the project has grown somewhat limited.
+
+The good news is that the new design I mentioned below has been set, ordered, and the PCBs delivered. Soldering is starting. I'm really happy with both the schematics and the PCB layout, and upgrading from Kicad5 to Kicad6 was pretty painfree.
+
+![](./Images/JJ65c02-pcbv3.png)
+
+Some not so obvious updates are 0.1uf caps on all ICs, a switch to disconnect/connect the on-board speaker, an ATMEGA328 chip socketed on the board, and header pins for access to the VIA2 and ATMEGA328 pins.
+
+I already have some ideas for the v4 design, but my plan for the next several weeks is to work on the miniOS bootloader system, and build more sophisticated sound capability using the ATMEGA chip. I'm also thinking about what cool stuff I could do with SPI, but then again, I don't want to make this system so unique and one-off that whatever I do can't be used by anyone else, so I'll spend some time thinking about what is best.
+
+--
+
 ### Dec 20, 2021
 
 So while waiting for my PCBs, which were actually received about a week before they were expected, I put some thought and effort in the direction I wanted to go on the project from this point. Following on what others have done, their projects have really taken on a reality of their own. It is sometimes overwhelming to follow the posts on [https://new.reddit.com/r/beneater/](https://new.reddit.com/r/beneater/) and see some of the really extensive work people have put into this.

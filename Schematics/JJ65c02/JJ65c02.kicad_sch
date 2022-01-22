@@ -5681,6 +5681,12 @@
     (path "/00000000-0000-0000-0000-000061660cac/55b1498a-fc09-4d6f-bd0c-c63fdf5f2ee1"
       (reference "C19") (unit 1) (value "220uF") (footprint "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm")
     )
+    (path "/00000000-0000-0000-0000-000061660cac/b29a8010-9631-4098-b69e-d5ab25e85753"
+      (reference "C20") (unit 1) (value "22pf") (footprint "Capacitor_THT:C_Disc_D4.7mm_W2.5mm_P5.00mm")
+    )
+    (path "/00000000-0000-0000-0000-000061660cac/356c0127-d996-4c58-b7c5-ab3b4fb89928"
+      (reference "C21") (unit 1) (value "22pf") (footprint "Capacitor_THT:C_Disc_D4.7mm_W2.5mm_P5.00mm")
+    )
     (path "/00000000-0000-0000-0000-000061323888"
       (reference "CPU1") (unit 1) (value "65C02S") (footprint "Package_DIP:DIP-40_W15.24mm_Socket")
     )
@@ -5826,7 +5832,7 @@
       (reference "U6") (unit 1) (value "LM386") (footprint "Package_DIP:DIP-8_W7.62mm_Socket")
     )
     (path "/00000000-0000-0000-0000-000061660cac/00000000-0000-0000-0000-000061b34034"
-      (reference "U7") (unit 1) (value "LM2940T-5.0/LF08") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
+      (reference "U7") (unit 1) (value "LM2940T-5.0/LF08") (footprint "Package_TO_SOT_THT:TO-262-3_Vertical")
     )
     (path "/00000000-0000-0000-0000-000061660cac/7d19e2ba-b7ea-4d3f-8961-22a2be4042ad"
       (reference "U8") (unit 1) (value "ATmega328P-P") (footprint "Package_DIP:DIP-28_W7.62mm_Socket")
@@ -5845,6 +5851,9 @@
     )
     (path "/00000000-0000-0000-0000-000061660cac/00000000-0000-0000-0000-00006171cec5"
       (reference "X2") (unit 1) (value "1.8Mhz") (footprint "Oscillator:Oscillator_DIP-14")
+    )
+    (path "/00000000-0000-0000-0000-000061660cac/390272b5-10e0-4d01-82ae-3e43639337e3"
+      (reference "Y1") (unit 1) (value "16Mhz") (footprint "Crystal:Crystal_HC18-U_Vertical")
     )
   )
 )

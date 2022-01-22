@@ -44,8 +44,8 @@
         "silk_text_thickness": 0.15,
         "silk_text_upright": false,
         "zones": {
-          "45_degree_only": true,
-          "min_clearance": 0.508
+          "45_degree_only": false,
+          "min_clearance": 0.0
         }
       },
       "diff_pair_dimensions": [
@@ -121,6 +121,7 @@
       },
       "track_widths": [
         0.0,
+        0.1651,
         0.1778,
         0.2032,
         0.254,
@@ -369,13 +370,13 @@
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.1778,
+        "track_width": 0.1651,
         "via_diameter": 0.6,
         "via_drill": 0.4,
         "wire_width": 6.0
       },
       {
-        "bus_width": 10.0,
+        "bus_width": 8.0,
         "clearance": 0.175,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
@@ -389,15 +390,15 @@
           "Net-(C7-Pad1)",
           "Net-(LS1-Pad1)"
         ],
-        "pcb_color": "rgb(70, 255, 16)",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgb(31, 255, 15)",
-        "track_width": 0.1778,
+        "track_width": 0.2032,
         "via_diameter": 0.6,
         "via_drill": 0.4,
         "wire_width": 6.0
       },
       {
-        "bus_width": 12.0,
+        "bus_width": 10.0,
         "clearance": 0.175,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
@@ -409,15 +410,15 @@
         "nets": [
           "GND"
         ],
-        "pcb_color": "rgb(0, 0, 255)",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgb(0, 0, 255)",
-        "track_width": 0.3048,
+        "track_width": 0.254,
         "via_diameter": 0.8,
         "via_drill": 0.4,
         "wire_width": 6.0
       },
       {
-        "bus_width": 12.0,
+        "bus_width": 10.0,
         "clearance": 0.175,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
@@ -428,11 +429,11 @@
         "name": "POWER",
         "nets": [
           "+5V",
-          "Net-(J2-Pad1)"
+          "+9V"
         ],
-        "pcb_color": "rgb(255, 0, 0)",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgb(255, 0, 0)",
-        "track_width": 0.3048,
+        "track_width": 0.254,
         "via_diameter": 0.8,
         "via_drill": 0.4,
         "wire_width": 6.0
