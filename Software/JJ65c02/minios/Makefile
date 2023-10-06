@@ -21,7 +21,7 @@ $(OBJS): $(SRCS)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
-	rm -f $(TARGET).bin
+	#rm -f $(TARGET).bin
 
 .PHONY: clean
 clean:

@@ -1,0 +1,53 @@
+Name            JJ65C02 Address Decoder;
+Partno          JJ65C02;
+Revision        01;
+Date            ;
+Designer        Jim Jagielski;
+Company         ;
+Location        ;
+Assembly        ;
+Device          p22v10;
+
+
+/* Pin Map
+       --------
+CLK   |1     24| Vcc
+A15   |2     23| /RAM_CS
+A14   |3     22| /ROM_CS
+A13   |4     21| /IO_CS
+A12   |5     20| --
+--    |6     19| --
+--    |7     18| --
+--    |8     17| --
+--    |9     16| --
+--    |10    15| --
+--    |11    14| --
+Gnd   |12    13| --
+       --------
+*/
+
+/* Inputs:  From CPU*/
+
+Pin 1  =  CLK;
+Pin 2  =  A15;
+Pin 3  =  A14;
+Pin 4  =  A13;
+Pin 5  =  A12;
+
+/* Outputs:  Chip Selects */
+Pin 23 = RAM_CS;  /* to RAM /CS pin */
+Pin 22 = ROM_CS;  /* to ROM /CS */
+Pin 21 = IS_OS;   /* to IO (VIA and ACIA) /CS pin */
+
+
+FIELD Address = [A15..A00];
+
+/* Address Decode Logic */
+
+RAM       = Address:[0000..AFFF];
+IO        = Address:[B000..BFFF];
+ROM       = Address:[C000..FFFF];
+
+!RAM_CS   = CLK & RAM;
+!ROM_CS   = ROM;
+!IO_CS    = IO;

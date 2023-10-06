@@ -6,7 +6,7 @@
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
-.include "keyboard.inc"
+;.include "keyboard.inc"
 
 .import BASIC_init
 .export MINIOS_main_menu
