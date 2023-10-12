@@ -15,7 +15,7 @@ The Software itself is my fork of the open source codebases mentioned above, wit
 
 Each section has its own Readme.md and Folder under this repo.
 
-# Keep up to date by reading the [History](./HISTORY.md) file, which serves as a running log of additions and improvements.
+# Keep up to date by following the project on [Hackaday](https://hackaday.io/project/193153-jj65c02). Older notes can be found by reading the [History](./HISTORY.md) file, which served as a running log of additions and improvements.
 
 # Pull Requests
 

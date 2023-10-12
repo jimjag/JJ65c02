@@ -1,23 +1,23 @@
-Name            JJ65C02 Address Decoder;
-Partno          JJ65C02;
-Revision        01;
-Date            ;
-Designer        Jim Jagielski;
-Company         ;
-Location        ;
-Assembly        ;
-Device          p22v10;
+Name     JJ65C02 ;
+PartNo   00 ;
+Date     10/6/2023 ;
+Revision 01 ;
+Designer Engineer ;
+Company  jimjag ;
+Assembly None ;
+Location  ;
+Device   p22v10 ;
 
 
 /* Pin Map
        --------
-CLK   |1     24| Vcc
+PHI   |1     24| Vcc
 A15   |2     23| /RAM_CS
 A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
-A12   |5     20| --
---    |6     19| --
---    |7     18| --
+A12   |5     20| BA13
+BK0   |6     19| BA14
+BK1   |7     18| --
 --    |8     17| --
 --    |9     16| --
 --    |10    15| --
@@ -28,26 +28,42 @@ Gnd   |12    13| --
 
 /* Inputs:  From CPU*/
 
-Pin 1  =  CLK;
-Pin 2  =  A15;
+Pin 1  =  PHI;   /* 65C02 CLK */
+Pin 2  =  A15;   /* Address lines from CPU */
 Pin 3  =  A14;
 Pin 4  =  A13;
 Pin 5  =  A12;
+Pin 6  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
+Pin 7  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
 
 /* Outputs:  Chip Selects */
 Pin 23 = RAM_CS;  /* to RAM /CS pin */
 Pin 22 = ROM_CS;  /* to ROM /CS */
-Pin 21 = IS_OS;   /* to IO (VIA and ACIA) /CS pin */
+Pin 21 = IO_CS;   /* to IO (VIA and ACIA) /CS pin */
+Pin 20 = BA13;    /* To RAM chip, A13 */
+Pin 19 = BA14;    /* To RAM ship, A14 */
 
 
-FIELD Address = [A15..A00];
+FIELD ADDR = [A15..A00];
 
 /* Address Decode Logic */
 
-RAM       = Address:[0000..AFFF];
-IO        = Address:[B000..BFFF];
-ROM       = Address:[C000..FFFF];
+RAM       = ADDR:[0000..9FFF];  /* 32k */
+BANK      = ADDR:[8000..9FFF];  /*  8k */
+IO        = ADDR:[A000..AFFF];  /*  4k */
+ROM       = ADDR:[B000..FFFF];  /* 20k */
 
-!RAM_CS   = CLK & RAM;
-!ROM_CS   = ROM;
-!IO_CS    = IO;
+IS_ROM = ROM;
+IS_IO = IO;
+
+!ROM_CS  = IS_ROM;
+!IO_CS   = IS_IO;
+!RAM_CS  = PHI & !IS_ROM & !IS_IO;
+
+BA13 = (!A15 & A13) # (A15 & BK0);
+BA14 = (!A15 & A14) # (A15 & BK1);
+
+/*
+ A15 -> A15
+ BK2 -> A16
+ */

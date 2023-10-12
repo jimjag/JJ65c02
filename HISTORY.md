@@ -9,6 +9,8 @@ traffic... :/ ). All code and examples are available under
 permissive Open Source licenses, so please don't hesitate
 to use, and re-use, what you need.
 
+NOTE: Updates will now be posted on [Hackaday](https://hackaday.io/project/193153-jj65c02). Follow me there.
+
 ## The Historical Documents
 
 ### Jan 22, 2022
