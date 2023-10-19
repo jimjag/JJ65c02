@@ -11,6 +11,8 @@ to use, and re-use, what you need.
 
 NOTE: Updates will now be posted on [Hackaday](https://hackaday.io/project/193153-jj65c02). Follow me there.
 
+### PCBs sponsored by [PCBWay](https://www.pcbway.com/): Fast and Accurate, inexpensive but not cheap. Use PCBWay for all your PCBs!
+
 ## The Historical Documents
 
 ### Jan 22, 2022
@@ -53,7 +55,7 @@ There is a LOT of debate regarding manual-vs-auto routing, but I'll be honest, I
 
 As my initial PCB, I didn't push things too hard. I left a somewhat generous amount of room on the board and used 12mil traces for power, and 10 for the default trace widths. I also used 4 layers, again making things as easy as possible.
 
-The files have been shipped to JLCPCB for production and I should get them before the holiday, so I'll have some updates once they get delivered and I populate them.
+The files have been shipped for production and I should get them before the holiday, so I'll have some updates once they get delivered and I populate them.
 
 ![PCB](./Images/JJ65c02-pcb1.png)
 
@@ -75,7 +77,7 @@ Wow. Has it really been almost a month? Crazy. Anyway, I've been working off and
 
 There were a few ways to fold in sound; one would have been to add a dedicated sound chip to the prototype, and this may actually happen at some point. But the easiest was to use the existing _VIA_ chip to generate a square wave output, and use that to drive a mini _LM386_ based amplifier, so that's what I did.
 
-Because the _PB7_ pin is already being used, I opted for the _CB2_ method, where we set a shift rate/pattern and shift register and then run the _VIA_ in free-running mode. This creates a user-specified square wave on _CB2_ that then gets fed into the _LM386_. The signal is quite low, and so I needed a pretty hefty gain on the amp, which caused it to pick up some noise, mostly from the clock signals. A low pass filter notched at around 10kHz worked well to clean that up. 
+Because the _PB7_ pin is already being used, I opted for the _CB2_ method, where we set a shift rate/pattern and shift register and then run the _VIA_ in free-running mode. This creates a user-specified square wave on _CB2_ that then gets fed into the _LM386_. The signal is quite low, and so I needed a pretty hefty gain on the amp, which caused it to pick up some noise, mostly from the clock signals. A low pass filter notched at around 10kHz worked well to clean that up.
 
 The sound addition did result in an increase in parts, over-and-above the actual _LM386_ itself, but these were limited to standard resistors and caps. Still, maybe going a dedicated sound chip may have been the better choice.
 
