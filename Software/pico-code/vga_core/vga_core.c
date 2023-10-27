@@ -533,34 +533,31 @@ void fillRect(short x, short y, short w, short h, char color) {
 // Draw a character
 void drawChar(short x, short y, unsigned char c, char color, char bg,
               unsigned char size) {
-    char i, j;
+    char px, py;
     if ((x >= SCREENWIDTH) ||                     // Clip right
         (y >= SCREENHEIGHT) ||                    // Clip bottom
-        ((x + (FONTWIDTH + 1) * size - 1) < 0) || // Clip left
-        ((y + (FONTHEIGHT + 1) * size - 1) < 0))  // Clip top
+        ((x + FONTWIDTH * size - 1) < 0) || // Clip left
+        ((y + FONTHEIGHT * size - 1) < 0))  // Clip top
         return;
 
-    for (i = 0; i < (FONTWIDTH + 1); i++) {
+    for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
-        if (i == FONTWIDTH)
-            line = 0x0;
-        else
-            line = pgm_read_byte(font + (c * FONTWIDTH) + i);
-        for (j = 0; j < (FONTHEIGHT + 1); j++) {
-            if (line & 0x1) {
+        line = pgm_read_byte(font + (c * FONTHEIGHT) + py);
+        for (px = 0; px < FONTWIDTH; px++) {
+            if (line & 0x80) {
                 if (size == 1) // default size
-                    drawPixel(x + i, y + j, color);
+                    drawPixel(x + px, y + py, color);
                 else { // big size
-                    fillRect(x + (i * size), y + (j * size), size, size, color);
+                    fillRect(x + (px * size), y + (py * size), size, size, color);
                 }
             } else if (bg != color) {
                 if (size == 1) // default size
-                    drawPixel(x + i, y + j, bg);
+                    drawPixel(x + px, y + py, bg);
                 else { // big size
-                    fillRect(x + i * size, y + j * size, size, size, bg);
+                    fillRect(x + px * size, y + py * size, size, size, bg);
                 }
             }
-            line >>= 1;
+            line <<= 1;
         }
     }
 }
@@ -605,7 +602,7 @@ inline void setTextWrap(char w) { wrap = w; }
 
 void tft_write(unsigned char c) {
     if (c == '\n') {
-        cursor_y += textsize * (FONTHEIGHT + 1);
+        cursor_y += textsize * FONTHEIGHT;
         cursor_x = 0;
     } else if (c == '\r') {
         // skip em
@@ -616,9 +613,9 @@ void tft_write(unsigned char c) {
         }
     } else {
         drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
-        cursor_x += textsize * (FONTWIDTH + 1);
-        if (wrap && (cursor_x > (SCREENWIDTH - textsize * (FONTWIDTH + 1)))) {
-            cursor_y += textsize * (FONTHEIGHT + 1);
+        cursor_x += textsize * FONTWIDTH;
+        if (wrap && (cursor_x > (SCREENWIDTH - textsize * FONTWIDTH))) {
+            cursor_y += textsize * FONTHEIGHT;
             cursor_x = 0;
         }
     }
