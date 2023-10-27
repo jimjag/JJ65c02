@@ -37,8 +37,14 @@
 #define SCANLINE_ACTIVE 319 // (horizontal active)/2 - 1
 // #define SCANLINE_ACTIVE 639 // change to this if 1 pixel/byte
 
+// Screen width/height/freq
+#define SCREENWIDTH 640
+#define SCREENHEIGHT 480
+#define _freq 25000000.0f
+
 // Length of the pixel array, and number of DMA transfers
 #define TXCOUNT 153600 // Total pixels/2 (since we have 2 pixels per byte)
+// int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
 // Pixel color array that is DMA's to the PIO machines and
 // a pointer to the ADDRESS of this color array.
@@ -58,7 +64,7 @@ int memcpy_dma_chan;
 // For drawLine
 #define swap(a, b)      \
     {                   \
-        short t = a;    \
+        int t = a;    \
         a = b;          \
         b = t;          \
     }
@@ -69,16 +75,16 @@ int memcpy_dma_chan;
 // For accessing the font library
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
-// For drawing characters
-unsigned short cursor_y, cursor_x, textsize;
+// For drawing characters in Graphics Mode
+unsigned int cursor_y, cursor_x, textsize;
 char textcolor, textbgcolor, wrap;
 
-
-
-// Screen width/height/freq
-#define SCREENWIDTH 640
-#define SCREENHEIGHT 480
-#define _freq 25000000.0f
+// Terminal screen sizes (Terminal mode)
+int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;
+int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;
+int tcurs_x = 0;
+int tcurs_y = 0;
+int textrow_size = FONTHEIGHT * (SCREENWIDTH / 2); // Amount of space taken by each row of text
 
 void initVGA() {
     // Choose which PIO instance to use (there are two instances, each with 4 state
@@ -132,8 +138,7 @@ void initVGA() {
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
     channel_config_set_chain_to(&c0, scanline_chan_1);      // chain to other channel
 
-    dma_channel_configure(
-        scanline_chan_0,        // Channel to be configured
+    dma_channel_configure(scanline_chan_0,        // Channel to be configured
         &c0,                    // The configuration we just created
         &pio->txf[scanline_sm], // write address (SCANLINE PIO TX FIFO)
         &vga_data_array, // The initial read address (pixel color array)
@@ -148,8 +153,7 @@ void initVGA() {
     channel_config_set_write_increment(&c1, false);          // no write incrementing
     channel_config_set_chain_to(&c1, scanline_chan_0);       // chain to other channel
 
-    dma_channel_configure(
-        scanline_chan_1,                        // Channel to be configured
+    dma_channel_configure(scanline_chan_1,                        // Channel to be configured
         &c1,                                    // The configuration we just created
         &dma_hw->ch[scanline_chan_0].read_addr, // Write address (channel 0 read address)
         &address_pointer,                       // Read address (POINTER TO AN ADDRESS)
@@ -231,7 +235,7 @@ void VGA_fillScreen(uint16_t color) {
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
-void drawPixel(short x, short y, char color) {
+void drawPixel(int x, int y, char color) {
     // Range checks (640x480 display)
     if (x > (SCREENWIDTH - 1))
         x = (SCREENWIDTH - 1);
@@ -256,20 +260,20 @@ void drawPixel(short x, short y, char color) {
     }
 }
 
-void drawVLine(short x, short y, short h, char color) {
-    for (short i = y; i < (y + h); i++) {
+void drawVLine(int x, int y, int h, char color) {
+    for (int i = y; i < (y + h); i++) {
         drawPixel(x, i, color);
     }
 }
 
-void drawHLine(short x, short y, short w, char color) {
-    for (short i = x; i < (x + w); i++) {
+void drawHLine(int x, int y, int w, char color) {
+    for (int i = x; i < (x + w); i++) {
         drawPixel(i, y, color);
     }
 }
 
 // Bresenham's algorithm - thx wikipedia and thx Bruce!
-void drawLine(short x0, short y0, short x1, short y1, char color) {
+void drawLine(int x0, int y0, int x1, int y1, char color) {
     /* Draw a straight line from (x0,y0) to (x1,y1) with given color
      * Parameters:
      *      x0: x-coordinate of starting point of line. The x-coordinate of
@@ -282,7 +286,7 @@ void drawLine(short x0, short y0, short x1, short y1, char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      color: 3-bit color value for line
      */
-    short steep = abs(y1 - y0) > abs(x1 - x0);
+    int steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
         swap(x0, y0);
         swap(x1, y1);
@@ -293,12 +297,12 @@ void drawLine(short x0, short y0, short x1, short y1, char color) {
         swap(y0, y1);
     }
 
-    short dx, dy;
+    int dx, dy;
     dx = x1 - x0;
     dy = abs(y1 - y0);
 
-    short err = dx / 2;
-    short ystep;
+    int err = dx / 2;
+    int ystep;
 
     if (y0 < y1) {
         ystep = 1;
@@ -321,7 +325,7 @@ void drawLine(short x0, short y0, short x1, short y1, char color) {
 }
 
 // Draw a rectangle
-void drawRect(short x, short y, short w, short h, char color) {
+void drawRect(int x, int y, int w, int h, char color) {
     /* Draw a rectangle outline with top left vertex (x,y), width w
      * and height h at given color
      * Parameters:
@@ -340,7 +344,7 @@ void drawRect(short x, short y, short w, short h, char color) {
     drawVLine(x + w - 1, y, h, color);
 }
 
-void drawCircle(short x0, short y0, short r, char color) {
+void drawCircle(int x0, int y0, int r, char color) {
     /* Draw a circle outline with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -352,11 +356,11 @@ void drawCircle(short x0, short y0, short r, char color) {
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
-    short f = 1 - r;
-    short ddF_x = 1;
-    short ddF_y = -2 * r;
-    short x = 0;
-    short y = r;
+    int f = 1 - r;
+    int ddF_x = 1;
+    int ddF_y = -2 * r;
+    int x = 0;
+    int y = r;
 
     drawPixel(x0, y0 + r, color);
     drawPixel(x0, y0 - r, color);
@@ -384,13 +388,13 @@ void drawCircle(short x0, short y0, short r, char color) {
     }
 }
 
-void drawCircleHelper(short x0, short y0, short r, unsigned char cornername, char color) {
+void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, char color) {
     // Helper function for drawing circles and circular objects
-    short f = 1 - r;
-    short ddF_x = 1;
-    short ddF_y = -2 * r;
-    short x = 0;
-    short y = r;
+    int f = 1 - r;
+    int ddF_x = 1;
+    int ddF_y = -2 * r;
+    int x = 0;
+    int y = r;
 
     while (x < y) {
         if (f >= 0) {
@@ -420,7 +424,7 @@ void drawCircleHelper(short x0, short y0, short r, unsigned char cornername, cha
     }
 }
 
-void fillCircle(short x0, short y0, short r, char color) {
+void fillCircle(int x0, int y0, int r, char color) {
     /* Draw a filled circle with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -435,14 +439,14 @@ void fillCircle(short x0, short y0, short r, char color) {
     fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
-void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, short delta,
+void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta,
                       char color) {
     // Helper function for drawing filled circles
-    short f = 1 - r;
-    short ddF_x = 1;
-    short ddF_y = -2 * r;
-    short x = 0;
-    short y = r;
+    int f = 1 - r;
+    int ddF_x = 1;
+    int ddF_y = -2 * r;
+    int x = 0;
+    int y = r;
 
     while (x < y) {
         if (f >= 0) {
@@ -466,7 +470,7 @@ void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, sho
 }
 
 // Draw a rounded rectangle
-void drawRoundRect(short x, short y, short w, short h, short r, char color) {
+void drawRoundRect(int x, int y, int w, int h, int r, char color) {
     /* Draw a rounded rectangle outline with top left vertex (x,y), width w,
      * height h and radius of curvature r at given color
      * Parameters:
@@ -492,7 +496,7 @@ void drawRoundRect(short x, short y, short w, short h, short r, char color) {
 }
 
 // Fill a rounded rectangle
-void fillRoundRect(short x, short y, short w, short h, short r, char color) {
+void fillRoundRect(int x, int y, int w, int h, int r, char color) {
     // smarter version
     fillRect(x + r, y, w - 2 * r, h, color);
 
@@ -502,7 +506,7 @@ void fillRoundRect(short x, short y, short w, short h, short r, char color) {
 }
 
 // fill a rectangle
-void fillRect(short x, short y, short w, short h, char color) {
+void fillRect(int x, int y, int w, int h, char color) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
      *  width w and height h with given color
      * Parameters:
@@ -531,7 +535,7 @@ void fillRect(short x, short y, short w, short h, char color) {
 }
 
 // Draw a character
-void drawChar(short x, short y, unsigned char c, char color, char bg,
+void drawChar(int x, int y, unsigned char c, char color, char bg,
               unsigned char size) {
     char px, py;
     if ((x >= SCREENWIDTH) ||                     // Clip right
@@ -562,7 +566,7 @@ void drawChar(short x, short y, unsigned char c, char color, char bg,
     }
 }
 
-inline void setCursor(short x, short y) {
+inline void setCursor(int x, int y) {
     /* Set cursor for text to be printed
      * Parameters:
      *      x = x-coordinate of top-left of text starting
@@ -628,5 +632,57 @@ inline void writeString(char *str) {
      */
     while (*str) {
         tft_write(*str++);
+    }
+}
+
+// Terminal Mode function
+//   Long term goal is vt52/vt100 emulation where we rec an
+//   ASCII char and print it out if printable or else honor
+//   the escape code. In this mode we map the bitmap screen
+//   to a 80x30 terminal, with the current cursor indicated
+//   by tcurs_x and tcurs_y (column and row)
+
+void Scroll (void) {
+    dma_memcpy(address_pointer, address_pointer + textrow_size, TXCOUNT - textrow_size);
+    dma_memset(address_pointer + TXCOUNT - textrow_size, 0, textrow_size);
+}
+
+void SetTxtCursor(int x, int y) {
+    tcurs_x = x;
+    if (tcurs_x > max_tcurs_x)
+        tcurs_x = max_tcurs_x;
+    tcurs_y = y;
+    if (tcurs_y > max_tcurs_y)
+        tcurs_y = max_tcurs_y;
+}
+
+void PrintChar(unsigned char c) {
+    if (tcurs_x > max_tcurs_x) {
+        // End of line
+        tcurs_x = 0;
+        tcurs_y++;
+        if (tcurs_y > max_tcurs_y) {
+            tcurs_y = max_tcurs_y;
+            // scroll here
+        }
+    }
+    if (c == '\n') {
+        tcurs_y++;
+        if (tcurs_y > max_tcurs_y) {
+            tcurs_y = max_tcurs_y;
+            // scroll
+        }
+        tcurs_x = 0;
+    } else if (c == '\r') {
+        // skip em
+    } else if (c == '\t') {
+        tcurs_x += tabspace;
+        if (tcurs_x > max_tcurs_x) {
+            // Scroll here? Wrap around?
+            tcurs_x = max_tcurs_x;
+        }
+    } else {
+        drawChar(tcurs_x * FONTWIDTH, tcurs_y * FONTHEIGHT, c, textcolor, textbgcolor, textsize);
+        tcurs_x++;
     }
 }

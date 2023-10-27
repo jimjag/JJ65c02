@@ -27,20 +27,20 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 
 // VGA primitives - usable in main
 void initVGA(void);
-void drawPixel(short x, short y, char color);
-void drawVLine(short x, short y, short h, char color);
-void drawHLine(short x, short y, short w, char color);
-void drawLine(short x0, short y0, short x1, short y1, char color);
-void drawRect(short x, short y, short w, short h, char color);
-void drawCircle(short x0, short y0, short r, char color);
-void drawCircleHelper( short x0, short y0, short r, unsigned char cornername, char color);
-void fillCircle(short x0, short y0, short r, char color);
-void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, short delta, char color);
-void drawRoundRect(short x, short y, short w, short h, short r, char color);
-void fillRoundRect(short x, short y, short w, short h, short r, char color);
-void fillRect(short x, short y, short w, short h, char color);
-void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size);
-void setCursor(short x, short y);
+void drawPixel(int x, int y, char color);
+void drawVLine(int x, int y, int h, char color);
+void drawHLine(int x, int y, int w, char color);
+void drawLine(int x0, int y0, int x1, int y1, char color);
+void drawRect(int x, int y, int w, int h, char color);
+void drawCircle(int x0, int y0, int r, char color);
+void drawCircleHelper( int x0, int y0, int r, unsigned char cornername, char color);
+void fillCircle(int x0, int y0, int r, char color);
+void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta, char color);
+void drawRoundRect(int x, int y, int w, int h, int r, char color);
+void fillRoundRect(int x, int y, int w, int h, int r, char color);
+void fillRect(int x, int y, int w, int h, char color);
+void drawChar(int x, int y, unsigned char c, char color, char bg, unsigned char size);
+void setCursor(int x, int y);
 void setTextColor(char c);
 void setTextColor2(char c, char bg);
 void setTextSize(unsigned char s);
