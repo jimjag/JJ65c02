@@ -1,4 +1,6 @@
 Private
-.DS_Store
-.idea/
-.vscode/
+**/.DS_Store
+**/.idea/
+**/.vscode/
+./Software/pico-code/build/
+./Software/pico-code/cmake-build-debug/

@@ -3,10 +3,10 @@
  * HARDWARE CONNECTIONS
  *  - GPIO 16 ---> VGA Hsync
  *  - GPIO 17 ---> VGA Vsync
- *  - GPIO 18 ---> 750 ohm resistor ---> VGA Red
- *  - GPIO 19 ---> 750 ohm resistor ---> VGA Blue
- *  - GPIO 20 ---> 750 ohm resistor ---> VGA Green
- *  - GPIO 21 ---> 1000 ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
@@ -70,13 +70,13 @@ int main() {
     setCursor(65, 0);
     setTextSize(1);
     writeString("Raspberry Pi Pico");
-    setCursor(65, 10);
-    writeString("Graphics primitives demo");
-    setCursor(65, 20);
+    setCursor(65, 16);
+    writeString("Graphics demo");
+    setCursor(65, 32);
     writeString("JJ65C02");
-    setCursor(250, 0);
+    setCursor(250, 4);
     setTextSize(2);
-    writeString("Time Elapsed:");
+    writeString("Elapsed:");
 
     // Setup a 1Hz timer
     struct repeating_timer timer;
@@ -95,42 +95,42 @@ int main() {
     }
     // first row of colors
     setCursor(0*70+20, 200+0*70);
-    writeString("BLACK");
+    writeString("Black");
     setCursor(1*70+20, 200+0*70);
-    writeString("BLACK2");
+    writeString("Red");
     setCursor(2*70+20, 200+0*70);
-    writeString("DARK_GREEN");
+    writeString("Green");
     setCursor(3*70+20, 200+0*70);
-    writeString("GREEN");
+    writeString("Yellow");
     // second row of colors
     setCursor(0*70+20, 200+1*70);
-    writeString("DARK_BLUE");
+    writeString("Blue");
     setCursor(1*70+20, 200+1*70);
-    writeString("BLUE");
+    writeString("Magenta");
     setCursor(2*70+20, 200+1*70);
-    writeString("DARK_CYAN");
+    writeString("Cyan");
     setCursor(3*70+20, 200+1*70);
-    writeString("CYAN");
+    writeString("Light Grey");
     // thrid row of colors
     setCursor(0*70+20, 200+2*70);
-    writeString("DARK_RED");
+    writeString("Grey");
     setCursor(1*70+20, 200+2*70);
-    writeString("RED");
+    writeString("Light Red");
     setCursor(2*70+20, 200+2*70);
-    writeString("DARK_YELLOW");
+    writeString("Light Green");
     setCursor(3*70+20, 200+2*70);
-    writeString("YELLOW");
+    writeString("Light Yellow");
     // fourth row of colors
     setCursor(0*70+20, 200+3*70);
-    writeString("DARK_MAGENTA");
+    writeString("Light Blue");
     setCursor(1*70+20, 200+3*70);
-    writeString("MAGENTA");
+    writeString("Light Magenta");
     setCursor(2*70+20, 200+3*70);
-    writeString("GREY");
+    writeString("Light Cyan");
     setCursor(3*70+20, 200+3*70);
-    writeString("WHITE");
+    writeString("White");
 
-    while(true) {
+    while (true) {
 
         // Modify the color chooser
         if (color_index ++ == 15) color_index = 0;
@@ -143,7 +143,7 @@ int main() {
         // Concentric empty circles
         drawCircle(320, 200, circle_x, color_index);
         circle_x += 1;
-        if (circle_x > 130) circle_x = 0;
+        if (circle_x > 65) circle_x = 0;
 
         // A series of rectangles
         drawRect(10, 300, box_x, box_x, color_index);
@@ -167,9 +167,8 @@ int main() {
         // Timing text
         if (time_accum != time_accum_old) {
             time_accum_old = time_accum;
-            fillRect(250, 20, 176, 30, RED); // red box
             sprintf(timetext, "%d", time_accum);
-            setCursor(250, 20);
+            setCursor(435, 4);
             setTextSize(2);
             writeString(timetext);
         }

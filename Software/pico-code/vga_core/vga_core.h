@@ -3,10 +3,10 @@
  * HARDWARE CONNECTIONS
  *  - GPIO 16 ---> VGA Hsync
  *  - GPIO 17 ---> VGA Vsync
- *  - GPIO 18 ---> 750 ohm resistor ---> VGA Red
- *  - GPIO 19 ---> 750 ohm resistor ---> VGA Blue
- *  - GPIO 20 ---> 750 ohm resistor ---> VGA Green
- *  - GPIO 21 ---> 1000 ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
@@ -22,8 +22,8 @@
  enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
-enum colors {BLACK, DARK_RED, DARK_GREEN, DARK_YELLOW, DARK_BLUE, DARK_MAGENTA, DARK_CYAN, GREY,
-            BLACK2, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE};
+enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
+            GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
 
 // VGA primitives - usable in main
 void initVGA(void);

@@ -3,10 +3,10 @@
  * HARDWARE CONNECTIONS
  *  - GPIO 16 ---> VGA Hsync
  *  - GPIO 17 ---> VGA Vsync
- *  - GPIO 18 ---> 750 ohm resistor ---> VGA Red
- *  - GPIO 19 ---> 750 ohm resistor ---> VGA Blue
- *  - GPIO 20 ---> 750 ohm resistor ---> VGA Green
- *  - GPIO 21 ---> 1000 ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED

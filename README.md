@@ -8,6 +8,7 @@ This project contains 3 main sections:
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
   * The miniOS ROM bootloader
+  * pico-code : The RP2040 VGA driver
   * x65c02 Emulator
 * [Datasheets](./Datasheets)
 
@@ -27,9 +28,7 @@ You can, of course, contact me via the normal Github development methods, such a
 
 # Credits
 
-* Ben Eater
-* Jan Roesner
-* Dawid Buchwald
-* all the helpful peeps on reddit r/beneater/
+* Specific content noted in their respective sections
+* All the helpful peeps on reddit r/beneater/
 * PCBs sponsored by [PCBWay](https://www.pcbway.com/): Fast and Accurate, inexpensive but not cheap. Use PCBWay for all your PCBs!
 
