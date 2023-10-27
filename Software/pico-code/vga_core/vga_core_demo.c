@@ -36,7 +36,6 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     return true;
 }
 
-
 int main() {
 
     // Initialize stdio
@@ -59,7 +58,6 @@ int main() {
     short Vline_x = 350;
     // position of horizontal line primitive
     short Hline_y = 250;
-
     // Draw some filled rectangles
     fillRect(64, 0, 176, 50, BLUE); // blue box
     fillRect(250, 0, 176, 50, RED); // red box
@@ -82,58 +80,9 @@ int main() {
     struct repeating_timer timer;
     add_repeating_timer_ms(-1000, repeating_timer_callback, NULL, &timer);
 
-    char video_buffer[32];
-    setTextColor2(WHITE, BLACK);
-    setTextSize(1);
-    for (int i=0; i<4; i++) {
-      for (int j=0; j<4; j++){
-        fillRect(i*70+20, 150+j*70, 60, 60, i+4*j);
-        setCursor(i*70+20, 150+j*70);
-        sprintf(video_buffer, "%2d", i+4*j);
-        writeString(video_buffer);
-      }
-    }
-    // first row of colors
-    setCursor(0*70+20, 200+0*70);
-    writeString("Black");
-    setCursor(1*70+20, 200+0*70);
-    writeString("Red");
-    setCursor(2*70+20, 200+0*70);
-    writeString("Green");
-    setCursor(3*70+20, 200+0*70);
-    writeString("Yellow");
-    // second row of colors
-    setCursor(0*70+20, 200+1*70);
-    writeString("Blue");
-    setCursor(1*70+20, 200+1*70);
-    writeString("Magenta");
-    setCursor(2*70+20, 200+1*70);
-    writeString("Cyan");
-    setCursor(3*70+20, 200+1*70);
-    writeString("Light Grey");
-    // thrid row of colors
-    setCursor(0*70+20, 200+2*70);
-    writeString("Grey");
-    setCursor(1*70+20, 200+2*70);
-    writeString("Light Red");
-    setCursor(2*70+20, 200+2*70);
-    writeString("Light Green");
-    setCursor(3*70+20, 200+2*70);
-    writeString("Light Yellow");
-    // fourth row of colors
-    setCursor(0*70+20, 200+3*70);
-    writeString("Light Blue");
-    setCursor(1*70+20, 200+3*70);
-    writeString("Light Magenta");
-    setCursor(2*70+20, 200+3*70);
-    writeString("Light Cyan");
-    setCursor(3*70+20, 200+3*70);
-    writeString("White");
-
     while (true) {
-
         // Modify the color chooser
-        if (color_index ++ == 15) color_index = 0;
+        if (color_index++ == 15) color_index = 0;
 
         // A row of filled circles
         fillCircle(disc_x, 100, 20, color_index);
@@ -143,7 +92,7 @@ int main() {
         // Concentric empty circles
         drawCircle(320, 200, circle_x, color_index);
         circle_x += 1;
-        if (circle_x > 65) circle_x = 0;
+        if (circle_x > 95) circle_x = 0;
 
         // A series of rectangles
         drawRect(10, 300, box_x, box_x, color_index);
@@ -151,11 +100,11 @@ int main() {
         if (box_x > 195) box_x = 10;
 
         // Random lines
-        drawLine(210+(rand()&0x7f), 350+(rand()&0x7f), 210+(rand()&0x7f),
-                 350+(rand()&0x7f), color_index);
+        drawLine(210 + (rand() & 0x7f), 350 + (rand() & 0x7f), 210 + (rand() & 0x7f),
+                 350 + (rand() & 0x7f), color_index);
 
         // Vertical lines
-        drawVLine(Vline_x, 300, (Vline_x>>2), color_index);
+        drawVLine(Vline_x, 300, (Vline_x >> 2), color_index);
         Vline_x += 2;
         if (Vline_x > 620) Vline_x = 350;
 
@@ -170,12 +119,66 @@ int main() {
             sprintf(timetext, "%d", time_accum);
             setCursor(435, 4);
             setTextSize(2);
+            setTextColor2(WHITE, GREEN);
             writeString(timetext);
         }
 
         // A brief nap
         sleep_ms(10);
-
-   }
-
+        if (time_accum >= 31) break;
+    }
+    sleep_ms(5000);
+    Scroll();
+    sleep_ms(5000);
+    VGA_fillScreen(BLACK);
+    char video_buffer[32];
+    setTextColor2(WHITE, BLACK);
+    setTextSize(1);
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            fillRect(i * 70 + 20, 150 + j * 70, 60, 60, i + 4 * j);
+            setCursor(i * 70 + 20, 150 + j * 70);
+            sprintf(video_buffer, "%2d", i + 4 * j);
+            writeString(video_buffer);
+        }
+    }
+    // first row of colors
+    setCursor(0 * 70 + 20, 200 + 0 * 70);
+    writeString("Black");
+    setCursor(1 * 70 + 20, 200 + 0 * 70);
+    writeString("Red");
+    setCursor(2 * 70 + 20, 200 + 0 * 70);
+    writeString("Green");
+    setCursor(3 * 70 + 20, 200 + 0 * 70);
+    writeString("Yellow");
+    // second row of colors
+    setCursor(0 * 70 + 20, 200 + 1 * 70);
+    writeString("Blue");
+    setCursor(1 * 70 + 20, 200 + 1 * 70);
+    writeString("Magenta");
+    setCursor(2 * 70 + 20, 200 + 1 * 70);
+    writeString("Cyan");
+    setCursor(3 * 70 + 20, 200 + 1 * 70);
+    writeString("Light Grey");
+    // thrid row of colors
+    setCursor(0 * 70 + 20, 200 + 2 * 70);
+    writeString("Grey");
+    setCursor(1 * 70 + 20, 200 + 2 * 70);
+    writeString("Light Red");
+    setCursor(2 * 70 + 20, 200 + 2 * 70);
+    writeString("Light Green");
+    setCursor(3 * 70 + 20, 200 + 2 * 70);
+    writeString("Light Yellow");
+    // fourth row of colors
+    setCursor(0 * 70 + 20, 200 + 3 * 70);
+    writeString("Light Blue");
+    setCursor(1 * 70 + 20, 200 + 3 * 70);
+    writeString("Light Magenta");
+    setCursor(2 * 70 + 20, 200 + 3 * 70);
+    writeString("Light Cyan");
+    setCursor(3 * 70 + 20, 200 + 3 * 70);
+    writeString("White");
+    setCursor(0, 460);
+    writeString("1234567890123456789012345678901234567890123456789012345678901234567890123456789");
+    sleep_ms(15000);
 }

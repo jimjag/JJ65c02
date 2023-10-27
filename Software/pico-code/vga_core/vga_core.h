@@ -52,3 +52,7 @@ void VGA_fillScreen(uint16_t color);
 
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
+
+void PrintChar(unsigned char c);
+void Scroll (void);
+void SetTxtCursor(int x, int y);

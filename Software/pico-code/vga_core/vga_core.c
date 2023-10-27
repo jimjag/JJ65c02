@@ -124,8 +124,8 @@ void initVGA() {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // DMA channels - 0 sends color data, 1 reconfigures and restarts 0
-    int scanline_chan_0 = 0;
-    int scanline_chan_1 = 1;
+    int scanline_chan_0 = dma_claim_unused_channel(true);
+    int scanline_chan_1 = dma_claim_unused_channel(true);
 
     // DMA channel for dma_memcpy and dma_memset
     memcpy_dma_chan = dma_claim_unused_channel(true);
