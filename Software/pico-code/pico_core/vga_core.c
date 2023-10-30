@@ -86,10 +86,10 @@ int tcurs_x = 0;
 int tcurs_y = 0;
 int textrow_size = FONTHEIGHT * (SCREENWIDTH / 2); // Amount of space taken by each row of text
 
-void initVGA() {
+void initVGA(PIO upio) {
     // Choose which PIO instance to use (there are two instances, each with 4 state
     // machines)
-    PIO pio = pio0;
+    PIO pio = upio;
 
     // Our assembled program needs to be loaded into this PIO's instruction
     // memory. This SDK function will find a location (offset) in the
@@ -105,10 +105,10 @@ void initVGA() {
     uint vsync_offset = pio_add_program(pio, &vsync_program);
     uint scanline_offset = pio_add_program(pio, &scanline_program);
 
-    // Manually select a few state machines from pio instance pio0.
-    uint hsync_sm = 0;
-    uint vsync_sm = 1;
-    uint scanline_sm = 2;
+    // Manually select a few state machines from pio instance pio.
+    uint hsync_sm = pio_claim_unused_sm(pio, true);
+    uint vsync_sm = pio_claim_unused_sm(pio, true);
+    uint scanline_sm = pio_claim_unused_sm(pio, true);
 
     // Call the initialization functions that are defined within each PIO file.
     // Why not create these programs here? By putting the initialization function in
@@ -684,5 +684,11 @@ void PrintChar(unsigned char c) {
     } else {
         drawChar(tcurs_x * FONTWIDTH, tcurs_y * FONTHEIGHT, c, textcolor, textbgcolor, textsize);
         tcurs_x++;
+    }
+}
+
+inline void PrintString(char *str) {
+    while (*str) {
+        PrintChar(*str++);
     }
 }

@@ -17,6 +17,8 @@
  */
 #include <stdint.h>
 #include <stddef.h>
+#include "hardware/pio.h"
+
 
 // Give the I/O pins that we're using some names that make sense - usable in main()
  enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
@@ -26,7 +28,7 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
 
 // VGA Core Functions
-void initVGA(void);
+void initVGA(PIO upio);
 void drawPixel(int x, int y, char color);
 void drawVLine(int x, int y, int h, char color);
 void drawHLine(int x, int y, int w, char color);
@@ -56,3 +58,4 @@ void dma_memcpy(void *dest, void *src, size_t num);
 void PrintChar(unsigned char c);
 void Scroll (void);
 void SetTxtCursor(int x, int y);
+void PrintString(char* str);

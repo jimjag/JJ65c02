@@ -7,6 +7,8 @@
  *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
  *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
  *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 26 ---> PS2 Data pin
+ *  - GPIO 27 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
@@ -18,6 +20,7 @@
 
 // VGA graphics library
 #include "vga_core.h"
+#include "ps2_keyboard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
@@ -42,7 +45,8 @@ int main() {
     stdio_init_all();
 
     // Initialize the VGA screen
-    initVGA();
+    initVGA(pio0);
+    initPS2(pio1);
 
     // circle radii
     short circle_x = 0;
@@ -181,4 +185,17 @@ int main() {
     setCursor(0, 460);
     writeString("1234567890123456789012345678901234567890123456789012345678901234567890123456789");
     sleep_ms(15000);
+
+    char hex[40];
+    SetTxtCursor(60, 20);
+    PrintString("PS2 test");
+    while (true) {
+        char c = ps2_readc();
+        SetTxtCursor(60, 24);
+        PrintChar(c);
+        sprintf(hex, "%d", c);
+        SetTxtCursor(70, 24);
+        PrintString(hex);
+    }
+
 }

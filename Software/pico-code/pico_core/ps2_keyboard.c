@@ -1,34 +1,31 @@
+#include "hardware/clocks.h"
+#include "hardware/dma.h"
+#include "hardware/pio.h"
+#include "pico/stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
+// Our assembled programs:
+// Each gets the name <pio_filename.pio.h>
 #include "ps2_keyboard.pio.h"
+// Header file
 #include "ps2_keyboard.h"
 
-#include "hardware/clocks.h"
-#include "hardware/pio.h"
+static uint ps2_offset;
+static uint ps2_sm;
+static PIO ps2_pio;
+//static uint ps2_pio_irq;
+//static void ps2_ihandler();
 
-static PIO ps2_pio;         // pio0 or pio1
-static uint ps2_sm;         // pio state machine index
-static uint ps2_data;      // data signal gpio #
-
-void ps2_init(uint pio, uint gpio) {
-    // Could move some of the below to ps2_keyboard.pio
-    // in '% c-sdk {' as we do with the VGA stuff
-    // but this is another way. so show both
-    ps2_pio = pio ? pio1 : pio0;
-    ps2_data = gpio;
-    gpio_init(ps2_data);  // ps2_data is data signal
-    gpio_init(ps2_data + 1);  // ps2_data+1 is clock signal
-    gpio_pull_up(ps2_data);
-    gpio_pull_up(ps2_data + 1);
+void initPS2(PIO upio) {
+    ps2_pio = upio;
+    //ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
+    ps2_offset = pio_add_program(ps2_pio, &ps2_program);
     ps2_sm = pio_claim_unused_sm(ps2_pio, true);
-    uint offset = pio_add_program(ps2_pio, &ps2_keyboard_program);
-    pio_sm_set_consecutive_pindirs(ps2_pio, ps2_sm, ps2_data, 2, false);
-    pio_sm_config c = ps2_keyboard_program_get_default_config(offset);
-    sm_config_set_in_pins(&c, ps2_data);
-    sm_config_set_in_shift(&c, true, true, 8);
-    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
-    float div = (float)clock_get_hz(clk_sys) / (8 * 16700);
-    sm_config_set_clkdiv(&c, div);
-    pio_sm_init(ps2_pio, ps2_sm, offset, &c);
-    pio_sm_set_enabled(ps2_pio, ps2_sm, true);
+    ps2_program_init(ps2_pio, ps2_sm, ps2_offset, PS2_DATA_PIN);
+    //pio_set_irq0_source_enabled(ps2_pio, pis_interrupt0, true);
+    //irq_set_exclusive_handler(ps2_pio_irq, ps2_ihandler);
+    //irq_set_enabled(ps2_pio_irq, true);
+    //pio_sm_set_enabled(ps2_pio, ps2_sm, true);
 }
 
 // clang-format off
@@ -71,17 +68,17 @@ static int shift;   // Shift indication
 static int cntl;    // Control indication
 static uint8_t ascii;   // Translated to ASCII
 
-
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-int __attribute__((noinline)) ps2_ready(void) {
+int ps2_ready(void) {
     if (ascii)
         return ascii;
+    // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
         return 0;
     // pull a scan code from the PIO SM fifo
-    // uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
-    uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
+    uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
+    //uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
     switch (code) {
     case 0xF0:               // key-release code 0xF0
         release = 1;         // release flag
@@ -105,8 +102,10 @@ int __attribute__((noinline)) ps2_ready(void) {
         if (!release)
             if (cntl) {
                 ascii = ps2_to_ascii_cntl[code];
+                cntl = 0;
             } else if (shift) {
                 ascii = ps2_to_ascii_upper[code];
+                shift = 0;
             } else {
                 // default
                 ascii = ps2_to_ascii_lower[code];
