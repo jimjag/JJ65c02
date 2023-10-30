@@ -8,6 +8,6 @@
 #define PS2_DATA_PIN 14
 #define PS2_CLK_PIN 15
 
-void initPS2(PIO upio);
-int ps2_ready(void);
-char ps2_readc(void);
+void initPS2(void);
+int ps2Ready(void);
+char ps2GetChar(void);

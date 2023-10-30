@@ -28,7 +28,7 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
 
 // VGA Core Functions
-void initVGA(PIO upio);
+void initVGA(void);
 void drawPixel(int x, int y, char color);
 void drawVLine(int x, int y, int h, char color);
 void drawHLine(int x, int y, int w, char color);
@@ -55,7 +55,7 @@ void VGA_fillScreen(uint16_t color);
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
 
-void PrintChar(unsigned char c);
+void printChar(unsigned char c);
 void Scroll (void);
-void SetTxtCursor(int x, int y);
-void PrintString(char* str);
+void setTxtCursor(int x, int y);
+void printString(char* str);

@@ -7,12 +7,17 @@
  *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
  *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
  *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 14 ---> PS2 Data pin
+ *  - GPIO 15 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
- *  - PIO state machines 0, 1, and 2 on PIO instance 0
- *  - DMA channels 0, 1, 2, and 3
- *  - 153.6 kBytes of RAM (for pixel color data)
+ *  - VGA:
+ *  -   PIO state machines 0, 1, and 2 on PIO instance 0
+ *  -   DMA channels 0, 1, 2, and 3
+ *  -   153.6 kBytes of RAM (for pixel color data)
+ *  - PS2:
+ *  -   PIO state machine 0 on PIO instance 1
  *
  */
 #include "hardware/clocks.h"
@@ -79,17 +84,17 @@ int memcpy_dma_chan;
 unsigned int cursor_y, cursor_x, textsize;
 char textcolor, textbgcolor, wrap;
 
-// Terminal screen sizes (Terminal mode)
-int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;
-int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;
+// Terminal screen sizes (Terminal mode) - Assume 640x480 and 8x16 bitmaps
+int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;    // 80
+int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;  // 30
 int tcurs_x = 0;
 int tcurs_y = 0;
 int textrow_size = FONTHEIGHT * (SCREENWIDTH / 2); // Amount of space taken by each row of text
 
-void initVGA(PIO upio) {
+void initVGA(void) {
     // Choose which PIO instance to use (there are two instances, each with 4 state
     // machines)
-    PIO pio = upio;
+    PIO pio = pio0;
 
     // Our assembled program needs to be loaded into this PIO's instruction
     // memory. This SDK function will find a location (offset) in the
@@ -604,7 +609,7 @@ inline void setTextColor2(char c, char b) {
 
 inline void setTextWrap(char w) { wrap = w; }
 
-void tft_write(unsigned char c) {
+static void tft_write(unsigned char c) {
     if (c == '\n') {
         cursor_y += textsize * FONTHEIGHT;
         cursor_x = 0;
@@ -647,7 +652,7 @@ void Scroll (void) {
     dma_memset(address_pointer + TXCOUNT - textrow_size, 0, textrow_size);
 }
 
-void SetTxtCursor(int x, int y) {
+void setTxtCursor(int x, int y) {
     tcurs_x = x;
     if (tcurs_x > max_tcurs_x)
         tcurs_x = max_tcurs_x;
@@ -656,7 +661,7 @@ void SetTxtCursor(int x, int y) {
         tcurs_y = max_tcurs_y;
 }
 
-void PrintChar(unsigned char c) {
+void printChar(unsigned char c) {
     if (tcurs_x > max_tcurs_x) {
         // End of line
         tcurs_x = 0;
@@ -687,8 +692,8 @@ void PrintChar(unsigned char c) {
     }
 }
 
-inline void PrintString(char *str) {
+inline void printString(char *str) {
     while (*str) {
-        PrintChar(*str++);
+        printChar(*str++);
     }
 }

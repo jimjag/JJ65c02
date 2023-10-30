@@ -1,3 +1,26 @@
+/**
+ *
+ * HARDWARE CONNECTIONS
+ *  - GPIO 16 ---> VGA Hsync
+ *  - GPIO 17 ---> VGA Vsync
+ *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 14 ---> PS2 Data pin
+ *  - GPIO 15 ---> PS2 Clock pin
+ *  - RP2040 GND ---> VGA GND
+ *
+ * RESOURCES USED
+ *  - VGA:
+ *  -   PIO state machines 0, 1, and 2 on PIO instance 0
+ *  -   DMA channels 0, 1, 2, and 3
+ *  -   153.6 kBytes of RAM (for pixel color data)
+ *  - PS2:
+ *  -   PIO state machine 0 on PIO instance 1
+ *
+ */
+
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
@@ -16,8 +39,8 @@ static PIO ps2_pio;
 //static uint ps2_pio_irq;
 //static void ps2_ihandler();
 
-void initPS2(PIO upio) {
-    ps2_pio = upio;
+void initPS2(void) {
+    ps2_pio = pio1;
     //ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
     ps2_offset = pio_add_program(ps2_pio, &ps2_program);
     ps2_sm = pio_claim_unused_sm(ps2_pio, true);
@@ -70,15 +93,15 @@ static uint8_t ascii;   // Translated to ASCII
 
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-int ps2_ready(void) {
+int ps2Ready(void) {
     if (ascii)
         return ascii;
     // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
         return 0;
     // pull a scan code from the PIO SM fifo
-    uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
-    //uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
+    // uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
+    uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
     switch (code) {
     case 0xF0:               // key-release code 0xF0
         release = 1;         // release flag
@@ -118,9 +141,9 @@ int ps2_ready(void) {
 
 // Blocking keyboard read
 // Returns  - single ASCII character
-char ps2_readc(void) {
+char ps2GetChar(void) {
     char c;
-    while (!(c = ps2_ready()))
+    while (!(c = ps2Ready()))
         tight_loop_contents();
     ascii = 0;
     return c;

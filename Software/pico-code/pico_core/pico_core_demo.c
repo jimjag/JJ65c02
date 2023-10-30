@@ -7,14 +7,17 @@
  *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
  *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
  *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
- *  - GPIO 26 ---> PS2 Data pin
- *  - GPIO 27 ---> PS2 Clock pin
+ *  - GPIO 14 ---> PS2 Data pin
+ *  - GPIO 15 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
- *  - PIO state machines 0, 1, and 2 on PIO instance 0
- *  - DMA channels 0, 1, 2, and 3
- *  - 153.6 kBytes of RAM (for pixel color data)
+ *  - VGA:
+ *  -   PIO state machines 0, 1, and 2 on PIO instance 0
+ *  -   DMA channels 0, 1, 2, and 3
+ *  -   153.6 kBytes of RAM (for pixel color data)
+ *  - PS2:
+ *  -   PIO state machine 0 on PIO instance 1
  *
  */
 
@@ -45,8 +48,8 @@ int main() {
     stdio_init_all();
 
     // Initialize the VGA screen
-    initVGA(pio0);
-    initPS2(pio1);
+    initVGA();
+    initPS2();
 
     // circle radii
     short circle_x = 0;
@@ -187,15 +190,15 @@ int main() {
     sleep_ms(15000);
 
     char hex[40];
-    SetTxtCursor(60, 20);
-    PrintString("PS2 test");
+    setTxtCursor(60, 20);
+    printString("PS2 test");
     while (true) {
-        char c = ps2_readc();
-        SetTxtCursor(60, 24);
-        PrintChar(c);
+        char c = ps2GetChar();
+        setTxtCursor(60, 24);
+        printChar(c);
         sprintf(hex, "%d", c);
-        SetTxtCursor(70, 24);
-        PrintString(hex);
+        setTxtCursor(70, 24);
+        printString(hex);
     }
 
 }
