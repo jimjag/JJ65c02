@@ -8,7 +8,7 @@ pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/ps2_keyboard.p
 
 # must match with executable name and source file names
 target_sources(pico_core_code PRIVATE
-    vga_core_demo.c
+    pico_core_demo.c
     vga_core.c
     ps2_keyboard.c)
 
