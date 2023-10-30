@@ -1,17 +1,19 @@
-add_executable(vga_core_lib)
+add_executable(pico_core_code)
 
 # must match with pio filename and executable name from above
-pico_generate_pio_header(vga_core_lib ${CMAKE_CURRENT_LIST_DIR}/hsync.pio)
-pico_generate_pio_header(vga_core_lib ${CMAKE_CURRENT_LIST_DIR}/vsync.pio)
-pico_generate_pio_header(vga_core_lib ${CMAKE_CURRENT_LIST_DIR}/scanline.pio)
+pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/hsync.pio)
+pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/vsync.pio)
+pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/scanline.pio)
+pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/ps2_keyboard.pio)
 
 # must match with executable name and source file names
-target_sources(vga_core_lib PRIVATE
+target_sources(pico_core_code PRIVATE
     vga_core_demo.c
-    vga_core.c)
+    vga_core.c
+    ps2_keyboard.c)
 
 # must match with executable name
-target_link_libraries(vga_core_lib PRIVATE
+target_link_libraries(pico_core_code PRIVATE
     pico_stdlib
     hardware_pio
     hardware_dma
@@ -19,4 +21,4 @@ target_link_libraries(vga_core_lib PRIVATE
     hardware_irq)
 
 # must match with executable name
-pico_add_extra_outputs(vga_core_lib)
+pico_add_extra_outputs(pico_core_code)

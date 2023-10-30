@@ -25,7 +25,7 @@
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
 
-// VGA primitives - usable in main
+// VGA Core Functions
 void initVGA(void);
 void drawPixel(int x, int y, char color);
 void drawVLine(int x, int y, int h, char color);

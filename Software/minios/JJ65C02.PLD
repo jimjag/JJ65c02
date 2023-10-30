@@ -48,7 +48,7 @@ FIELD ADDR = [A15..A00];
 
 /* Address Decode Logic */
 
-RAM       = ADDR:[0000..9FFF];  /* 32k */
+RAM       = ADDR:[0000..9FFF];  /* 40k */
 BANK      = ADDR:[8000..9FFF];  /*  8k */
 IO        = ADDR:[A000..AFFF];  /*  4k */
 ROM       = ADDR:[B000..FFFF];  /* 20k */

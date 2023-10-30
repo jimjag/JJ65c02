@@ -13,7 +13,7 @@ set(JJ65C02_PICO_PATH ${PROJECT_SOURCE_DIR})
 pico_sdk_init()
 
 # Add multi example
-add_subdirectory(vga_core)
+add_subdirectory(pico_core)
 
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int

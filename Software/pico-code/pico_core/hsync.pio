@@ -42,33 +42,15 @@ backporch:
 
 % c-sdk {
 static inline void hsync_program_init(PIO pio, uint sm, uint offset, uint pin, float freq) {
-
-    // creates state machine configuration object c, sets
-    // to default configurations. I believe this function is auto-generated
-    // and gets a name of <program name>_program_get_default_config
-    // Yes, page 40 of SDK guide
     pio_sm_config c = hsync_program_get_default_config(offset);
-
-    // Map the state machine's SET pin group to one pin, namely the `pin`
-    // parameter to this function.
     sm_config_set_set_pins(&c, pin, 1);
-
-    // Set clock division (div by 5 for 25 MHz state machine)
     float div = clock_get_hz(clk_sys) / freq;
     sm_config_set_clkdiv(&c, div);
     // sm_config_set_clkdiv(&c, 5) ;
-
-    // Set this pin's GPIO function (connect PIO to the pad)
     pio_gpio_init(pio, pin);
     // pio_gpio_init(pio, pin+1);
-
-    // Set the pin direction to output at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
-
-    // Load our configuration, and jump to the start of the program
     pio_sm_init(pio, sm, offset, &c);
-
-    // Set the state machine running (commented out so can be synchronized w/ vsync)
     // pio_sm_set_enabled(pio, sm, true);
 }
 %}
