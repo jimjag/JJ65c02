@@ -1,0 +1,17 @@
+;
+.program ps2_keyboard
+
+    wait 0 pin 1     ; skip start bit
+    wait 1 pin 1
+
+    set x, 7         ; PS2 data is 8 bits
+loop:
+    wait 0 pin 1 [1] ; wait negative clock edge 
+    in pins, 1       ; get bit
+    wait 1 pin 1     ; wait for positive edge
+    jmp x-- loop     ; wait for all 8 bits
+
+    wait 0 pin 1     ; skip parity and stop bits
+    wait 1 pin 1
+    wait 0 pin 1
+    wait 1 pin 1
