@@ -16,9 +16,9 @@ A15   |2     23| /RAM_CS
 A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
 A12   |5     20| BA13
-BK0   |6     19| BA14
-BK1   |7     18| --
---    |8     17| --
+A11   |6     19| BA14
+BK0   |7     18| PICO_CS
+BK1   |8     17| --
 --    |9     16| --
 --    |10    15| --
 --    |11    14| --
@@ -33,8 +33,9 @@ Pin 2  =  A15;   /* Address lines from CPU */
 Pin 3  =  A14;
 Pin 4  =  A13;
 Pin 5  =  A12;
-Pin 6  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
-Pin 7  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
+Pin 6  =  A11;   /* For Pico */
+Pin 7  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
+Pin 8  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
 
 /* Outputs:  Chip Selects */
 Pin 23 = RAM_CS;  /* to RAM /CS pin */
@@ -42,6 +43,7 @@ Pin 22 = ROM_CS;  /* to ROM /CS */
 Pin 21 = IO_CS;   /* to IO (VIA and ACIA) /CS pin */
 Pin 20 = BA13;    /* To RAM chip, A13 */
 Pin 19 = BA14;    /* To RAM ship, A14 */
+Pin 18 = PICO_CS; /* To Pi Pico - NOTE: Active High */
 
 
 FIELD ADDR = [A15..A00];
@@ -62,6 +64,7 @@ IS_IO = IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
+PICO_CS = IS_IO & A11;
 
 /*
  A15 -> A15
