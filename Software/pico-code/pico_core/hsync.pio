@@ -8,7 +8,7 @@
 ; frontporch: 16 clocks (0.64us at 25MHz)
 ; sync pulse: 96 clocks (3.84us at 25MHz)
 ; back porch: 48 clocks (1.92us at 25MHz)
-; active for: 640 clcks (25.6us at 25MHz)
+; active for: 640 clocks (25.6us at 25MHz)
 ;
 ; High for 704 cycles (28.16us at 25MHz)
 ; Low  for 96  cycles (3.84us at 25MHz)

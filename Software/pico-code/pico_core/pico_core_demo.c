@@ -21,6 +21,8 @@
  *
  */
 
+// Orig version V. Hunter Adams / Cornell
+
 // VGA graphics library
 #include "vga_core.h"
 #include "ps2_keyboard.h"

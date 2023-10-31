@@ -20,6 +20,9 @@
  *  -   PIO state machine 0 on PIO instance 1
  *
  */
+
+// Orig version V. Hunter Adams / Cornell
+
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
@@ -67,12 +70,7 @@ int memcpy_dma_chan;
 #define BOTTOMMASK 0b11110000
 
 // For drawLine
-#define swap(a, b)      \
-    {                   \
-        int t = a;    \
-        a = b;          \
-        b = t;          \
-    }
+#define swap(a, b) { int t = a; a = b; b = t; }
 
 // For writing text
 #define tabspace 4 // number of spaces for a tab

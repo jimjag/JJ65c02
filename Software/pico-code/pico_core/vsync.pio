@@ -7,12 +7,9 @@
 
 ; frontporch: 10  lines
 ; sync pulse: 2   lines
-; back porch: 33  lines (perhaps we try 32, since that's easier)
+; back porch: 33  lines
 ; active for: 480 lines
 ;
-; Code size could be reduced with side setting
-
-
 
 pull block                        ; Pull from FIFO to OSR (only once)
 .wrap_target                      ; Program wraps to here
@@ -37,12 +34,9 @@ wait 1 irq 0                      ; Wait for a second line
 
 ; BACKPORCH
 set y, 31                         ; First part of back porch into y scratch register (and delays a cycle)
-;set pins, 1                      ; Raise high for back porch (delaying a set cycle) - REPLACED WITH SIDESET
 backporch:
-    wait 1 irq 0   side 1         ; Wait for hsync to go high - SIDESET REPLACEMENT HERE
+    wait 1 irq 0   side 1         ; Wait for hsync to go high
     jmp y-- backporch             ; Remain in backporch, decrementing counter
-
-;wait 1 irq 0                      ; Wait for final (33rd) backporch line (eliminated)
 
 .wrap                             ; Program wraps from here
 

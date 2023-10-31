@@ -7,12 +7,17 @@
  *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
  *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
  *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 14 ---> PS2 Data pin
+ *  - GPIO 15 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
- *  - PIO state machines 0, 1, and 2 on PIO instance 0
- *  - DMA channels 0, 1, 2, and 3
- *  - 153.6 kBytes of RAM (for pixel color data)
+ *  - VGA:
+ *  -   PIO state machines 0, 1, and 2 on PIO instance 0
+ *  -   DMA channels 0, 1, 2, and 3
+ *  -   153.6 kBytes of RAM (for pixel color data)
+ *  - PS2:
+ *  -   PIO state machine 0 on PIO instance 1
  *
  */
 #include <stdint.h>
@@ -20,7 +25,6 @@
 #include "hardware/pio.h"
 
 
-// Give the I/O pins that we're using some names that make sense - usable in main()
  enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
@@ -47,7 +51,7 @@ void setTextColor(char c);
 void setTextColor2(char c, char bg);
 void setTextSize(unsigned char s);
 void setTextWrap(char w);
-void tft_write(unsigned char c);
+// void tft_write(unsigned char c);
 void writeString(char* str);
 
 void VGA_fillScreen(uint16_t color);
