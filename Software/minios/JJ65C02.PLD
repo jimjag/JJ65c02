@@ -17,9 +17,9 @@ A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
 A12   |5     20| BA13
 A11   |6     19| BA14
-BK0   |7     18| PICO_CS
+BK0   |7     18| PICO_W
 BK1   |8     17| --
---    |9     16| --
+RW    |9     16| --
 --    |10    15| --
 --    |11    14| --
 Gnd   |12    13| --
@@ -36,6 +36,7 @@ Pin 5  =  A12;
 Pin 6  =  A11;   /* For Pico */
 Pin 7  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
 Pin 8  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
+Pin 9  =  RW;    /* R/W of the 6502 */
 
 /* Outputs:  Chip Selects */
 Pin 23 = RAM_CS;  /* to RAM /CS pin */
@@ -64,7 +65,7 @@ IS_IO = IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
-PICO_CS = IS_IO & A11;
+PICO_W = !RW & IS_IO & A11;
 
 /*
  A15 -> A15
