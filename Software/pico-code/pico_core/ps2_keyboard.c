@@ -111,18 +111,20 @@ int ps2Ready(void) {
         if (release) {
             shift = 0;
             release = 0;
-        } else
+        } else {
             shift = 1;
+        }
         break;
     case 0x14:               // Left or Right CNTL key (yep, same scancode)
         if (release) {
             cntl = 0;
             release = 0;
-        } else
+        } else {
             cntl = 1;
+        }
         break;
     default:
-        if (!release)
+        if (!release) {
             if (cntl) {
                 ascii = ps2_to_ascii_cntl[code];
                 cntl = 0;
@@ -133,6 +135,7 @@ int ps2Ready(void) {
                 // default
                 ascii = ps2_to_ascii_lower[code];
             }
+        }
         release = 0;
         break;
     }
@@ -143,8 +146,9 @@ int ps2Ready(void) {
 // Returns  - single ASCII character
 char ps2GetChar(void) {
     char c;
-    while (!(c = ps2Ready()))
+    while (!(c = ps2Ready())) {
         tight_loop_contents();
+    }
     ascii = 0;
     return c;
 }
