@@ -39,26 +39,11 @@
 // Font file
 #include "vga_fonts.c"
 
-// VGA timing constants
-#define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
-#define V_ACTIVE 479        // (active - 1)
-#define SCANLINE_ACTIVE 319 // (horizontal active)/2 - 1
-// #define SCANLINE_ACTIVE 639 // change to this if 1 pixel/byte
-
-// Screen width/height/freq
-#define SCREENWIDTH 640
-#define SCREENHEIGHT 480
-#define _freq 25000000.0f
-
-// Length of the pixel array, and number of DMA transfers
-#define TXCOUNT 153600 // Total pixels/2 (since we have 2 pixels per byte)
-// int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
-
 // Pixel color array that is DMA's to the PIO machines and
 // a pointer to the ADDRESS of this color array.
 // Note that this array is automatically initialized to all 0's (black)
 unsigned char vga_data_array[TXCOUNT];
-char *address_pointer = &vga_data_array[0];
+unsigned char *address_pointer = &vga_data_array[0];
 
 static const unsigned char *font = font_sperry;
 
@@ -70,7 +55,7 @@ int memcpy_dma_chan;
 #define BOTTOMMASK 0b11110000
 
 // For drawLine
-#define swap(a, b) { int t = a; a = b; b = t; }
+#define swap(a, b) do { int t = a; a = b; b = t; } while (false)
 
 // For writing text
 #define tabspace 4 // number of spaces for a tab
@@ -79,7 +64,7 @@ int memcpy_dma_chan;
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // For drawing characters in Graphics Mode
-unsigned int cursor_y, cursor_x, textsize;
+int cursor_y, cursor_x, textsize;
 char textcolor, textbgcolor, wrap;
 
 // Terminal screen sizes (Terminal mode) - Assume 640x480 and 8x16 bitmaps
@@ -117,8 +102,8 @@ void initVGA(void) {
     // Why not create these programs here? By putting the initialization function in
     // the pio file, then all information about how to use/setup that state machine
     // is consolidated in one place. Here in the C, we then just import and use it.
-    hsync_program_init(pio, hsync_sm, hsync_offset, HSYNC, _freq);
-    vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, _freq);
+    hsync_program_init(pio, hsync_sm, hsync_offset, HSYNC, PIXFREQ);
+    vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +167,7 @@ void initVGA(void) {
     pio_enable_sm_mask_in_sync(pio, ((1u << hsync_sm) | (1u << vsync_sm) | (1u << scanline_sm)));
 
     // Start DMA channel 0. Once started, the contents of the pixel color array
-    // will be continously DMA's to the PIO machines that are driving the screen.
+    // will be constantly DMAed to the PIO machines that are driving the screen.
     // To change the contents of the screen, we need only change the contents
     // of that array.
     dma_start_channel_mask((1u << scanline_chan_0));
@@ -338,7 +323,7 @@ void drawRect(int x, int y, int w, int h, char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      w:  width of the rectangle
      *      h:  height of the rectangle
-     *      color:  16-bit color of the rectangle outline
+     *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
     drawHLine(x, y, w, color);
@@ -355,7 +340,7 @@ void drawCircle(int x0, int y0, int r, char color) {
      *      y0: y-coordinate of center of circle. The top-left of the screen
      *          has y-coordinate 0 and increases to the bottom
      *      r:  radius of circle
-     *      color: 16-bit color value for the circle. Note that the circle
+     *      color: 4-bit color value for the circle. Note that the circle
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
@@ -483,7 +468,7 @@ void drawRoundRect(int x, int y, int w, int h, int r, char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      w:  width of the rectangle
      *      h:  height of the rectangle
-     *      color:  16-bit color of the rectangle outline
+     *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
     // smarter version
@@ -638,8 +623,8 @@ inline void writeString(char *str) {
     }
 }
 
-// Terminal Mode function
-//   Long term goal is vt52/vt100 emulation where we rec an
+// Terminal Mode functions
+//   Long term goal is vt52/vt100 emulation where we recv an
 //   ASCII char and print it out if printable or else honor
 //   the escape code. In this mode we map the bitmap screen
 //   to a 80x30 terminal, with the current cursor indicated

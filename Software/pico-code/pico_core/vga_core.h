@@ -24,8 +24,24 @@
 #include <stddef.h>
 #include "hardware/pio.h"
 
+// TODO: Eventually support resolutions > 640x480
 
- enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
+// VGA timing constants
+#define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
+#define V_ACTIVE 479        // (active - 1)
+#define SCANLINE_ACTIVE 319 // (horizontal active)/2 - 1
+// #define SCANLINE_ACTIVE 639 // change to this if 1 pixel/byte
+
+// Screen width/height/freq
+#define SCREENWIDTH 640
+#define SCREENHEIGHT 480
+#define PIXFREQ 25000000.0f
+
+// Length of the pixel array, and number of DMA transfers
+#define TXCOUNT 153600 // Total pixels/2 (since we have 2 pixels per byte)
+// int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
+
+enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
