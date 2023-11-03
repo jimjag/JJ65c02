@@ -27,8 +27,8 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
-// Our assembled programs:
-// Each gets the name <pio_filename.pio.h>
+// Our assembled program:
+// pioasm converts foo.pio to fio.pio.h
 #include "ps2_keyboard.pio.h"
 // Header file
 #include "ps2_keyboard.h"

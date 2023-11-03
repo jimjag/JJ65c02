@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 // Our assembled programs:
-// Each gets the name <pio_filename.pio.h>
+// pioasm converts foo.pio to foo.pio.h
 #include "hsync.pio.h"
 #include "scanline.pio.h"
 #include "vsync.pio.h"
@@ -39,7 +39,7 @@
 // Font file
 #include "vga_fonts.c"
 
-// Pixel color array that is DMA's to the PIO machines and
+// Pixel color array that is DMAed to the PIO machines and
 // a pointer to the ADDRESS of this color array.
 // Note that this array is automatically initialized to all 0's (black)
 unsigned char vga_data_array[TXCOUNT];
@@ -332,6 +332,42 @@ void drawRect(int x, int y, int w, int h, char color) {
     drawVLine(x + w - 1, y, h, color);
 }
 
+static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, char color) {
+    // Helper function for drawing circles and circular objects
+    int f = 1 - r;
+    int ddF_x = 1;
+    int ddF_y = -2 * r;
+    int x = 0;
+    int y = r;
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+        if (cornername & 0x4) {
+            drawPixel(x0 + x, y0 + y, color);
+            drawPixel(x0 + y, y0 + x, color);
+        }
+        if (cornername & 0x2) {
+            drawPixel(x0 + x, y0 - y, color);
+            drawPixel(x0 + y, y0 - x, color);
+        }
+        if (cornername & 0x8) {
+            drawPixel(x0 - y, y0 + x, color);
+            drawPixel(x0 - x, y0 + y, color);
+        }
+        if (cornername & 0x1) {
+            drawPixel(x0 - y, y0 - x, color);
+            drawPixel(x0 - x, y0 - y, color);
+        }
+    }
+}
+
 void drawCircle(int x0, int y0, int r, char color) {
     /* Draw a circle outline with center (x0,y0) and radius r, with given color
      * Parameters:
@@ -376,58 +412,7 @@ void drawCircle(int x0, int y0, int r, char color) {
     }
 }
 
-void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, char color) {
-    // Helper function for drawing circles and circular objects
-    int f = 1 - r;
-    int ddF_x = 1;
-    int ddF_y = -2 * r;
-    int x = 0;
-    int y = r;
-
-    while (x < y) {
-        if (f >= 0) {
-            y--;
-            ddF_y += 2;
-            f += ddF_y;
-        }
-        x++;
-        ddF_x += 2;
-        f += ddF_x;
-        if (cornername & 0x4) {
-            drawPixel(x0 + x, y0 + y, color);
-            drawPixel(x0 + y, y0 + x, color);
-        }
-        if (cornername & 0x2) {
-            drawPixel(x0 + x, y0 - y, color);
-            drawPixel(x0 + y, y0 - x, color);
-        }
-        if (cornername & 0x8) {
-            drawPixel(x0 - y, y0 + x, color);
-            drawPixel(x0 - x, y0 + y, color);
-        }
-        if (cornername & 0x1) {
-            drawPixel(x0 - y, y0 - x, color);
-            drawPixel(x0 - x, y0 - y, color);
-        }
-    }
-}
-
-void fillCircle(int x0, int y0, int r, char color) {
-    /* Draw a filled circle with center (x0,y0) and radius r, with given color
-     * Parameters:
-     *      x0: x-coordinate of center of circle. The top-left of the screen
-     *          has x-coordinate 0 and increases to the right
-     *      y0: y-coordinate of center of circle. The top-left of the screen
-     *          has y-coordinate 0 and increases to the bottom
-     *      r:  radius of circle
-     *      color: 4-bit color value for the circle
-     * Returns: Nothing
-     */
-    drawVLine(x0, y0 - r, 2 * r + 1, color);
-    fillCircleHelper(x0, y0, r, 3, 0, color);
-}
-
-void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta,
+static void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta,
                       char color) {
     // Helper function for drawing filled circles
     int f = 1 - r;
@@ -455,6 +440,21 @@ void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta
             drawVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color);
         }
     }
+}
+
+void fillCircle(int x0, int y0, int r, char color) {
+    /* Draw a filled circle with center (x0,y0) and radius r, with given color
+     * Parameters:
+     *      x0: x-coordinate of center of circle. The top-left of the screen
+     *          has x-coordinate 0 and increases to the right
+     *      y0: y-coordinate of center of circle. The top-left of the screen
+     *          has y-coordinate 0 and increases to the bottom
+     *      r:  radius of circle
+     *      color: 4-bit color value for the circle
+     * Returns: Nothing
+     */
+    drawVLine(x0, y0 - r, 2 * r + 1, color);
+    fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 // Draw a rounded rectangle
