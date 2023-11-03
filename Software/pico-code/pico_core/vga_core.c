@@ -613,7 +613,7 @@ static void tft_write(unsigned char c) {
     }
 }
 
-inline void writeString(char *str) {
+inline void writeString(unsigned char *str) {
     /* Print text onto screen
      * Call tft_setCursor(), tft_setTextColor(), tft_setTextSize()
      *  as necessary before printing
@@ -675,7 +675,7 @@ void printChar(unsigned char c) {
     }
 }
 
-inline void printString(char *str) {
+inline void printString(unsigned char *str) {
     while (*str) {
         printChar(*str++);
     }

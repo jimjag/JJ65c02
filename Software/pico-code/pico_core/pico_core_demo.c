@@ -195,7 +195,7 @@ int main() {
     setTxtCursor(60, 20);
     printString("PS2 test");
     while (true) {
-        char c = ps2GetChar();
+        char c = ps2GetCharBlk();
         setTxtCursor(60, 24);
         printChar(c);
         sprintf(hex, "%d", c);

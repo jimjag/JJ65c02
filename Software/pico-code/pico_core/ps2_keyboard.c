@@ -86,14 +86,14 @@ static const char ps2_to_ascii_cntl[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static int release; // Flag indicates the release of a key
-static int shift;   // Shift indication
-static int cntl;    // Control indication
-static uint8_t ascii;   // Translated to ASCII
+static bool release; // Flag indicates the release of a key
+static bool shift;   // Shift indication
+static bool cntl;    // Control indication
+static unsigned char ascii;   // Translated to ASCII
 
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-int ps2Ready(void) {
+unsigned char ps2GetChar(void) {
     if (ascii)
         return ascii;
     // pio_interrupt_clear(ps2_pio, 0);
@@ -144,9 +144,9 @@ int ps2Ready(void) {
 
 // Blocking keyboard read
 // Returns  - single ASCII character
-char ps2GetChar(void) {
-    char c;
-    while (!(c = ps2Ready())) {
+unsigned char ps2GetCharBlk(void) {
+    unsigned char c;
+    while (!(c = ps2GetChar())) {
         tight_loop_contents();
     }
     ascii = 0;

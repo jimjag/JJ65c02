@@ -68,7 +68,7 @@ void setTextColor2(char c, char bg);
 void setTextSize(unsigned char s);
 void setTextWrap(char w);
 // void tft_write(unsigned char c);
-void writeString(char* str);
+void writeString(unsigned char* str);
 
 void VGA_fillScreen(uint16_t color);
 
@@ -78,4 +78,4 @@ void dma_memcpy(void *dest, void *src, size_t num);
 void printChar(unsigned char c);
 void Scroll (void);
 void setTxtCursor(int x, int y);
-void printString(char* str);
+void printString(unsigned char* str);
