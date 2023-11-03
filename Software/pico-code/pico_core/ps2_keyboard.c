@@ -124,6 +124,7 @@ unsigned char ps2GetChar(void) {
         }
         break;
     default:
+        code &= 0x7F;
         if (!release) {
             if (cntl) {
                 ascii = ps2_to_ascii_cntl[code];
