@@ -9,7 +9,7 @@ Location  ;
 Device   p22v10 ;
 
 
-/* Pin Map
+/* Pin Map: ATF22V10C
        --------
 PHI   |1     24| Vcc
 A15   |2     23| /RAM_CS
@@ -17,10 +17,10 @@ A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
 A12   |5     20| BA13
 A11   |6     19| BA14
-BK0   |7     18| PICO_W
+BK0   |7     18| --
 BK1   |8     17| --
 RW    |9     16| --
---    |10    15| --
+--    |10    15| PICO_DR
 --    |11    14| --
 Gnd   |12    13| --
        --------
@@ -44,7 +44,8 @@ Pin 22 = ROM_CS;  /* to ROM /CS */
 Pin 21 = IO_CS;   /* to IO (VIA and ACIA) /CS pin */
 Pin 20 = BA13;    /* To RAM chip, A13 */
 Pin 19 = BA14;    /* To RAM ship, A14 */
-Pin 18 = PICO_CS; /* To Pi Pico - NOTE: Active High */
+/* To Pi Pico / Data Ready to Read on Data Input Pins - NOTE: Active High */
+Pin 15 = PICO_DR;
 
 
 FIELD ADDR = [A15..A00];
@@ -65,7 +66,7 @@ IS_IO = IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
-PICO_W = !RW & IS_IO & A11;
+PICO_DR = !RW & IS_IO & A11;
 
 /*
  A15 -> A15
