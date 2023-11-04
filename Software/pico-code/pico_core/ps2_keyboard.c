@@ -93,9 +93,13 @@ static unsigned char ascii;   // Translated to ASCII
 
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-unsigned char ps2GetChar(void) {
-    if (ascii)
-        return ascii;
+unsigned char ps2GetChar(bool clear) {
+    unsigned char c = ascii;
+    if (ascii) {
+        if (clear)
+            ascii = 0;
+        return c;
+    }
     // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
         return 0;
@@ -136,18 +140,21 @@ unsigned char ps2GetChar(void) {
                 // default
                 ascii = ps2_to_ascii_lower[code];
             }
+            c = ascii;
         }
         release = 0;
         break;
     }
-    return ascii;
+    if (clear)
+        ascii = 0;
+    return c;
 }
 
 // Blocking keyboard read
 // Returns  - single ASCII character
 unsigned char ps2GetCharBlk(void) {
     unsigned char c;
-    while (!(c = ps2GetChar())) {
+    while (!(c = ps2GetChar(false))) {
         tight_loop_contents();
     }
     ascii = 0;
