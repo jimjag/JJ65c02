@@ -1,14 +1,14 @@
 /**
  *
  * HARDWARE CONNECTIONS
- *  - GPIO 16 ---> VGA Hsync
- *  - GPIO 17 ---> VGA Vsync
- *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
- *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 17 ---> VGA Hsync
+ *  - GPIO 18 ---> VGA Vsync
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Red
  *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
- *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
- *  - GPIO 14 ---> PS2 Data pin
- *  - GPIO 15 ---> PS2 Clock pin
+ *  - GPIO 21 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 22 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 15 ---> PS2 Data pin
+ *  - GPIO 16 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
