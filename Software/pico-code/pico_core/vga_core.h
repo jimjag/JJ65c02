@@ -1,14 +1,14 @@
 /**
  *
  * HARDWARE CONNECTIONS
- *  - GPIO 16 ---> VGA Hsync
- *  - GPIO 17 ---> VGA Vsync
- *  - GPIO 18 ---> 470 ohm resistor ---> VGA Red
- *  - GPIO 19 ---> 470 ohm resistor ---> VGA Blue
- *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
- *  - GPIO 21 ---> 1k ohm resistor ---> VGA Intensity (bright)
- *  - GPIO 14 ---> PS2 Data pin
- *  - GPIO 15 ---> PS2 Clock pin
+ *  - GPIO 17 ---> VGA Hsync
+ *  - GPIO 18 ---> VGA Vsync
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 21 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 22 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 15 ---> PS2 Data pin
+ *  - GPIO 16 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *
  * RESOURCES USED
@@ -41,7 +41,7 @@
 #define TXCOUNT 153600 // Total pixels/2 (since we have 2 pixels per byte)
 // int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
-enum vga_pins {HSYNC=16, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
+enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,

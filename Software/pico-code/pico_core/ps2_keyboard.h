@@ -27,8 +27,8 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
-#define PS2_DATA_PIN 14
-#define PS2_CLK_PIN 15
+#define PS2_DATA_PIN 15
+#define PS2_CLK_PIN 16
 
 void initPS2(void);
 unsigned char ps2GetChar(bool clear);

@@ -1,4 +1,4 @@
-22375066206784888
+22385262738793725
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -61068,6 +61068,27 @@ THT
 4
 2
 JJ65c02
+AMPHENOL_L77HDE15SD1CH4F
+
+
+0
+17
+17
+JJ65c02
+CONN_HDE15P_AMP
+
+L717HDE15P 
+0
+17
+17
+JJ65c02
+CONN_MD-60SM_CUD
+
+MD-60SM 
+0
+6
+6
+JJ65c02
 DIP1524W45P254L4191H419Q32
 
 
@@ -61081,6 +61102,13 @@ THT DIP DIL ZIF 15.24mm 600mil Socket
 0
 28
 28
+JJ65c02
+GCT_USB4085-GF-A_REVB
+
+
+0
+20
+20
 JJ65c02
 LCD-20x4
 
@@ -61144,6 +61172,20 @@ TO254P1054X470X1955-3
 0
 3
 3
+JJ65c02
+TXB0108
+
+
+0
+20
+20
+JJ65c02
+USBC_power
+
+
+0
+4
+4
 JJ65c02
 maxboard
 Terminal Block TE 282834-6, 6 pins, pitch 2.54mm, size 15.7x6.5mm^2, drill diamater 1.1mm, pad diameter 2.1mm, see http://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Customer+Drawing%7F282834%7FC1%7Fpdf%7FEnglish%7FENG_CD_282834_C1.pdf, script-generated using https://github.com/pointhi/kicad-footprint-generator/scripts/TerminalBlock_TE-Connectivity
