@@ -33,14 +33,14 @@
 #include "hardware/dma.h"
 
 // Some globals for storing timer information
-volatile unsigned int time_accum = 0;
-unsigned int time_accum_old = 0;
+volatile int time_accum = 15;
+int time_accum_old = 0;
 char timetext[40];
 
 // Timer interrupt
 bool repeating_timer_callback(struct repeating_timer *t) {
 
-    time_accum += 1;
+    time_accum -= 1;
     return true;
 }
 
@@ -54,7 +54,8 @@ int main() {
     initPS2();
 
     // circle radii
-    short circle_x = 0;
+    short circle_r = 0;
+    short circle_x = 320;
 
     // color chooser
     char color_index = 0;
@@ -83,7 +84,7 @@ int main() {
     writeString("JJ65C02");
     setCursor(250, 4);
     setTextSize(2);
-    writeString("Elapsed:");
+    writeString("Countdown:");
 
     // Setup a 1Hz timer
     struct repeating_timer timer;
@@ -99,9 +100,10 @@ int main() {
         if (disc_x > 640) disc_x = 0;
 
         // Concentric empty circles
-        drawCircle(320, 200, circle_x, color_index);
-        circle_x += 1;
-        if (circle_x > 95) circle_x = 0;
+        drawCircle(circle_x, 200, circle_r, color_index);
+        if (circle_r++ > 95) circle_r = 0;
+        circle_x += 2;
+        if (circle_x > 350) circle_x = 320;
 
         // A series of rectangles
         drawRect(10, 300, box_x, box_x, color_index);
@@ -125,8 +127,8 @@ int main() {
         // Timing text
         if (time_accum != time_accum_old) {
             time_accum_old = time_accum;
-            sprintf(timetext, "%d", time_accum);
-            setCursor(435, 4);
+            sprintf(timetext, "%02d", time_accum);
+            setCursor(440, 4);
             setTextSize(2);
             setTextColor2(WHITE, GREEN);
             writeString(timetext);
@@ -134,7 +136,7 @@ int main() {
 
         // A brief nap
         sleep_ms(10);
-        if (time_accum >= 31) break;
+        if (time_accum <= 0) break;
     }
     sleep_ms(5000);
     Scroll();
@@ -145,62 +147,65 @@ int main() {
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            fillRect(i * 70 + 20, 150 + j * 70, 60, 60, i + 4 * j);
-            setCursor(i * 70 + 20, 150 + j * 70);
+            fillRect(i * 90 + 20, 150 + j * 70, 60, 60, i + 4 * j);
+            setCursor(i * 90 + 20, 150 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             writeString(video_buffer);
         }
     }
     // first row of colors
-    setCursor(0 * 70 + 20, 200 + 0 * 70);
+    setCursor(0 * 90 + 20, 200 + 0 * 70);
     writeString("Black");
-    setCursor(1 * 70 + 20, 200 + 0 * 70);
+    setCursor(1 * 90 + 20, 200 + 0 * 70);
     writeString("Red");
-    setCursor(2 * 70 + 20, 200 + 0 * 70);
+    setCursor(2 * 90 + 20, 200 + 0 * 70);
     writeString("Green");
-    setCursor(3 * 70 + 20, 200 + 0 * 70);
+    setCursor(3 * 90 + 20, 200 + 0 * 70);
     writeString("Yellow");
     // second row of colors
-    setCursor(0 * 70 + 20, 200 + 1 * 70);
+    setCursor(0 * 90 + 20, 200 + 1 * 70);
     writeString("Blue");
-    setCursor(1 * 70 + 20, 200 + 1 * 70);
+    setCursor(1 * 90 + 20, 200 + 1 * 70);
     writeString("Magenta");
-    setCursor(2 * 70 + 20, 200 + 1 * 70);
+    setCursor(2 * 90 + 20, 200 + 1 * 70);
     writeString("Cyan");
-    setCursor(3 * 70 + 20, 200 + 1 * 70);
+    setCursor(3 * 90 + 20, 200 + 1 * 70);
     writeString("Light Grey");
     // thrid row of colors
-    setCursor(0 * 70 + 20, 200 + 2 * 70);
+    setCursor(0 * 90 + 20, 200 + 2 * 70);
     writeString("Grey");
-    setCursor(1 * 70 + 20, 200 + 2 * 70);
+    setCursor(1 * 90 + 20, 200 + 2 * 70);
     writeString("Light Red");
-    setCursor(2 * 70 + 20, 200 + 2 * 70);
+    setCursor(2 * 90 + 20, 200 + 2 * 70);
     writeString("Light Green");
-    setCursor(3 * 70 + 20, 200 + 2 * 70);
+    setCursor(3 * 90 + 20, 200 + 2 * 70);
     writeString("Light Yellow");
     // fourth row of colors
-    setCursor(0 * 70 + 20, 200 + 3 * 70);
+    setCursor(0 * 90 + 20, 200 + 3 * 70);
     writeString("Light Blue");
-    setCursor(1 * 70 + 20, 200 + 3 * 70);
+    setCursor(1 * 90 + 20, 200 + 3 * 70);
     writeString("Light Magenta");
-    setCursor(2 * 70 + 20, 200 + 3 * 70);
+    setCursor(2 * 90 + 20, 200 + 3 * 70);
     writeString("Light Cyan");
-    setCursor(3 * 70 + 20, 200 + 3 * 70);
+    setCursor(3 * 90 + 20, 200 + 3 * 70);
     writeString("White");
     setCursor(0, 460);
     writeString("1234567890123456789012345678901234567890123456789012345678901234567890123456789");
-    sleep_ms(15000);
+    sleep_ms(5000);
 
     char hex[40];
     setTxtCursor(60, 20);
     printString("PS2 test");
+    clearPS2();
     while (true) {
-        char c = ps2GetCharBlk();
-        setTxtCursor(60, 24);
-        printChar(c);
-        sprintf(hex, "%d", c);
-        setTxtCursor(70, 24);
-        printString(hex);
+        char c = ps2GetChar();
+        if (c) {
+            setTxtCursor(60, 24);
+            printChar(c);
+            sprintf(hex, "0x%02x", c);
+            setTxtCursor(70, 24);
+            printString(hex);
+        }
     }
 
 }

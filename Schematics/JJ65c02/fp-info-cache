@@ -1,4 +1,4 @@
-22385262738793725
+22385264083273853
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -61156,8 +61156,8 @@ RPi_Pico_SMD_TH
 Through hole straight pin header, 2x20, 2.54mm pitch, double rows
 Through hole pin header THT 2x20 2.54mm double row
 0
-46
-43
+40
+40
 JJ65c02
 Raspberry_pi_pico
 

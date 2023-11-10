@@ -36,6 +36,6 @@ static inline void ps2_program_init(PIO pio, uint sm, uint offset, uint pin) {
 
     sm_config_set_clkdiv(&c, 427);
     pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+    // pio_sm_set_enabled(pio, sm, true);
 }
 %}

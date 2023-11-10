@@ -39,6 +39,10 @@ static PIO ps2_pio;
 //static uint ps2_pio_irq;
 //static void ps2_ihandler();
 
+static bool release; // Flag indicates the release of a key
+static bool shift;   // Shift indication
+static bool cntl;    // Control indication
+
 void initPS2(void) {
     ps2_pio = pio1;
     //ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
@@ -48,9 +52,16 @@ void initPS2(void) {
     //pio_set_irq0_source_enabled(ps2_pio, pis_interrupt0, true);
     //irq_set_exclusive_handler(ps2_pio_irq, ps2_ihandler);
     //irq_set_enabled(ps2_pio_irq, true);
-    //pio_sm_set_enabled(ps2_pio, ps2_sm, true);
+    pio_sm_set_enabled(ps2_pio, ps2_sm, true);
+    // get rid of noise on pins when the PS/2 keyboard is enabled
+    sleep_ms(1);
+    pio_sm_clear_fifos(ps2_pio, ps2_sm);
 }
 
+void clearPS2(void) {
+    pio_sm_clear_fifos(ps2_pio, ps2_sm);
+    release = shift = cntl = 0;
+}
 // clang-format off
 
 static const char ps2_to_ascii_lower[] = {
@@ -86,20 +97,10 @@ static const char ps2_to_ascii_cntl[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static bool release; // Flag indicates the release of a key
-static bool shift;   // Shift indication
-static bool cntl;    // Control indication
-static unsigned char ascii;   // Translated to ASCII
-
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-unsigned char ps2GetChar(bool clear) {
-    unsigned char c = ascii;
-    if (ascii) {
-        if (clear)
-            ascii = 0;
-        return c;
-    }
+unsigned char ps2GetChar(void) {
+    unsigned char ascii = 0;
     // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
         return 0;
@@ -107,56 +108,52 @@ unsigned char ps2GetChar(bool clear) {
     // uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
     uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
     switch (code) {
-    case 0xF0:               // key-release code 0xF0
-        release = 1;         // release flag
-        break;
-    case 0x12:               // Left-side shift
-    case 0x59:               // Right-side shift
-        if (release) {
-            shift = 0;
-            release = 0;
-        } else {
-            shift = 1;
-        }
-        break;
-    case 0x14:               // Left or Right CNTL key (yep, same scancode)
-        if (release) {
-            cntl = 0;
-            release = 0;
-        } else {
-            cntl = 1;
-        }
-        break;
-    default:
-        code &= 0x7F;
-        if (!release) {
-            if (cntl) {
-                ascii = ps2_to_ascii_cntl[code];
-                cntl = 0;
-            } else if (shift) {
-                ascii = ps2_to_ascii_upper[code];
+        case 0xF0:               // key-release code 0xF0
+            release = 1;         // release flag
+            break;
+        case 0x12:               // Left-side shift
+        case 0x59:               // Right-side shift
+            if (release) {
                 shift = 0;
+                release = 0;
             } else {
-                // default
-                ascii = ps2_to_ascii_lower[code];
+                shift = 1;
             }
-            c = ascii;
-        }
-        release = 0;
-        break;
+            break;
+        case 0x14:               // Left or Right CNTL key (yep, same scancode)
+            if (release) {
+                cntl = 0;
+                release = 0;
+            } else {
+                cntl = 1;
+            }
+            break;
+        default:
+            code &= 0x7F;
+            if (!release) {
+                if (cntl) {
+                    ascii = ps2_to_ascii_cntl[code];
+                    cntl = 0;
+                } else if (shift) {
+                    ascii = ps2_to_ascii_upper[code];
+                    shift = 0;
+                } else {
+                    // default
+                    ascii = ps2_to_ascii_lower[code];
+                }
+            }
+            release = 0;
+            break;
     }
-    if (clear)
-        ascii = 0;
-    return c;
+    return ascii;
 }
 
 // Blocking keyboard read
 // Returns  - single ASCII character
 unsigned char ps2GetCharBlk(void) {
     unsigned char c;
-    while (!(c = ps2GetChar(false))) {
+    while (!(c = ps2GetChar())) {
         tight_loop_contents();
     }
-    ascii = 0;
     return c;
 }

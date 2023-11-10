@@ -31,5 +31,6 @@
 #define PS2_CLK_PIN 16
 
 void initPS2(void);
-unsigned char ps2GetChar(bool clear);
+unsigned char ps2GetChar(void);
 unsigned char ps2GetCharBlk(void);
+void clearPS2(void);
