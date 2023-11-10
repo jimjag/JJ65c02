@@ -592,6 +592,17 @@ inline void setTextColor2(char c, char b) {
 
 inline void setTextWrap(char w) { wrap = w; }
 
+inline void setFont(char n) {
+    switch (n) {
+        case 2:
+            font = font_acm;
+            break;
+        default:
+            font = font_sperry;
+            break;
+    }
+}
+
 static void tft_write(unsigned char c) {
     if (c == '\n') {
         cursor_y += textsize * FONTHEIGHT;

@@ -67,6 +67,7 @@ void setTextColor(char c);
 void setTextColor2(char c, char bg);
 void setTextSize(unsigned char s);
 void setTextWrap(char w);
+void setFont(char n);
 // void tft_write(unsigned char c);
 void writeString(unsigned char* str);
 
