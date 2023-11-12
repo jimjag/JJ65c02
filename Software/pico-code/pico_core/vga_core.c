@@ -216,7 +216,7 @@ void dma_memcpy(void *dest, void *src, size_t num) {
 }
 
 void VGA_fillScreen(uint16_t color) {
-    dma_memset(vga_data_array, (color) | (color << 3), TXCOUNT);
+    dma_memset(vga_data_array, (color) | (color << 4), TXCOUNT);
 }
 
 // A function for drawing a pixel with a specified color.
@@ -595,6 +595,9 @@ inline void setTextWrap(char w) { wrap = w; }
 inline void setFont(char n) {
     switch (n) {
         case 2:
+            font = font_sweet16;
+            break;
+        case 1:
             font = font_acm;
             break;
         default:

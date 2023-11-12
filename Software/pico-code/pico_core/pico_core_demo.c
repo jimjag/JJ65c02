@@ -79,7 +79,7 @@ int main() {
     setTextSize(1);
     writeString("Raspberry Pi Pico");
     setCursor(65, 16);
-    writeString("Graphics demo");
+    writeString("Graphics demo/HA based");
     setCursor(65, 32);
     writeString("JJ65C02");
     setCursor(250, 4);
@@ -88,7 +88,7 @@ int main() {
 
     // Setup a 1Hz timer
     struct repeating_timer timer;
-    add_repeating_timer_ms(-1000, repeating_timer_callback, NULL, &timer);
+    add_repeating_timer_ms(-999, repeating_timer_callback, NULL, &timer);
 
     while (true) {
         // Modify the color chooser
@@ -141,60 +141,64 @@ int main() {
     sleep_ms(5000);
     Scroll();
     sleep_ms(5000);
+    Scroll();
+    sleep_ms(5000);
+    VGA_fillScreen(BLUE);
+    sleep_ms(5000);
     VGA_fillScreen(BLACK);
     char video_buffer[32];
     setTextColor2(WHITE, BLACK);
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            fillRect(i * 90 + 20, 150 + j * 70, 60, 60, i + 4 * j);
-            setCursor(i * 90 + 20, 150 + j * 70);
+            fillRect(i * 100 + 20, 150 + j * 70, 60, 60, i + 4 * j);
+            setCursor(i * 100 + 20, 150 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             writeString(video_buffer);
         }
     }
     // first row of colors
-    setCursor(0 * 90 + 20, 200 + 0 * 70);
+    setCursor(0 * 100 + 20, 200 + 0 * 70);
     writeString("Black");
-    setCursor(1 * 90 + 20, 200 + 0 * 70);
+    setCursor(1 * 100 + 20, 200 + 0 * 70);
     writeString("Red");
-    setCursor(2 * 90 + 20, 200 + 0 * 70);
+    setCursor(2 * 100 + 20, 200 + 0 * 70);
     writeString("Green");
-    setCursor(3 * 90 + 20, 200 + 0 * 70);
+    setCursor(3 * 100 + 20, 200 + 0 * 70);
     writeString("Yellow");
     // second row of colors
-    setCursor(0 * 90 + 20, 200 + 1 * 70);
+    setCursor(0 * 100 + 20, 200 + 1 * 70);
     writeString("Blue");
-    setCursor(1 * 90 + 20, 200 + 1 * 70);
+    setCursor(1 * 100 + 20, 200 + 1 * 70);
     writeString("Magenta");
-    setCursor(2 * 90 + 20, 200 + 1 * 70);
+    setCursor(2 * 100 + 20, 200 + 1 * 70);
     writeString("Cyan");
-    setCursor(3 * 90 + 20, 200 + 1 * 70);
+    setCursor(3 * 100 + 20, 200 + 1 * 70);
     writeString("Light Grey");
-    // thrid row of colors
-    setCursor(0 * 90 + 20, 200 + 2 * 70);
+    // third row of colors
+    setCursor(0 * 100 + 20, 200 + 2 * 70);
     writeString("Grey");
-    setCursor(1 * 90 + 20, 200 + 2 * 70);
+    setCursor(1 * 100 + 20, 200 + 2 * 70);
     writeString("Light Red");
-    setCursor(2 * 90 + 20, 200 + 2 * 70);
+    setCursor(2 * 100 + 20, 200 + 2 * 70);
     writeString("Light Green");
-    setCursor(3 * 90 + 20, 200 + 2 * 70);
+    setCursor(3 * 100 + 20, 200 + 2 * 70);
     writeString("Light Yellow");
     // fourth row of colors
-    setCursor(0 * 90 + 20, 200 + 3 * 70);
+    setCursor(0 * 100 + 20, 200 + 3 * 70);
     writeString("Light Blue");
-    setCursor(1 * 90 + 20, 200 + 3 * 70);
+    setCursor(1 * 100 + 20, 200 + 3 * 70);
     writeString("Light Magenta");
-    setCursor(2 * 90 + 20, 200 + 3 * 70);
+    setCursor(2 * 100 + 20, 200 + 3 * 70);
     writeString("Light Cyan");
-    setCursor(3 * 90 + 20, 200 + 3 * 70);
+    setCursor(3 * 100 + 20, 200 + 3 * 70);
     writeString("White");
     setCursor(0, 460);
-    writeString("1234567890123456789012345678901234567890123456789012345678901234567890123456789");
-    setFont(2);
-    setCursor(0, 440);
-    writeString("1234567890123456789012345678901234567890123456789012345678901234567890123456789");
+    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(1);
+    setCursor(0, 440);
+    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    setFont(0);
     sleep_ms(5000);
 
     char hex[40];
