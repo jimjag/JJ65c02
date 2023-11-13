@@ -136,7 +136,7 @@ int main() {
 
         // A brief nap
         sleep_ms(10);
-        if (time_accum <= 0) break;
+        if (time_accum < 0) break;
     }
     sleep_ms(5000);
     Scroll();
@@ -151,52 +151,55 @@ int main() {
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            fillRect(i * 100 + 20, 150 + j * 70, 60, 60, i + 4 * j);
-            setCursor(i * 100 + 20, 150 + j * 70);
+            fillRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j);
+            setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             writeString(video_buffer);
         }
     }
     // first row of colors
-    setCursor(0 * 100 + 20, 200 + 0 * 70);
+    setCursor(0 * 110 + 20, 150 + 0 * 70);
     writeString("Black");
-    setCursor(1 * 100 + 20, 200 + 0 * 70);
+    setCursor(1 * 110 + 20, 150 + 0 * 70);
     writeString("Red");
-    setCursor(2 * 100 + 20, 200 + 0 * 70);
+    setCursor(2 * 110 + 20, 150 + 0 * 70);
     writeString("Green");
-    setCursor(3 * 100 + 20, 200 + 0 * 70);
+    setCursor(3 * 110 + 20, 150 + 0 * 70);
     writeString("Yellow");
     // second row of colors
-    setCursor(0 * 100 + 20, 200 + 1 * 70);
+    setCursor(0 * 110 + 20, 150 + 1 * 70);
     writeString("Blue");
-    setCursor(1 * 100 + 20, 200 + 1 * 70);
+    setCursor(1 * 110 + 20, 150 + 1 * 70);
     writeString("Magenta");
-    setCursor(2 * 100 + 20, 200 + 1 * 70);
+    setCursor(2 * 110 + 20, 150 + 1 * 70);
     writeString("Cyan");
-    setCursor(3 * 100 + 20, 200 + 1 * 70);
+    setCursor(3 * 110 + 20, 150 + 1 * 70);
     writeString("Light Grey");
     // third row of colors
-    setCursor(0 * 100 + 20, 200 + 2 * 70);
+    setCursor(0 * 110 + 20, 150 + 2 * 70);
     writeString("Grey");
-    setCursor(1 * 100 + 20, 200 + 2 * 70);
+    setCursor(1 * 110 + 20, 150 + 2 * 70);
     writeString("Light Red");
-    setCursor(2 * 100 + 20, 200 + 2 * 70);
+    setCursor(2 * 110 + 20, 150 + 2 * 70);
     writeString("Light Green");
-    setCursor(3 * 100 + 20, 200 + 2 * 70);
+    setCursor(3 * 110 + 20, 150 + 2 * 70);
     writeString("Light Yellow");
     // fourth row of colors
-    setCursor(0 * 100 + 20, 200 + 3 * 70);
+    setCursor(0 * 110 + 20, 150 + 3 * 70);
     writeString("Light Blue");
-    setCursor(1 * 100 + 20, 200 + 3 * 70);
+    setCursor(1 * 110 + 20, 150 + 3 * 70);
     writeString("Light Magenta");
-    setCursor(2 * 100 + 20, 200 + 3 * 70);
+    setCursor(2 * 110 + 20, 150 + 3 * 70);
     writeString("Light Cyan");
-    setCursor(3 * 100 + 20, 200 + 3 * 70);
+    setCursor(3 * 110 + 20, 150 + 3 * 70);
     writeString("White");
     setCursor(0, 460);
     writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(1);
     setCursor(0, 440);
+    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    setFont(2);
+    setCursor(0, 420);
     writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(0);
     sleep_ms(5000);
