@@ -139,9 +139,9 @@ int main() {
         if (time_accum < 0) break;
     }
     sleep_ms(5000);
-    Scroll();
+    vgaScroll(0);
     sleep_ms(5000);
-    Scroll();
+    vgaScroll(32);
     sleep_ms(5000);
     VGA_fillScreen(BLUE);
     sleep_ms(5000);

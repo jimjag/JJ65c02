@@ -133,10 +133,10 @@ unsigned char ps2GetChar(void) {
             if (!release) {
                 if (cntl) {
                     ascii = ps2_to_ascii_cntl[code];
-                    cntl = 0;
+                    // cntl = 0;
                 } else if (shift) {
                     ascii = ps2_to_ascii_upper[code];
-                    shift = 0;
+                    // shift = 0;
                 } else {
                     // default
                     ascii = ps2_to_ascii_lower[code];

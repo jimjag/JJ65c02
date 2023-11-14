@@ -72,6 +72,7 @@ int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;    // 80
 int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;  // 30
 int tcurs_x = 0;
 int tcurs_y = 0;
+int scanline_size = (SCREENWIDTH / 2); // Amount of space taken by each scanline
 int textrow_size = FONTHEIGHT * (SCREENWIDTH / 2); // Amount of space taken by each row of text
 
 void initVGA(void) {
@@ -644,9 +645,12 @@ inline void writeString(unsigned char *str) {
 //   to a 80x30 terminal, with the current cursor indicated
 //   by tcurs_x and tcurs_y (column and row)
 
-void Scroll (void) {
-    dma_memcpy(address_pointer, address_pointer + textrow_size, TXCOUNT - textrow_size);
-    dma_memset(address_pointer + TXCOUNT - textrow_size, 0, textrow_size);
+void vgaScroll (int scanlines) {
+    if (scanlines <= 0) scanlines = FONTHEIGHT;
+    if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
+    scanlines *= scanline_size;
+    dma_memcpy(address_pointer, address_pointer + scanlines, TXCOUNT - scanlines);
+    dma_memset(address_pointer + TXCOUNT - scanlines, 0, scanlines);
 }
 
 void setTxtCursor(int x, int y) {
@@ -680,7 +684,7 @@ void printChar(unsigned char c) {
     } else if (c == '\t') {
         tcurs_x += tabspace;
         if (tcurs_x > max_tcurs_x) {
-            // Scroll here? Wrap around?
+            // vgaScroll here? Wrap around?
             tcurs_x = max_tcurs_x;
         }
     } else {
