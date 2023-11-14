@@ -88,27 +88,27 @@ main:                                           ; boot routine, first thing load
     jsr TTY_setup_term
     TTY_writeln welcome_msg
 
-    jsr LCD_clear_video_ram
+    ;jsr LCD_clear_video_ram
 
     ; VIA1_
     jsr VIA_initialize
-    jsr LCD_initialize
+    ;jsr LCD_initialize
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
-    LCD_writeln message_welcomeacia
+    ;LCD_writeln message_welcomeacia
     TTY_writeln message_welcomeacia
     bra @welcome
 @no_acia:
-    LCD_writeln message_welcome                 ; render the boot screen
+    ;LCD_writeln message_welcome                 ; render the boot screen
 
 @welcome:
     cli                                         ; interupts are back on
-    ldy #0
-    ldx #19
-    jsr LCD_set_cursor
+    ;ldy #0
+    ;ldx #19
+    ;jsr LCD_set_cursor
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
     beq @ram_failed
@@ -117,7 +117,7 @@ main:                                           ; boot routine, first thing load
 @ram_failed:
     lda #'-'
 @cont2:
-    jsr LCD_send_data
+    ;jsr LCD_send_data
     ;jsr Welcome_tone
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                    ; should the menu ever return ...
