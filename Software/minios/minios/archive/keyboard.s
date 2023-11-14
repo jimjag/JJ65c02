@@ -60,9 +60,9 @@ KBD_ihandler:
     pha
     phx
     lda VIA2_PORTA
-    ldx INPUT_RWPTR
-    sta INPUT_RDBUFF,x                           ; Store in rx buffer
-    inc INPUT_RWPTR                              ; Increase write buffer pointer
+    ldx SERIN_WPTR
+    sta INPUT_BUFFER,x                           ; Store in rx buffer
+    inc SERIN_WPTR                              ; Increase write buffer pointer
 @done:
     plx
     pla

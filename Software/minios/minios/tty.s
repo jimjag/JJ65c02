@@ -80,20 +80,6 @@ TTY_setup_term:
 ;================================================================================
 
 ;
-; This uses the system buffer
-TTY_readln_sys:
-    pha
-    phy
-    phx
-    lda #<SYS_TTY_BUFFER
-    ldx #>SYS_TTY_BUFFER
-    ldy #(SYS_TTY_BUFFERLEN)
-    jsr TTY_readln
-    plx
-    ply
-    pla
-    rts
-
 TTY_readln:
     sta USER_INPUT_PTR          ; Lo address
     stx USER_INPUT_PTR+1        ; Hi address

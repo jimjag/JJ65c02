@@ -3,7 +3,6 @@ _TTY_INC_ = 1
 
 .import TTY_setup_term
 .import TTY_readln
-.import TTY_readln_sys
 .import TTY_clear_screen
 .import TTY_reset_user_input
 .import TTY_send_newline

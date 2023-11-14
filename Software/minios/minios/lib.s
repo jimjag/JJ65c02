@@ -6,8 +6,8 @@
 .export LIB_delay1ms
 .export LIB_delay100ms
 .export LIB_bin_to_hex
-.export LIB_have_rdata
-.export LIB_flush_rbuff
+.export LIB_have_serialdata
+.export LIB_flush_serbuf
 .export LIB_reset_rbuff
 
 ; Actual start of ROM code
@@ -117,7 +117,8 @@ LIB_delay100ms:
 
 ;================================================================================
 ;
-;   LIB_have_rdata - Carry Set if we have READ data in buffer, Clear otherwise
+;   LIB_have_serialdata - Carry Set if we have Serial READ data in buffer,
+;   Clear otherwise
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -129,9 +130,9 @@ LIB_delay100ms:
 ;
 ;================================================================================
 
-LIB_have_rdata:
-    lda INPUT_RWPTR
-    cmp INPUT_RRPTR
+LIB_have_serialdata:
+    lda SERIN_WPTR
+    cmp SERIN_RPTR
     beq @no_data_found
     sec
     rts
@@ -141,27 +142,54 @@ LIB_have_rdata:
 
 ;================================================================================
 ;
-;   LIB_flush_rbuff - "Flush" the read buffer
+;   LIB_flush_serbuf - "Flush" the serial read buffer
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .Y
+;   Destroys:        .X
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
-LIB_flush_rbuff:
-    lda #0
-    ldy #0
+LIB_flush_serbuf:
+    ldx #0
 @flush:
-    sta INPUT_RDBUFF,y
-    iny
+    stz INPUT_BUFFER,x
+    inx
+    bpl @flush
+LIB_reset_serbuf:
+    stz SERIN_WPTR
+    stz SERIN_RPTR
+    rts
+
+;================================================================================
+;
+;   LIB_flush_ps2buf - "Flush" the PS/2 read buffer
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        .X
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_flush_ps2buf:
+    ldx #80
+@flush:
+    stz INPUT_BUFFER,x
+    inx
     bne @flush
-LIB_reset_rbuff:
-    stz INPUT_RWPTR
-    stz INPUT_RRPTR
+LIB_reset_ps2buf:
+    pha
+    lda #80
+    sta PS2IN_WPTR
+    sta PS2IN_RPTR
+    pla
     rts
 

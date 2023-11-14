@@ -14,8 +14,8 @@ _SYSRAM_INC_ = 1
 .importzp LCD_SPTR
 .importzp USER_INPUT_PTR
 .importzp TEXT_BLK
-.importzp INPUT_RRPTR
-.importzp INPUT_RWPTR
+.importzp SERIN_RPTR
+.importzp SERIN_WPTR
 
 
 .import VIDEO_RAM
@@ -23,7 +23,6 @@ _SYSRAM_INC_ = 1
 .import ISR_VECTOR
 
 .import USER_BUFFLEN
-.import SYS_TTY_BUFFER
 .import RECVB
 
 .import POSITION_MENU
@@ -32,7 +31,7 @@ _SYSRAM_INC_ = 1
 .import DDRAM
 .import VRAM_OFFSETS
 
-.import INPUT_RDBUFF
+.import INPUT_BUFFER
 
 .include "sysram.h"
 .endif

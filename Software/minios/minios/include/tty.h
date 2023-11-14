@@ -43,6 +43,4 @@ TTY_char_SPACE   = $20   ; Space
 TTY_char_DEL     = $7F   ; Delete
 ;TTY_char_BS      = $7F   ; Backspace on Mac
 
-SYS_TTY_BUFFERLEN = $80
-
 .endif

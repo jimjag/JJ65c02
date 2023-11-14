@@ -3,7 +3,7 @@
 .include "tty.h"
 .include "acia.inc"
 .include "lib.inc"
-.include "lcd.inc"
+;.include "lcd.inc"
 
 .export YMODEM_send
 .export YMODEM_recv
@@ -133,7 +133,7 @@ YMODEM_send:
     cmp #$0A                    ; are there 10 errors? (YMODEM spec for failure)
     bne @Resend                 ; no, resend block
 @PrtAbort:
-    jsr LIB_flush_rbuff
+    jsr LIB_flush_serbuf
     ACIA_writeln YM_error_msg      ; print error msg and exit
 @Done:
     lda #(EOT)
@@ -160,14 +160,14 @@ YMODEM_recv:
     lda #>PROGRAM_START
     sta BLPTR+1
     ACIA_writeln YM_start_msg      ; send prompt and info
-    jsr LCD_clear_video_ram
-    jsr LCD_clear_screen
+ ;   jsr LCD_clear_video_ram
+ ;   jsr LCD_clear_screen
     stz BLKNO                   ; YMODEM starts w/ block #0, which we ignore
     stz BFLAG
     stz CRC
     stz CRC+1
 @StartCRC:
-    jsr LIB_flush_rbuff
+    jsr LIB_flush_serbuf
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
     jsr @GetByte                ; wait for input
@@ -207,8 +207,8 @@ YMODEM_recv:
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
-    LCD_writeln YM_error_msg    ; Unexpected block number - abort
-    jsr LIB_flush_rbuff        ; mismatched - flush buffer and then do BRK
+ ;   LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; unexpected block # - fatal error - BRK or RTS
@@ -218,8 +218,8 @@ YMODEM_recv:
     cmp RECVB,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
-    LCD_writeln YM_error_msg    ; Unexpected block number - abort
-    jsr LIB_flush_rbuff        ; mismatched - flush buffer and then do BRK
+ ;   LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; bad 1's comp of block#
@@ -242,9 +242,9 @@ YMODEM_recv:
 @BadCRC:
     ldy #01
     ldx #00
-    jsr LCD_set_cursor
-    jsr LCD_send_data
-    jsr LIB_flush_rbuff
+;    jsr LCD_set_cursor
+;    jsr LCD_send_data
+    jsr LIB_flush_serbuf
     lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
@@ -285,7 +285,7 @@ YMODEM_recv:
 @RDone:
     lda #(TTY_char_ACK)          ; last block, send ACK and exit.
     jsr ACIA_write_byte
-    jsr LIB_flush_rbuff
+    jsr LIB_flush_serbuf
     lda #(TTY_char_EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg
@@ -296,25 +296,25 @@ YMODEM_recv:
 @BadByte:
     ldy #02
     ldx #00
-    jsr LCD_set_cursor
-    lda #'B'
-    jsr LCD_send_data
-    jsr LIB_flush_rbuff
+;    jsr LCD_set_cursor
+;    lda #'B'
+;    jsr LCD_send_data
+    jsr LIB_flush_serbuf
     lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
 @BadByte1:
-    ldy #01
-    ldx #04
-    jsr LCD_set_cursor
-    jsr LIB_bin_to_hex
-    pha
-    txa
-    jsr LCD_send_data
-    pla
-    jsr LCD_send_data
-    jsr LIB_flush_rbuff
+;    ldy #01
+;    ldx #04
+;    jsr LCD_set_cursor
+;    jsr LIB_bin_to_hex
+;    pha
+;    txa
+;    jsr LCD_send_data
+;    pla
+;    jsr LCD_send_data
+    jsr LIB_flush_serbuf
     lda #(TTY_char_NAK)
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk               ; Start over, get the block again
@@ -339,16 +339,16 @@ YMODEM_recv:
     rts                         ; with character in "A"
 
 @ShowBlkNo:
-    ldy #00
-    ldx #02
-    jsr LCD_set_cursor
-    lda BLKNO
-    jsr LIB_bin_to_hex
-    pha
-    txa
-    jsr LCD_send_data
-    pla
-    jsr LCD_send_data
+;    ldy #00
+;    ldx #02
+;    jsr LCD_set_cursor
+;    lda BLKNO
+;    jsr LIB_bin_to_hex
+;    pha
+;    txa
+;    jsr LCD_send_data
+;    pla
+;    jsr LCD_send_data
     rts
 ;
 ;=========================================================================

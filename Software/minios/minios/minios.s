@@ -1,6 +1,6 @@
 .include "minios.inc"
 .include "sysram.inc"
-.include "lcd.inc"
+;.include "lcd.inc"
 .include "via.inc"
 ;.include "sound.inc"
 .include "lib.inc"
