@@ -77,14 +77,14 @@ int main() {
     setTextColor(WHITE);
     setCursor(65, 0);
     setTextSize(1);
-    writeString("Raspberry Pi Pico");
+    drawString("Raspberry Pi Pico");
     setCursor(65, 16);
-    writeString("Graphics demo/HA based");
+    drawString("Graphics demo/HA based");
     setCursor(65, 32);
-    writeString("JJ65C02");
+    drawString("JJ65C02");
     setCursor(250, 4);
     setTextSize(2);
-    writeString("Countdown:");
+    drawString("Countdown:");
 
     // Setup a 1Hz timer
     struct repeating_timer timer;
@@ -131,7 +131,7 @@ int main() {
             setCursor(440, 4);
             setTextSize(2);
             setTextColor2(WHITE, GREEN);
-            writeString(timetext);
+            drawString(timetext);
         }
 
         // A brief nap
@@ -143,9 +143,9 @@ int main() {
     sleep_ms(5000);
     vgaScroll(32);
     sleep_ms(5000);
-    VGA_fillScreen(BLUE);
+    vgaFillScreen(BLUE);
     sleep_ms(5000);
-    VGA_fillScreen(BLACK);
+    vgaFillScreen(BLACK);
     char video_buffer[32];
     setTextColor2(WHITE, BLACK);
     setTextSize(1);
@@ -154,53 +154,53 @@ int main() {
             fillRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j);
             setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
-            writeString(video_buffer);
+            drawString(video_buffer);
         }
     }
     // first row of colors
     setCursor(0 * 110 + 20, 150 + 0 * 70);
-    writeString("Black");
+    drawString("Black");
     setCursor(1 * 110 + 20, 150 + 0 * 70);
-    writeString("Red");
+    drawString("Red");
     setCursor(2 * 110 + 20, 150 + 0 * 70);
-    writeString("Green");
+    drawString("Green");
     setCursor(3 * 110 + 20, 150 + 0 * 70);
-    writeString("Yellow");
+    drawString("Yellow");
     // second row of colors
     setCursor(0 * 110 + 20, 150 + 1 * 70);
-    writeString("Blue");
+    drawString("Blue");
     setCursor(1 * 110 + 20, 150 + 1 * 70);
-    writeString("Magenta");
+    drawString("Magenta");
     setCursor(2 * 110 + 20, 150 + 1 * 70);
-    writeString("Cyan");
+    drawString("Cyan");
     setCursor(3 * 110 + 20, 150 + 1 * 70);
-    writeString("Light Grey");
+    drawString("Light Grey");
     // third row of colors
     setCursor(0 * 110 + 20, 150 + 2 * 70);
-    writeString("Grey");
+    drawString("Grey");
     setCursor(1 * 110 + 20, 150 + 2 * 70);
-    writeString("Light Red");
+    drawString("Light Red");
     setCursor(2 * 110 + 20, 150 + 2 * 70);
-    writeString("Light Green");
+    drawString("Light Green");
     setCursor(3 * 110 + 20, 150 + 2 * 70);
-    writeString("Light Yellow");
+    drawString("Light Yellow");
     // fourth row of colors
     setCursor(0 * 110 + 20, 150 + 3 * 70);
-    writeString("Light Blue");
+    drawString("Light Blue");
     setCursor(1 * 110 + 20, 150 + 3 * 70);
-    writeString("Light Magenta");
+    drawString("Light Magenta");
     setCursor(2 * 110 + 20, 150 + 3 * 70);
-    writeString("Light Cyan");
+    drawString("Light Cyan");
     setCursor(3 * 110 + 20, 150 + 3 * 70);
-    writeString("White");
+    drawString("White");
     setCursor(0, 460);
-    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(1);
     setCursor(0, 440);
-    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(2);
     setCursor(0, 420);
-    writeString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(0);
     sleep_ms(5000);
 

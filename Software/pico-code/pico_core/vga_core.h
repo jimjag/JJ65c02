@@ -69,9 +69,9 @@ void setTextSize(unsigned char s);
 void setTextWrap(char w);
 void setFont(char n);
 // void tft_write(unsigned char c);
-void writeString(unsigned char* str);
+void drawString(unsigned char* str);
 
-void VGA_fillScreen(uint16_t color);
+void vgaFillScreen(uint16_t color);
 
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);

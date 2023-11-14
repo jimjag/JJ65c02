@@ -216,7 +216,7 @@ void dma_memcpy(void *dest, void *src, size_t num) {
     dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
 }
 
-void VGA_fillScreen(uint16_t color) {
+void vgaFillScreen(uint16_t color) {
     dma_memset(vga_data_array, (color) | (color << 4), TXCOUNT);
 }
 
@@ -628,7 +628,7 @@ static void tft_write(unsigned char c) {
     }
 }
 
-inline void writeString(unsigned char *str) {
+inline void drawString(unsigned char *str) {
     /* Print text onto screen
      * Call tft_setCursor(), tft_setTextColor(), tft_setTextSize()
      *  as necessary before printing
