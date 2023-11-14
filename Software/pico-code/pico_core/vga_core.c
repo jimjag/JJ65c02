@@ -595,6 +595,9 @@ inline void setTextWrap(char w) { wrap = w; }
 
 inline void setFont(char n) {
     switch (n) {
+        case 3:
+            font = font_toshiba;
+            break;
         case 2:
             font = font_sweet16;
             break;
