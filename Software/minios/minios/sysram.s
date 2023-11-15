@@ -14,7 +14,6 @@
 .exportzp Z7
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
-;.exportzp LCD_SPTR
 .exportzp USER_INPUT_PTR
 .exportzp TEXT_BLK
 .exportzp SERIN_RPTR
@@ -22,16 +21,10 @@
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
 
-;.export VIDEO_RAM
 .export CLK_SPD
 .export ISR_VECTOR
-;.export POSITION_MENU
-;.export POSITION_CURSOR
-;;.export DDRAM
-.export VRAM_OFFSETS
 
 .export USER_BUFFLEN
-;.export SYS_TTY_BUFFER
 .export RECVB
 
 .export INPUT_BUFFER
@@ -55,22 +48,47 @@ SERIN_WPTR:  .res 1      ; Write index point
 PS2IN_RPTR:     .res 1      ; PS/2 Keyboard Read index pointer (MSB = 1)
 PS2IN_WPTR:     .res 1      ; PS/2 Keyboard Write index point
 ACIA_SPTR:      .res 2      ; String pointer - ACIA/TTY I/O
-;LCD_SPTR:       .res 2     ; String pointer - LCD I/O
-;TEXT_BLK:       .res 2      ; Scrollable text pointer
 USER_INPUT_PTR: .res 2      ; buffer pointer
 
 ;===================================================================
 
 .segment "SYSRAM"
 
-;VIDEO_RAM:      .res LCD_SIZE       ; Video RAM for 80 char (max) LCD display
-CLK_SPD:        .res 1              ; Clock speed, in MHz
-ISR_VECTOR:     .res 2              ; Store true ISR vector
-;POSITION_MENU:      .res 1          ; initialize positions for menu and cursor in RAM
-;POSITION_CURSOR:    .res 1
-USER_BUFFLEN:     .res 1
+CLK_SPD:        .res 1      ; Clock speed, in MHz
+ISR_VECTOR:     .res 2      ; Store true ISR vector
+USER_BUFFLEN:   .res 1
 RECVB:          .res 132
-INPUT_BUFFER:    .res    $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
+INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 
 ;===================================================================
 
+.export welcome_msg
+
+.segment "RODATA"
+;
+; xterm control sequences
+; https://www.xfree86.org/current/ctlseqs.html
+;
+x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
+x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL
+x_set_normal:           .byte TTY_char_ESC,"[22m",TTY_char_NULL
+x_set_not_underlined:   .byte TTY_char_ESC,"[24m",TTY_char_NULL
+x_set_bg_black:         .byte TTY_char_ESC,"[40m",TTY_char_NULL
+x_set_fg_green:         .byte TTY_char_ESC,"[32m",TTY_char_NULL
+
+; Cursor
+x_home_position:        .byte TTY_char_ESC,"[H",TTY_char_NULL
+x_left:                 .byte TTY_char_ESC,"[D",TTY_char_NULL
+x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D", TTY_char_NULL
+
+; Erasing
+x_erase_display:        .byte TTY_char_ESC,"[2J", TTY_char_NULL
+x_erase_line:           .byte TTY_char_ESC,"[2K", TTY_char_NULL
+
+; Other
+new_line:               .asciiz "\n\r"
+prompt:                 .asciiz "OK> "
+
+; Messages
+welcome_msg:    .asciiz "Welcome to miniOS\n\n\r"
+panic_msg:      .asciiz "!PANIC!\n\r"

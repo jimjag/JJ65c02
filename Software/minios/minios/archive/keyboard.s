@@ -33,14 +33,14 @@
 
 KBD_initialize:
     pha
-      lda VIA2_PCR                                  ; Clear Flags
-      and #$0f
-      ora #(VIA_PCR_CA1_INTERRUPT_NEGATIVE | VIA_PCR_CA2_OUTPUT_PULSE | VIA_PCR_CB1_INTERRUPT_NEGATIVE | VIA_PCR_CB2_OUTPUT_HIGH)
-      sta VIA1_PCR
-      lda #(VIA_IER_SET_FLAGS | VIA_IER_CA1_FLAG)   ; Enable interrupt on CA1
-      sta VIA2_IER
-      pla
-      rts
+    lda VIA2_PCR                                  ; Clear Flags
+    and #$0f
+    ora #(VIA_PCR_CA1_INTERRUPT_NEGATIVE | VIA_PCR_CA2_OUTPUT_PULSE | VIA_PCR_CB1_INTERRUPT_NEGATIVE | VIA_PCR_CB2_OUTPUT_HIGH)
+    sta VIA1_PCR
+    lda #(VIA_IER_SET_FLAGS | VIA_IER_CA1_FLAG)   ; Enable interrupt on CA1
+    sta VIA2_IER
+    pla
+    rts
 
 ;================================================================================
 ;
@@ -61,7 +61,7 @@ KBD_ihandler:
     phx
     lda VIA2_PORTA
     ldx SERIN_WPTR
-    sta INPUT_BUFFER,x                           ; Store in rx buffer
+    sta INPUT_BUFFER,x                          ; Store in rx buffer
     inc SERIN_WPTR                              ; Increase write buffer pointer
 @done:
     plx

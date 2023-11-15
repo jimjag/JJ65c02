@@ -11,37 +11,6 @@
 .export TTY_send_newline
 .export TTY_send_backspace
 
-.export welcome_msg
-
-.segment "RODATA"
-;
-; xterm control sequences
-; https://www.xfree86.org/current/ctlseqs.html
-;
-x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
-x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL
-x_set_normal:           .byte TTY_char_ESC,"[22m",TTY_char_NULL
-x_set_not_underlined:   .byte TTY_char_ESC,"[24m",TTY_char_NULL
-x_set_bg_black:         .byte TTY_char_ESC,"[40m",TTY_char_NULL
-x_set_fg_green:         .byte TTY_char_ESC,"[32m",TTY_char_NULL
-
-; Cursor
-x_home_position:        .byte TTY_char_ESC,"[H",TTY_char_NULL
-x_left:                 .byte TTY_char_ESC,"[D",TTY_char_NULL
-x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D", TTY_char_NULL
-
-; Erasing
-x_erase_display:        .byte TTY_char_ESC,"[2J", TTY_char_NULL
-x_erase_line:           .byte TTY_char_ESC,"[2K", TTY_char_NULL
-
-; Other
-new_line:               .asciiz "\n\r"
-prompt:                 .asciiz "OK> "
-
-; Messages
-welcome_msg:    .asciiz "Welcome to miniOS\n\n\r"
-panic_msg:      .asciiz "!PANIC!\n\r"
-
 .segment "CODE"
 
 ;================================================================================
@@ -121,7 +90,7 @@ TTY_readln:
 
 ;================================================================================
 ;
-;   TTY_clear_screen - clear TTY screen and set some defaulys
+;   TTY_clear_screen - clear TTY screen and set some defaults
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none

@@ -11,12 +11,12 @@ _SYSRAM_INC_ = 1
 .importzp Z7
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
-.importzp LCD_SPTR
 .importzp USER_INPUT_PTR
 .importzp TEXT_BLK
 .importzp SERIN_RPTR
 .importzp SERIN_WPTR
-
+.importzp PS2IN_RPTR
+.importzp PS2IN_WPTR
 
 .import VIDEO_RAM
 .import CLK_SPD
@@ -24,12 +24,6 @@ _SYSRAM_INC_ = 1
 
 .import USER_BUFFLEN
 .import RECVB
-
-.import POSITION_MENU
-.import POSITION_CURSOR
-
-.import DDRAM
-.import VRAM_OFFSETS
 
 .import INPUT_BUFFER
 

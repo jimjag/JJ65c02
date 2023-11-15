@@ -83,16 +83,11 @@ main:                                           ; boot routine, first thing load
     ;lda #>ISR_HANDLER
     ;sta ISR_VECTOR + 1
 
-    ; Init the 6551
+    ; Init the ACIA and VIA chips
     jsr ACIA_init
     jsr TTY_setup_term
     TTY_writeln welcome_msg
-
-    ;jsr LCD_clear_video_ram
-
-    ; VIA1_
-    jsr VIA_initialize
-    ;jsr LCD_initialize
+    jsr VIA_init
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
@@ -138,76 +133,7 @@ main:                                           ; boot routine, first thing load
 ;================================================================================
 
 MINIOS_main_menu:
-    stz POSITION_MENU
-    stz POSITION_CURSOR
 
-    jmp @start
-@MAX_SCREEN_POS:                                ; define some constants in ROM
-    .byte 6                                     ; its always: number of menu items - LCD_ROWS
-@start:                                         ; and off we go
-    jsr LCD_clear_video_ram
-    ldx POSITION_MENU
-    ldy VRAM_OFFSETS,x
-                                                ; load first offset into Y
-    ldx #0                                      ; set X to 0
-@loop:
-    lda menu_items,y                            ; load string char for Y
-    sta VIDEO_RAM,x                             ; store in video ram at X
-    iny
-    inx
-    cpx #(LCD_SIZE)                             ; fill LCD
-    bne @loop
-
-@render_cursor:                                 ; render cursor position based on current state
-    lda #'>'
-    ldy POSITION_CURSOR
-    ldx VRAM_OFFSETS,y
-    sta VIDEO_RAM,x
-
-@render:                                        ; and update the screen
-    jsr LCD_render
-
-@wait_for_input:                                ; handle keyboard input
-    jsr VIA_read_mini_keyboard
-
-@handle_keyboard_input:
-    cmp #(VIA_up_key)
-    beq @move_up                                ; UP key pressed
-    cmp #(VIA_down_key)
-    beq @move_down                              ; DOWN key pressed
-    cmp #(VIA_right_key)
-    beq @select_option                          ; RIGHT key pressed
-    bne @wait_for_input                         ; and go around
-
-@move_up:
-    lda POSITION_CURSOR                         ; load cursor position
-    beq @dec_menu_offset                        ; is cursor in up position? yes?
-    dec a                                       ; no?
-    sta POSITION_CURSOR                         ; set cursor in up position
-    jmp @start                                  ; re-render the whole menu
-@dec_menu_offset:
-    lda POSITION_MENU
-    beq @wait_for_input                         ; yes, just re-render
-@decrease:
-    dec POSITION_MENU                           ; decrease menu position by one
-    jmp @start                                  ; and re-render
-
-@move_down:
-    lda POSITION_CURSOR                         ; load cursor position
-    cmp #(LCD_ROWS-1)                           ; is cursor in lower position?
-    beq @inc_menu_offset                        ; yes?
-    inc a                                       ; no?
-    sta POSITION_CURSOR                         ; set cursor in lower position
-    jmp @start                                  ; and re-render the whole menu
-@inc_menu_offset:
-    lda POSITION_MENU                           ; load current menu positions
-    cmp @MAX_SCREEN_POS                         ; are we at the bottom yet?
-    bne @increase                               ; no?
-    jmp @wait_for_input                         ; yes
-@increase:
-    adc #1                                      ; increase menu position
-    sta POSITION_MENU
-    jmp @start                                  ; and re-render
 
 @select_option:
     clc
@@ -263,9 +189,7 @@ MINIOS_main_menu:
 @start_basic:
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
-    LCD_writeln message_readybasic
-    jsr VIA_read_mini_keyboard
-    cmp #(VIA_right_key)
+    ;LCD_writeln message_readybasic
     beq @go_basic
     jmp @start
 @go_basic:
@@ -302,13 +226,11 @@ MINIOS_main_menu:
 ;================================================================================
 
 MINIOS_load_ram:
-    LCD_writeln message_readyload
-    jsr VIA_read_mini_keyboard
-    cmp #(VIA_right_key)
+    ;LCD_writeln message_readyload
     beq @start_load
     rts
 @start_load:
-    jsr LCD_clear_screen
+    ;jsr LCD_clear_screen
     jmp YMODEM_recv
 
 ;================================================================================
@@ -326,8 +248,7 @@ MINIOS_load_ram:
 ;================================================================================
 
 MINIOS_execute:
-    jsr LCD_clear_video_ram                     ; print a message
-    LCD_writeln message_runprog
+    ;LCD_writeln message_runprog
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
@@ -449,10 +370,10 @@ MINIOS_test_ram:
     sta Z1
     jsr MINIOS_test_ram_core
     bcs @failed
-    LCD_writeln_direct message_pass
+    ;LCD_writeln_direct message_pass
     bra @done
 @failed:
-    LCD_writeln_direct message_fail
+    ;LCD_writeln_direct message_fail
 @done:
     lda #10
     jsr LIB_delay100ms                          ; let them see know it

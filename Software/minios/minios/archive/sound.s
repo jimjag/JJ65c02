@@ -32,7 +32,7 @@ SND_on:
 
 ;================================================================================
 ;
-;   VIA_initialize - initializes the VIA chip
+;   VIA_init - initializes the VIA chip
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A contains value of "note"

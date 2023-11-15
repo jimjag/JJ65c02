@@ -190,19 +190,19 @@ ACIA_ihandler:
     phx
     lda ACIA_STATUS
     and #(ACIA_STATUS_RX_FULL)
-    beq @done                                   ; Receive buffer full?
+    beq @done                                ; Receive buffer full?
     lda ACIA_DATA
     ldx SERIN_WPTR
-    sta INPUT_BUFFER,x                          ; Store in rx buffer
+    sta INPUT_BUFFER,x                       ; Store in rx buffer
     inc SERIN_WPTR                           ; Increase write buffer pointer
-    bpl @nowrap                                 ; maintain $00->$7f
+    bpl @nowrap                              ; maintain $00->$7f
     stz SERIN_WPTR
 @nowrap:
 .ifdef __HW_FLOW_CONTROL__
     lda SERIN_WPTR
     cmp SERIN_RPTR                           ; are we buffer full?
     bne @done
-    lda ACIA_COMMAND                            ; bring RTS high
+    lda ACIA_COMMAND                         ; bring RTS high
     and #%11110011
     sta ACIA_COMMAND
     lda #(MINIOS_RTS_HIGH_FLAG)

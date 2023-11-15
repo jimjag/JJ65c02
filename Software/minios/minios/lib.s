@@ -7,8 +7,9 @@
 .export LIB_delay100ms
 .export LIB_bin_to_hex
 .export LIB_have_serialdata
+.export LIB_have_ps2data
 .export LIB_flush_serbuf
-.export LIB_reset_rbuff
+.export LIB_flush_ps2buf
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -193,3 +194,27 @@ LIB_reset_ps2buf:
     pla
     rts
 
+;================================================================================
+;
+;   LIB_have_ps2data - Carry Set if we have PS/2 READ data in buffer,
+;   Clear otherwise
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: .A
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_have_ps2data:
+    lda PS2IN_WPTR
+    cmp PS2IN_RPTR
+    beq @no_data_found
+    sec
+    rts
+@no_data_found:
+    clc
+    rts
