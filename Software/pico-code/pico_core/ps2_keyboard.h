@@ -24,11 +24,12 @@
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
+#include "hardware/gpio.h"
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
-#define PS2_DATA_PIN 15
-#define PS2_CLK_PIN 16
+
+enum ps2_pins {PS2_DATA_PIN=15, PS2_CLK_PIN, PA0=0, PA1, PA2, PA3, PA4, PA5, PA6, PIRQ=27};
 
 void initPS2(void);
 unsigned char ps2GetChar(void);

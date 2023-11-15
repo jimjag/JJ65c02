@@ -56,6 +56,17 @@ void initPS2(void) {
     // get rid of noise on pins when the PS/2 keyboard is enabled
     sleep_ms(1);
     pio_sm_clear_fifos(ps2_pio, ps2_sm);
+
+    // Now the GPIO pins for the Keyboard data to the VIA chip
+    // GPIO pin setup
+    for (uint pin = PA0; pin <= PA6; pin++) {
+        gpio_init(pin);
+        gpio_set_dir(pin, GPIO_OUT);
+    }
+    gpio_init(PIRQ  );
+    gpio_set_dir(PIRQ, GPIO_IN);
+    gpio_pull_down(PIRQ);
+    gpio_put(PIRQ, 0);
 }
 
 void clearPS2(void) {
@@ -156,4 +167,18 @@ unsigned char ps2GetCharBlk(void) {
         tight_loop_contents();
     }
     return c;
+}
+
+void ps2WriteByte(void) {
+    unsigned char c;
+    if ((c = ps2GetChar())) {
+        for (uint pin = PA0; pin <= PA6; pin++) {
+            gpio_put(pin, c & 0x01);
+            c = c>>1;
+        }
+        gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
+        sleep_us(10);               // Give the 6502 time to read
+        gpio_put(PIRQ, 0);  // Reset
+    }
+
 }

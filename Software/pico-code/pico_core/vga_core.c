@@ -26,6 +26,7 @@
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
+#include "hardware/gpio.h"
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +87,22 @@ int tcurs_y = 0;
 int scanline_size = (SCREENWIDTH / 2); // Amount of space taken by each scanline
 int textrow_size; // Amount of space taken by each row of text
 int terminal_size;
+
+static unsigned char inputChar;
+bool hasChar = false;
+
+// Interrupt Handler: We have data on GPIO7-14
+void readByte(uint gpio, uint32_t events) {
+    unsigned char c;
+    for (uint pin = DATA7; pin >= DATA0; pin--) {
+        c = (c << 1)|gpio_get(pin);
+    }
+    // We want to be able to handle cases where we actually
+    // rec a NUL. Checking for 'c' misses this case, so
+    // flag it when we read the data, no matter what it is
+    inputChar = c;
+    hasChar = true;
+}
 
 void initVGA(void) {
     // Choose which PIO instance to use (there are two instances, each with 4 state
@@ -184,10 +201,22 @@ void initVGA(void) {
     // To change the contents of the screen, we need only change the contents
     // of that array.
     dma_start_channel_mask((1u << scanline_chan_0));
+
+    // Now setup terminal
     term_size = (max_tcurs_x+1) * (max_tcurs_y+1);
     textrow_size = (max_tcurs_x+1) * sizeof(tchar_t);
     terminal_size = term_size * sizeof(tchar_t);
     terminal = calloc(term_size, sizeof(tchar_t));
+
+    // GPIO pin setup
+    for (uint pin = DATA0; pin <= DATA7; pin++) {
+        gpio_init(pin);
+        gpio_set_dir(pin, GPIO_IN);
+    }
+    gpio_init(DREADY);
+    gpio_set_dir(DREADY, GPIO_IN);
+    // Finally, interrupt on Data Ready pin (GPIO26)
+    gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
 }
 
 void dma_memset(void *dest, uint8_t val, size_t num) {
@@ -745,5 +774,13 @@ inline void printString(unsigned char *str) {
     }
 }
 
+bool haveChar(void) {
+    return hasChar;
+}
+
+// Once we grab the character/byte we've rec'd, we no longer
+// have it available to "read" again.
 unsigned char getChar(void) {
+    hasChar = false;
+    return inputChar;
 }
