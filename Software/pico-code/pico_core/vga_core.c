@@ -28,6 +28,7 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 // Our assembled programs:
 // pioasm converts foo.pio to foo.pio.h
 #include "hsync.pio.h"
@@ -53,7 +54,7 @@ typedef struct tchar_t  {
 
 static tchar_t *terminal;
 
-static const unsigned char *font = font_sperry;
+static const unsigned char *font = font_terminus;
 static char txtfont = 0;
 
 // DMA channel for dma_memcpy and dma_memset
@@ -76,7 +77,7 @@ int memcpy_dma_chan;
 // For drawing characters in Graphics Mode
 int cursor_y, cursor_x, textsize;
 // configurations
-bool wrap = true, bserases = false, cr_crlf = false, lf_crlf = false;
+bool wrap = true, cr2crlf = false, lf2crlf = false;
 char textfgcolor, textbgcolor;
 
 typedef struct scrpos {
@@ -646,12 +647,12 @@ inline void setTextColor2(char c, char b) {
     textbgcolor = b;
 }
 
-inline void setTextWrap(char w) { wrap = w; }
+inline void setTextWrap(bool w) { wrap = w; }
 
 inline void setFont(char n) {
     switch (n) {
         case 4:
-            font = font_terminus;
+            font = font_sperry;
             txtfont = 4;
             break;
         case 3:
@@ -667,7 +668,7 @@ inline void setFont(char n) {
             txtfont = 1;
             break;
         default:
-            font = font_sperry;
+            font = font_terminus;
             txtfont = 0;
             break;
     }
@@ -755,30 +756,49 @@ static void doChar(unsigned char c) {
             termScroll(1);
         }
     }
-    if (c == '\n') {
-        tcurs.y++;
-        if (tcurs.y > maxTcurs.y) {
-            tcurs.y = maxTcurs.y;
-            termScroll(1);
-        }
-        tcurs.x = 0;
-    } else if (c == '\r') {
-        tcurs.x = 0;
-    } else if (c == '\t') {
-        tcurs.x += tabspace;
-        if (tcurs.x > maxTcurs.x) {
-            // vgaScroll here? Wrap around?
-            tcurs.x = maxTcurs.x;
-        }
-    } else {
-        tchar_t *tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
-        tchar->attributes = 0;
-        tchar->character = c;
-        tchar->fg_color = textfgcolor;
-        tchar->bg_color = textbgcolor;
-        tchar->font = txtfont;
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
-        tcurs.x++;
+    switch (c) {
+        // Handle "special" characters.
+        // NOTE: backspace/delete in handled on the 6502 and deletes
+        // the previous char. So we don't even see it here.
+        //
+        // TODO: Figure out how to differentiate between control characters vs graphics chars
+        case '\n':
+            tcurs.y++;
+            if (tcurs.y > maxTcurs.y) {
+                tcurs.y = maxTcurs.y;
+                termScroll(1);
+            }
+            if (cr2crlf) {
+                tcurs.x = 0;
+            }
+            break;
+        case '\r':
+            tcurs.x = 0;
+            if (lf2crlf) {
+                tcurs.y++;
+                if (tcurs.y > maxTcurs.y) {
+                    tcurs.y = maxTcurs.y;
+                    termScroll(1);
+                }
+            }
+            break;
+        case '\t':
+            tcurs.x += tabspace;
+            if (tcurs.x > maxTcurs.x) {
+                // vgaScroll here? Wrap around?
+                tcurs.x = maxTcurs.x;
+            }
+            break;
+        default:
+            tchar_t *tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
+            tchar->attributes = 0;
+            tchar->character = c;
+            tchar->fg_color = textfgcolor;
+            tchar->bg_color = textbgcolor;
+            tchar->font = txtfont;
+            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
+            tcurs.x++;
+            break;
     }
 }
 
@@ -799,7 +819,7 @@ void printChar(unsigned char chrx) {
             doChar(chrx);
         }
     } else {
-        switch(esc_state){
+        switch(esc_state) {
             case SAW_ESC:
                 // waiting on c1 character
                 if ((chrx >= 'N') && (chrx < '_')) {

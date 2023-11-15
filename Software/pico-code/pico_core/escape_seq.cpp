@@ -162,9 +162,7 @@ static void esc_sequence_received() {
                     textbgcolor = BLACK;
                 } else if (n == 7) {
                     // reverse
-                    unsigned char aux = textfgcolor;
-                    textfgcolor = textbgcolor;
-                    textbgcolor = aux;
+                    swap(textfgcolor, textbgcolor);
                 } else if ((n >= 30) && (n <= 37)) {
                     // set foreground to ANSI color
                     textfgcolor = ansi_pallet[n-30];
@@ -204,7 +202,7 @@ static void esc_sequence_received() {
 // Collect escape sequence info
 bool collect_sequence(unsigned char chrx) {
     // waiting on parameter character, semicolon or final byte
-    if((chrx >= '0') && (chrx <= '9')) { 
+    if (isdigit(chrx)) {
         // parameter value
         if(esc_parameter_count < MAX_ESC_PARAMS) {
             esc_parameters[esc_parameter_count] *= 10;

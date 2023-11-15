@@ -208,6 +208,7 @@ int main() {
     setTxtCursor(60, 20);
     printString("PS2 test");
     clearPS2();
+    setTextColor2(GREEN, BLACK);
     while (true) {
         char c = ps2GetChar();
         if (c) {

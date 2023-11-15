@@ -68,7 +68,7 @@ void setCursor(int x, int y);
 void setTextColor(char c);
 void setTextColor2(char c, char bg);
 void setTextSize(unsigned char s);
-void setTextWrap(char w);
+void setTextWrap(bool w);
 void setFont(char n);
 // void tft_write(unsigned char c);
 void drawString(unsigned char* str);
