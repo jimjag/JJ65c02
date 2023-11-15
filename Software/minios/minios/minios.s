@@ -669,10 +669,10 @@ ISR:
 
 message_welcome:
     .byte "      JJ65c02       "
-    .byte "   miniOS v1.2      ", $00
+    .byte "   miniOS v2.0      ", $00
 message_welcomeacia:
     .byte "      JJ65c02       "
-    .byte "  miniOS v1.2 ACIA  ", $00
+    .byte "  miniOS v2.0 ACIA  ", $00
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
@@ -716,17 +716,6 @@ about:
     .addr a1, a2, $0000
 a1: .asciiz "github.com/"
 a2: .asciiz "    jimjag/JJ65c02"
-
-thanks:
-    .addr c1, c2, c3, c4, c5, c6, c7, c8, $0000
-c1: .asciiz "Ben Eater"
-c2: .asciiz "  BE6502 Project"
-c3: .asciiz "Jan Roesner"
-c4: .asciiz "  Orig sixty/5o2"
-c5: .asciiz "Kris Foster"
-c6: .asciiz "  Ideas from KrisOS"
-c7: .asciiz "Dawid Buchwald"
-c8: .asciiz "  Ideas from OS1"
 
 clock_spd:
     .byte " Clock: % Mhz"

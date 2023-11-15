@@ -24,7 +24,7 @@ _SYSRAM_INC_ = 1
 .import ISR_VECTOR
 
 .import USER_BUFFLEN
-.import RECVB
+.import YMBUF
 
 .import INPUT_BUFFER
 

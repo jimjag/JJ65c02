@@ -26,7 +26,7 @@
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
-.export RECVB
+.export YMBUF
 
 .export INPUT_BUFFER
 
@@ -43,14 +43,14 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
-MINIOS_STATUS:  .res 1      ; miniOS Status Register
-SERIN_RPTR:  .res 1      ; Read index pointer (MSB = 0)
-SERIN_WPTR:  .res 1      ; Write index point
-PS2IN_RPTR:     .res 1      ; PS/2 Keyboard Read index pointer (MSB = 1)
-PS2IN_WPTR:     .res 1      ; PS/2 Keyboard Write index point
-ACIA_SPTR:      .res 2      ; String pointer - ACIA/TTY I/O
-CON_SPTR:      .res 2       ; String pointer - Console I/O
-USER_INPUT_PTR: .res 2      ; buffer pointer
+MINIOS_STATUS:  .res 1   ; miniOS Status Register
+SERIN_RPTR:  .res 1      ; Read index pointer (0x00->0x7f)
+SERIN_WPTR:  .res 1      ; Write index pointer (0x00->0x7f)
+PS2IN_RPTR:     .res 1   ; PS/2 Keyboard Read index pointer (0x80->0xff)
+PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
+ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
+CON_SPTR:      .res 2    ; String pointer - Console I/O
+USER_INPUT_PTR: .res 2   ; buffer pointer
 
 ;===================================================================
 
@@ -59,7 +59,7 @@ USER_INPUT_PTR: .res 2      ; buffer pointer
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
-RECVB:          .res 132
+YMBUF:          .res 132
 INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 
 ;===================================================================
@@ -81,6 +81,7 @@ INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0
 ; xterm control sequences
 ; https://www.xfree86.org/current/ctlseqs.html
 ;
+x_reset   :             .byte TTY_char_ESC,"[0m",TTY_char_NULL
 x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
 x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL
 x_set_normal:           .byte TTY_char_ESC,"[22m",TTY_char_NULL
@@ -94,7 +95,7 @@ x_up:                   .byte TTY_char_ESC,"[A",TTY_char_NULL
 x_down:                 .byte TTY_char_ESC,"[B",TTY_char_NULL
 x_right:                .byte TTY_char_ESC,"[C",TTY_char_NULL
 x_left:                 .byte TTY_char_ESC,"[D",TTY_char_NULL
-x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D", TTY_char_NULL
+x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D",TTY_char_NULL
 
 ; Erasing
 x_erase_display:        .byte TTY_char_ESC,"[2J", TTY_char_NULL

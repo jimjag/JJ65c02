@@ -53,13 +53,13 @@ YMODEM_send:
     ldy #$00                    ; init data block offset to 0
     ldx #$04                    ; preload X to Receive buffer
     lda #$01                    ; manually load blk number
-    sta RECVB                   ; into 1st byte
+    sta YMBUF                   ; into 1st byte
     lda #$FE                    ; load 1's comp of block #
-    sta RECVB+1                 ; into 2nd byte
+    sta YMBUF+1                 ; into 2nd byte
     lda BLPTR                   ; load low byte of start address
-    sta RECVB+2                 ; into 3rd byte
+    sta YMBUF+2                 ; into 3rd byte
     lda BLPTR+1                 ; load hi byte of start address
-    sta RECVB+3                 ; into 4th byte
+    sta YMBUF+3                 ; into 4th byte
     bra @LdBuff1                ; jump into buffer load routine
 
 @LdBuffer:
@@ -71,12 +71,12 @@ YMODEM_send:
     ldy #$00
     inc BLKNO                   ; INC  block counter
     lda BLKNO
-    sta RECVB                   ; save in 1st byte of buffer
+    sta YMBUF                   ; save in 1st byte of buffer
     eor #$FF
-    sta RECVB+1                 ; save 1's comp of BLKNO next
+    sta YMBUF+1                 ; save 1's comp of BLKNO next
 @LdBuff1:
     lda (BLPTR),y               ; save 128 bytes of data
-    sta RECVB,x
+    sta YMBUF,x
 @LdBuff2:
     sec
     lda EOFP
@@ -91,7 +91,7 @@ YMODEM_send:
     cpx #$82                    ; Are we at the end of the 128 byte block?
     beq @SCalcCRC               ; Yes, calc CRC
     lda #$00                    ; Fill rest of 128 bytes with $00
-    sta RECVB,x
+    sta YMBUF,x
     beq @LdBuff3                ; Branch always
 @LdBuff4:
     inc BLPTR                   ; INC address pointer
@@ -104,16 +104,16 @@ YMODEM_send:
 @SCalcCRC:
     jsr CalcCRC
     lda CRC+1                   ; save Hi byte of CRC to buffer
-    sta RECVB,y
+    sta YMBUF,y
     iny
     lda CRC                     ; save lo byte of CRC to buffer
-    sta RECVB,y
+    sta YMBUF,y
 @Resend:
     ldx #$00
     lda #(SOH)
     jsr ACIA_write_byte         ; send SOH
 @SendBlk:
-    lda RECVB,x                 ; Send 132 bytes in buffer to the console
+    lda YMBUF,x                 ; Send 132 bytes in buffer to the console
     jsr ACIA_write_byte
     inx
     cpx #$84                    ; last byte?
@@ -198,12 +198,12 @@ YMODEM_recv:
     bcs @StoreIt
     jmp @BadByte                ; chr rcv error, flush and send NAK
 @StoreIt:
-    sta RECVB,x                 ; good char, save it in the rcv buffer
+    sta YMBUF,x                 ; good char, save it in the rcv buffer
     inx                         ; INC buffer pointer
     cpx #132                    ; <01> <FE> <128 bytes> <CRCH> <CRCL>
     bne @GetBlk                 ; get 132 characters
     ldx #$00
-    lda RECVB,x                 ; get block # from buffer
+    lda YMBUF,x                 ; get block # from buffer
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
@@ -215,7 +215,7 @@ YMODEM_recv:
 @GoodBlk1:
     eor #$ff                    ; 1's comp of block #
     inx
-    cmp RECVB,x                 ; compare with expected 1's comp of block #
+    cmp YMBUF,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
     ACIA_writeln YM_error_msg   ; Unexpected block number - abort
  ;   LCD_writeln YM_error_msg    ; Unexpected block number - abort
@@ -225,11 +225,11 @@ YMODEM_recv:
     rts                         ; bad 1's comp of block#
 @GoodBlk2:
     jsr @CalcCRC                ; calc CRC
-    lda RECVB,y                 ; get hi CRC from buffer
+    lda YMBUF,y                 ; get hi CRC from buffer
     cmp CRC+1                   ; compare to calculated hi CRC
     bne @BadCRCH                ; bad CRC, send NAK
     iny
-    lda RECVB,y                 ; get lo CRC from buffer
+    lda YMBUF,y                 ; get lo CRC from buffer
     cmp CRC                     ; compare to calculated lo CRC
     bne @BadCRCL
     jmp @GoodCRC                ; good CRC
@@ -267,7 +267,7 @@ YMODEM_recv:
 @CopyBlk:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
-    lda RECVB,x                 ; get data byte from buffer
+    lda YMBUF,x                 ; get data byte from buffer
     sta (BLPTR),y               ; save to target
     inc BLPTR                   ; point to next address
     bne @CopyBlk4               ; did it step over page boundary?
@@ -360,7 +360,7 @@ YMODEM_recv:
     stz CRC+1
     ldy #$02
 @CalcCRC1:
-    lda RECVB,y
+    lda YMBUF,y
     eor CRC+1                   ; Quick CRC computation with lookup tables
     tax                         ; updates the two bytes at CRC & CRC+1
     lda CRC                     ; with the byte send in the "A" register

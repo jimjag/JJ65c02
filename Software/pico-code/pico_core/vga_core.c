@@ -754,6 +754,7 @@ void setTxtCursor(int x, int y) {
 
 static void doChar(unsigned char c) {
     tchar_t *tchar;
+    char x,y;
     if (tcurs.x > maxTcurs.x) {
         // End of line
         tcurs.x = 0;
@@ -765,8 +766,6 @@ static void doChar(unsigned char c) {
     }
     switch (c) {
         // Handle "special" characters.
-        // NOTE: backspace/delete in handled on the 6502 and deletes
-        // the previous char. So we don't even see it here.
         //
         // TODO: Figure out how to differentiate between control characters vs graphics chars
         case '\n':
@@ -797,6 +796,20 @@ static void doChar(unsigned char c) {
             }
             break;
             // These 4 cases are special to us
+        case '\b':   // Backspace and Delete
+            tcurs.x--;
+            if (tcurs.x < 0) {
+                // If we hit the left edge, we need to go up a row
+                tcurs.y--;
+                if (tcurs.y < 0) tcurs.y = 0; // We hit the top!
+                tcurs.x = maxTcurs.x;
+            }
+            // Store where we are
+            x = tcurs.x;
+            y = tcurs.y;
+            doChar(' ');
+            setTxtCursor(x,y);
+            break;
         case 0x11:
             tcurs.y--;
             checkCursor();

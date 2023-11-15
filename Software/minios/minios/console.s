@@ -66,14 +66,14 @@ CON_read_byte:
 
 ;================================================================================
 ;
-;   CON_read - read up to $80 chars from serial input and store in buffer:
+;   CON_read - read up to $USER_BUFFLEN chars from serial input and store in buffer:
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A is Lo Address of buffer; .X is high; .Y is size of buffer
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        none
+;   Destroys:        .A, .Y
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -98,7 +98,8 @@ CON_readln:
 @is_backspace:
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
-    CON_writeln x_backspace      ; left, space, left to delete the character
+    lda #(TTY_char_BS)
+    jsr CON_write_byte           ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
     lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
