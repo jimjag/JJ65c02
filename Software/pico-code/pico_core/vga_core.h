@@ -85,3 +85,4 @@ void setTxtCursor(int x, int y);
 void printString(unsigned char* str);
 bool haveChar(void);
 unsigned char getChar(void);
+void clearScreen(void);

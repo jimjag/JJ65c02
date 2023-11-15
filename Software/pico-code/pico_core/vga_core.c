@@ -21,8 +21,6 @@
  *
  */
 
-// Orig version V. Hunter Adams / Cornell
-
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
@@ -64,6 +62,7 @@ int memcpy_dma_chan;
 // Bit masks for drawPixel routine - RGBIRGBI
 #define TOPMASK 0b00001111
 #define BOTTOMMASK 0b11110000
+#define ESC 0x1b
 
 // For drawLine
 #define swap(a, b) do { int t = a; a = b; b = t; } while (false)
@@ -76,20 +75,31 @@ int memcpy_dma_chan;
 
 // For drawing characters in Graphics Mode
 int cursor_y, cursor_x, textsize;
-char textcolor, textbgcolor, wrap;
+// configurations
+bool wrap = true, bserases = false, cr_crlf = false, lf_crlf = false;
+char textfgcolor, textbgcolor;
 
-// Terminal screen sizes (Terminal mode) - Assume 640x480 and 8x16 bitmaps
-int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;    // 79
-int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;  // 29
+typedef struct scrpos {
+    char x;
+    char y;
+} scrpos;
+struct scrpos savedTcurs = {0,0};
+struct scrpos tcurs = {0,0};
+struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
+
+// Cursor position
 int term_size;
-int tcurs_x = 0;
-int tcurs_y = 0;
 int scanline_size = (SCREENWIDTH / 2); // Amount of space taken by each scanline
 int textrow_size; // Amount of space taken by each row of text
 int terminal_size;
 
 static unsigned char inputChar;
 bool hasChar = false;
+
+// color available to ANSI commands
+static const char ansi_pallet[] = {
+        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+};
 
 // Interrupt Handler: We have data on GPIO7-14
 void readByte(uint gpio, uint32_t events) {
@@ -203,8 +213,8 @@ void initVGA(void) {
     dma_start_channel_mask((1u << scanline_chan_0));
 
     // Now setup terminal
-    term_size = (max_tcurs_x+1) * (max_tcurs_y+1);
-    textrow_size = (max_tcurs_x+1) * sizeof(tchar_t);
+    term_size = (maxTcurs.x + 1) * (maxTcurs.y + 1);
+    textrow_size = (maxTcurs.x + 1) * sizeof(tchar_t);
     terminal_size = term_size * sizeof(tchar_t);
     terminal = calloc(term_size, sizeof(tchar_t));
 
@@ -623,7 +633,7 @@ inline void setTextSize(unsigned char s) {
 inline void setTextColor(char c) {
     // For 'transparent' background, we'll set the bg
     // to the same as fg instead of using a flag
-    textcolor = textbgcolor = c;
+    textfgcolor = textbgcolor = c;
 }
 
 inline void setTextColor2(char c, char b) {
@@ -632,7 +642,7 @@ inline void setTextColor2(char c, char b) {
      *      c = 4-bit color of text
      *      b = 4-bit color of text background
      */
-    textcolor = c;
+    textfgcolor = c;
     textbgcolor = b;
 }
 
@@ -675,7 +685,7 @@ static void tft_write(unsigned char c) {
             cursor_x = new_x;
         }
     } else {
-        drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
+        drawChar(cursor_x, cursor_y, c, textfgcolor, textbgcolor, textsize);
         cursor_x += textsize * FONTWIDTH;
         if (wrap && (cursor_x > (SCREENWIDTH - textsize * FONTWIDTH))) {
             cursor_y += textsize * FONTHEIGHT;
@@ -699,7 +709,7 @@ inline void drawString(unsigned char *str) {
 //   ASCII char and print it out if printable or else honor
 //   the escape code. In this mode we map the bitmap screen
 //   to a 80x30 terminal, with the current cursor indicated
-//   by tcurs_x and tcurs_y (column and row)
+//   by tcurs.x and tcurs.y (column and row)
 //
 //   NOTE: Here we use 0,0 as the 1st element (ie: zero indexed)
 //         but externally we use one-indexed (ie, 1,1)
@@ -714,7 +724,7 @@ void vgaScroll (int scanlines) {
 
 void termScroll (int rows) {
     if (rows <= 0) rows = 1;
-    if (rows > max_tcurs_y) rows = max_tcurs_y;
+    if (rows > maxTcurs.y) rows = maxTcurs.y;
     vgaScroll(rows * FONTHEIGHT);
     rows *= textrow_size;
     int bsize = term_size * sizeof(tchar_t);
@@ -722,51 +732,109 @@ void termScroll (int rows) {
     dma_memset(terminal + bsize - rows, 0, rows);
 }
 
-void setTxtCursor(int x, int y) {
-    tcurs_x = x;
-    if (tcurs_x > max_tcurs_x)
-        tcurs_x = max_tcurs_x;
-    tcurs_y = y;
-    if (tcurs_y > max_tcurs_y)
-        tcurs_y = max_tcurs_y;
+static void checkCursor(void) {
+    if (tcurs.x > maxTcurs.x)
+        tcurs.x = maxTcurs.x;
+    if (tcurs.y > maxTcurs.y)
+        tcurs.y = maxTcurs.y;
 }
 
-void printChar(unsigned char c) {
-    if (tcurs_x > max_tcurs_x) {
+void setTxtCursor(int x, int y) {
+    tcurs.x = x;
+    tcurs.y = y;
+    checkCursor();
+}
+
+static void doChar(unsigned char c) {
+    if (tcurs.x > maxTcurs.x) {
         // End of line
-        tcurs_x = 0;
-        tcurs_y++;
-        if (tcurs_y > max_tcurs_y) {
-            tcurs_y = max_tcurs_y;
-            // scroll here
+        tcurs.x = 0;
+        tcurs.y++;
+        if (tcurs.y > maxTcurs.y) {
+            tcurs.y = maxTcurs.y;
+            termScroll(1);
         }
     }
     if (c == '\n') {
-        tcurs_y++;
-        if (tcurs_y > max_tcurs_y) {
-            tcurs_y = max_tcurs_y;
-            // scroll
+        tcurs.y++;
+        if (tcurs.y > maxTcurs.y) {
+            tcurs.y = maxTcurs.y;
+            termScroll(1);
         }
-        tcurs_x = 0;
+        tcurs.x = 0;
     } else if (c == '\r') {
-        // skip em
+        tcurs.x = 0;
     } else if (c == '\t') {
-        tcurs_x += tabspace;
-        if (tcurs_x > max_tcurs_x) {
+        tcurs.x += tabspace;
+        if (tcurs.x > maxTcurs.x) {
             // vgaScroll here? Wrap around?
-            tcurs_x = max_tcurs_x;
+            tcurs.x = maxTcurs.x;
         }
     } else {
-        tchar_t *tchar = terminal + (tcurs_y * textrow_size) + tcurs_x;
+        tchar_t *tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
         tchar->attributes = 0;
         tchar->character = c;
-        tchar->fg_color = textcolor;
+        tchar->fg_color = textfgcolor;
         tchar->bg_color = textbgcolor;
         tchar->font = txtfont;
-        drawChar(tcurs_x * FONTWIDTH, tcurs_y * FONTHEIGHT, c, textcolor, textbgcolor, textsize);
-        tcurs_x++;
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
+        tcurs.x++;
     }
 }
+
+void clearScreen(void) {
+    vgaFillScreen(textbgcolor);
+    dma_memset(terminal, 0, terminal_size);
+    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
+}
+
+#include "escape_seq.cpp"
+
+// Handle ESC sequences
+void printChar(unsigned char chrx) {
+    if (esc_state == ESC_READY) {
+        if (chrx == ESC) {
+            esc_state = SAW_ESC;
+        } else {
+            doChar(chrx);
+        }
+    } else {
+        switch(esc_state){
+            case SAW_ESC:
+                // waiting on c1 character
+                if ((chrx >= 'N') && (chrx < '_')) {
+                    if(chrx=='[') {
+                        esc_c1 = chrx;
+                        esc_state = ESC_COLLECT;
+                        clear_escape_parameters();
+                    }
+                    else {
+                        // punt
+                        reset_escape_sequence();
+                        doChar(chrx);
+                    }
+                }
+                else {
+                    // unrecognised character after escape.
+                    reset_escape_sequence();
+                    doChar(chrx);
+                }
+                break;
+            case ESC_COLLECT:
+                if (!collect_sequence(chrx)) {
+                    // Weird ending char
+                    reset_escape_sequence();
+                    doChar(chrx);
+                }
+                break;
+            default:
+                reset_escape_sequence();
+                doChar(chrx);
+                break;
+        }
+    }
+}
+
 
 inline void printString(unsigned char *str) {
     while (*str) {
