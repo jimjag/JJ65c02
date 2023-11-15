@@ -14,6 +14,7 @@
 .exportzp Z7
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
+.exportzp CON_SPTR
 .exportzp USER_INPUT_PTR
 .exportzp TEXT_BLK
 .exportzp SERIN_RPTR
@@ -48,6 +49,7 @@ SERIN_WPTR:  .res 1      ; Write index point
 PS2IN_RPTR:     .res 1      ; PS/2 Keyboard Read index pointer (MSB = 1)
 PS2IN_WPTR:     .res 1      ; PS/2 Keyboard Write index point
 ACIA_SPTR:      .res 2      ; String pointer - ACIA/TTY I/O
+CON_SPTR:      .res 2       ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2      ; buffer pointer
 
 ;===================================================================
@@ -86,9 +88,9 @@ x_erase_display:        .byte TTY_char_ESC,"[2J", TTY_char_NULL
 x_erase_line:           .byte TTY_char_ESC,"[2K", TTY_char_NULL
 
 ; Other
-new_line:               .asciiz "\n\r"
+new_line:               .asciiz "\r\n"
 prompt:                 .asciiz "OK> "
 
 ; Messages
-welcome_msg:    .asciiz "Welcome to miniOS\n\n\r"
-panic_msg:      .asciiz "!PANIC!\n\r"
+welcome_msg:    .asciiz "Welcome to miniOS\r\n\r\n"
+panic_msg:      .asciiz "!PANIC!\r\n"

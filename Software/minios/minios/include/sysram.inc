@@ -11,6 +11,7 @@ _SYSRAM_INC_ = 1
 .importzp Z7
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
+.importzp CON_SPTR
 .importzp USER_INPUT_PTR
 .importzp TEXT_BLK
 .importzp SERIN_RPTR

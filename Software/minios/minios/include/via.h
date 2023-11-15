@@ -22,10 +22,6 @@ VIA1_IFR =    __IO_START__ + $2d                    ; Interrupt Flag Register
 VIA1_IER =    __IO_START__ + $2e                    ; Interrupt Enable Register
 VIA1_ORA =    __IO_START__ + $2e                    ; Port A - no handshake
 
-VIA_up_key = $01
-VIA_down_key = $02
-VIA_left_key = $04
-VIA_right_key = $08
 
 VIA2_PORTB =  __IO_START__ + $40                    ; I/O Port B
 VIA2_PORTA =  __IO_START__ + $41                    ; I/O Port A
