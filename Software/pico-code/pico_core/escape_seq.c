@@ -200,7 +200,7 @@ static void esc_sequence_received() {
 }
 
 // Collect escape sequence info
-bool collect_sequence(unsigned char chrx) {
+static bool collect_sequence(unsigned char chrx) {
     // waiting on parameter character, semicolon or final byte
     if (isdigit(chrx)) {
         // parameter value
@@ -229,4 +229,3 @@ bool collect_sequence(unsigned char chrx) {
     }
     return true;
 }
-

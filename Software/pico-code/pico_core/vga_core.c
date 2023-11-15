@@ -50,6 +50,7 @@ typedef struct tchar_t  {
     char fg_color;
     char bg_color;
     char character;
+    char size;
 } tchar_t ;
 
 static tchar_t *terminal;
@@ -80,6 +81,7 @@ int cursor_y, cursor_x, textsize;
 bool wrap = true, cr2crlf = false, lf2crlf = false;
 char textfgcolor, textbgcolor;
 
+// Cursor position
 typedef struct scrpos {
     char x;
     char y;
@@ -88,10 +90,9 @@ struct scrpos savedTcurs = {0,0};
 struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
 
-// Cursor position
 int term_size;
-int scanline_size = (SCREENWIDTH / 2); // Amount of space taken by each scanline
-int textrow_size; // Amount of space taken by each row of text
+int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
+int textrow_size; // Amount of bytes taken by each row of text
 int terminal_size;
 
 static unsigned char inputChar;
@@ -736,8 +737,13 @@ void termScroll (int rows) {
 static void checkCursor(void) {
     if (tcurs.x > maxTcurs.x)
         tcurs.x = maxTcurs.x;
+    else if (tcurs.x < 0)
+        tcurs.x = 0;
+
     if (tcurs.y > maxTcurs.y)
         tcurs.y = maxTcurs.y;
+    else if (tcurs.y < 0)
+        tcurs.y = 0;
 }
 
 void setTxtCursor(int x, int y) {
@@ -747,6 +753,7 @@ void setTxtCursor(int x, int y) {
 }
 
 static void doChar(unsigned char c) {
+    tchar_t *tchar;
     if (tcurs.x > maxTcurs.x) {
         // End of line
         tcurs.x = 0;
@@ -789,13 +796,30 @@ static void doChar(unsigned char c) {
                 tcurs.x = maxTcurs.x;
             }
             break;
+            // These 4 cases are special to us
+        case 0x11:
+            tcurs.y--;
+            checkCursor();
+            break;
+        case 0x12:
+            tcurs.y++;
+            checkCursor();
+            break;
+        case 0x13:
+            tcurs.x++;
+            checkCursor();
+            break;
+        case 0x14:
+            tcurs.x--;
+            checkCursor();
         default:
-            tchar_t *tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
+            tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
             tchar->attributes = 0;
             tchar->character = c;
             tchar->fg_color = textfgcolor;
             tchar->bg_color = textbgcolor;
             tchar->font = txtfont;
+            tchar->size = textsize;
             drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
             tcurs.x++;
             break;
@@ -808,9 +832,9 @@ void clearScreen(void) {
     dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
 }
 
-#include "escape_seq.cpp"
-
 // Handle ESC sequences
+#include "escape_seq.c"
+
 void printChar(unsigned char chrx) {
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
@@ -854,7 +878,6 @@ void printChar(unsigned char chrx) {
         }
     }
 }
-
 
 inline void printString(unsigned char *str) {
     while (*str) {
