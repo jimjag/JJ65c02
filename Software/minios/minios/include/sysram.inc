@@ -28,5 +28,17 @@ _SYSRAM_INC_ = 1
 
 .import INPUT_BUFFER
 
+.import welcome_msg
+.import panic_msg
+.import x_home_position
+.import x_up
+.import x_down
+.import x_right
+.import x_left
+.import x_backspace
+.import x_erase_display
+.import x_erase_line
+.import prompt
+
 .include "sysram.h"
 .endif

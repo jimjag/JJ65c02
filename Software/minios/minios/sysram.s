@@ -65,6 +65,16 @@ INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0
 ;===================================================================
 
 .export welcome_msg
+.export panic_msg
+.export x_home_position
+.export x_up
+.export x_down
+.export x_right
+.export x_left
+.export x_backspace
+.export x_erase_display
+.export x_erase_line
+.export prompt
 
 .segment "RODATA"
 ;
@@ -80,6 +90,9 @@ x_set_fg_green:         .byte TTY_char_ESC,"[32m",TTY_char_NULL
 
 ; Cursor
 x_home_position:        .byte TTY_char_ESC,"[H",TTY_char_NULL
+x_up:                   .byte TTY_char_ESC,"[A",TTY_char_NULL
+x_down:                 .byte TTY_char_ESC,"[B",TTY_char_NULL
+x_right:                .byte TTY_char_ESC,"[C",TTY_char_NULL
 x_left:                 .byte TTY_char_ESC,"[D",TTY_char_NULL
 x_backspace:            .byte TTY_char_ESC,"[D",TTY_char_SPACE,TTY_char_ESC,"[D", TTY_char_NULL
 

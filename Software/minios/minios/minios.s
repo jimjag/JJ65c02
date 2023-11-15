@@ -6,7 +6,7 @@
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
-;.include "keyboard.inc"
+.include "console.inc"
 
 .import BASIC_init
 .export MINIOS_main_menu
@@ -88,22 +88,21 @@ main:                                           ; boot routine, first thing load
     jsr TTY_setup_term
     TTY_writeln welcome_msg
     jsr VIA_init
+    jsr CON_init
+    CON_writeln welcome_msg
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
-    ;LCD_writeln message_welcomeacia
     TTY_writeln message_welcomeacia
+    CON_writeln message_welcomeacia
     bra @welcome
 @no_acia:
-    ;LCD_writeln message_welcome                 ; render the boot screen
+    CON_writeln message_welcome                 ; render the boot screen
 
 @welcome:
     cli                                         ; interupts are back on
-    ;ldy #0
-    ;ldx #19
-    ;jsr LCD_set_cursor
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
     beq @ram_failed
@@ -112,10 +111,9 @@ main:                                           ; boot routine, first thing load
 @ram_failed:
     lda #'-'
 @cont2:
-    ;jsr LCD_send_data
-    ;jsr Welcome_tone
+    jsr CON_write_byte_data
     jsr MINIOS_main_menu                    ; start the menu routine
-    jmp main                                    ; should the menu ever return ...
+    jmp main                                ; should the menu ever return ...
 
 
 ;================================================================================

@@ -141,7 +141,7 @@ int main() {
     sleep_ms(5000);
     vgaScroll(0);
     sleep_ms(5000);
-    vgaScroll(32);
+    termScroll(2);
     sleep_ms(5000);
     vgaFillScreen(BLUE);
     sleep_ms(5000);

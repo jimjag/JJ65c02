@@ -78,5 +78,7 @@ void dma_memcpy(void *dest, void *src, size_t num);
 
 void printChar(unsigned char c);
 void vgaScroll (int scanlines);
+void termScroll (int rows);
 void setTxtCursor(int x, int y);
 void printString(unsigned char* str);
+unsigned char getChar(void);

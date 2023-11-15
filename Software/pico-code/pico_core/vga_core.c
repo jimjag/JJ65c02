@@ -44,8 +44,18 @@
 // Note that this array is automatically initialized to all 0's (black)
 unsigned char vga_data_array[TXCOUNT];
 unsigned char *address_pointer = &vga_data_array[0];
+typedef struct tchar_t  {
+    char attributes;
+    char font;
+    char fg_color;
+    char bg_color;
+    char character;
+} tchar_t ;
+
+static tchar_t *terminal;
 
 static const unsigned char *font = font_sperry;
+static char txtfont = 0;
 
 // DMA channel for dma_memcpy and dma_memset
 int memcpy_dma_chan;
@@ -68,12 +78,14 @@ int cursor_y, cursor_x, textsize;
 char textcolor, textbgcolor, wrap;
 
 // Terminal screen sizes (Terminal mode) - Assume 640x480 and 8x16 bitmaps
-int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;    // 80
-int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;  // 30
+int max_tcurs_x = (SCREENWIDTH / FONTWIDTH) - 1;    // 79
+int max_tcurs_y = (SCREENHEIGHT / FONTHEIGHT) - 1;  // 29
+int term_size;
 int tcurs_x = 0;
 int tcurs_y = 0;
 int scanline_size = (SCREENWIDTH / 2); // Amount of space taken by each scanline
-int textrow_size = FONTHEIGHT * (SCREENWIDTH / 2); // Amount of space taken by each row of text
+int textrow_size; // Amount of space taken by each row of text
+int terminal_size;
 
 void initVGA(void) {
     // Choose which PIO instance to use (there are two instances, each with 4 state
@@ -172,6 +184,10 @@ void initVGA(void) {
     // To change the contents of the screen, we need only change the contents
     // of that array.
     dma_start_channel_mask((1u << scanline_chan_0));
+    term_size = (max_tcurs_x+1) * (max_tcurs_y+1);
+    textrow_size = (max_tcurs_x+1) * sizeof(tchar_t);
+    terminal_size = term_size * sizeof(tchar_t);
+    terminal = calloc(term_size, sizeof(tchar_t));
 }
 
 void dma_memset(void *dest, uint8_t val, size_t num) {
@@ -597,18 +613,23 @@ inline void setFont(char n) {
     switch (n) {
         case 4:
             font = font_terminus;
+            txtfont = 4;
             break;
         case 3:
             font = font_toshiba;
+            txtfont = 3;
             break;
         case 2:
             font = font_sweet16;
+            txtfont = 2;
             break;
         case 1:
             font = font_acm;
+            txtfont = 1;
             break;
         default:
             font = font_sperry;
+            txtfont = 0;
             break;
     }
 }
@@ -650,6 +671,9 @@ inline void drawString(unsigned char *str) {
 //   the escape code. In this mode we map the bitmap screen
 //   to a 80x30 terminal, with the current cursor indicated
 //   by tcurs_x and tcurs_y (column and row)
+//
+//   NOTE: Here we use 0,0 as the 1st element (ie: zero indexed)
+//         but externally we use one-indexed (ie, 1,1)
 
 void vgaScroll (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
@@ -657,6 +681,16 @@ void vgaScroll (int scanlines) {
     scanlines *= scanline_size;
     dma_memcpy(address_pointer, address_pointer + scanlines, TXCOUNT - scanlines);
     dma_memset(address_pointer + TXCOUNT - scanlines, 0, scanlines);
+}
+
+void termScroll (int rows) {
+    if (rows <= 0) rows = 1;
+    if (rows > max_tcurs_y) rows = max_tcurs_y;
+    vgaScroll(rows * FONTHEIGHT);
+    rows *= textrow_size;
+    int bsize = term_size * sizeof(tchar_t);
+    dma_memcpy(terminal, terminal + rows, bsize - rows);
+    dma_memset(terminal + bsize - rows, 0, rows);
 }
 
 void setTxtCursor(int x, int y) {
@@ -694,6 +728,12 @@ void printChar(unsigned char c) {
             tcurs_x = max_tcurs_x;
         }
     } else {
+        tchar_t *tchar = terminal + (tcurs_y * textrow_size) + tcurs_x;
+        tchar->attributes = 0;
+        tchar->character = c;
+        tchar->fg_color = textcolor;
+        tchar->bg_color = textbgcolor;
+        tchar->font = txtfont;
         drawChar(tcurs_x * FONTWIDTH, tcurs_y * FONTHEIGHT, c, textcolor, textbgcolor, textsize);
         tcurs_x++;
     }
@@ -703,4 +743,7 @@ inline void printString(unsigned char *str) {
     while (*str) {
         printChar(*str++);
     }
+}
+
+unsigned char getChar(void) {
 }
