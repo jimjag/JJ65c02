@@ -66,7 +66,8 @@ CON_read_byte:
 
 ;================================================================================
 ;
-;   CON_read - read up to $USER_BUFFLEN chars from serial input and store in buffer:
+;   CON_read - read up to $USER_BUFFLEN chars from serial input and store in buffer
+;              NOTE: We do NOT echo any rec'd chars back to the console
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A is Lo Address of buffer; .X is high; .Y is size of buffer
@@ -94,18 +95,14 @@ CON_readln:
     cmp #(TTY_char_BS)
     beq @is_backspace
     cmp #(TTY_char_DEL)
-    bne @echo_char
+    bne @save_char
 @is_backspace:
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
-    lda #(TTY_char_BS)
-    jsr CON_write_byte           ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
     lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
-@echo_char:
-    jsr CON_write_byte           ; Otherwise, echo the char
 @save_char:
     sta (USER_INPUT_PTR),y       ; And save it
     cpy USER_BUFFLEN             ; Our char buffer full? (incl null)
@@ -116,7 +113,6 @@ CON_readln:
     iny                          ; Add a NULL in the next position
     lda #(TTY_char_NULL)
     sta (USER_INPUT_PTR),y       ; Make sure the last char is null
-    CON_writeln new_line
     rts
 
 ;================================================================================

@@ -32,6 +32,7 @@
 enum ps2_pins {PS2_DATA_PIN=15, PS2_CLK_PIN, PA0=0, PA1, PA2, PA3, PA4, PA5, PA6, PIRQ=27};
 
 void initPS2(void);
-unsigned char ps2GetChar(void);
-unsigned char ps2GetCharBlk(void);
+unsigned char ps2GetChar(bool auto_print);
+unsigned char ps2GetCharBlk(bool auto_print);
 void clearPS2(void);
+void ps2Task(bool auto_print);

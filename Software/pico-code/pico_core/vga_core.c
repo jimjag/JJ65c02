@@ -55,7 +55,7 @@ typedef struct tchar_t  {
 
 static tchar_t *terminal;
 
-static const unsigned char *font = font_terminus;
+static const unsigned char *font = font_sweet16;
 static char txtfont = 0;
 
 // DMA channel for dma_memcpy and dma_memset
@@ -76,7 +76,7 @@ int memcpy_dma_chan;
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // configurations
-static bool wrap = true, cr2crlf = false, lf2crlf = false, enablecurs = false;
+static bool wrap = true, cr2crlf = true, lf2crlf = true, enablecurs = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -109,7 +109,7 @@ struct repeating_timer ctimer;
 bool cursor_callback(struct repeating_timer *t) {
     if (enablecurs) {
         if (ooff)
-            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
+            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, 0xb0, textfgcolor, textbgcolor, textsize);
         else
             drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
         ooff = !ooff;
@@ -668,16 +668,12 @@ inline void setTextWrap(bool w) { wrap = w; }
 
 inline void setFont(char n) {
     switch (n) {
-        case 4:
-            font = font_sperry;
-            txtfont = 4;
-            break;
         case 3:
-            font = font_toshiba;
+            font = font_sperry;
             txtfont = 3;
             break;
         case 2:
-            font = font_sweet16;
+            font = font_toshiba;
             txtfont = 2;
             break;
         case 1:
@@ -685,7 +681,7 @@ inline void setFont(char n) {
             txtfont = 1;
             break;
         default:
-            font = font_terminus;
+            font = font_sweet16;
             txtfont = 0;
             break;
     }

@@ -51,7 +51,7 @@ int main() {
     // Initialize the VGA screen
     initVGA();
     initPS2();
-
+    setFont(2);
     // circle radii
     short circle_r = 0;
     short circle_x = 320;
@@ -192,12 +192,13 @@ int main() {
     drawString("Light Cyan");
     setCursor(3 * 110 + 20, 150 + 3 * 70);
     drawString("White");
+    setFont(1);
     setCursor(0, 460);
     drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
-    setFont(1);
+    setFont(2);
     setCursor(0, 440);
     drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
-    setFont(2);
+    setFont(3);
     setCursor(0, 420);
     drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(0);
@@ -209,7 +210,7 @@ int main() {
     clearPS2();
     setTextColor2(GREEN, BLACK);
     while (true) {
-        char c = ps2GetChar();
+        char c = ps2GetChar(false);
         if (c == '\b') break;
         if (c) {
             setTxtCursor(60, 24);
@@ -221,10 +222,9 @@ int main() {
     }
     clearScreen();
     setTxtCursor(0, 20);
-    printString("\x1b[7;31m");
+    setTextColor2(WHITE, BLACK);
     enableCurs(true);
     while (true) {
-        char c = ps2GetChar();
-        if (c) printChar(c);
+        char c = ps2GetChar(true);
     }
 }

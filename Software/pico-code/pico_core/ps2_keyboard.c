@@ -32,6 +32,7 @@
 #include "ps2_keyboard.pio.h"
 // Header file
 #include "ps2_keyboard.h"
+#include "vga_core.h"
 
 static uint ps2_offset;
 static uint ps2_sm;
@@ -116,7 +117,10 @@ static const char ps2_to_ascii_cntl[] = {
 
 // Return keyboard status
 // Returns: 0 for not ready, ASCII code otherwise ready
-unsigned char ps2GetChar(void) {
+// The default is to auto-print to the VGA console, but we
+// can disable this if, for some reason, we want/need the
+// *host* (ie, the 6502) to echo rec'd characters itself.
+unsigned char ps2GetChar(bool auto_print) {
     unsigned char ascii = 0;
     // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
@@ -162,22 +166,28 @@ unsigned char ps2GetChar(void) {
             release = 0;
             break;
     }
+    if (ascii && auto_print) printChar(ascii);
     return ascii;
 }
 
 // Blocking keyboard read
 // Returns  - single ASCII character
-unsigned char ps2GetCharBlk(void) {
+unsigned char ps2GetCharBlk(bool auto_print) {
     unsigned char c;
-    while (!(c = ps2GetChar())) {
+    while (!(c = ps2GetChar(auto_print))) {
         tight_loop_contents();
     }
     return c;
 }
 
-void ps2WriteByte(void) {
+// This is the actual task used in polling/looping:
+//   Check if we rec'd a character from the PS/2 Keyboard
+//   if so, we print it (send it to the VGA system) and
+//   then send it to the 6502 via the VIA.
+
+void ps2Task(bool auto_print) {
     unsigned char c;
-    if ((c = ps2GetChar())) {
+    if ((c = ps2GetChar(auto_print))) {
         for (uint pin = PA0; pin <= PA6; pin++) {
             gpio_put(pin, c & 0x01);
             c = c>>1;
