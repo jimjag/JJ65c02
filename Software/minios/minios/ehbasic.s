@@ -10,6 +10,7 @@
 .include "minios.inc"
 .include "sysram.inc"
 .include "tty.inc"
+.include "console.inc"
 
 ;=====================================================================
 ; look for "SYSTEM SPECIFIC VALUE!" for values/settings/functions
@@ -8802,13 +8803,13 @@ LAB_dowarm:
     jmp   LAB_WARM        ; do EhBASIC warm start
 
 ; : SYSTEM SPECIFIC VALUE!
-ACIAout:
-    jsr TTY_write_char
+IOout:
+    jsr CON_write_byte
     rts
 
 ; : SYSTEM SPECIFIC VALUE!
-ACIAin:
-    jsr TTY_read_char
+IOin:
+    jsr CON_read_byte
     bcc LAB_nobyw       ; No char avail
     cmp #'a'            ; Is it < 'a'?
     bcc @done           ; Yes, we're done
@@ -8827,8 +8828,8 @@ no_save:                 ; empty save vector for EhBASIC
 ; vector tables
 
 LAB_vec:
-    .word ACIAin            ; byte in from simulated ACIA
-    .word ACIAout           ; byte out to simulated ACIA
+    .word IOin              ; byte in from user
+    .word IOout             ; byte out 
     .word no_load           ; null load vector for EhBASIC
     .word no_save           ; null save vector for EhBASIC
     .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!

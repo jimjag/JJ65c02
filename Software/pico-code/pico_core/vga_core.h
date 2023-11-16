@@ -48,7 +48,9 @@ enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
 
+// GPIO pins to VIA chip
 enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY=26};
+
 // VGA Core Functions
 void initVGA(void);
 void drawPixel(int x, int y, char color);
@@ -86,4 +88,4 @@ void printString(char* str);
 bool haveChar(void);
 unsigned char getChar(void);
 void clearScreen(void);
-void enableCurs(bool flag);
+bool enableCurs(bool flag);

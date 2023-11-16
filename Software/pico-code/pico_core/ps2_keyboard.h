@@ -29,7 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum ps2_pins {PS2_DATA_PIN=15, PS2_CLK_PIN, PA0=0, PA1, PA2, PA3, PA4, PA5, PA6, PIRQ=27};
+// GPIO pins to VIA chip
+enum ps2_pins {PA0=0, PA1, PA2, PA3, PA4, PA5, PA6, PS2_DATA_PIN=15, PS2_CLK_PIN, PIRQ=27};
 
 void initPS2(void);
 unsigned char ps2GetChar(bool auto_print);

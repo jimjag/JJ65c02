@@ -76,7 +76,7 @@ int memcpy_dma_chan;
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // configurations
-static bool wrap = true, cr2crlf = true, lf2crlf = true, enablecurs = false;
+static bool wrap = true, cr2crlf = true, lf2crlf = true;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -104,17 +104,23 @@ static const char ansi_pallet[] = {
         BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 };
 
-volatile bool ooff = true;
+// Stuff for blinking cursor functions
 struct repeating_timer ctimer;
+alarm_pool_t *apool
+volatile static bool cursorOnOff = false;
 bool cursor_callback(struct repeating_timer *t) {
-    if (enablecurs) {
-        if (ooff)
+    static bool bon = true;
+    if (cursorOnOff) {
+        if (bon)
             drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, 0xb0, textfgcolor, textbgcolor, textsize);
         else
             drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
-        ooff = !ooff;
-        return true;
+        bon = !bon;
+    } else if (bon == false) {  // Was our last write a cursor "on"?
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
+        bon = true;
     }
+    return true;
 }
 
 // Interrupt Handler: We have data on GPIO7-14
@@ -243,7 +249,7 @@ void initVGA(void) {
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
     gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
-    alarm_pool_t *apool = alarm_pool_create_with_unused_hardware_alarm(10);
+    alarm_pool_t *apool = alarm_pool_create_with_unused_hardware_alarm(1);
     alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
@@ -729,11 +735,15 @@ inline void drawString(unsigned char *str) {
 //         but externally we use one-indexed (ie, 1,1)
 
 void vgaScroll (int scanlines) {
+    // Before we scroll, make sure that the screen cursor is off and blank
+    bool was = enableCurs(false);
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
     scanlines *= scanline_size;
     dma_memcpy(address_pointer, address_pointer + scanlines, TXCOUNT - scanlines);
     dma_memset(address_pointer + TXCOUNT - scanlines, 0, scanlines);
+    // restore screen cursor status
+    enableCurs(was);
 }
 
 void termScroll (int rows) {
@@ -766,20 +776,10 @@ void setTxtCursor(int x, int y) {
 
 static void doChar(unsigned char c) {
     tchar_t *tchar;
+    bool was = enableCurs(false);
     char x,y;
-    if (tcurs.x > maxTcurs.x) {
-        // End of line
-        tcurs.x = 0;
-        tcurs.y++;
-        if (tcurs.y > maxTcurs.y) {
-            tcurs.y = maxTcurs.y;
-            termScroll(1);
-        }
-    }
     switch (c) {
         // Handle "special" characters.
-        //
-        // TODO: Figure out how to differentiate between control characters vs graphics chars
         case '\n':
             tcurs.y++;
             if (tcurs.y > maxTcurs.y) {
@@ -807,7 +807,6 @@ static void doChar(unsigned char c) {
                 tcurs.x = maxTcurs.x;
             }
             break;
-            // These 4 cases are special to us
         case '\b':   // Backspace and Delete
             tcurs.x--;
             if (tcurs.x < 0) {
@@ -822,19 +821,20 @@ static void doChar(unsigned char c) {
             doChar(' ');
             setTxtCursor(x,y);
             break;
-        case 0x11:
+        // These 4 cases are special to us
+        case 0x11:  // Up Arrow, aka Esc[A
             tcurs.y--;
             checkCursor();
             break;
-        case 0x12:
+        case 0x12:  // Down Arrow, aka Esc[B
             tcurs.y++;
             checkCursor();
             break;
-        case 0x13:
+        case 0x13:  // Right Arrow, aka Esc[C
             tcurs.x++;
             checkCursor();
             break;
-        case 0x14:
+        case 0x14:  // Left Arrow, aka Esc[D
             tcurs.x--;
             checkCursor();
         default:
@@ -847,8 +847,18 @@ static void doChar(unsigned char c) {
             tchar->size = textsize;
             drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
             tcurs.x++;
+            if (tcurs.x > maxTcurs.x) {
+                // End of line
+                tcurs.x = 0;
+                tcurs.y++;
+                if (tcurs.y > maxTcurs.y) {
+                    tcurs.y = maxTcurs.y;
+                    termScroll(1);
+                }
+            }
             break;
     }
+    enableCurs(was);
 }
 
 void clearScreen(void) {
@@ -914,8 +924,10 @@ bool haveChar(void) {
     return hasChar;
 }
 
-void enableCurs(bool flag) {
-    enablecurs = flag;
+bool enableCurs(bool flag) {
+    bool was = cursorOnOff;
+    cursorOnOff = flag;
+    return was;
 }
 
 // Once we grab the character/byte we've rec'd, we no longer
