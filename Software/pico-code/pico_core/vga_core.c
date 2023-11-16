@@ -89,7 +89,7 @@ typedef struct scrpos {
     char y;
 } scrpos;
 struct scrpos savedTcurs = {0,0};
-struct scrpos tcurs = {0,0};
+volatile struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
 
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
@@ -109,18 +109,18 @@ static const char ansi_pallet[] = {
 };
 
 // Stuff for blinking cursor functions
-struct repeating_timer ctimer;
+static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
 static bool cursorOn = false;
-static struct tchar_t oldChar;
+volatile static struct tchar_t oldChar;
+volatile static bool bon = true;
 bool cursor_callback(struct repeating_timer *t) {
-    static bool bon = true;
     if (bon) {
         oldChar = *(terminal + (tcurs.y * textrow_size) + tcurs.x);
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
-    }
-    else
+    } else {
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
+    }
     bon = !bon;
     return true;
 }
@@ -128,9 +128,10 @@ bool cursor_callback(struct repeating_timer *t) {
 
 bool enableCurs(bool flag) {
     bool was = cursorOn;
-    if (flag && !cursorOn) // turning it on when off
+    if (flag && !cursorOn) { // turning it on when off
+        bon = true;
         alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
-    else if (!flag && cursorOn) { // turning it off when on
+    } else if (!flag && cursorOn) { // turning it off when on
         alarm_pool_cancel_alarm(apool, ctimer.alarm_id);
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
     }
@@ -265,7 +266,7 @@ void initVGA(void) {
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
     gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
-    apool = alarm_pool_create_with_unused_hardware_alarm(10);
+    apool = alarm_pool_get_default();
 }
 
 void dma_memset(void *dest, uint8_t val, size_t num) {
@@ -762,6 +763,7 @@ void vgaScroll (int scanlines) {
 }
 
 void termScroll (int rows) {
+    bool was = enableCurs(false);
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
     vgaScroll(rows * FONTHEIGHT);
@@ -770,6 +772,7 @@ void termScroll (int rows) {
     dma_memcpy(terminal, terminal + rows, bsize - rows);
     dma_memset(terminal + bsize - rows, 0, rows);
     clearTerminal(maxTcurs.y + 1 - rows);
+    enableCurs(was);
 }
 
 static void checkCursor(void) {
@@ -790,8 +793,8 @@ void setTxtCursor(int x, int y) {
     checkCursor();
 }
 
-// Print the raw character (as-is, as rec'd) to the screen and terminal
-void printCharRaw(unsigned char c) {
+// Print the raw character byte (as-is, as rec'd) to the screen and terminal
+void writeByte(unsigned char c) {
     tchar_t *tchar;
     tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
     tchar->attributes = 0;
@@ -815,7 +818,7 @@ void printCharRaw(unsigned char c) {
 
 // See if the character is special in any way
 static void doChar(unsigned char c) {
-    bool was = enableCurs(false);
+    //bool was = enableCurs(false);
     char x,y;
     switch (c) {
         // Handle "special" characters.
@@ -857,7 +860,7 @@ static void doChar(unsigned char c) {
             // Store where we are
             x = tcurs.x;
             y = tcurs.y;
-            printCharRaw(' ');
+            writeByte(' ');
             setTxtCursor(x,y);
             break;
         // These 4 cases are special to us
@@ -878,10 +881,10 @@ static void doChar(unsigned char c) {
             checkCursor();
             break;
         default:
-            printCharRaw(c);
+            writeByte(c);
             break;
     }
-    enableCurs(was);
+    //enableCurs(was);
 }
 
 void clearTerminal(char startRow) {
@@ -926,16 +929,16 @@ unsigned char getChar(void) {
 // meaning (eg: "terminal mode")
 void printChar(unsigned char chrx) {
     if (raw)
-        printCharRaw(chrx);
+        writeByte(chrx);
     else
-        printCharTerm(chrx);
+        writeChar(chrx);
 }
 
 // Print the character and check for Esc sequences. We use
 // this for input from the PS/2 or elsewhere that may
 // be terminal related. If we want/need to print the
-// graphics characters, use printCharRaw()
-void printCharTerm(unsigned char chrx) {
+// graphics characters, use writeByte()
+void writeChar(unsigned char chrx) {
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
             esc_state = SAW_ESC;

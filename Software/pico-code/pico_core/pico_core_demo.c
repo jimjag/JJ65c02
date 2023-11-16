@@ -223,7 +223,9 @@ int main() {
     clearScreen();
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
-    //enableCurs(true);
+    writeByte('a');
+    enableCurs(true);
+    writeByte('b');
     while (true) {
         char c = ps2GetChar(true);
     }
