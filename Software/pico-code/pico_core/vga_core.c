@@ -76,7 +76,11 @@ int memcpy_dma_chan;
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // configurations
-static bool wrap = true, cr2crlf = true, lf2crlf = true;
+// wrap: auto wrap around at terminal end
+// cr2crlf/lf2crlf: auto CRLF when we get CR or LF
+// raw: graphics mode (for terminal) where we print the raw 8bytes or
+//      we handle "special" characters (like arrows and other non-printables
+static bool wrap = true, cr2crlf = true, lf2crlf = true, raw = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -106,21 +110,32 @@ static const char ansi_pallet[] = {
 
 // Stuff for blinking cursor functions
 struct repeating_timer ctimer;
-alarm_pool_t *apool
-volatile static bool cursorOnOff = false;
+alarm_pool_t *apool = NULL;
+static bool cursorOn = false;
+static struct tchar_t oldChar;
 bool cursor_callback(struct repeating_timer *t) {
     static bool bon = true;
-    if (cursorOnOff) {
-        if (bon)
-            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, 0xb0, textfgcolor, textbgcolor, textsize);
-        else
-            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
-        bon = !bon;
-    } else if (bon == false) {  // Was our last write a cursor "on"?
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
-        bon = true;
+    if (bon) {
+        oldChar = *(terminal + (tcurs.y * textrow_size) + tcurs.x);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
     }
+    else
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
+    bon = !bon;
     return true;
+}
+
+
+bool enableCurs(bool flag) {
+    bool was = cursorOn;
+    if (flag && !cursorOn) // turning it on when off
+        alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
+    else if (!flag && cursorOn) { // turning it off when on
+        alarm_pool_cancel_alarm(apool, ctimer.alarm_id);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
+    }
+    cursorOn = flag;
+    return was;
 }
 
 // Interrupt Handler: We have data on GPIO7-14
@@ -239,6 +254,7 @@ void initVGA(void) {
     textrow_size = (maxTcurs.x + 1) * sizeof(tchar_t);
     terminal_size = term_size * sizeof(tchar_t);
     terminal = calloc(term_size, sizeof(tchar_t));
+    clearTerminal(0);
 
     // GPIO pin setup
     for (uint pin = DATA0; pin <= DATA7; pin++) {
@@ -249,8 +265,7 @@ void initVGA(void) {
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
     gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
-    alarm_pool_t *apool = alarm_pool_create_with_unused_hardware_alarm(1);
-    alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
+    apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 
 void dma_memset(void *dest, uint8_t val, size_t num) {
@@ -754,6 +769,7 @@ void termScroll (int rows) {
     int bsize = term_size * sizeof(tchar_t);
     dma_memcpy(terminal, terminal + rows, bsize - rows);
     dma_memset(terminal + bsize - rows, 0, rows);
+    clearTerminal(maxTcurs.y + 1 - rows);
 }
 
 static void checkCursor(void) {
@@ -774,8 +790,31 @@ void setTxtCursor(int x, int y) {
     checkCursor();
 }
 
-static void doChar(unsigned char c) {
+// Print the raw character (as-is, as rec'd) to the screen and terminal
+void printCharRaw(unsigned char c) {
     tchar_t *tchar;
+    tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
+    tchar->attributes = 0;
+    tchar->character = c;
+    tchar->fg_color = textfgcolor;
+    tchar->bg_color = textbgcolor;
+    tchar->font = txtfont;
+    tchar->size = textsize;
+    drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
+    tcurs.x++;
+    if (tcurs.x > maxTcurs.x) {
+        // End of line
+        tcurs.x = 0;
+        tcurs.y++;
+        if (tcurs.y > maxTcurs.y) {
+            tcurs.y = maxTcurs.y;
+            termScroll(1);
+        }
+    }
+}
+
+// See if the character is special in any way
+static void doChar(unsigned char c) {
     bool was = enableCurs(false);
     char x,y;
     switch (c) {
@@ -818,7 +857,7 @@ static void doChar(unsigned char c) {
             // Store where we are
             x = tcurs.x;
             y = tcurs.y;
-            doChar(' ');
+            printCharRaw(' ');
             setTxtCursor(x,y);
             break;
         // These 4 cases are special to us
@@ -837,40 +876,66 @@ static void doChar(unsigned char c) {
         case 0x14:  // Left Arrow, aka Esc[D
             tcurs.x--;
             checkCursor();
+            break;
         default:
-            tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
-            tchar->attributes = 0;
-            tchar->character = c;
-            tchar->fg_color = textfgcolor;
-            tchar->bg_color = textbgcolor;
-            tchar->font = txtfont;
-            tchar->size = textsize;
-            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
-            tcurs.x++;
-            if (tcurs.x > maxTcurs.x) {
-                // End of line
-                tcurs.x = 0;
-                tcurs.y++;
-                if (tcurs.y > maxTcurs.y) {
-                    tcurs.y = maxTcurs.y;
-                    termScroll(1);
-                }
-            }
+            printCharRaw(c);
             break;
     }
     enableCurs(was);
 }
 
-void clearScreen(void) {
-    vgaFillScreen(textbgcolor);
-    dma_memset(terminal, 0, terminal_size);
-    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
+void clearTerminal(char startRow) {
+    struct tchar_t *space;
+    if (startRow < 0) startRow = 0;
+    for (char y = startRow; y <= maxTcurs.y; y++)
+        for (char x = 0; x <= maxTcurs.x; x++) {
+            space = terminal + (y * textrow_size) + x;
+            space->character = ' ';
+        }
 }
 
+void clearScreen(void) {
+    vgaFillScreen(textbgcolor);
+    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
+    dma_memset(terminal, 0, terminal_size);
+    clearTerminal(0);
+}
+
+
+inline void printString(char *str) {
+    while (*str) {
+        printChar(*str++);
+    }
+}
+
+bool haveChar(void) {
+    return hasChar;
+}
+
+// Once we grab the character/byte we've rec'd, we no longer
+// have it available to "read" again.
+unsigned char getChar(void) {
+    hasChar = false;
+    return inputChar;
+}
 // Handle ESC sequences
 #include "escape_seq.c"
 
+// Auto decide based on the raw/graphics mode setting whether
+// the byte should be printed as-is (raw) or checked for special
+// meaning (eg: "terminal mode")
 void printChar(unsigned char chrx) {
+    if (raw)
+        printCharRaw(chrx);
+    else
+        printCharTerm(chrx);
+}
+
+// Print the character and check for Esc sequences. We use
+// this for input from the PS/2 or elsewhere that may
+// be terminal related. If we want/need to print the
+// graphics characters, use printCharRaw()
+void printCharTerm(unsigned char chrx) {
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
             esc_state = SAW_ESC;
@@ -912,27 +977,4 @@ void printChar(unsigned char chrx) {
                 break;
         }
     }
-}
-
-inline void printString(char *str) {
-    while (*str) {
-        printChar(*str++);
-    }
-}
-
-bool haveChar(void) {
-    return hasChar;
-}
-
-bool enableCurs(bool flag) {
-    bool was = cursorOnOff;
-    cursorOnOff = flag;
-    return was;
-}
-
-// Once we grab the character/byte we've rec'd, we no longer
-// have it available to "read" again.
-unsigned char getChar(void) {
-    hasChar = false;
-    return inputChar;
 }

@@ -80,12 +80,15 @@ void vgaFillScreen(uint16_t color);
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
 
-void printChar(unsigned char c);
+void printCharTerm(unsigned char c); // write the interpreted character
+void printCharRaw(unsigned char c);  // write the raw character (no handling)
+void printChar(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
 void setTxtCursor(int x, int y);
 void printString(char* str);
 bool haveChar(void);
 unsigned char getChar(void);
+void clearTerminal(char startRow);
 void clearScreen(void);
 bool enableCurs(bool flag);
