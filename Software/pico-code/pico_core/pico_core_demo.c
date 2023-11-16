@@ -39,7 +39,6 @@ char timetext[40];
 
 // Timer interrupt
 bool repeating_timer_callback(struct repeating_timer *t) {
-
     time_accum -= 1;
     return true;
 }
@@ -211,6 +210,7 @@ int main() {
     setTextColor2(GREEN, BLACK);
     while (true) {
         char c = ps2GetChar();
+        if (c == '\b') break;
         if (c) {
             setTxtCursor(60, 24);
             printChar(c);
@@ -219,5 +219,12 @@ int main() {
             printString(hex);
         }
     }
-
+    clearScreen();
+    setTxtCursor(0, 20);
+    printString("\x1b[7;31m");
+    enableCurs(true);
+    while (true) {
+        char c = ps2GetChar();
+        if (c) printChar(c);
+    }
 }

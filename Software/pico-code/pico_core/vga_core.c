@@ -75,11 +75,9 @@ int memcpy_dma_chan;
 // For accessing the font library
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
-// For drawing characters in Graphics Mode
-int cursor_y, cursor_x, textsize;
 // configurations
-bool wrap = true, cr2crlf = false, lf2crlf = false;
-char textfgcolor, textbgcolor;
+static bool wrap = true, cr2crlf = false, lf2crlf = false, enablecurs = false;
+char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
 typedef struct scrpos {
@@ -90,22 +88,38 @@ struct scrpos savedTcurs = {0,0};
 struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
 
-int term_size;
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
-int textrow_size; // Amount of bytes taken by each row of text
-int terminal_size;
+int textrow_size; // Amount of bytes taken by each row of text. Calculated at INIT time
+int terminal_size; // Calculated at INIT time
+int term_size; // Calculated at INIT time
 
-static unsigned char inputChar;
-bool hasChar = false;
+// For drawing characters in Graphics Mode
+int cursor_y, cursor_x, textsize;
+
+volatile static unsigned char inputChar;
+volatile static bool hasChar = false;
 
 // color available to ANSI commands
 static const char ansi_pallet[] = {
         BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 };
 
+volatile bool ooff = true;
+struct repeating_timer ctimer;
+bool cursor_callback(struct repeating_timer *t) {
+    if (enablecurs) {
+        if (ooff)
+            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
+        else
+            drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, ' ', textfgcolor, textbgcolor, textsize);
+        ooff = !ooff;
+        return true;
+    }
+}
+
 // Interrupt Handler: We have data on GPIO7-14
 void readByte(uint gpio, uint32_t events) {
-    unsigned char c;
+    unsigned char c = 0;
     for (uint pin = DATA7; pin >= DATA0; pin--) {
         c = (c << 1)|gpio_get(pin);
     }
@@ -214,7 +228,7 @@ void initVGA(void) {
     // of that array.
     dma_start_channel_mask((1u << scanline_chan_0));
 
-    // Now setup terminal
+    // Now setup terminal and runtime values
     term_size = (maxTcurs.x + 1) * (maxTcurs.y + 1);
     textrow_size = (maxTcurs.x + 1) * sizeof(tchar_t);
     terminal_size = term_size * sizeof(tchar_t);
@@ -229,6 +243,8 @@ void initVGA(void) {
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
     gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
+    alarm_pool_t *apool = alarm_pool_create_with_unused_hardware_alarm(10);
+    alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
 void dma_memset(void *dest, uint8_t val, size_t num) {
@@ -892,7 +908,7 @@ void printChar(unsigned char chrx) {
     }
 }
 
-inline void printString(unsigned char *str) {
+inline void printString(char *str) {
     while (*str) {
         printChar(*str++);
     }
@@ -900,6 +916,10 @@ inline void printString(unsigned char *str) {
 
 bool haveChar(void) {
     return hasChar;
+}
+
+void enableCurs(bool flag) {
+    enablecurs = flag;
 }
 
 // Once we grab the character/byte we've rec'd, we no longer

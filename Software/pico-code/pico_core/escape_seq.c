@@ -144,13 +144,13 @@ static void esc_sequence_received() {
             case 'h':
                 if (parameter_q && (esc_parameters[0]==25)) {
                     // show cursor
-                    not_implemented();
+                    enableCurs(true);
                 }
                 break;
             case 'l':
                 if (parameter_q && (esc_parameters[0]==25)) {
                     // hide cursor
-                    not_implemented();
+                    enableCurs(false);
                 }
                 break;
             case 'm':
