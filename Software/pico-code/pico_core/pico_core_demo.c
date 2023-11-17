@@ -142,7 +142,6 @@ int main() {
     vgaScroll(0);
     sleep_ms(5000);
     termScroll(1);
-    vgaScroll(0);
     sleep_ms(5000);
     for (int i = 0; i <= 64; i++) {
         vgaScroll(1);
