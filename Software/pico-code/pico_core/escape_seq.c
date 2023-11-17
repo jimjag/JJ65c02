@@ -3,7 +3,7 @@
 #define SAW_ESC      1
 #define ESC_COLLECT  2
 
-#define MAX_ESC_PARAMS          5
+#define MAX_ESC_PARAMS 5
 static int esc_state = ESC_READY;
 static int esc_parameters[MAX_ESC_PARAMS];
 static bool parameter_q;
@@ -141,19 +141,27 @@ static void esc_sequence_received() {
                     termScroll(n);
                 }
                 break;
-            case 'h':
+            case 'h': // SM - Set Mode
                 if (parameter_q && (esc_parameters[0]==25)) {
                     // show cursor
                     enableCurs(true);
                 }
+                if (parameter_q && (esc_parameters[0]==4)) {
+                    // show cursor
+                    enableSmoothScroll(true);
+                }
                 break;
-            case 'l':
+            case 'l': // RM - Reset Mode
                 if (parameter_q && (esc_parameters[0]==25)) {
                     // hide cursor
                     enableCurs(false);
                 }
+                if (parameter_q && (esc_parameters[0]==4)) {
+                    // show cursor
+                    enableSmoothScroll(false);
+                }
                 break;
-            case 'm':
+            case 'm': // SGR - Select Graphic Rendition
                 // Sets colors and style of the characters following this code
                 n = esc_parameters[0];
                 if (n == 0) {
@@ -168,13 +176,13 @@ static void esc_sequence_received() {
                     textfgcolor = ansi_pallet[n-30];
                 } else if ((n == 38) && (esc_parameters[1] == 5)) {
                     // set foreground to rgb color
-                    textfgcolor = esc_parameters[2] & 0xFF;
+                    textfgcolor = esc_parameters[2] & 0xff;
                 } else if ((n >= 40) && (n <= 47)) {
                     // set background to ANSI color
                     textbgcolor = ansi_pallet[n-40];
                 } else if ((n == 48) && (esc_parameters[1] == 5)) {
                     // set background to rgb color
-                    textbgcolor = esc_parameters[2] & 0xFF;
+                    textbgcolor = esc_parameters[2] & 0xff;
                 }
                 break;
             case 'u':
@@ -217,7 +225,7 @@ static bool collect_sequence(unsigned char chrx) {
     else if (chrx == '?') { 
         parameter_q=true;
     }
-    else if ((chrx >= 0x40) && (chrx < 0x7E)) { 
+    else if ((chrx >= 0x40) && (chrx < 0x7e)) {
         // final byte, register and handle
         esc_final_byte = chrx;
         esc_sequence_received();
