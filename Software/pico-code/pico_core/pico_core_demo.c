@@ -138,18 +138,18 @@ int main() {
         if (time_accum < 0) break;
     }
     setTextColor2(WHITE, BLACK);
-    sleep_ms(5000);
+    sleep_ms(2100);
     vgaScroll(0);
-    sleep_ms(5000);
+    sleep_ms(2100);
     termScroll(1);
-    sleep_ms(5000);
+    sleep_ms(2100);
     vgaScroll(64);
-    sleep_ms(5000);
+    sleep_ms(2100);
     enableSmoothScroll(true);
     vgaScroll(64);
-    sleep_ms(5000);
+    sleep_ms(2100);
     vgaFillScreen(BLUE);
-    sleep_ms(5000);
+    sleep_ms(2100);
     vgaFillScreen(BLACK);
     char video_buffer[32];
     setTextColor2(WHITE, BLACK);
@@ -208,7 +208,7 @@ int main() {
     setCursor(0, 420);
     drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(0);
-    sleep_ms(5000);
+    sleep_ms(2100);
 
     char hex[40];
     setTxtCursor(60, 20);
@@ -227,6 +227,16 @@ int main() {
         }
     }
     clearScreen();
+    setTextColor(RED);
+    printString("\x1b[Z1;10;10;500;5Z");
+    setTextColor(BLUE);
+    printString("\x1b[Z2;30;30;40;45Z");
+    setTextColor(GREEN);
+    printString("\x1b[Z3;50;50;75;155Z");
+    setTextColor(CYAN);
+    printString("\x1b[Z4;100;100;55Z");
+    setTextColor(YELLOW);
+    printString("\x1b[Z5;200;200;55Z");
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
     writeByte('a');

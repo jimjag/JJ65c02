@@ -899,7 +899,7 @@ void clearScreen(void) {
 }
 
 
-inline void printString(char *str) {
+void printString(char *str) {
     while (*str) {
         printChar(*str++);
     }

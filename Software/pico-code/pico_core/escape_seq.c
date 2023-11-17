@@ -5,16 +5,16 @@
 
 #define MAX_ESC_PARAMS 5
 static int esc_state = ESC_READY;
-static int esc_parameters[MAX_ESC_PARAMS];
+static int escP[MAX_ESC_PARAMS];
 static bool parameter_q;
-static int esc_parameter_count;
+static int esc_parameter_count = 0;
 static unsigned char esc_c1;
 static unsigned char esc_final_byte;
 
 // Clear escape sequence parameters
 static void clear_escape_parameters() {
     for (int i = 0; i < MAX_ESC_PARAMS; i++) {
-        esc_parameters[i] = 0;
+        escP[i] = 0;
     }
     esc_parameter_count = 0;
 }
@@ -33,7 +33,7 @@ static void not_implemented() {}
 // Treat ESC sequence received
 /*
 // these should now be populated:
-    static int esc_parameters[MAX_ESC_PARAMS];
+    static int escP[MAX_ESC_PARAMS];
     static int esc_parameter_count;
     static unsigned char esc_c1;
     static unsigned char esc_final_byte;       
@@ -47,7 +47,7 @@ static void esc_sequence_received() {
             case 'A':
             // Cursor Up
             //Moves the cursor n (default 1) cells
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     n = 1;
                 }
@@ -57,7 +57,7 @@ static void esc_sequence_received() {
             case 'B':
             // Cursor Down
             //Moves the cursor n (default 1) cells
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     n = 1;
                 }
@@ -67,7 +67,7 @@ static void esc_sequence_received() {
             case 'C':
             // Cursor Forward
             //Moves the cursor n (default 1) cells
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     n = 1;
                 }
@@ -77,7 +77,7 @@ static void esc_sequence_received() {
             case 'D':
             // Cursor Backward
             //Moves the cursor n (default 1) cells
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     n = 1;
                 }
@@ -94,15 +94,15 @@ static void esc_sequence_received() {
             // Moves the cursor to row n, column m
             // The parameters are 1-based, and default to 1
             // these are zero based
-                tcurs.x = esc_parameters[0]-1;
-                tcurs.y = esc_parameters[1]-1;
+                tcurs.x = escP[0] - 1;
+                tcurs.y = escP[1] - 1;
                 checkCursor();
                 break;
             case 'K':
             // Erases part of the line. If n is 0 (or missing), clear from cursor to the end of the line. 
             // If n is 1, clear from cursor to beginning of the line. If n is 2, clear entire line. 
             // Cursor position does not change.
-                switch(esc_parameters[0]){
+                switch(escP[0]){
                     case 0:
                         // clear from cursor to the end of the line
                         not_implemented();
@@ -118,7 +118,7 @@ static void esc_sequence_received() {
                 }
                 break;
             case 'J':
-                switch(esc_parameters[0]){
+                switch(escP[0]){
                     case 0:
                         // clear from cursor to end of screen
                         not_implemented();
@@ -137,7 +137,7 @@ static void esc_sequence_received() {
                 break;
             case 'S':
             // Scroll whole page up by n (default 1) lines. New lines are added at the bottom.
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     n = 1;
                 }
@@ -148,28 +148,28 @@ static void esc_sequence_received() {
                 }
                 break;
             case 'h': // SM - Set Mode
-                if (parameter_q && (esc_parameters[0]==25)) {
+                if (parameter_q && (escP[0] == 25)) {
                     // show cursor
                     enableCurs(true);
                 }
-                if (parameter_q && (esc_parameters[0]==4)) {
+                if (parameter_q && (escP[0] == 4)) {
                     // show cursor
                     enableSmoothScroll(true);
                 }
                 break;
             case 'l': // RM - Reset Mode
-                if (parameter_q && (esc_parameters[0]==25)) {
+                if (parameter_q && (escP[0] == 25)) {
                     // hide cursor
                     enableCurs(false);
                 }
-                if (parameter_q && (esc_parameters[0]==4)) {
+                if (parameter_q && (escP[0] == 4)) {
                     // show cursor
                     enableSmoothScroll(false);
                 }
                 break;
             case 'm': // SGR - Select Graphic Rendition
                 // Sets colors and style of the characters following this code
-                n = esc_parameters[0];
+                n = escP[0];
                 if (n == 0) {
                     // reset / normal
                     textfgcolor = WHITE;
@@ -180,15 +180,15 @@ static void esc_sequence_received() {
                 } else if ((n >= 30) && (n <= 37)) {
                     // set foreground to ANSI color
                     textfgcolor = ansi_pallet[n-30];
-                } else if ((n == 38) && (esc_parameters[1] == 5)) {
+                } else if ((n == 38) && (escP[1] == 5)) {
                     // set foreground to rgb color
-                    textfgcolor = esc_parameters[2] & 0xff;
+                    textfgcolor = escP[2] & 0xff;
                 } else if ((n >= 40) && (n <= 47)) {
                     // set background to ANSI color
                     textbgcolor = ansi_pallet[n-40];
-                } else if ((n == 48) && (esc_parameters[1] == 5)) {
+                } else if ((n == 48) && (escP[1] == 5)) {
                     // set background to rgb color
-                    textbgcolor = esc_parameters[2] & 0xff;
+                    textbgcolor = escP[2] & 0xff;
                 }
                 break;
             case 'u':
@@ -200,6 +200,25 @@ static void esc_sequence_received() {
             // save cursor position
                 savedTcurs.x = tcurs.x;
                 savedTcurs.y = tcurs.y;
+                break;
+            case 'Z':  // Extended: Basic graphics
+                switch (escP[0]) {
+                    case 1: // Draw a line: Esc[Z1;x1;y1;x2;y2Z
+                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor);
+                        break;
+                    case 2: // Draw an empty rect: Esc[Z2;x1;y1;x2;y2Z
+                        drawRect(escP[1], escP[2], escP[3]-escP[1], escP[4]-escP[2], textfgcolor);
+                        break;
+                    case 3: // Draw a filled  rect: Esc[Z3;x1;y1;x2;y2Z
+                        fillRect(escP[1], escP[2], escP[3]-escP[1], escP[4]-escP[2], textfgcolor);
+                        break;
+                    case 4: // Draw an empty circle: Esc[Z4;x1;y1;r1Z
+                        drawCircle(escP[1], escP[2], escP[3], textfgcolor);
+                        break;
+                    case 5: // Draw an filled circle: Esc[Z5;x1;y1;r1Z
+                        fillCircle(escP[1], escP[2], escP[3], textfgcolor);
+                        break;
+                }
                 break;
             default:
                 break;
@@ -215,28 +234,26 @@ static void esc_sequence_received() {
 // Collect escape sequence info
 static bool collect_sequence(unsigned char chrx) {
     // waiting on parameter character, semicolon or final byte
-    if (isdigit(chrx)) {
+    if (chrx=='Z' && esc_parameter_count==0) {
+        ;  // nop
+    } else if (isdigit(chrx)) {
         // parameter value
         if(esc_parameter_count < MAX_ESC_PARAMS) {
-            esc_parameters[esc_parameter_count] *= 10;
-            esc_parameters[esc_parameter_count] += chrx - 0x30;
+            escP[esc_parameter_count] *= 10;
+            escP[esc_parameter_count] += chrx - '0';
         }
-    } 
-    else if (chrx == ';') { 
+    } else if (chrx == ';') {
         // move to next param
         if (esc_parameter_count < MAX_ESC_PARAMS) {
             esc_parameter_count++;
         }
-    }
-    else if (chrx == '?') { 
+    } else if (chrx == '?') {
         parameter_q=true;
-    }
-    else if ((chrx >= 0x40) && (chrx < 0x7e)) {
+    } else if ((chrx >= 0x40) && (chrx < 0x7e)) {
         // final byte, register and handle
         esc_final_byte = chrx;
         esc_sequence_received();
-    }
-    else {
+    } else {
         // Huh? Makes no sense. Punt and print
         return false;
     }
