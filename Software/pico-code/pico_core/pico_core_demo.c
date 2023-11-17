@@ -44,7 +44,7 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 }
 
 int main() {
-
+    //set_sys_clock_khz(150000, true);
     // Initialize stdio
     stdio_init_all();
 
@@ -137,10 +137,17 @@ int main() {
         sleep_ms(10);
         if (time_accum < 0) break;
     }
+    setTextColor2(WHITE, BLACK);
     sleep_ms(5000);
     vgaScroll(0);
     sleep_ms(5000);
-    termScroll(2);
+    termScroll(1);
+    vgaScroll(0);
+    sleep_ms(5000);
+    for (int i = 0; i <= 64; i++) {
+        vgaScroll(1);
+        sleep_ms(1);
+    }
     sleep_ms(5000);
     vgaFillScreen(BLUE);
     sleep_ms(5000);

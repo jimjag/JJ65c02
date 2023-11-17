@@ -36,11 +36,8 @@
 // Screen width/height/freq
 #define SCREENWIDTH 640
 #define SCREENHEIGHT 480
-#define PIXFREQ 25000000.0f
-
-// Length of the pixel array, and number of DMA transfers
-#define TXCOUNT 153600 // Total pixels/2 (since we have 2 pixels per byte)
-// int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
+#define PIXFREQ   25000000.0f
+#define SCANFREQ 125000000.0f
 
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 

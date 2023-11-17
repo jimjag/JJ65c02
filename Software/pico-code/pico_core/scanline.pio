@@ -15,19 +15,20 @@ wait 1 irq 1 [3]			; Wait for vsync active mode (starts 5 cycles after execution
 
 colorout:
 	pull block				; Pull color value
-	out pins, 4	[4]			; Push out to pins (first pixel)
-	out pins, 4	[2]			; Push out to pins (next pixel)
+	out pins, 4	[3]			; Push out to pins (first pixel)
+	out pins, 4	[3]			; Push out to pins (next pixel)
 	jmp x-- colorout		; Stay here thru horizontal active mode
 
 .wrap
 
 
 % c-sdk {
-static inline void scanline_program_init(PIO pio, uint sm, uint offset, uint pin) {
+static inline void scanline_program_init(PIO pio, uint sm, uint offset, uint pin, float freq) {
     pio_sm_config c = scanline_program_get_default_config(offset);
     sm_config_set_set_pins(&c, pin, 4);
     sm_config_set_out_pins(&c, pin, 4);
-    // sm_config_set_clkdiv(&c, 5) ;
+    // float div = clock_get_hz(clk_sys) / freq;  // Uncomment if we overclock
+    // sm_config_set_clkdiv(&c, div);             //  "      "
     pio_gpio_init(pio, pin);
     pio_gpio_init(pio, pin+1);
     pio_gpio_init(pio, pin+2);

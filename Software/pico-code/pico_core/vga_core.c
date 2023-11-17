@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 // Our assembled programs:
 // pioasm converts foo.pio to foo.pio.h
 #include "hsync.pio.h"
@@ -42,7 +43,10 @@
 // Pixel color array that is DMAed to the PIO machines and
 // a pointer to the ADDRESS of this color array.
 // Note that this array is automatically initialized to all 0's (black)
-unsigned char vga_data_array[TXCOUNT];
+// Length of the pixel array, and number of DMA transfers
+// #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
+int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
+unsigned char vga_data_array[(SCREENWIDTH * SCREENHEIGHT) / 2];
 unsigned char *address_pointer = &vga_data_array[0];
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 
@@ -105,7 +109,7 @@ static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
 static bool cursorOn = false;
 volatile char oldChar;
-volatile static bool bon = true;
+volatile bool bon = true;
 bool cursor_callback(struct repeating_timer *t) {
     if (bon) {
         oldChar = (terminal[tcurs.x][tcurs.y]) ? terminal[tcurs.x][tcurs.y] : ' ';
@@ -144,6 +148,17 @@ void readByte(uint gpio, uint32_t events) {
     hasChar = true;
 }
 
+bool haveChar(void) {
+    return hasChar;
+}
+
+// Once we grab the character/byte we've rec'd, we no longer
+// have it available to "read" again.
+unsigned char getChar(void) {
+    hasChar = false;
+    return inputChar;
+}
+
 void initVGA(void) {
     // Choose which PIO instance to use (there are two instances, each with 4 state
     // machines)
@@ -174,7 +189,7 @@ void initVGA(void) {
     // is consolidated in one place. Here in the C, we then just import and use it.
     hsync_program_init(pio, hsync_sm, hsync_offset, HSYNC, PIXFREQ);
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
-    scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN);
+    scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // ============================== PIO DMA Channels
@@ -184,9 +199,6 @@ void initVGA(void) {
     // DMA channels - 0 sends color data, 1 reconfigures and restarts 0
     int scanline_chan_0 = dma_claim_unused_channel(true);
     int scanline_chan_1 = dma_claim_unused_channel(true);
-
-    // DMA channel for dma_memcpy and dma_memset
-    memcpy_dma_chan = dma_claim_unused_channel(true);
 
     // Channel Zero (sends color data to PIO VGA machine)
     dma_channel_config c0 = dma_channel_get_default_config(scanline_chan_0);    // default configs
@@ -200,7 +212,7 @@ void initVGA(void) {
         &c0,                    // The configuration we just created
         &pio->txf[scanline_sm], // write address (SCANLINE PIO TX FIFO)
         &vga_data_array, // The initial read address (pixel color array)
-        TXCOUNT, // Number of transfers; in this case each is 1 byte.
+        txcount, // Number of transfers; in this case each is 1 byte.
         false    // Don't start immediately.
     );
 
@@ -243,7 +255,7 @@ void initVGA(void) {
     dma_start_channel_mask((1u << scanline_chan_0));
 
     // Now setup terminal
-    dma_memset(terminal, 20, terminal_size);
+    memset(terminal, ' ', terminal_size);
 
     // GPIO pin setup
     for (uint pin = DATA0; pin <= DATA7; pin++) {
@@ -254,53 +266,11 @@ void initVGA(void) {
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
     gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
-    apool = alarm_pool_get_default();
-}
-
-void dma_memset(void *dest, uint8_t val, size_t num) {
-    dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
-    channel_config_set_read_increment(&c, false);
-    channel_config_set_write_increment(&c, true);
-
-    dma_channel_configure(
-        memcpy_dma_chan, // Channel to be configured
-        &c,              // The configuration we just created
-        dest,            // The initial write address
-        &val,            // The initial read address
-        num, // Number of transfers; in this case each is 1 byte.
-        true // Start immediately.
-    );
-
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
-}
-
-void dma_memcpy(void *dest, void *src, size_t num) {
-    dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
-    channel_config_set_read_increment(&c, true);
-    channel_config_set_write_increment(&c, true);
-
-    dma_channel_configure(
-        memcpy_dma_chan, // Channel to be configured
-        &c,              // The configuration we just created
-        dest,            // The initial write address
-        src,             // The initial read address
-        num, // Number of transfers; in this case each is 1 byte.
-        true // Start immediately.
-    );
-
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+    apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 
 void vgaFillScreen(uint16_t color) {
-    dma_memset(vga_data_array, (color) | (color << 4), TXCOUNT);
+    memset(vga_data_array, (color) | (color << 4), txcount);
 }
 
 // A function for drawing a pixel with a specified color.
@@ -639,7 +609,7 @@ void drawChar(int x, int y, unsigned char c, char color, char bg,
 }
 
 inline void setCursor(int x, int y) {
-    /* Set cursor for text to be printed
+    /* Set cursor for graphics text to be printed
      * Parameters:
      *      x = x-coordinate of top-left of text starting
      *      y = y-coordinate of top-left of text starting
@@ -739,26 +709,21 @@ inline void drawString(unsigned char *str) {
 //         but externally we use one-indexed (ie, 1,1)
 
 void vgaScroll (int scanlines) {
-    // Before we scroll, make sure that the screen cursor is off and blank
-    bool was = enableCurs(false);
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
     scanlines *= scanline_size;
-    dma_memcpy(address_pointer, address_pointer + scanlines, TXCOUNT - scanlines);
-    dma_memset(address_pointer + TXCOUNT - scanlines, 0, scanlines);
-    // restore screen cursor status
-    enableCurs(was);
+    memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines);
+    memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines);
 }
 
 void termScroll (int rows) {
-    bool was = enableCurs(false);
+    int orows = rows;
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
-    vgaScroll(rows * FONTHEIGHT);
     rows *= textrow_size;
-    dma_memcpy(terminal, terminal + rows, terminal_size - rows);
-    dma_memset(terminal + terminal_size - rows, 20, rows);
-    enableCurs(was);
+    memcpy(terminal, terminal + rows, terminal_size - rows);
+    memset(terminal + terminal_size - rows, 0, rows);
+    //vgaScroll(orows * FONTHEIGHT);
 }
 
 static void checkCursor(void) {
@@ -774,13 +739,16 @@ static void checkCursor(void) {
 }
 
 void setTxtCursor(int x, int y) {
+    bool was = enableCurs(false);
     tcurs.x = x;
     tcurs.y = y;
     checkCursor();
+    enableCurs(was);
 }
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
 void writeByte(unsigned char c) {
+    bool was = enableCurs(false);
     terminal[tcurs.x][tcurs.y] = c;
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
     tcurs.x++;
@@ -793,11 +761,11 @@ void writeByte(unsigned char c) {
             termScroll(1);
         }
     }
+    enableCurs(was);
 }
 
 // See if the character is special in any way
 static void doChar(unsigned char c) {
-    bool was = enableCurs(false);
     char x,y;
     switch (c) {
         // Handle "special" characters.
@@ -863,13 +831,12 @@ static void doChar(unsigned char c) {
             writeByte(c);
             break;
     }
-    enableCurs(was);
 }
 
 void clearScreen(void) {
     vgaFillScreen(textbgcolor);
-    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
-    dma_memset(terminal, 0, terminal_size);
+    memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), txcount);
+    memset(terminal, ' ', terminal_size);
 }
 
 
@@ -879,16 +846,6 @@ inline void printString(char *str) {
     }
 }
 
-bool haveChar(void) {
-    return hasChar;
-}
-
-// Once we grab the character/byte we've rec'd, we no longer
-// have it available to "read" again.
-unsigned char getChar(void) {
-    hasChar = false;
-    return inputChar;
-}
 // Handle ESC sequences
 #include "escape_seq.c"
 
@@ -896,10 +853,11 @@ unsigned char getChar(void) {
 // the byte should be printed as-is (raw) or checked for special
 // meaning (eg: "terminal mode")
 void printChar(unsigned char chrx) {
-    if (raw)
+    if (raw) {
         writeByte(chrx);
-    else
+    } else {
         writeChar(chrx);
+    }
 }
 
 // Print the character and check for Esc sequences. We use
@@ -907,6 +865,7 @@ void printChar(unsigned char chrx) {
 // be terminal related. If we want/need to print the
 // graphics characters, use writeByte()
 void writeChar(unsigned char chrx) {
+    bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
             esc_state = SAW_ESC;
@@ -948,4 +907,5 @@ void writeChar(unsigned char chrx) {
                 break;
         }
     }
+    enableCurs(was);
 }
