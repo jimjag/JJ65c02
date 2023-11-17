@@ -225,7 +225,7 @@ static void esc_sequence_received() {
         }
     }
     else {
-        // ignore everything else
+        ; // ignore everything else
     }
     // our work here is done
     reset_escape_sequence();
