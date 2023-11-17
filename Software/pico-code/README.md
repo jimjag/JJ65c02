@@ -30,6 +30,10 @@ The display itself is fully bitmapped, allowing for each individual pixel
 to be directly addressed.  Changes to the bitmap are automatically reflected
 in the output using the __RP2040__ DMA capability.
 
+Character bytes can be written to the __RP2040__ from the 65C02 by simply writing
+to the Pi Pico's mapped direct address. This uses 8 pins on the Pi Pico for the
+data and 1 pin to serve as a `write/data-ready/chip-select` signal.
+
 ### Terminal, Graphics and Text
 
 Included in the VGA subsystem is a set of text and graphics primitives. These include:
@@ -47,7 +51,11 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 
 * 80x30 screen size (8x16 fonts)
 * Multiple font glyphs
-* Addressable cursor
+* Fully addressable cursor
 * Blinking cursor
 * Smooth and Jump scrolling
 * A subset of ANSI/Xterm/VT100 escape sequences
+
+#### Supported Escape Sequences
+
+* TODO
