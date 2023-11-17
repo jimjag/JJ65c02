@@ -88,3 +88,4 @@ bool haveChar(void);
 unsigned char getChar(void);
 void clearScreen(void);
 bool enableCurs(bool flag);
+void enableSmoothScroll(bool flag);

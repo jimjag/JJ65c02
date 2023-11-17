@@ -143,10 +143,10 @@ int main() {
     sleep_ms(5000);
     termScroll(1);
     sleep_ms(5000);
-    for (int i = 0; i <= 64; i++) {
-        vgaScroll(1);
-        sleep_ms(1);
-    }
+    vgaScroll(64);
+    sleep_ms(5000);
+    enableSmoothScroll(true);
+    vgaScroll(64);
     sleep_ms(5000);
     vgaFillScreen(BLUE);
     sleep_ms(5000);

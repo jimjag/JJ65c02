@@ -74,7 +74,7 @@ int memcpy_dma_chan;
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
 // raw: graphics mode (for terminal) where we print the raw 8bytes or
 //      we handle "special" characters (like arrows and other non-printables
-static bool wrap = true, cr2crlf = true, lf2crlf = true, raw = false;
+static bool wrap = true, cr2crlf = true, lf2crlf = true, raw = false, smooth_scroll = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -753,12 +753,23 @@ inline void drawString(unsigned char *str) {
 //   NOTE: Here we use 0,0 as the 1st element (ie: zero indexed)
 //         but externally we use one-indexed (ie, 1,1)
 
+void enableSmoothScroll(bool flag) {
+    smooth_scroll = flag;
+}
+
 void vgaScroll (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
-    scanlines *= scanline_size;
-    dma_memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines);
-    dma_memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines);
+    if (!smooth_scroll) {
+        scanlines *= scanline_size;
+        dma_memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines);
+        dma_memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines);
+    }  else {
+        for (int i = 0; i < scanlines; i++) {
+        dma_memcpy(vga_data_array, vga_data_array + scanline_size, txcount - scanline_size);
+        dma_memset(vga_data_array + txcount - scanline_size, (textbgcolor) | (textbgcolor << 4), scanline_size);
+    }
+    }
 }
 
 void termScroll (int rows) {
