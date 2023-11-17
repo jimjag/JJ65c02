@@ -120,20 +120,6 @@ bool cursor_callback(struct repeating_timer *t) {
     return true;
 }
 
-
-bool enableCurs(bool flag) {
-    bool was = cursorOn;
-    if (flag && !cursorOn) { // turning it on when off
-        bon = true;
-        alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
-    } else if (!flag && cursorOn) { // turning it off when on
-        cancel_repeating_timer(&ctimer);
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
-    }
-    cursorOn = flag;
-    return was;
-}
-
 // Interrupt Handler: We have data on GPIO7-14
 void readByte(uint gpio, uint32_t events) {
     unsigned char c = 0;
@@ -755,6 +741,23 @@ inline void drawString(unsigned char *str) {
 
 void enableSmoothScroll(bool flag) {
     smooth_scroll = flag;
+}
+
+bool enableCurs(bool flag) {
+    bool was = cursorOn;
+    if (flag && !cursorOn) { // turning it on when off
+        bon = true;
+        alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
+    } else if (!flag && cursorOn) { // turning it off when on
+        cancel_repeating_timer(&ctimer);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
+    }
+    cursorOn = flag;
+    return was;
+}
+
+void enableRaw(bool flag) {
+    raw = flag;
 }
 
 void vgaScroll (int scanlines) {

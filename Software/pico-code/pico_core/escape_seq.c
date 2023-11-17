@@ -84,6 +84,12 @@ static void esc_sequence_received() {
                 tcurs.x -= n;
                 checkCursor();
                 break;
+            case 'F':  // "Graphics mode" - we use this to set raw byte handling (use as-is)
+                enableRaw(true);
+                break;
+            case 'G':  // "text mode" - check incoming chars for special meaning
+                enableRaw(false);
+                break;
             case 'H':
             // Moves the cursor to row n, column m
             // The parameters are 1-based, and default to 1
