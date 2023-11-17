@@ -196,5 +196,4 @@ void ps2Task(bool auto_print) {
         sleep_us(10);               // Give the 6502 time to read
         gpio_put(PIRQ, 0);  // Reset
     }
-
 }

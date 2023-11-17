@@ -44,16 +44,7 @@
 // Note that this array is automatically initialized to all 0's (black)
 unsigned char vga_data_array[TXCOUNT];
 unsigned char *address_pointer = &vga_data_array[0];
-typedef struct tchar_t  {
-    char attributes;
-    char font;
-    char fg_color;
-    char bg_color;
-    char character;
-    char size;
-} tchar_t ;
-
-static tchar_t *terminal;
+int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 
 static const unsigned char *font = font_sweet16;
 static char txtfont = 0;
@@ -89,17 +80,18 @@ typedef struct scrpos {
     char y;
 } scrpos;
 struct scrpos savedTcurs = {0,0};
-volatile struct scrpos tcurs = {0,0};
+struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
 
-int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
-int textrow_size; // Amount of bytes taken by each row of text. Calculated at INIT time
-int terminal_size; // Calculated at INIT time
-int term_size; // Calculated at INIT time
+// The terminal mode array
+unsigned char terminal[(SCREENWIDTH / FONTWIDTH)][(SCREENHEIGHT / FONTHEIGHT)];
+int terminal_size = (SCREENWIDTH / FONTWIDTH) * (SCREENHEIGHT / FONTHEIGHT);
+int textrow_size = (SCREENWIDTH / FONTWIDTH);
 
 // For drawing characters in Graphics Mode
 int cursor_y, cursor_x, textsize;
 
+// Data rec'd from the 6502 VIA chip
 volatile static unsigned char inputChar;
 volatile static bool hasChar = false;
 
@@ -112,14 +104,14 @@ static const char ansi_pallet[] = {
 static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
 static bool cursorOn = false;
-volatile static struct tchar_t oldChar;
+volatile char oldChar;
 volatile static bool bon = true;
 bool cursor_callback(struct repeating_timer *t) {
     if (bon) {
-        oldChar = *(terminal + (tcurs.y * textrow_size) + tcurs.x);
+        oldChar = (terminal[tcurs.x][tcurs.y]) ? terminal[tcurs.x][tcurs.y] : ' ';
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
     } else {
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
     }
     bon = !bon;
     return true;
@@ -132,8 +124,8 @@ bool enableCurs(bool flag) {
         bon = true;
         alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
     } else if (!flag && cursorOn) { // turning it off when on
-        alarm_pool_cancel_alarm(apool, ctimer.alarm_id);
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar.character, textfgcolor, textbgcolor, textsize);
+        cancel_repeating_timer(&ctimer);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
     }
     cursorOn = flag;
     return was;
@@ -250,12 +242,8 @@ void initVGA(void) {
     // of that array.
     dma_start_channel_mask((1u << scanline_chan_0));
 
-    // Now setup terminal and runtime values
-    term_size = (maxTcurs.x + 1) * (maxTcurs.y + 1);
-    textrow_size = (maxTcurs.x + 1) * sizeof(tchar_t);
-    terminal_size = term_size * sizeof(tchar_t);
-    terminal = calloc(term_size, sizeof(tchar_t));
-    clearTerminal(0);
+    // Now setup terminal
+    dma_memset(terminal, 20, terminal_size);
 
     // GPIO pin setup
     for (uint pin = DATA0; pin <= DATA7; pin++) {
@@ -768,10 +756,8 @@ void termScroll (int rows) {
     if (rows > maxTcurs.y) rows = maxTcurs.y;
     vgaScroll(rows * FONTHEIGHT);
     rows *= textrow_size;
-    int bsize = term_size * sizeof(tchar_t);
-    dma_memcpy(terminal, terminal + rows, bsize - rows);
-    dma_memset(terminal + bsize - rows, 0, rows);
-    clearTerminal(maxTcurs.y + 1 - rows);
+    dma_memcpy(terminal, terminal + rows, terminal_size - rows);
+    dma_memset(terminal + terminal_size - rows, 20, rows);
     enableCurs(was);
 }
 
@@ -795,14 +781,7 @@ void setTxtCursor(int x, int y) {
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
 void writeByte(unsigned char c) {
-    tchar_t *tchar;
-    tchar = terminal + (tcurs.y * textrow_size) + tcurs.x;
-    tchar->attributes = 0;
-    tchar->character = c;
-    tchar->fg_color = textfgcolor;
-    tchar->bg_color = textbgcolor;
-    tchar->font = txtfont;
-    tchar->size = textsize;
+    terminal[tcurs.x][tcurs.y] = c;
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
     tcurs.x++;
     if (tcurs.x > maxTcurs.x) {
@@ -818,7 +797,7 @@ void writeByte(unsigned char c) {
 
 // See if the character is special in any way
 static void doChar(unsigned char c) {
-    //bool was = enableCurs(false);
+    bool was = enableCurs(false);
     char x,y;
     switch (c) {
         // Handle "special" characters.
@@ -884,24 +863,13 @@ static void doChar(unsigned char c) {
             writeByte(c);
             break;
     }
-    //enableCurs(was);
-}
-
-void clearTerminal(char startRow) {
-    struct tchar_t *space;
-    if (startRow < 0) startRow = 0;
-    for (char y = startRow; y <= maxTcurs.y; y++)
-        for (char x = 0; x <= maxTcurs.x; x++) {
-            space = terminal + (y * textrow_size) + x;
-            space->character = ' ';
-        }
+    enableCurs(was);
 }
 
 void clearScreen(void) {
     vgaFillScreen(textbgcolor);
     dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), TXCOUNT);
     dma_memset(terminal, 0, terminal_size);
-    clearTerminal(0);
 }
 
 

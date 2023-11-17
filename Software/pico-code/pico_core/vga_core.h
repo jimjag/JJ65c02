@@ -89,6 +89,5 @@ void setTxtCursor(int x, int y);
 void printString(char* str);
 bool haveChar(void);
 unsigned char getChar(void);
-void clearTerminal(char startRow);
 void clearScreen(void);
 bool enableCurs(bool flag);
