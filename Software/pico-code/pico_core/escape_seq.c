@@ -198,7 +198,7 @@ static void esc_sequence_received() {
             case 'Z':  // Extended: Basic graphics
                        // NOTE: <char> is the character __in decimal__!
                 switch (escP[0]) {
-                    case 0: // Write a raw character: Esc[Z0;<char>Z
+                    case 0: // Write a raw character: Esc[Z;<char>Z
                         writeChar(escP[1]);
                         break;
                     case 1: // Draw a line: Esc[Z1;x1;y1;x2;y2Z
@@ -223,10 +223,10 @@ static void esc_sequence_received() {
                         fillRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
                         break;
                     case 8: // Set fg color: Esc[Z8;<color>Z
-                        textfgcolor = safeColor(escP[0]);
+                        textfgcolor = safeColor(escP[1]);
                         break;
                     case 9: // Set bg color: Esc[Zp;<color>Z
-                        textbgcolor = safeColor(escP[0]);
+                        textbgcolor = safeColor(escP[1]);
                         break;
                 }
                 break;
