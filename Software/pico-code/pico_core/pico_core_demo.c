@@ -243,6 +243,6 @@ int main() {
     enableCurs(true);
     writeChar('b');
     while (true) {
-        char c = ps2GetChar(true);
+        unsigned char c = ps2GetChar(true);
     }
 }

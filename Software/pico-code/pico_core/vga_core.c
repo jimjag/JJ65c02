@@ -607,7 +607,7 @@ void fillRect(int x, int y, int w, int h, char color) {
 }
 
 // Draw a character
-void drawChar(int x, int y, unsigned char c, char color, char bg,
+void drawChar(int x, int y, unsigned char chrx, char color, char bg,
               unsigned char size) {
     char px, py;
     if ((x >= SCREENWIDTH) ||                     // Clip right
@@ -618,7 +618,7 @@ void drawChar(int x, int y, unsigned char c, char color, char bg,
 
     for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
-        line = pgm_read_byte(font + (c * FONTHEIGHT) + py);
+        line = pgm_read_byte(font + (chrx * FONTHEIGHT) + py);
         for (px = 0; px < FONTWIDTH; px++) {
             if (line & 0x80) {
                 if (size == 1) // default size
@@ -705,19 +705,19 @@ inline void setFont(char n) {
     }
 }
 
-static void tft_write(unsigned char c) {
-    if (c == '\n') {
+static void tft_write(unsigned char chrx) {
+    if (chrx == '\n') {
         cursor_y += textsize * FONTHEIGHT;
         cursor_x = 0;
-    } else if (c == '\r') {
+    } else if (chrx == '\r') {
         // skip em
-    } else if (c == '\t') {
+    } else if (chrx == '\t') {
         int new_x = cursor_x + tabspace;
         if (new_x < SCREENWIDTH) {
             cursor_x = new_x;
         }
     } else {
-        drawChar(cursor_x, cursor_y, c, textfgcolor, textbgcolor, textsize);
+        drawChar(cursor_x, cursor_y, chrx, textfgcolor, textbgcolor, textsize);
         cursor_x += textsize * FONTWIDTH;
         if (wrap && (cursor_x > (SCREENWIDTH - textsize * FONTWIDTH))) {
             cursor_y += textsize * FONTHEIGHT;
@@ -809,10 +809,10 @@ void setTxtCursor(int x, int y) {
 }
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
-void writeChar(unsigned char c) {
+void writeChar(unsigned char chrx) {
     bool was = enableCurs(false);
-    terminal[tcurs.x + (tcurs.y * textrow_size)] = c;
-    drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
+    terminal[tcurs.x + (tcurs.y * textrow_size)] = chrx;
+    drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize);
     tcurs.x++;
     if (tcurs.x > maxTcurs.x) {
         // End of line
@@ -827,9 +827,9 @@ void writeChar(unsigned char c) {
 }
 
 // See if the character is special in any way
-static void doChar(unsigned char c) {
+static void doChar(unsigned char chrx) {
     char x,y;
-    switch (c) {
+    switch (chrx) {
         // Handle "special" characters.
         case '\n':
             tcurs.y++;
@@ -890,7 +890,7 @@ static void doChar(unsigned char c) {
             checkCursor();
             break;
         default:
-            writeChar(c);
+            writeChar(chrx);
             break;
     }
 }

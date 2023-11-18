@@ -62,7 +62,7 @@ void fillCircle(int x0, int y0, int r, char color);
 void drawRoundRect(int x, int y, int w, int h, int r, char color);
 void fillRoundRect(int x, int y, int w, int h, int r, char color);
 void fillRect(int x, int y, int w, int h, char color);
-void drawChar(int x, int y, unsigned char c, char color, char bg, unsigned char size);
+void drawChar(int x, int y, unsigned char chrx, char color, char bg, unsigned char size);
 void setCursor(int x, int y);
 void setTextColor(char c);
 void setTextColor2(char c, char bg);
@@ -77,8 +77,8 @@ void vgaFillScreen(uint16_t color);
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
 
-void writeChar(unsigned char c); // write the interpreted character
-void writeChar(unsigned char c);  // write the raw character (no handling)
+void writeChar(unsigned char chrx); // write the interpreted character
+void writeChar(unsigned char chrx);  // write the raw character (no handling)
 void printChar(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
