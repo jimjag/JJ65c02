@@ -44,7 +44,7 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 }
 
 int main() {
-    //set_sys_clock_khz(150000, true);
+    // set_sys_clock_khz(250000, true);
     // Initialize stdio
     stdio_init_all();
 

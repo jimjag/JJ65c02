@@ -166,7 +166,7 @@ unsigned char ps2GetChar(bool auto_print) {
             release = 0;
             break;
     }
-    if (ascii && auto_print) writeChar(ascii);
+    if (ascii && auto_print) printChar(ascii);
     return ascii;
 }
 

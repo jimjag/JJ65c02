@@ -27,7 +27,7 @@ static inline void scanline_program_init(PIO pio, uint sm, uint offset, uint pin
     pio_sm_config c = scanline_program_get_default_config(offset);
     sm_config_set_set_pins(&c, pin, 4);
     sm_config_set_out_pins(&c, pin, 4);
-    // float div = clock_get_hz(clk_sys) / freq;  // Uncomment if we overclock
+    // float div = clock_get_hz(clk_sys) / freq;  // Uncomment if we overclock to 250Mhz
     // sm_config_set_clkdiv(&c, div);             //  "      "
     pio_gpio_init(pio, pin);
     pio_gpio_init(pio, pin+1);
