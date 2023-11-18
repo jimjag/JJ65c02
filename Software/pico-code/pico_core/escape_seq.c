@@ -3,7 +3,7 @@
 #define SAW_ESC      1
 #define ESC_COLLECT  2
 
-#define MAX_ESC_PARAMS 5
+#define MAX_ESC_PARAMS 6
 static int esc_state = ESC_READY;
 static int escP[MAX_ESC_PARAMS];
 static bool parameter_q;
@@ -83,12 +83,6 @@ static void esc_sequence_received() {
                 }
                 tcurs.x -= n;
                 checkCursor();
-                break;
-            case 'F':  // "Graphics mode" - we use this to set raw byte handling (use as-is)
-                enableRaw(true);
-                break;
-            case 'G':  // "text mode" - check incoming chars for special meaning
-                enableRaw(false);
                 break;
             case 'H':
             // Moves the cursor to row n, column m
@@ -202,21 +196,37 @@ static void esc_sequence_received() {
                 savedTcurs.y = tcurs.y;
                 break;
             case 'Z':  // Extended: Basic graphics
+                       // NOTE: <char> is the character __in decimal__!
                 switch (escP[0]) {
+                    case 0: // Write a raw character: Esc[Z0;<char>Z
+                        writeChar(escP[1]);
+                        break;
                     case 1: // Draw a line: Esc[Z1;x1;y1;x2;y2Z
                         drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor);
                         break;
-                    case 2: // Draw an empty rect: Esc[Z2;x1;y1;x2;y2Z
-                        drawRect(escP[1], escP[2], escP[3]-escP[1], escP[4]-escP[2], textfgcolor);
+                    case 2: // Draw an empty rect: Esc[Z2;x;y;w;hZ
+                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor);
                         break;
-                    case 3: // Draw a filled  rect: Esc[Z3;x1;y1;x2;y2Z
-                        fillRect(escP[1], escP[2], escP[3]-escP[1], escP[4]-escP[2], textfgcolor);
+                    case 3: // Draw a filled rect: Esc[Z3;x;y;w;hZ
+                        fillRect(escP[1], escP[2], escP[3], escP[4], textfgcolor);
                         break;
-                    case 4: // Draw an empty circle: Esc[Z4;x1;y1;r1Z
+                    case 4: // Draw an empty circle: Esc[Z4;x;y;rZ
                         drawCircle(escP[1], escP[2], escP[3], textfgcolor);
                         break;
-                    case 5: // Draw an filled circle: Esc[Z5;x1;y1;r1Z
+                    case 5: // Draw an filled circle: Esc[Z5;x;y;rZ
                         fillCircle(escP[1], escP[2], escP[3], textfgcolor);
+                        break;
+                    case 6: // Draw an empty rounded rect: Esc[Z6;x;y;w;h;rZ
+                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
+                        break;
+                    case 7: // Draw a filled rounded rect: Esc[Z7;x;y;w;h;rZ
+                        fillRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
+                        break;
+                    case 8: // Set fg color: Esc[Z8;<color>Z
+                        textfgcolor = safeColor(escP[0]);
+                        break;
+                    case 9: // Set bg color: Esc[Zp;<color>Z
+                        textbgcolor = safeColor(escP[0]);
                         break;
                 }
                 break;

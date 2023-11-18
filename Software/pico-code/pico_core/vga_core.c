@@ -72,9 +72,8 @@ int memcpy_dma_chan;
 // configurations
 // wrap: auto wrap around at terminal end
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
-// raw: graphics mode (for terminal) where we print the raw 8bytes or
 //      we handle "special" characters (like arrows and other non-printables
-static bool wrap = true, cr2crlf = true, lf2crlf = true, raw = false, smooth_scroll = false;
+static bool wrap = true, cr2crlf = true, lf2crlf = true, smooth_scroll = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -659,10 +658,18 @@ inline void setTextSize(unsigned char s) {
     textsize = (s > 0) ? s : 1;
 }
 
+inline char safeColor(char c) {
+    if (c < BLACK)
+        c = BLACK;
+    else if (c > WHITE)
+        c = WHITE;
+    return c;
+}
+
 inline void setTextColor(char c) {
     // For 'transparent' background, we'll set the bg
     // to the same as fg instead of using a flag
-    textfgcolor = textbgcolor = c;
+    textfgcolor = safeColor(c);
 }
 
 inline void setTextColor2(char c, char b) {
@@ -671,8 +678,8 @@ inline void setTextColor2(char c, char b) {
      *      c = 4-bit color of text
      *      b = 4-bit color of text background
      */
-    textfgcolor = c;
-    textbgcolor = b;
+    textfgcolor = safeColor(c);
+    textbgcolor = safeColor(b);
 }
 
 inline void setTextWrap(bool w) { wrap = w; }
@@ -756,10 +763,6 @@ bool enableCurs(bool flag) {
     return was;
 }
 
-void enableRaw(bool flag) {
-    raw = flag;
-}
-
 void vgaScroll (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
@@ -806,7 +809,7 @@ void setTxtCursor(int x, int y) {
 }
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
-void writeByte(unsigned char c) {
+void writeChar(unsigned char c) {
     bool was = enableCurs(false);
     terminal[tcurs.x + (tcurs.y * textrow_size)] = c;
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, c, textfgcolor, textbgcolor, textsize);
@@ -866,7 +869,7 @@ static void doChar(unsigned char c) {
             // Store where we are
             x = tcurs.x;
             y = tcurs.y;
-            writeByte(' ');
+            writeChar(' ');
             setTxtCursor(x,y);
             break;
         // These 4 cases are special to us
@@ -887,7 +890,7 @@ static void doChar(unsigned char c) {
             checkCursor();
             break;
         default:
-            writeByte(c);
+            writeChar(c);
             break;
     }
 }
@@ -908,22 +911,11 @@ void printString(char *str) {
 // Handle ESC sequences
 #include "escape_seq.c"
 
-// Auto decide based on the raw/graphics mode setting whether
-// the byte should be printed as-is (raw) or checked for special
-// meaning (eg: "terminal mode")
-void printChar(unsigned char chrx) {
-    if (raw) {
-        writeByte(chrx);
-    } else {
-        writeChar(chrx);
-    }
-}
-
 // Print the character and check for Esc sequences. We use
 // this for input from the PS/2 or elsewhere that may
 // be terminal related. If we want/need to print the
-// graphics characters, use writeByte()
-void writeChar(unsigned char chrx) {
+// graphics characters, use writeChar()
+void printChar(unsigned char chrx) {
     bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {

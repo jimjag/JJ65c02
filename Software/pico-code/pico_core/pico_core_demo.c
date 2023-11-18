@@ -239,9 +239,9 @@ int main() {
     printString("\x1b[Z5;200;200;55Z");
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
-    writeByte('a');
+    writeChar('a');
     enableCurs(true);
-    writeByte('b');
+    writeChar('b');
     while (true) {
         char c = ps2GetChar(true);
     }
