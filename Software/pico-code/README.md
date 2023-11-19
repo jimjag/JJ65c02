@@ -60,12 +60,12 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 
 #### Standard
 
-* `ESC[<n>A` Move cursor up `<n>` lines (Arrow Up)
-* `ESC[<n>B` Move cursor down `<n>` lines (Arrow Down)
-* `ESC[<n>C` Move cursor right `<n>` cells (Arrow Right)
-* `ESC[<n>D` Move cursor left `<n>` cells (Arrow Left)
-* `ESC[H` Move cursor to home `(0,0)`
-* `ESC[x;yH` Move cursor to `(x,y)`
+* `ESC[<n>A` Move text cursor up `<n>` lines (Arrow Up)
+* `ESC[<n>B` Move text cursor down `<n>` lines (Arrow Down)
+* `ESC[<n>C` Move text cursor right `<n>` cells (Arrow Right)
+* `ESC[<n>D` Move text cursor left `<n>` cells (Arrow Left)
+* `ESC[H` Move text cursor to home `(1,1)`
+* `ESC[x;yH` Move text cursor to terminal location `(x,y)`
 * `ESC[2J` Clear entire screen
 * `ESC[<n>S` Scroll up `<n>` lines
 * `ESC[?4h` Enable smooth scrolling
@@ -78,12 +78,14 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 * `ESC[38;5;<n>m` Set FG color to `<n>` (RGB)
 * `ESC[<40–47>m` Set BG color to `<40-47>`(ANSI color)
 * `ESC[38;5;<n>m` Set BG color to `<n>` (RGB)
-* `ESC[s` Save cursor position
-* `ESC[u` Move cursor to saved position
+* `ESC[s` Save text cursor position
+* `ESC[u` Move text cursor to saved position
+
+NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI terminal standards.
 
 #### Extension
 
-* `ESC[Z;<c>Z` Write character `<c>` at current cursor position
+* `ESC[Z;<c>Z` Write character `<c>` at current text cursor position
 * `ESC[Z1;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
 * `ESC[Z2;<x>;<y>;<w>;<h>Z`Draw rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
 * `ESC[Z3;<x>;<y>;<w>;<h>Z`Draw filled rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
@@ -92,9 +94,13 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 * `ESC[Z6;<x>;<y>;<w>;<h>;<r>Z`Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
 * `ESC[Z7;<x>;<y>;<w>;<h>;<r>Z`Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
 * `ESC[Z8;<color>Z` Set FG color to `<color>`
-* `ESC[Z9;<color>Z]` Set BG color to `<color>`
+* `ESC[Z9;<color>Z` Set BG color to `<color>`
+* `ESC[Z10;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
+
+Pixel locations are 0-based: (0,0) to (639, 479).
 
 Graphics use FG color.
+
 Our color set uses:
 ```
 enum colors {BLACK, RED, GREEN, YELLOW,

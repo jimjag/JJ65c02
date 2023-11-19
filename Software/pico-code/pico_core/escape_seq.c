@@ -87,7 +87,7 @@ static void esc_sequence_received() {
             case 'H':
             // Moves the cursor to row n, column m
             // The parameters are 1-based, and default to 1
-            // these are zero based
+            // Recall internally our text cursors are zero based
                 tcurs.x = escP[0] - 1;
                 tcurs.y = escP[1] - 1;
                 checkCursor();
@@ -225,8 +225,11 @@ static void esc_sequence_received() {
                     case 8: // Set fg color: Esc[Z8;<color>Z
                         textfgcolor = safeColor(escP[1]);
                         break;
-                    case 9: // Set bg color: Esc[Zp;<color>Z
+                    case 9: // Set bg color: Esc[Z9;<color>Z
                         textbgcolor = safeColor(escP[1]);
+                        break;
+                    case 10: // Set bg color: Esc[Z10;x;y;<char>;Z
+                        drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1);
                         break;
                 }
                 break;
