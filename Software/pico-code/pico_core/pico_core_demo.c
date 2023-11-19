@@ -51,7 +51,7 @@ int main() {
     // Initialize the VGA screen
     initVGA();
     initPS2();
-    setFont(2);
+    setFont(0);
     // circle radii
     short circle_r = 0;
     short circle_x = 320;
@@ -73,7 +73,7 @@ int main() {
     fillRect(435, 0, 176, 50, GREEN); // green box
 
     // Write some text
-    setTextColor(WHITE);
+    setTextColor2(WHITE, BLUE);
     setCursor(65, 0);
     setTextSize(1);
     drawString("Raspberry Pi Pico");
@@ -83,6 +83,7 @@ int main() {
     drawString("JJ65C02");
     setCursor(250, 4);
     setTextSize(2);
+    setTextColor2(WHITE, RED);
     drawString("Countdown:");
 
     // Setup a 1Hz timer

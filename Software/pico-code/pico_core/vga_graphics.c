@@ -459,6 +459,7 @@ bool enableCurs(bool flag) {
         alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
     } else if (!flag && cursorOn) { // turning it off when on
         cancel_repeating_timer(&ctimer);
+        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
     }
     cursorOn = flag;
@@ -481,6 +482,7 @@ void vgaScroll (int scanlines) {
 }
 
 void termScroll (int rows) {
+    bool was = enableCurs(false);
     int orows = rows;
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
@@ -488,6 +490,7 @@ void termScroll (int rows) {
     dma_memcpy(terminal, terminal + rows, terminal_size - rows);
     dma_memset(terminal + terminal_size - rows, ' ', rows);
     vgaScroll(orows * FONTHEIGHT);
+    enableCurs(was);
 }
 
 static void checkCursor(void) {

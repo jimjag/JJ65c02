@@ -106,13 +106,12 @@ static const char ansi_pallet[] = {
 static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
 static bool cursorOn = false;
-volatile char oldChar;
 volatile bool bon = true;
 bool cursor_callback(struct repeating_timer *t) {
     if (bon) {
-        oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
     } else {
+        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
     }
     bon = !bon;
