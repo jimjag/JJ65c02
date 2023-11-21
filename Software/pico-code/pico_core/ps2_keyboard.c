@@ -43,6 +43,7 @@ static PIO ps2_pio;
 static bool release; // Flag indicates the release of a key
 static bool shift;   // Shift indication
 static bool cntl;    // Control indication
+static bool caps;    // Caps Lock
 
 void initPS2(void) {
     ps2_pio = pio1;
@@ -132,6 +133,14 @@ unsigned char ps2GetChar(bool auto_print) {
         case 0xF0:               // key-release code 0xF0
             release = 1;         // release flag
             break;
+        case 0x58:               // Caps Lock?
+            if (release) {
+                release = 0;
+            } else {
+                caps = !caps;
+            }
+            break;
+
         case 0x12:               // Left-side shift
         case 0x59:               // Right-side shift
             if (release) {
@@ -161,6 +170,9 @@ unsigned char ps2GetChar(bool auto_print) {
                 } else {
                     // default
                     ascii = ps2_to_ascii_lower[code];
+                    if (caps && (ascii >= 'a' && ascii <= 'z')) {
+                        ascii -= 32;
+                    }
                 }
             }
             release = 0;
