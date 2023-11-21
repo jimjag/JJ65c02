@@ -15,19 +15,10 @@
 .exportzp ACIA_SPTR
 .exportzp CON_SPTR
 .exportzp USER_INPUT_PTR
-.exportzp TEXT_BLK
 .exportzp SERIN_RPTR
 .exportzp SERIN_WPTR
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
-.exportzp XAML
-.exportzp XAMH
-.exportzp STL
-.exportzp STH
-.exportzp L
-.exportzp H
-.exportzp YSAV
-.exportzp MODE
 
 .export CLK_SPD
 .export ISR_VECTOR

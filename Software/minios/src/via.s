@@ -1,8 +1,10 @@
 .include "minios.inc"
+.include "sysram.inc"
 .include "via.h"
 .include "lib.inc"
 
 .export VIA_init
+.export VIA_ihandler
 
 ; Actual start of ROM code
 .segment "CODE"

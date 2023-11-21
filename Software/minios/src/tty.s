@@ -5,7 +5,6 @@
 
 .export TTY_setup_term
 .export TTY_readln
-.export TTY_readln_sys
 .export TTY_clear_screen
 .export TTY_reset_user_input
 .export TTY_send_newline

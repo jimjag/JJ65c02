@@ -72,8 +72,8 @@ WOZMON:
     bcc @BLSKIP        ; Skip delimiter.
     beq @SETBLOCK      ; Set BLOCK XAM mode.
     cmp #$3A           ; ":"?
-    beq @SETSTOR        ; Yes, set STOR mode.
-    cmp #$52            "R"?
+    beq @SETSTOR       ; Yes, set STOR mode.
+    cmp #$52           ; "R"?
     beq @RUN           ; Yes, run user program.
     stx L              ; $00 -> L.
     stx H              ;    and H.
@@ -87,7 +87,7 @@ WOZMON:
     adc #$88           ; Map letter "A"-"F" to $FA-FF.
     cmp #$FA           ; Hex letter?
     bcc @NOTHEX        ; No, character not hex.
-@DIG
+@DIG:
     asl
     asl                ; Hex digit to MSD of A.
     asl
@@ -99,7 +99,7 @@ WOZMON:
     rol L              ; Rotate into LSD.
     rol H              ; Rotate into MSD's.
     dex                ; Done 4 shifts?
-    bne @NEXTSHIFT      ; No, loop.
+    bne @NEXTSHIFT     ; No, loop.
     iny                ; Advance text index.
     bne @NEXTHEX       ; Always taken. Check next character for hex.
 
@@ -116,7 +116,7 @@ WOZMON:
     bne @NEXTITEM      ; Get next item (no carry).
     inc STH            ; Add carry to 'store index' high order.
 @TONEXTITEM:
-    jmp @NEXTITEM       ; Get next command item.
+    jmp @NEXTITEM      ; Get next command item.
 
 @RUN:
     jmp (XAML)         ; Run at current XAM index.
@@ -154,7 +154,7 @@ WOZMON:
     cmp L              ; Compare 'examine index' to hex data.
     lda XAMH
     sbc H
-    bcs TO@NEXTITEM    ; Not less, so no more data to output.
+    bcs @TONEXTITEM    ; Not less, so no more data to output.
 
     inc XAML
     bne @MOD8CHK       ; Increment 'examine index'.

@@ -1,13 +1,15 @@
 .include "minios.inc"
 .include "sysram.inc"
-.include "console.h"
 .include "lib.inc"
 .include "tty.h"
+.include "console.h"
 
 .export CON_init
 .export CON_read_byte
 .export CON_write_byte
 .export CON_write_string
+.export CON_reset_user_input
+
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -66,7 +68,7 @@ CON_read_byte:
 
 ;================================================================================
 ;
-;   CON_read - read up to $USER_BUFFLEN chars from serial input and store in buffer
+;   CON_readln - read up to $USER_BUFFLEN chars from serial input and store in buffer
 ;              NOTE: We do NOT echo any rec'd chars back to the console
 ;
 ;   ————————————————————————————————————

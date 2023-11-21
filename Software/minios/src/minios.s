@@ -112,7 +112,7 @@ main:                                           ; boot routine, first thing load
 @ram_failed:
     lda #'-'
 @cont2:
-    jsr CON_write_byte_data
+    jsr CON_write_byte
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...
 
@@ -132,7 +132,7 @@ main:                                           ; boot routine, first thing load
 ;================================================================================
 
 MINIOS_main_menu:
-
+@start:
 
 @select_option:
     clc
@@ -438,19 +438,20 @@ MINIOS_adj_clock:
     phy
     lda CLK_SPD
     sta Z2
+    jsr CON_reset_user_input
 @redisplay:
 
 @wait_for_input:                                ; wait for key press
-    jsr VIA_read_mini_keyboard
+    jsr CON_read_byte
 
 @handle_keyboard_input:                         ; determine action for key pressed
-    cmp #(VIA_up_key)
+    cmp #'+'
     beq @increase_spd                           ; UP key pressed
-    cmp #(VIA_down_key)
+    cmp #'-'
     beq @decrease_spd                           ; DOWN key pressed
-    cmp #(VIA_left_key)
+    cmp #'x'
     beq @exit_adj                               ; LEFT key pressed
-    cmp #(VIA_right_key)
+    cmp #'='
     beq @save_spd                               ; RIGHT key pressed
     bne @wait_for_input
 @increase_spd:
@@ -528,7 +529,7 @@ message_readybasic:
     .asciiz "Starting EhBASIC"
     .asciiz "Press any key on console to start: "
 message_readyload:
-    .asciiz "Getting Ready To LOAD RAM.
+    .asciiz "Getting Ready To LOAD RAM."
     .asciiz "Press any key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."

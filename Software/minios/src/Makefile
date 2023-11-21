@@ -9,6 +9,7 @@ SRCS =  minios.s \
 	lib.s \
 	acia.s \
 	tty.s \
+	console.s \
 	ymodem.s \
 	ehbasic.s \
 	wozmon.s
