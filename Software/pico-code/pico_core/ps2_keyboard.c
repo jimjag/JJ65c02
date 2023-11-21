@@ -37,23 +37,27 @@
 static uint ps2_offset;
 static uint ps2_sm;
 static PIO ps2_pio;
-//static uint ps2_pio_irq;
-//static void ps2_ihandler();
+static uint ps2_pio_irq;
+static void ps2_ihandler();
 
 static bool release; // Flag indicates the release of a key
 static bool shift;   // Shift indication
 static bool cntl;    // Control indication
 static bool caps;    // Caps Lock
 
+unsigned char keybuf[128];
+unsigned char *rptr = keybuf;
+unsigned char *wptr = keybuf;
+
 void initPS2(void) {
     ps2_pio = pio1;
-    //ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
+    ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
     ps2_offset = pio_add_program(ps2_pio, &ps2_program);
     ps2_sm = pio_claim_unused_sm(ps2_pio, true);
     ps2_program_init(ps2_pio, ps2_sm, ps2_offset, PS2_DATA_PIN);
-    //pio_set_irq0_source_enabled(ps2_pio, pis_interrupt0, true);
-    //irq_set_exclusive_handler(ps2_pio_irq, ps2_ihandler);
-    //irq_set_enabled(ps2_pio_irq, true);
+    pio_set_irq0_source_enabled(ps2_pio, pis_interrupt0, true);
+    irq_set_exclusive_handler(ps2_pio_irq, ps2_ihandler);
+    irq_set_enabled(ps2_pio_irq, true);
     pio_sm_set_enabled(ps2_pio, ps2_sm, true);
     // get rid of noise on pins when the PS/2 keyboard is enabled
     sleep_ms(1);
@@ -73,7 +77,8 @@ void initPS2(void) {
 
 void clearPS2(void) {
     pio_sm_clear_fifos(ps2_pio, ps2_sm);
-    release = shift = cntl = 0;
+    release = shift = cntl = caps = 0;
+    rptr = wptr = keybuf;
 }
 // clang-format off
 
@@ -121,11 +126,12 @@ static const char ps2_to_ascii_cntl[] = {
 // The default is to auto-print to the VGA console, but we
 // can disable this if, for some reason, we want/need the
 // *host* (ie, the 6502) to echo rec'd characters itself.
-unsigned char ps2GetChar(bool auto_print) {
+
+void ps2_ihandler(void) {
     unsigned char ascii = 0;
     // pio_interrupt_clear(ps2_pio, 0);
     if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
-        return 0;
+        return;
     // pull a scan code from the PIO SM fifo
     // uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
     uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
@@ -177,6 +183,19 @@ unsigned char ps2GetChar(bool auto_print) {
             }
             release = 0;
             break;
+    }
+    *wptr++ = ascii;
+    if (wptr >= (keybuf + sizeof(keybuf)))
+        wptr = keybuf;
+    pio_interrupt_clear(ps2_pio, 0);
+}
+
+unsigned char ps2GetChar(bool auto_print) {
+    unsigned char ascii = 0;
+    if (rptr != wptr) {
+        ascii = *rptr++;
+        if (rptr >= (keybuf + sizeof(keybuf)))
+            rptr = keybuf;
     }
     if (ascii && auto_print) printChar(ascii);
     return ascii;
