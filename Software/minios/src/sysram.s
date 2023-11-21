@@ -73,13 +73,17 @@ INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0
 .export x_erase_display
 .export x_erase_line
 .export prompt
+.export new_line
+.export x_set_bg_black
+.export x_set_fg_green
+
 
 .segment "RODATA"
 ;
 ; xterm control sequences
 ; https://www.xfree86.org/current/ctlseqs.html
 ;
-x_reset   :             .byte TTY_char_ESC,"[0m",TTY_char_NULL
+x_reset:                .byte TTY_char_ESC,"[0m",TTY_char_NULL
 x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
 x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL
 x_set_normal:           .byte TTY_char_ESC,"[22m",TTY_char_NULL

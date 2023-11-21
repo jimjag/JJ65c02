@@ -38,6 +38,9 @@ _SYSRAM_INC_ = 1
 .import x_erase_display
 .import x_erase_line
 .import prompt
+.import new_line
+.import x_set_bg_black
+.import x_set_fg_green
 
 .include "sysram.h"
 .endif

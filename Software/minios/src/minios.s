@@ -137,8 +137,6 @@ MINIOS_main_menu:
 @select_option:
     clc
     lda #0                                      ; clear A
-    adc POSITION_MENU
-    adc POSITION_CURSOR                         ; calculate index of selected option
     cmp #0                                      ; branch trough all options
     beq @load_and_run
     cmp #1
@@ -157,8 +155,6 @@ MINIOS_main_menu:
     beq @start_basic
     cmp #8
     beq @about
-    cmp #9
-    beq @thanks
     jmp @start                                  ; should we have an invalid option, restart
 
 @load_and_run:                                  ; load and directly run
@@ -194,9 +190,6 @@ MINIOS_main_menu:
     jmp @start
 @about:                                         ; start the about routine
     CON_writeln about
-    jmp @start
-@thanks:                                        ; start the thanks routine
-    CON_writeln thanks
     jmp @start
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms

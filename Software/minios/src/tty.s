@@ -106,8 +106,8 @@ TTY_clear_screen:
     ACIA_writeln x_set_fg_green
     ACIA_writeln x_home_position
     ACIA_writeln x_erase_display
-    ACIA_writeln x_set_normal        ; Reset to a normal font
-    ACIA_writeln x_set_not_underlined
+    ;ACIA_writeln x_set_normal        ; Reset to a normal font
+    ;ACIA_writeln x_set_not_underlined
     rts
 
 ;================================================================================
