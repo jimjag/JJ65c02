@@ -657,6 +657,8 @@ ISR:
     bpl @not_acia                               ; Nope
     jsr ACIA_ihandler
 @not_acia:
+    ; TODO: Check if it was VIA IRQ
+    jsr VIA_ihandler
 @done:
     plx
     pla
@@ -702,16 +704,15 @@ message_fail:
 MON_position_map:
     .byte $00, $01, $03, $05, $07, $09
 menu_items:
-    .byte " Load & Run         "
-    .byte " Load               "
-    .byte " Run                "
-    .byte " Hexdump            "
-    .byte " Clear RAM          "
-    .byte " Test RAM           "
-    .byte " Adjust Clk Speed   "
-    .byte " Run BASIC Int      "
-    .byte " About              "
-    .byte " Thanks             "
+    .byte "1. Load & Run"
+    .byte "2. Load"
+    .byte "3. Run"
+    .byte "4. Hexdump"
+    .byte "5. Clear RAM"
+    .byte "6. Test RAM"
+    .byte "7. Adjust Clk Speed"
+    .byte "8. Run BASIC Int"
+    .byte "9. About"
 about:
     .addr a1, a2, $0000
 a1: .asciiz "github.com/"

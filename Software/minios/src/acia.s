@@ -19,7 +19,7 @@
 
 ;================================================================================
 ;
-;   ACIA_init - initializes the R6551
+;   ACIA_init - initializes the R6551 // RS232 Serial communications
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none

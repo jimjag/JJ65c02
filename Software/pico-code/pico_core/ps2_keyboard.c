@@ -75,6 +75,7 @@ void initPS2(void) {
     gpio_put(PIRQ, 0);
 }
 
+// Run this even after we INIT and before we start ps2Task()
 void clearPS2(void) {
     pio_sm_clear_fifos(ps2_pio, ps2_sm);
     release = shift = cntl = caps = 0;
