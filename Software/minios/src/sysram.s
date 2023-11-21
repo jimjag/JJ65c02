@@ -1,4 +1,3 @@
-.include "lcd.h"
 .include "tty.h"
 
 ;
@@ -21,6 +20,14 @@
 .exportzp SERIN_WPTR
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
+.exportzp XAML
+.exportzp XAMH
+.exportzp STL
+.exportzp STH
+.exportzp L
+.exportzp H
+.exportzp YSAV
+.exportzp MODE
 
 .export CLK_SPD
 .export ISR_VECTOR
@@ -51,6 +58,16 @@ PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
 ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
 CON_SPTR:      .res 2    ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
+
+; WOZMON vars
+XAML:  .res 1   ; Last "opened" location Low
+XAMH:  .res 1   ; Last "opened" location High
+STL:  .res 1    ; Store address Low
+STH:  .res 1    ; Store address High
+L:  .res 1      ; Hex value parsing Low
+H:  .res 1      ; Hex value parsing High
+YSAV:  .res 1   ; Used to see if hex value is given
+MODE:  .res 1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
 
 ;===================================================================
 

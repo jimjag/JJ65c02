@@ -654,10 +654,12 @@ ISR:
     phx
     ; First see if this was an ACIA IRQ
     bit ACIA_STATUS
-    bpl @not_acia                               ; Nope
+    bpl @not_acia       ; Nope
     jsr ACIA_ihandler
 @not_acia:
-    ; TODO: Check if it was VIA IRQ
+    lda VIA1_IFR
+    and #%00000010      ; Check if CA1 interrupt
+    beq @done
     jsr VIA_ihandler
 @done:
     plx

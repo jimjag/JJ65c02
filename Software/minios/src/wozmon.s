@@ -1,28 +1,10 @@
-  .org $8000
-  .org $ff00
 
-XAML  = $24                            ; Last "opened" location Low
-XAMH  = $25                            ; Last "opened" location High
-STL   = $26                            ; Store address Low
-STH   = $27                            ; Store address High
-L     = $28                            ; Hex value parsing Low
-H     = $29                            ; Hex value parsing High
-YSAV  = $2A                            ; Used to see if hex value is given
-MODE  = $2B                            ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+IN    = YMBUF                          ; Input buffer
 
-IN    = $0200                          ; Input buffer
-
-ACIA_DATA   = $5000
-ACIA_STATUS = $5001
-ACIA_CMD    = $5002
-ACIA_CTRL   = $5003
 
 WOZMON:
-    lda #$1F           ; 8-N-1, 19200 baud.
-    sta ACIA_CTRL
-    lda #$0B           ; No parity, no echo, no interrupts.
-    sta ACIA_CMD
     lda #$1B           ; Begin with escape.
+    ldy #$01
 
 @NOTCR:
     cmp #$08           ; Backspace key?
@@ -46,12 +28,10 @@ WOZMON:
     bmi @GETLINE       ; Beyond start of line, reinitialize.
 
 @NEXTCHAR:
-    lda ACIA_STATUS    ; Check status.
-    and #$08           ; Key ready?
-    beq @NEXTCHAR      ; Loop until ready.
-    lda ACIA_DATA      ; Load character. B7 will be '0'.
+    jsr CON_read_byte
+    bcc @NEXTCHAR      ; Loop until ready.
     sta IN,Y           ; Add to text buffer.
-    jsr @ECHO          ; Display character.
+    ;jsr @ECHO          ; Display character.
     cmp #$0D           ; CR?
     bne @NOTCR         ; No.
 
@@ -117,7 +97,7 @@ WOZMON:
     bne @NEXTITEM      ; Get next item (no carry).
     inc STH            ; Add carry to 'store index' high order.
 @TONEXTITEM:
-    jmp     @NEXTITEM       ; Get next command item.
+    jmp @NEXTITEM       ; Get next command item.
 
 @RUN:
     jmp (XAML)         ; Run at current XAM index.
@@ -179,17 +159,11 @@ WOZMON:
     and #$0F           ; Mask LSD for hex print.
     ora #$30           ; Add "0".
     cmp #$3A           ; Digit?
-    bcc @ECHO           ; Yes, output it.
-    adc #$06            Add offset for letter.
+    bcc @ECHO          ; Yes, output it.
+    adc #$06           ;Add offset for letter.
 
 @ECHO:
-    pha                ; Save A.
-    sta ACIA_DATA      ; Output character.
-    lda #$FF           ; Initialize delay loop.
-@TXDELAY:
-    dec                ; Decrement A.
-    bne @TXDELAY       ; Until A gets to 0.
-    pla                ; Restore A.
+    jsr CON_write_byte
     rts                ; Return.
 
 
