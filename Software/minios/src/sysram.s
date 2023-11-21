@@ -59,16 +59,6 @@ ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
 CON_SPTR:      .res 2    ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
 
-; WOZMON vars
-XAML:  .res 1   ; Last "opened" location Low
-XAMH:  .res 1   ; Last "opened" location High
-STL:  .res 1    ; Store address Low
-STH:  .res 1    ; Store address High
-L:  .res 1      ; Hex value parsing Low
-H:  .res 1      ; Hex value parsing High
-YSAV:  .res 1   ; Used to see if hex value is given
-MODE:  .res 1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
-
 ;===================================================================
 
 .segment "SYSRAM"

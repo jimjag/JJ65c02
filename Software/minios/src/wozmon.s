@@ -1,7 +1,26 @@
 
+.setcpu "65c02"
+
+.export WOZMON
+
+.include "minios.inc"
+.include "sysram.inc"
+.include "console.inc"
+
+.segment "ZEROPAGE"
+; WOZMON vars
+XAML:  .res 1   ; Last "opened" location Low
+XAMH:  .res 1   ; Last "opened" location High
+STL:  .res 1    ; Store address Low
+STH:  .res 1    ; Store address High
+L:  .res 1      ; Hex value parsing Low
+H:  .res 1      ; Hex value parsing High
+YSAV:  .res 1   ; Used to see if hex value is given
+MODE:  .res 1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+
 IN    = YMBUF                          ; Input buffer
 
-
+.segment "CODE"
 WOZMON:
     lda #$1B           ; Begin with escape.
     ldy #$01

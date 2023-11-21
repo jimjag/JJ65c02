@@ -10,7 +10,8 @@ SRCS =  minios.s \
 	acia.s \
 	tty.s \
 	ymodem.s \
-	ehbasic.s
+	ehbasic.s \
+	wozmon.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
 all: $(TARGET)

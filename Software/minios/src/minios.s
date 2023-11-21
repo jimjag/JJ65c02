@@ -9,6 +9,7 @@
 .include "console.inc"
 
 .import BASIC_init
+.import WOZMON
 .export MINIOS_main_menu
 
 ;================================================================================
@@ -46,7 +47,7 @@
 ;
 ;   main - routine to initialize the bootloader
 ;
-;   Initializes the bootloader, LCD, VIA, Video Ram and prints a welcome message
+;   Initializes the bootloader, ACIA, VIA (and Pico) and prints a welcome message
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
 ;
@@ -145,7 +146,7 @@ MINIOS_main_menu:
     cmp #2
     beq @run
     cmp #3
-    beq @hexdump
+    beq @go_wozmon
     cmp #4
     beq @clear_ram
     cmp #5
@@ -170,10 +171,8 @@ MINIOS_main_menu:
 @run:                                           ; run a program already loaded
     jsr @do_run
     jmp @start
-@hexdump:                                       ; start up the memory hexdump
-    lda #<PROGRAM_START                         ; have it render the start location
-    ldy #>PROGRAM_START                         ; can also be set as params during debugging
-    jsr HEXDUMP_main
+@go_wozmon:                                     ; start up WOZMON
+    jsr WOZMON
     jmp @start
 @clear_ram:                                     ; start the clear ram routine
     jsr MINIOS_clear_ram
@@ -187,18 +186,17 @@ MINIOS_main_menu:
 @start_basic:
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
-    ;LCD_writeln message_readybasic
+    CON_writeln message_readybasic
     beq @go_basic
     jmp @start
 @go_basic:
-    jsr LCD_clear_screen
     jsr BASIC_init
     jmp @start
 @about:                                         ; start the about routine
-    LCD_writetxt about
+    CON_writeln about
     jmp @start
 @thanks:                                        ; start the thanks routine
-    LCD_writetxt thanks
+    CON_writeln thanks
     jmp @start
 @do_load:                                       ; orchestration of program loading
     lda #100                                    ; wait a bit, say 100ms
@@ -224,11 +222,10 @@ MINIOS_main_menu:
 ;================================================================================
 
 MINIOS_load_ram:
-    ;LCD_writeln message_readyload
+    CON_writeln message_readyload
     beq @start_load
     rts
 @start_load:
-    ;jsr LCD_clear_screen
     jmp YMODEM_recv
 
 ;================================================================================
@@ -246,7 +243,7 @@ MINIOS_load_ram:
 ;================================================================================
 
 MINIOS_execute:
-    ;LCD_writeln message_runprog
+    CON_writeln message_runprog
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
@@ -331,8 +328,7 @@ MINIOS_ram_set:
 ;================================================================================
 
 MINIOS_clear_ram:
-    jsr LCD_clear_video_ram                     ; render message
-    LCD_writeln message_ramclean
+    CON_writeln message_ramclean
 
     ldy #<PROGRAM_START                         ; load start location into zero page
     sty Z0
@@ -356,22 +352,17 @@ MINIOS_clear_ram:
 ;================================================================================
 
 MINIOS_test_ram:
-    jsr LCD_clear_video_ram                     ; render message
-    LCD_writeln message_ramtest
-    ldy #1
-    ldx #2
-    jsr LCD_set_cursor
-
+    CON_writeln message_ramtest
     ldy #<PROGRAM_START                         ; load start location into zero page
     sty Z0
     lda #>PROGRAM_START
     sta Z1
     jsr MINIOS_test_ram_core
     bcs @failed
-    ;LCD_writeln_direct message_pass
+    CON_writeln message_pass
     bra @done
 @failed:
-    ;LCD_writeln_direct message_fail
+    CON_writeln message_fail
 @done:
     lda #10
     jsr LIB_delay100ms                          ; let them see know it
@@ -425,137 +416,6 @@ MINIOS_test_ram_core:
 
 ;================================================================================
 ;
-;   HEXDUMP_main - RAM/ROM Hexdump (r/o)
-;
-;   Currently read only, traverses RAM and ROM locations, shows hex data contents
-;   ————————————————————————————————————
-;   Preparatory Ops: none
-;
-;   Returned Values: none
-;
-;   Destroys:        .A, .X, .Y
-;   ————————————————————————————————————
-;
-;================================================================================
-
-HEXDUMP_main:
-    sta Z0                                      ; store LSB
-    sty Z1                                      ; store MSB
-
-@render_current_ram_location:
-    jsr LCD_clear_video_ram
-
-    lda #$00                                    ; select upper row of video ram
-    sta Z3                                      ; #TODO
-    jsr @transform_contents                     ; load and transform ram and address bytes
-
-    clc                                         ; add offset to address
-    lda Z0
-    adc #$04
-    sta Z0
-    bcc @skip
-    inc Z1
-@skip:
-    lda #$01                                    ; select lower row of video ram
-    sta Z3
-    jsr @transform_contents                     ; load and transform ram and address bytes there
-
-    jsr LCD_render
-
-@wait_for_input:                                ; wait for key press
-    jsr VIA_read_mini_keyboard
-
-@handle_keyboard_input:                         ; determine action for key pressed
-    cmp #(VIA_up_key)
-    beq @move_up                                ; UP key pressed
-    cmp #(VIA_down_key)
-    beq @move_down                              ; DOWN key pressed
-    cmp #(VIA_left_key)
-    beq @exit_hexdump                           ; LEFT key pressed
-    cmp #(VIA_right_key)
-    beq @fast_forward                           ; RIGHT key pressed
-    bne @wait_for_input
-@exit_hexdump:
-    lda #0                                      ; needed for whatever reason
-    rts
-
-@move_down:
-    jmp @render_current_ram_location            ; no math needed, the address is up to date already
-@move_up:
-    sec                                         ; decrease the 16bit RAM Pointer
-    lda Z0
-    sbc #$08
-    sta Z0
-    lda Z1
-    sbc #$00
-    sta Z1
-    jmp @render_current_ram_location            ; and re-render
-@fast_forward:                                  ; add $0800 to current RAM location
-    sec
-    lda Z0
-    adc #$00
-    sta Z0
-    lda Z1
-    adc #$04
-    sta Z1
-    jmp @render_current_ram_location            ; and re-render
-@transform_contents:                            ; start reading address and ram contents into stack
-    ldy #3
-@iterate_ram:                                   ; transfer 4 ram bytes to stack
-    lda (Z0),y
-    pha
-    dey
-    bne @iterate_ram
-    lda (Z0),y
-    pha
-
-    lda Z0                                      ; transfer the matching address bytes to stack too
-    pha
-    lda Z1
-    pha
-
-    ldy #0
-@iterate_stack:                                 ; transform stack contents from bin to hex
-    cpy #6
-    beq @end_mon
-    sty Z2                                      ; preserve Y #TODO
-    pla
-    jsr LIB_bin_to_hex
-    ldy Z2                                      ; restore Y
-    pha                                         ; push least sign. nibble (LSN) onto stack
-    phx                                         ; push most sign. nibble (MSN) too
-
-    tya                                         ; calculate nibble positions in video ram
-    adc MON_position_map,y                      ; use the static map for that
-    tax
-    pla
-    jsr @store_nibble                           ; store MSN to video ram
-    inx
-    pla
-    jsr @store_nibble                           ; store LSN to video ram
-
-    iny
-    jmp @iterate_stack                          ; repeat for all 6 bytes on stack
-@store_nibble:                                  ; subroutine to store nibbles in two lcd rows
-    pha
-    lda Z3
-    beq @store_upper_line                       ; should we store in upper line? yes
-    pla                                         ; no, store in lower line
-    sta VIDEO_RAM+LCD_COLS,x
-    jmp @end_store
-@store_upper_line:                              ; upper line storage
-    pla
-    sta VIDEO_RAM,x
-@end_store:
-    rts
-@end_mon:
-    lda #':'                                    ; writing the two colons
-    sta VIDEO_RAM+4
-    sta VIDEO_RAM+4+LCD_COLS
-    rts
-
-;================================================================================
-;
 ;   MINIOS_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
 ;
 ;   This routine simply updates the internal setting for the clock speed of the
@@ -579,21 +439,6 @@ MINIOS_adj_clock:
     lda CLK_SPD
     sta Z2
 @redisplay:
-    jsr LCD_clear_video_ram
-    ldx #0
-@fill_vram:
-    lda clock_spd,x
-    sta VIDEO_RAM,x
-    inx
-    cpx #13
-    bne @fill_vram
-
-    ; Now convert the value of Z2 (from 1 to 8) to ASCII
-    lda #'0'
-    adc Z2
-    ldx #8
-    sta VIDEO_RAM,x
-    jsr LCD_render
 
 @wait_for_input:                                ; wait for key press
     jsr VIA_read_mini_keyboard
@@ -623,8 +468,7 @@ MINIOS_adj_clock:
 @save_spd:
     lda Z2
     sta CLK_SPD
-    jsr LCD_clear_video_ram
-    LCD_writeln message9
+    CON_writeln message9
     lda #10
     jsr LIB_delay100ms                          ; let them see know it
     jmp @redisplay
@@ -652,13 +496,14 @@ MINIOS_adj_clock:
 ISR:
     pha
     phx
-    ; First see if this was an ACIA IRQ
+    ; First see if this was an ACIA IRQ (for rs232/tty)
     bit ACIA_STATUS
     bpl @not_acia       ; Nope
     jsr ACIA_ihandler
 @not_acia:
+    ; Check if CA1 interrupt (ps/2 keyboard - Pi Pico)
     lda VIA1_IFR
-    and #%00000010      ; Check if CA1 interrupt
+    and #%00000010
     beq @done
     jsr VIA_ihandler
 @done:
@@ -672,23 +517,19 @@ ISR:
 .segment "RODATA"
 
 message_welcome:
-    .byte "      JJ65c02       "
-    .byte "   miniOS v2.0      ", $00
+    .asciiz "      JJ65c02"
+    .asciiz "   miniOS v2.0"
 message_welcomeacia:
-    .byte "      JJ65c02       "
-    .byte "  miniOS v2.0 ACIA  ", $00
+    .asciiz "      JJ65c02"
+    .asciiz "  miniOS v2.0 ACIA"
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .byte "Starting EhBASIC    "
-    .byte "Interpreter via TTY."
-    .byte "Press Mini Keyboard "
-    .byte "R Button When Ready:", $00
+    .asciiz "Starting EhBASIC"
+    .asciiz "Press any key on console to start: "
 message_readyload:
-    .byte "Getting Ready To    "
-    .byte "LOAD RAM. Tap Mini  "
-    .byte "Keyboard R Button To"
-    .byte "Start:              ", $00
+    .asciiz "Getting Ready To LOAD RAM.
+    .asciiz "Press any key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
@@ -703,18 +544,16 @@ message_pass:
     .asciiz "PASS"
 message_fail:
     .asciiz "FAIL"
-MON_position_map:
-    .byte $00, $01, $03, $05, $07, $09
 menu_items:
-    .byte "1. Load & Run"
-    .byte "2. Load"
-    .byte "3. Run"
-    .byte "4. Hexdump"
-    .byte "5. Clear RAM"
-    .byte "6. Test RAM"
-    .byte "7. Adjust Clk Speed"
-    .byte "8. Run BASIC Int"
-    .byte "9. About"
+    .asciiz "1. Load & Run"
+    .asciiz "2. Load"
+    .asciiz "3. Run"
+    .asciiz "4. WOZMON"
+    .asciiz "5. Clear RAM"
+    .asciiz "6. Test RAM"
+    .asciiz "7. Adjust Clk Speed"
+    .asciiz "8. Run EhBASIC Interpreter"
+    .asciiz "9. About"
 about:
     .addr a1, a2, $0000
 a1: .asciiz "github.com/"
