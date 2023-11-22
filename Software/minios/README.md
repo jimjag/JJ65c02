@@ -10,7 +10,6 @@
 5. __Clean RAM__ for use with non-volatile RAM or during development
 6. __Adjust Clock Speed__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
 
-The minios also provides some helper library functions to handle delays, serial and TTY I/O, driving the __LCD__ display, and reading the __mini keyboard__.
 
 ### Install the minios
 
@@ -50,14 +49,13 @@ rm -f minios.bin
 
 Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
+```
+minipro -p AT28C256 -w ./minios.rom
+```
+
 The `minios.lbl` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. There is also a more detailed `minios.map` file that provides even
 more in depth info. We will talk more about this when we discuss
 building and loading RAM-based programs.
-
-
-## Using the Monitor
-
-The **hex monitor** is very useful during development and debugging. It lets you inspect the whole address space, RAM and ROM. you can navigate using the _UP_ and _DOWN_ keys. The _RIGHT_ key performs a bigger jump in time and space and the _LEFT_ key returns you to the main menu. The monitor is currently read only but it works well enough for an initial rough cut.
 
 ## Important to know - Allocated Resources
 
