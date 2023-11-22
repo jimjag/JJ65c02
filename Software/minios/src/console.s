@@ -6,6 +6,7 @@
 
 .export CON_init
 .export CON_read_byte
+.export CON_read_byte_blk
 .export CON_write_byte
 .export CON_write_string
 .export CON_reset_user_input
@@ -65,6 +66,26 @@ CON_read_byte:
     plx
     sec
     rts
+
+;================================================================================
+;
+;   CAN_read_byte_blk - Return one byte from RX buffer in .A. Block until we have it
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: .A, C flag (set if data exist, cleared if no data)
+;
+;   Destroys:        .A
+;   ————————————————————————————————————
+;
+;================================================================================
+
+CON_read_byte_blk:
+@tryagain:
+    jsr LIB_have_ps2data
+    bcc @tryagain
+    jmp CON_read_byte
 
 ;================================================================================
 ;

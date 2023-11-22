@@ -22,8 +22,9 @@ IN    = YMBUF                          ; Input buffer
 
 .segment "CODE"
 WOZMON:
-    lda #$1B           ; Begin with escape.
-    ldy #$01
+    cld                ; just in case
+    lda #$A7
+    ldy #$7F
 
 @NOTCR:
     cmp #$08           ; Backspace key?
@@ -34,7 +35,7 @@ WOZMON:
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
 @ESCAPE:
-    lda #$5C           ; "\".
+    lda #'\'           ; "\".
     jsr @ECHO          ; Output it.
 
 @GETLINE:
@@ -47,8 +48,7 @@ WOZMON:
     bmi @GETLINE       ; Beyond start of line, reinitialize.
 
 @NEXTCHAR:
-    jsr CON_read_byte
-    bcc @NEXTCHAR      ; Loop until ready.
+    jsr CON_read_byte_blk
     sta IN,Y           ; Add to text buffer.
     ;jsr @ECHO          ; Display character.
     cmp #$0D           ; CR?
@@ -68,12 +68,12 @@ WOZMON:
     lda IN,Y           ; Get character.
     cmp #$0D           ; CR?
     beq @GETLINE       ; Yes, done this line.
-    cmp #$2E           ; "."?
+    cmp #'.'           ; "."?
     bcc @BLSKIP        ; Skip delimiter.
     beq @SETBLOCK      ; Set BLOCK XAM mode.
-    cmp #$3A           ; ":"?
+    cmp #':'           ; ":"?
     beq @SETSTOR       ; Yes, set STOR mode.
-    cmp #$52           ; "R"?
+    cmp #'R'           ; "R"?
     beq @RUN           ; Yes, run user program.
     stx L              ; $00 -> L.
     stx H              ;    and H.
@@ -144,7 +144,7 @@ WOZMON:
     jsr @ECHO          ; Output it.
 
 @PRDATA:
-    lda #$20           ; Blank.
+    lda #' '           ; Blank.
     jsr @ECHO          ; Output it.
     lda (XAML,X)       ; Get data byte at 'examine index'.
     jsr @PRBYTE        ; Output it in hex format.

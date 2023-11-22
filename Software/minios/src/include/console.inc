@@ -3,6 +3,7 @@ _CONSOLE_INC_ = 1
 
 .import CON_init
 .import CON_read_byte
+.import CON_read_byte_blk
 .import CON_write_byte
 .import CON_write_string
 .import CON_reset_user_input

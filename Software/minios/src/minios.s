@@ -87,15 +87,15 @@ main:                                           ; boot routine, first thing load
     ; Init the ACIA and VIA chips
     jsr ACIA_init
     jsr TTY_setup_term
-    TTY_writeln welcome_msg
     jsr VIA_init
     jsr CON_init
-    CON_writeln welcome_msg
+    CON_writeln logo
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
+    TTY_writeln welcome_msg
     TTY_writeln message_welcomeacia
     CON_writeln message_welcomeacia
     bra @welcome
@@ -104,15 +104,15 @@ main:                                           ; boot routine, first thing load
 
 @welcome:
     cli                                         ; interupts are back on
+    CON_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
     beq @ram_failed
-    lda #'+'
+    CON_writeln message_pass
     bra @cont2
 @ram_failed:
-    lda #'-'
+    CON_writeln message_fail
 @cont2:
-    jsr CON_write_byte
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...
 
@@ -133,10 +133,13 @@ main:                                           ; boot routine, first thing load
 
 MINIOS_main_menu:
 @start:
-
+    CON_writeln new_line
+    CON_writeln menu_items
+    jsr CON_read_byte_blk
+    sec
+    sbc #'0'
 @select_option:
     clc
-    lda #0                                      ; clear A
     cmp #0                                      ; branch trough all options
     beq @load_and_run
     cmp #1
@@ -433,19 +436,23 @@ MINIOS_adj_clock:
     sta Z2
     jsr CON_reset_user_input
 @redisplay:
-
+    CON_writeln clock_spd
+    lda Z2
+    clc
+    adc #'0'
+    jsr CON_write_byte
+    CON_writeln new_line
 @wait_for_input:                                ; wait for key press
-    jsr CON_read_byte
-
+    jsr CON_read_byte_blk
 @handle_keyboard_input:                         ; determine action for key pressed
     cmp #'+'
-    beq @increase_spd                           ; UP key pressed
+    beq @increase_spd
     cmp #'-'
-    beq @decrease_spd                           ; DOWN key pressed
+    beq @decrease_spd
     cmp #'x'
-    beq @exit_adj                               ; LEFT key pressed
+    beq @exit_adj
     cmp #'='
-    beq @save_spd                               ; RIGHT key pressed
+    beq @save_spd
     bne @wait_for_input
 @increase_spd:
     lda Z2
@@ -510,20 +517,18 @@ ISR:
 
 .segment "RODATA"
 
+logo:
+    .asciiz "     _     _  __  ____   ____ ___ ____\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\n| |_| | |_| | (_) |__) | |__| |_| / __/\n \\___/ \\___/ \\___/____/ \\____\\___/_____|"
 message_welcome:
-    .asciiz "      JJ65c02"
-    .asciiz "   miniOS v2.0"
+    .asciiz "      JJ65c02\n   miniOS v2.0"
 message_welcomeacia:
-    .asciiz "      JJ65c02"
-    .asciiz "  miniOS v2.0 ACIA"
+    .asciiz "      JJ65c02\n  miniOS v2.0 ACIA"
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .asciiz "Starting EhBASIC"
-    .asciiz "Press any key on console to start: "
+    .asciiz "Starting EhBASIC\nPress any key on console to start: "
 message_readyload:
-    .asciiz "Getting Ready To LOAD RAM."
-    .asciiz "Press any key on console to start: "
+    .asciiz "Getting Ready To LOAD RAM.\nPress any key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
@@ -531,30 +536,19 @@ message_loaddone:
 message_runprog:
     .asciiz "Running RAM@$0500"
 message_ramclean:
-    .asciiz "Cleaning RAM..."
+    .asciiz "Cleaning RAM... "
 message_ramtest:
-    .asciiz "Testing RAM..."
+    .asciiz "Testing RAM... "
 message_pass:
     .asciiz "PASS"
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load & Run"
-    .asciiz "2. Load"
-    .asciiz "3. Run"
-    .asciiz "4. WOZMON"
-    .asciiz "5. Clear RAM"
-    .asciiz "6. Test RAM"
-    .asciiz "7. Adjust Clk Speed"
-    .asciiz "8. Run EhBASIC Interpreter"
-    .asciiz "9. About"
+    .asciiz "1. Load & Run\n2. Load\n3. Run\n4. WOZMON\n5. Clear RAM\n6. Test RAM\n7. Adjust Clk Speed\n8. Run EhBASIC Interpreter\n9. About"
 about:
-    .addr a1, a2, $0000
-a1: .asciiz "github.com/"
-a2: .asciiz "    jimjag/JJ65c02"
-
+    .asciiz "github.com/jimjag/JJ65c02"
 clock_spd:
-    .byte " Clock: % Mhz"
+    .asciiz " Clock Mhz:"
 message9:
     .asciiz "Clk Spd Saved"
 
