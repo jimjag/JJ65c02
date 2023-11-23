@@ -252,7 +252,7 @@ void initVGA(void) {
     gpio_init(DREADY);
     gpio_set_dir(DREADY, GPIO_IN);
     // Finally, interrupt on Data Ready pin (GPIO26)
-    gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_RISE, true, &readByte);
+    gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_FALL, true, &readByte);
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 
