@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define PS2FREQ   133600.0f
+
 // GPIO pins to VIA chip
 enum ps2_pins {PA0=0, PA1, PA2, PA3, PA4, PA5, PA6, PS2_DATA_PIN=15, PS2_CLK_PIN, PIRQ=27};
 

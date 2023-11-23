@@ -35,7 +35,7 @@ WOZMON:
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
 @ESCAPE:
-    lda #'\'           ; "\".
+    lda #$5C           ; "\".
     jsr @ECHO          ; Output it.
 
 @GETLINE:
@@ -81,7 +81,7 @@ WOZMON:
 
 @NEXTHEX:
     lda IN,Y           ; Get character for hex test.
-    eor #$30           ; Map digits to $0-9.
+    eor #'0'           ; Map digits to $0-9.
     cmp #$0A           ; Digit?
     bcc @DIG           ; Yes.
     adc #$88           ; Map letter "A"-"F" to $FA-FF.
@@ -176,7 +176,7 @@ WOZMON:
 
 @PRHEX:
     and #$0F           ; Mask LSD for hex print.
-    ora #$30           ; Add "0".
+    ora #'0'           ; Add "0".
     cmp #$3A           ; Digit?
     bcc @ECHO          ; Yes, output it.
     adc #$06           ;Add offset for letter.
@@ -184,5 +184,3 @@ WOZMON:
 @ECHO:
     jsr CON_write_byte
     rts                ; Return.
-
-
