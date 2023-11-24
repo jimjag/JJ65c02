@@ -34,6 +34,7 @@
 #include "hsync.pio.h"
 #include "scanline.pio.h"
 #include "vsync.pio.h"
+#include "viain.pio.h"
 // Header file
 #include "vga_core.h"
 // Font file
@@ -119,27 +120,39 @@ bool cursor_callback(struct repeating_timer *t) {
 }
 
 // Interrupt Handler: We have data on GPIO7-14
-void readByte(uint gpio, uint32_t events) {
-    unsigned char c = 0;
-    for (uint pin = DATA7; pin >= DATA0; pin--) {
-        c = (c << 1)|gpio_get(pin);
+static uint viain_offset;
+static uint viain_sm;
+static PIO viain_pio;
+static uint viain_pio_irq;
+static unsigned char inbuf[128];
+static unsigned char *rptr = inbuf;
+static unsigned char *wptr = inbuf;
+static void readByte(void) {
+    if (pio_sm_is_rx_fifo_empty(viain_pio, viain_sm)) {
+        pio_interrupt_clear(viain_pio, 1);
+        return;
     }
-    // We want to be able to handle cases where we actually
-    // rec a NUL. Checking for 'c' misses this case, so
-    // flag it when we read the data, no matter what it is
-    inputChar = c;
-    hasChar = true;
+    uint8_t code = pio_sm_get(viain_pio, viain_sm) >> 24;
+    *wptr++ = code;
+    if (wptr >= (inbuf + sizeof(inbuf)))
+        wptr = inbuf;
+    pio_interrupt_clear(viain_pio, 1);
 }
 
 bool haveChar(void) {
-    return hasChar;
+    return (rptr != wptr);
 }
 
 // Once we grab the character/byte we've rec'd, we no longer
 // have it available to "read" again.
 unsigned char getChar(void) {
-    hasChar = false;
-    return inputChar;
+    unsigned char ascii = 0;
+    if (rptr != wptr) {
+        ascii = *rptr++;
+        if (rptr >= (inbuf + sizeof(inbuf)))
+            rptr = inbuf;
+    }
+    return ascii;
 }
 
 void initVGA(void) {
@@ -245,14 +258,18 @@ void initVGA(void) {
     dma_memset(terminal, ' ', terminal_size);
 
     // GPIO pin setup
-    for (uint pin = DATA0; pin <= DATA7; pin++) {
-        gpio_init(pin);
-        gpio_set_dir(pin, GPIO_IN);
-    }
+    viain_pio = pio1;
+    viain_pio_irq = PIO1_IRQ_1;
+    viain_offset = pio_add_program(viain_pio, &viain_program);
+    viain_sm = pio_claim_unused_sm(viain_pio, true);
+    viain_program_init(viain_pio, viain_sm, viain_offset, DATA0);
+    pio_set_irq0_source_enabled(viain_pio, pis_interrupt1, true);
+    irq_set_exclusive_handler(viain_pio_irq, readByte);
+    irq_set_enabled(viain_pio_irq, true);
     gpio_init(DREADY);
     gpio_set_dir(DREADY, GPIO_IN);
-    // Finally, interrupt on Data Ready pin (GPIO26)
-    gpio_set_irq_enabled_with_callback(DREADY, GPIO_IRQ_EDGE_FALL, true, &readByte);
+    pio_sm_set_enabled(viain_pio, viain_sm, true);
+    rptr = wptr = inbuf;
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 

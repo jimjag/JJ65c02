@@ -45,13 +45,13 @@ static bool shift;   // Shift indication
 static bool cntl;    // Control indication
 static bool caps;    // Caps Lock
 
-unsigned char keybuf[128];
-unsigned char *rptr = keybuf;
-unsigned char *wptr = keybuf;
+static unsigned char keybuf[128];
+static unsigned char *rptr = keybuf;
+static unsigned char *wptr = keybuf;
 
 void initPS2(void) {
     ps2_pio = pio1;
-    ps2_pio_irq = (ps2_pio == pio1) ? PIO1_IRQ_0 : PIO0_IRQ_0;
+    ps2_pio_irq = PIO1_IRQ_0;
     ps2_offset = pio_add_program(ps2_pio, &ps2_program);
     ps2_sm = pio_claim_unused_sm(ps2_pio, true);
     ps2_program_init(ps2_pio, ps2_sm, ps2_offset, PS2_DATA_PIN, PS2FREQ);
@@ -70,9 +70,10 @@ void initPS2(void) {
         gpio_set_dir(pin, GPIO_OUT);
     }
     gpio_init(PIRQ  );
-    gpio_set_dir(PIRQ, GPIO_IN);
+    gpio_set_dir(PIRQ, GPIO_OUT);
     gpio_pull_down(PIRQ);
     gpio_put(PIRQ, 0);
+    rptr = wptr = keybuf;
 }
 
 // Run this even after we INIT and before we start ps2Task()
