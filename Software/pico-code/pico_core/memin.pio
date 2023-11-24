@@ -2,6 +2,7 @@
 .program memin
 ;.wrap_target
     wait 1 gpio 26   ; Wait for data ready
+    ; likely need a delay here to handle Tmds of 6502
     in pins 8
     irq  wait 1
 ;.wrap

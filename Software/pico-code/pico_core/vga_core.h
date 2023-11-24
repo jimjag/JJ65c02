@@ -36,7 +36,7 @@
 // Screen width/height/freq
 #define SCREENWIDTH 640
 #define SCREENHEIGHT 480
-#define PIXFREQ   25000000.0f
+#define PIXFREQ   25175000.0f
 #define SCANFREQ 125000000.0f
 
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
