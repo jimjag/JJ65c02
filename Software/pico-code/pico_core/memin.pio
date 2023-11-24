@@ -1,5 +1,5 @@
 ;
-.program viain
+.program memin
 ;.wrap_target
     wait 1 gpio 26   ; Wait for data ready
     in pins 8
@@ -8,8 +8,8 @@
 
 
 % c-sdk {
-static inline void viain_program_init(PIO pio, uint sm, uint offset, uint pin) {
-    pio_sm_config c = viain_program_get_default_config(offset);
+static inline void memin_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    pio_sm_config c = memin_program_get_default_config(offset);
     sm_config_set_set_pins(&c, pin, 8);
     sm_config_set_in_pins(&c, pin);
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 8, false);

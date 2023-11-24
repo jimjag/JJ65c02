@@ -34,7 +34,7 @@
 #include "hsync.pio.h"
 #include "scanline.pio.h"
 #include "vsync.pio.h"
-#include "viain.pio.h"
+#include "memin.pio.h"
 // Header file
 #include "vga_core.h"
 // Font file
@@ -120,23 +120,23 @@ bool cursor_callback(struct repeating_timer *t) {
 }
 
 // Interrupt Handler: We have data on GPIO7-14
-static uint viain_offset;
-static uint viain_sm;
-static PIO viain_pio;
-static uint viain_pio_irq;
+static uint memin_offset;
+static uint memin_sm;
+static PIO memin_pio;
+static uint memin_pio_irq;
 static unsigned char inbuf[128];
 static unsigned char *rptr = inbuf;
 static unsigned char *wptr = inbuf;
 static void readByte(void) {
-    if (pio_sm_is_rx_fifo_empty(viain_pio, viain_sm)) {
-        pio_interrupt_clear(viain_pio, 1);
+    if (pio_sm_is_rx_fifo_empty(memin_pio, memin_sm)) {
+        pio_interrupt_clear(memin_pio, 1);
         return;
     }
-    uint8_t code = pio_sm_get(viain_pio, viain_sm) >> 24;
+    uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= (inbuf + sizeof(inbuf)))
         wptr = inbuf;
-    pio_interrupt_clear(viain_pio, 1);
+    pio_interrupt_clear(memin_pio, 1);
 }
 
 bool haveChar(void) {
@@ -257,18 +257,18 @@ void initVGA(void) {
     terminal = malloc(terminal_size);
     dma_memset(terminal, ' ', terminal_size);
 
-    // GPIO pin setup
-    viain_pio = pio1;
-    viain_pio_irq = PIO1_IRQ_1;
-    viain_offset = pio_add_program(viain_pio, &viain_program);
-    viain_sm = pio_claim_unused_sm(viain_pio, true);
-    viain_program_init(viain_pio, viain_sm, viain_offset, DATA0);
-    pio_set_irq0_source_enabled(viain_pio, pis_interrupt1, true);
-    irq_set_exclusive_handler(viain_pio_irq, readByte);
-    irq_set_enabled(viain_pio_irq, true);
+    // GPIO pin setup for data sent from 6502 to us (Console Output)
+    memin_pio = pio1;
+    memin_pio_irq = PIO1_IRQ_1;
+    memin_offset = pio_add_program(memin_pio, &memin_program);
+    memin_sm = pio_claim_unused_sm(memin_pio, true);
+    memin_program_init(memin_pio, memin_sm, memin_offset, DATA0);
+    pio_set_irq0_source_enabled(memin_pio, pis_interrupt1, true);
+    irq_set_exclusive_handler(memin_pio_irq, readByte);
+    irq_set_enabled(memin_pio_irq, true);
     gpio_init(DREADY);
     gpio_set_dir(DREADY, GPIO_IN);
-    pio_sm_set_enabled(viain_pio, viain_sm, true);
+    pio_sm_set_enabled(memin_pio, memin_sm, true);
     rptr = wptr = inbuf;
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
