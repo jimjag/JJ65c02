@@ -76,8 +76,8 @@ main:                                           ; boot routine, first thing load
     tsb MINIOS_STATUS
 
 @continue:
-    lda #1
-    sta CLK_SPD                                 ; Assume a 1Mhz clock to start
+    lda #4
+    sta CLK_SPD                                 ; Assume a 4Mhz clock to start
 
     ;lda #<ISR_HANDLER
     ;sta ISR_VECTOR
@@ -101,8 +101,15 @@ main:                                           ; boot routine, first thing load
     bra @welcome
 @no_acia:
     CON_writeln message_welcome                 ; render the boot screen
-
 @welcome:
+    ; Show clock speed (compile-time constant)
+    CON_writeln clock_spd
+    lda Z2
+    clc
+    adc #'0'
+    jsr CON_write_byte
+    CON_writeln new_line
+    ; Rest of boot up
     cli                                         ; interupts are back on
     CON_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
@@ -153,10 +160,8 @@ MINIOS_main_menu:
     cmp #5
     beq @test_ram
     cmp #6
-    beq @adj_clock
-    cmp #7
     beq @start_basic
-    cmp #8
+    cmp #7
     beq @about
     jmp @start                                  ; should we have an invalid option, restart
 
@@ -178,9 +183,6 @@ MINIOS_main_menu:
     jmp @start
 @test_ram:                                      ; start the test ram routine
     jsr MINIOS_test_ram
-    jmp @start
-@adj_clock:
-    jsr MINIOS_adj_clock
     jmp @start
 @start_basic:
     lda #100                                    ; wait a bit, say 100ms
@@ -412,75 +414,6 @@ MINIOS_test_ram_core:
 
 ;================================================================================
 ;
-;   MINIOS_adj_clock - Changes the internal setting for the clock speed (CLK_SPD).
-;
-;   This routine simply updates the internal setting for the clock speed of the
-;   system, in Mhz. This only currently affects LIB_delay1ms so that depending
-;   on the setting here, and it matching the actual clock speed, we get close
-;   to an actual 10ms delay
-;   ————————————————————————————————————
-;   Preparatory Ops: none
-;
-;   Returned Values: none
-;
-;   Destroys:        none
-;   ————————————————————————————————————
-;
-;================================================================================
-
-MINIOS_adj_clock:
-    pha                                         ; Save .A, .X, .Y
-    phx
-    phy
-    lda CLK_SPD
-    sta Z2
-    jsr CON_reset_user_input
-@redisplay:
-    CON_writeln clock_spd
-    lda Z2
-    clc
-    adc #'0'
-    jsr CON_write_byte
-    CON_writeln new_line
-@wait_for_input:                                ; wait for key press
-    jsr CON_read_byte_blk
-@handle_keyboard_input:                         ; determine action for key pressed
-    cmp #'+'
-    beq @increase_spd
-    cmp #'-'
-    beq @decrease_spd
-    cmp #'x'
-    beq @exit_adj
-    cmp #'='
-    beq @save_spd
-    bne @wait_for_input
-@increase_spd:
-    lda Z2
-    cmp #8
-    beq @redisplay
-    inc Z2
-    bne @redisplay
-@decrease_spd:
-    lda Z2
-    cmp #1
-    beq @redisplay
-    dec Z2
-    bne @redisplay
-@save_spd:
-    lda Z2
-    sta CLK_SPD
-    CON_writeln message9
-    lda #10
-    jsr LIB_delay100ms                          ; let them see know it
-    jmp @redisplay
-@exit_adj:
-    ply                                         ; Restore .Y, .X, .A
-    plx
-    pla
-    rts
-
-;================================================================================
-;
 ;   IRQ - Interrupt Handler
 ;
 ;   Just handles reading data from ACIA and VIA for now
@@ -544,7 +477,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load & Run\n2. Load\n3. Run\n4. WOZMON\n5. Clear RAM\n6. Test RAM\n7. Adjust Clk Speed\n8. Run EhBASIC Interpreter\n9. About"
+    .asciiz "1. Load & Run\n2. Load\n3. Run\n4. WOZMON\n5. Clear RAM\n6. Test RAM\n7. Run EhBASIC Interpreter\n8. About"
 about:
     .asciiz "github.com/jimjag/JJ65c02"
 clock_spd:

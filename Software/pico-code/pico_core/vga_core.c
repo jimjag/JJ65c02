@@ -16,6 +16,7 @@
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
  *  -   DMA channels 0, 1, 2, and 3
  *  -   153.6 kBytes of RAM (for pixel color data)
+ *  -   PIO state machine 1 on Pio instance 1
  *  - PS2:
  *  -   PIO state machine 0 on PIO instance 1
  *
@@ -139,13 +140,13 @@ static void readByte(void) {
     pio_interrupt_clear(memin_pio, 1);
 }
 
-bool haveChar(void) {
+bool conInHaveChar(void) {
     return (rptr != wptr);
 }
 
 // Once we grab the character/byte we've rec'd, we no longer
 // have it available to "read" again.
-unsigned char getChar(void) {
+unsigned char conInGetChar(void) {
     unsigned char ascii = 0;
     if (rptr != wptr) {
         ascii = *rptr++;
@@ -313,6 +314,18 @@ void dma_memcpy(void *dest, void *src, size_t num) {
     // thing. In this case the processor has nothing else to do, so we just
     // wait for the DMA to finish.
     dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+}
+
+// This is the actual task used in polling/looping:
+//   Check if we rec'd a character from the 6502
+//   if so, we print it (send it to the VGA system)
+
+void conInTask(void) {
+    unsigned char c;
+    if (conInHaveChar()) {
+        c = conInGetChar();
+        printChar(c);
+    }
 }
 
 #include "vga_graphics.c"

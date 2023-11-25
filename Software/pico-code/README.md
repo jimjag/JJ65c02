@@ -12,8 +12,9 @@ the JJ65c02 SBC. It performs 3 main functions:
 
 2 __GPIO__ pins are used on the Pi Pico for the PS/2 data and clock signals. Data is
 read and serialized using a __PIO__ state machine. This data is then fed into the
-VGA/terminal subsystem as well as sent to the JJ65c02 system using 6 pins on
-the VIA chip and one pin for the data handshake.
+VGA/terminal subsystem (if desired) as well as sent to the JJ65c02 system using 7 pins on
+the VIA chip and one pin for the data handshake. In general, we expect the 6502 to echo back
+and characters rec'd/sent from the PS/2 system.
 
 PS/2 scancodes are translated to ASCII, and support uppercase, lowercase and
 control characters. The __arrow keys__ are specially handled and mapped

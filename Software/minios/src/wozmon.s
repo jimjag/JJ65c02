@@ -50,7 +50,7 @@ WOZMON:
 @NEXTCHAR:
     jsr CON_read_byte_blk
     sta IN,Y           ; Add to text buffer.
-    ;jsr @ECHO          ; Display character.
+    jsr @ECHO          ; Display character.
     cmp #$0D           ; CR?
     bne @NOTCR         ; No.
 
