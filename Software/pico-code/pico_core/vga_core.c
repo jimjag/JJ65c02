@@ -120,7 +120,7 @@ bool cursor_callback(struct repeating_timer *t) {
     return true;
 }
 
-// Interrupt Handler: We have data on GPIO7-14
+// Interrupt Handler: We have data on GPIO7-14 and DREADY on GPIO26
 static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
@@ -264,7 +264,7 @@ void initVGA(void) {
     memin_offset = pio_add_program(memin_pio, &memin_program);
     memin_sm = pio_claim_unused_sm(memin_pio, true);
     memin_program_init(memin_pio, memin_sm, memin_offset, DATA0);
-    pio_set_irq0_source_enabled(memin_pio, pis_interrupt1, true);
+    pio_set_irq1_source_enabled(memin_pio, pis_interrupt1, true);
     irq_set_exclusive_handler(memin_pio_irq, readByte);
     irq_set_enabled(memin_pio_irq, true);
     gpio_init(DREADY);
