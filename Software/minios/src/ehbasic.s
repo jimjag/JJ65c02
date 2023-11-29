@@ -443,13 +443,14 @@ LAB_SKFF          = LAB_STAK+$FF
                               ; flushed stack address
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
-ccflag     = $0500             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
+; __RAM0_START__
+ccflag     = $0200             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte     = ccflag+1     ; BASIC CTRL-C byte
 ccnull  = ccbyte+1     ; BASIC CTRL-C byte timeout
 VEC_CC            = ccnull+1  ; ctrl c check vector
 ; end bulk initialize from PG2_TABS at LAB_COLD
 
-; the following locations are bulk initialized by min_mon.asm from LAB_vec at LAB_stlp
+; the following locations are bulk initialized from LAB_vec at LAB_stlp
 VEC_IN            = VEC_CC+2 ; input vector
 VEC_OUT           = VEC_IN+2        ; output vector
 VEC_LD            = VEC_OUT+2       ; load vector
@@ -462,12 +463,14 @@ VEC_EXIT          = VEC_SV+2        ; exit vector
 ; program RAM pages!
 
 ;Ibuffs            = IRQ_vec+$14
-Ibuffs            = $0700     ; SYSTEM SPECIFIC VALUE!
+Ibuffs            = $0400     ; SYSTEM SPECIFIC VALUE!
                               ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
-Ram_base          = $1000     ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
-Ram_top           = $6000     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+; __RAM_START__
+Ram_base          = $0500    ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+; __IO_START__
+Ram_top           = $a000     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 
 Stack_floor       = 16        ; bytes left free on stack for background interrupts
 

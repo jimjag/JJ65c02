@@ -69,9 +69,9 @@ main:                                           ; boot routine, first thing load
     sty Z0
     lda #>__RAM0_START__
     sta Z1
-    ;jsr MINIOS_test_ram_core
+    jsr MINIOS_test_ram_core
     stz MINIOS_STATUS
-    ;bcs @continue
+    bcs @continue
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     tsb MINIOS_STATUS
 
