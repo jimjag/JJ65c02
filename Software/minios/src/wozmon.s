@@ -46,8 +46,6 @@ WOZMON:
 @GETLINE:
     lda #$0D           ; Send CR
     jsr @ECHO
-    lda #$0A
-    jsr @ECHO
 
     ldy #$01           ; Initialize text index.
 @BACKSPACE:
@@ -56,6 +54,7 @@ WOZMON:
 
 @NEXTCHAR:
     jsr CON_read_byte_blk
+    ; TODO: Convert lower case to upper case, internally
     sta IN,Y           ; Add to text buffer.
     jsr @ECHO          ; Display character.
     cmp #$0D           ; CR?
@@ -143,8 +142,6 @@ WOZMON:
     bne @PRDATA        ; NE means no address to print.
     lda #$0D           ; CR.
     jsr @ECHO          ; Output it.
-    lda #$0A
-    jsr @ECHO
     lda XAMH           ; 'Examine index' high-order byte.
     jsr @PRBYTE        ; Output it in hex format.
     lda XAML           ; Low-order 'examine index' byte.
@@ -171,7 +168,7 @@ WOZMON:
 
 @MOD8CHK:
     lda XAML           ; Check low-order 'examine index' byte
-    and #$07           ; For MOD 8 = 0
+    and #$0F           ; For MOD 8 = 0 (Actually, MOD 16)
     bpl @NXTPRNT       ; Always taken.
 
 @PRBYTE:
@@ -191,5 +188,12 @@ WOZMON:
     adc #$06           ; Add offset for letter.
 
 @ECHO:
+    ; Auto convert CR to CRLF
     jsr CON_write_byte
+    cmp #$0D
+    bne @WEDONE
+    lda #$0A
+    jsr CON_write_byte
+    lda #$0D
+@WEDONE:
     rts                ; Return.

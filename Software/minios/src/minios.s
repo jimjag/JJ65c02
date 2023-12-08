@@ -150,6 +150,7 @@ MINIOS_main_menu:
 @start:
     CON_writeln new_line
     CON_writeln menu_items
+    CON_writeln new_line
     CON_writeln prompt
     jsr CON_read_byte_blk
     sec
@@ -199,6 +200,8 @@ MINIOS_main_menu:
     CON_writeln message_readybasic
     jsr CON_read_byte_blk
     cmp #'B'
+    beq @go_basic
+    cmp #'b'
     beq @go_basic
     jmp @start
 @go_basic:
@@ -470,7 +473,7 @@ message_welcomeacia:
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .asciiz "\r\nStarting EhBASIC\r\nPress 'B' key on console to start: "
+    .asciiz "\r\nStarting EhBASIC\r\nPress 'B' or 'b' key on console to start: "
 message_readyload:
     .asciiz "\r\nGetting Ready To LOAD RAM.\r\nPress any key on console to start: "
 message_waitdata:

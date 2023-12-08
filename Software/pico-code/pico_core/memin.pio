@@ -1,6 +1,6 @@
 ;
-; NOTE: Timing assumes 4Mhz 6502 and 125Mhz state machine
-;       6502 clk 250ns; RP2040 clk 8ns
+; NOTE: Timing assumes 4Mhz 6502 and 250Mhz state machine
+;       6502 clk 250ns; RP2040 clk 4ns
 ;
 .program memin
 ;.wrap_target
