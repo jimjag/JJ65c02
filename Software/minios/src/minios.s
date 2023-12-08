@@ -127,7 +127,7 @@ main:                                           ; boot routine, first thing load
     CON_writeln message_fail
     TTY_writeln message_fail
 @cont2:
-    jsr CON_reset_user_input
+    jsr CON_read_byte_blk
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...
 

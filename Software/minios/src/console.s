@@ -162,7 +162,10 @@ CON_reset_user_input:
     iny
     bra @clear_user_input_loop
 @reset_user_input_done:
-    jsr CON_init
+    ; reset pointers
+    lda #$80
+    sta PS2IN_RPTR
+    sta PS2IN_WPTR
     rts
 
 ;================================================================================
