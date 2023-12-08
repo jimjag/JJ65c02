@@ -108,7 +108,7 @@ main:                                           ; boot routine, first thing load
     ; Show clock speed (compile-time constant)
     CON_writeln clock_spd
     TTY_writeln clock_spd
-    lda Z2
+    lda CLK_SPD
     clc
     adc #'0'
     jsr CON_write_byte
@@ -127,6 +127,7 @@ main:                                           ; boot routine, first thing load
     CON_writeln message_fail
     TTY_writeln message_fail
 @cont2:
+    jsr CON_reset_user_input
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...
 
@@ -149,26 +150,27 @@ MINIOS_main_menu:
 @start:
     CON_writeln new_line
     CON_writeln menu_items
+    CON_writeln prompt
     jsr CON_read_byte_blk
     sec
     sbc #'0'
 @select_option:
     clc
-    cmp #0                                      ; branch trough all options
+    cmp #1                                      ; branch trough all options
     beq @load_and_run
-    cmp #1
-    beq @load
     cmp #2
-    beq @run
+    beq @load
     cmp #3
-    beq @go_wozmon
+    beq @run
     cmp #4
-    beq @clear_ram
+    beq @go_wozmon
     cmp #5
-    beq @test_ram
+    beq @clear_ram
     cmp #6
-    beq @start_basic
+    beq @test_ram
     cmp #7
+    beq @start_basic
+    cmp #8
     beq @about
     jmp @start                                  ; should we have an invalid option, restart
 
@@ -195,6 +197,8 @@ MINIOS_main_menu:
     lda #100                                    ; wait a bit, say 100ms
     jsr LIB_delay1ms
     CON_writeln message_readybasic
+    jsr CON_read_byte_blk
+    cmp #'B'
     beq @go_basic
     jmp @start
 @go_basic:
@@ -458,39 +462,37 @@ ISR:
 .segment "RODATA"
 
 logo:
-    .asciiz "     _     _  __  ____   ____ ___ ____\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\n| |_| | |_| | (_) |__) | |__| |_| / __/\n \\___/ \\___/ \\___/____/ \\____\\___/_____|"
+    .asciiz "     _     _  __  ____   ____ ___ ____\r\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\r\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\r\n| |_| | |_| | (_) |__) | |__| |_| / __/\r\n \\___/ \\___/ \\___/____/ \\____\\___/_____|\r\n"
 message_welcome:
-    .asciiz "      JJ65c02\n   miniOS v2.0"
+    .asciiz "      JJ65c02\r\n   miniOS v2.0"
 message_welcomeacia:
-    .asciiz "      JJ65c02\n  miniOS v2.0 ACIA"
+    .asciiz "      JJ65c02\r\n  miniOS v2.0 ACIA"
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .asciiz "Starting EhBASIC\nPress any key on console to start: "
+    .asciiz "\r\nStarting EhBASIC\r\nPress 'B' key on console to start: "
 message_readyload:
-    .asciiz "Getting Ready To LOAD RAM.\nPress any key on console to start: "
+    .asciiz "\r\nGetting Ready To LOAD RAM.\r\nPress any key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
     .asciiz "Loading done!"
 message_runprog:
-    .asciiz "Running RAM@$0500"
+    .asciiz "\r\nRunning RAM@$0500"
 message_ramclean:
-    .asciiz "Cleaning RAM... "
+    .asciiz "\r\nCleaning RAM... "
 message_ramtest:
-    .asciiz "Testing RAM... "
+    .asciiz "\r\nTesting RAM... "
 message_pass:
     .asciiz "PASS"
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load & Run\n2. Load\n3. Run\n4. WOZMON\n5. Clear RAM\n6. Test RAM\n7. Run EhBASIC Interpreter\n8. About"
+    .asciiz "1. Load & Run\r\n2. Load\r\n3. Run\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
 about:
-    .asciiz "github.com/jimjag/JJ65c02"
+    .asciiz "\r\ngithub.com/jimjag/JJ65c02"
 clock_spd:
     .asciiz " Clock Mhz:"
-message9:
-    .asciiz "Clk Spd Saved"
 
 .segment "VECTORS"
 

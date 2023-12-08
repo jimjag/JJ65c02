@@ -48,8 +48,8 @@ int main() {
     vgaFillScreen(BLUE);
     printString("Pi Pico Enabled");
     setTxtCursor(0, 1);
-
-
+    enableCurs(true);
+    //clearPS2();
     while (true) {
         conInTask();  // Look for incoming data
         ps2Task(false);  // And send out any PS/2 data

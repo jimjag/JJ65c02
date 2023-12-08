@@ -22,6 +22,7 @@ IN    = YMBUF                          ; Input buffer
 
 .segment "CODE"
 WOZMON:
+    CON_writeln new_line
     cld                ; just in case
     lda #$A7
     ldy #$7F
@@ -31,6 +32,10 @@ WOZMON:
     beq @BACKSPACE     ; Yes.
     cmp #$1B           ; ESC?
     beq @ESCAPE        ; Yes.
+    cmp #'Q'           ; Quit?
+    bne @NOQUIT
+    jmp @ECHO
+@NOQUIT:
     iny                ; Advance text index.
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
@@ -179,7 +184,7 @@ WOZMON:
     ora #'0'           ; Add "0".
     cmp #$3A           ; Digit?
     bcc @ECHO          ; Yes, output it.
-    adc #$06           ;Add offset for letter.
+    adc #$06           ; Add offset for letter.
 
 @ECHO:
     jsr CON_write_byte

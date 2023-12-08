@@ -75,7 +75,7 @@ int memcpy_dma_chan;
 // wrap: auto wrap around at terminal end
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
 //      we handle "special" characters (like arrows and other non-printables
-static bool wrap = true, cr2crlf = true, lf2crlf = true, smooth_scroll = false;
+static bool wrap = true, cr2crlf = false, lf2crlf = false, smooth_scroll = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
 // Cursor position
@@ -125,7 +125,7 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[128];
+static unsigned char inbuf[512];
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 static void readByte(void) {

@@ -162,6 +162,7 @@ CON_reset_user_input:
     iny
     bra @clear_user_input_loop
 @reset_user_input_done:
+    jsr CON_init
     rts
 
 ;================================================================================
@@ -180,6 +181,9 @@ CON_reset_user_input:
 
 CON_write_byte:
     sta PICO_ADDR
+    ;nop
+    ;nop
+    ;nop
     rts
 
 ;================================================================================

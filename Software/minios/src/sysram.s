@@ -105,7 +105,7 @@ x_erase_line:           .byte TTY_char_ESC,"[2K", TTY_char_NULL
 
 ; Other
 new_line:               .asciiz "\r\n"
-prompt:                 .asciiz "OK> "
+prompt:                 .asciiz "\r\nOK> "
 
 ; Messages
 welcome_msg:    .asciiz "Welcome to miniOS\r\n\r\n"

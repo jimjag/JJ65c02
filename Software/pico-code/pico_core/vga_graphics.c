@@ -384,8 +384,6 @@ inline void setTextColor2(char c, char b) {
     textbgcolor = safeColor(b);
 }
 
-inline void setTextWrap(bool w) { wrap = w; }
-
 inline void setFont(char n) {
     switch (n) {
         case 3:
@@ -448,9 +446,14 @@ inline void drawString(unsigned char *str) {
 //   NOTE: Here we use 0,0 as the 1st element (ie: zero indexed)
 //         but externally we use one-indexed (ie, 1,1)
 
-void enableSmoothScroll(bool flag) {
-    smooth_scroll = flag;
-}
+
+void setTextWrap(bool w) { wrap = w; }
+
+void setCr2Crlf(bool w) { cr2crlf = w; }
+
+void setLf2Crlf(bool w) { lf2crlf = w; }
+
+void enableSmoothScroll(bool flag) { smooth_scroll = flag; }
 
 bool enableCurs(bool flag) {
     bool was = cursorOn;
