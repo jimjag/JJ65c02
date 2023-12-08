@@ -16,7 +16,7 @@ loop:
     wait 1 pin 1
     wait 0 pin 1
     wait 1 pin 1
-    irq  wait 0
+    irq  wait 1
 ;.wrap
 
 

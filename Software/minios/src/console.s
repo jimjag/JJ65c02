@@ -17,7 +17,7 @@
 
 ;================================================================================
 ;
-;   CON_initialize - Setup read interrupt on VIA CA1/CA2
+;   CON_init - Setup PS/2 buffer
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -140,7 +140,7 @@ CON_readln:
 
 ;================================================================================
 ;
-;   CON_reset_user_input - clean out TTY input buffer
+;   CON_reset_user_input - clean out console input buffer
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: USER_INPUT_PTR, UI_BUFSIZE must be set

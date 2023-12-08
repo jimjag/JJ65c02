@@ -30,5 +30,4 @@ You can, of course, contact me via the normal Github development methods, such a
 
 * Specific content noted in their respective sections
 * All the helpful peeps on reddit r/beneater/
-* PCBs sponsored by [PCBWay](https://www.pcbway.com/): Fast and Accurate, inexpensive but not cheap. Use PCBWay for all your PCBs!
 

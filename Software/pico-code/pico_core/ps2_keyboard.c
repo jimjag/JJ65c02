@@ -46,16 +46,16 @@ static bool cntl;    // Control indication
 static bool caps;    // Caps Lock
 
 static unsigned char keybuf[128];
-static unsigned char *rptr = keybuf;
-static unsigned char *wptr = keybuf;
+volatile static unsigned char *rptr = keybuf;
+volatile static unsigned char *wptr = keybuf;
 
 void initPS2(void) {
     ps2_pio = pio1;
-    ps2_pio_irq = PIO1_IRQ_0;
+    ps2_pio_irq = PIO1_IRQ_1;
     ps2_offset = pio_add_program(ps2_pio, &ps2_program);
     ps2_sm = pio_claim_unused_sm(ps2_pio, true);
     ps2_program_init(ps2_pio, ps2_sm, ps2_offset, PS2_DATA_PIN, PS2FREQ);
-    pio_set_irq0_source_enabled(ps2_pio, pis_interrupt0, true);
+    pio_set_irq1_source_enabled(ps2_pio, pis_interrupt1, true);
     irq_set_exclusive_handler(ps2_pio_irq, ps2_ihandler);
     irq_set_enabled(ps2_pio_irq, true);
     pio_sm_set_enabled(ps2_pio, ps2_sm, true);
@@ -189,7 +189,7 @@ void ps2_ihandler(void) {
     *wptr++ = ascii;
     if (wptr >= (keybuf + sizeof(keybuf)))
         wptr = keybuf;
-    pio_interrupt_clear(ps2_pio, 0);
+    pio_interrupt_clear(ps2_pio, 1);
 }
 
 unsigned char ps2GetChar(bool auto_print) {

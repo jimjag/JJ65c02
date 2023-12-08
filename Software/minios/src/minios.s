@@ -6,6 +6,7 @@
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
+.include "ymodem.inc"
 .include "console.inc"
 
 .import BASIC_init
@@ -90,6 +91,7 @@ main:                                           ; boot routine, first thing load
     jsr VIA_init
     jsr CON_init
     CON_writeln logo
+    TTY_writeln logo
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
@@ -101,9 +103,11 @@ main:                                           ; boot routine, first thing load
     bra @welcome
 @no_acia:
     CON_writeln message_welcome                 ; render the boot screen
+    TTY_writeln message_welcome
 @welcome:
     ; Show clock speed (compile-time constant)
     CON_writeln clock_spd
+    TTY_writeln clock_spd
     lda Z2
     clc
     adc #'0'
@@ -112,13 +116,16 @@ main:                                           ; boot routine, first thing load
     ; Rest of boot up
     cli                                         ; interupts are back on
     CON_writeln message_ramtest
+    TTY_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
     beq @ram_failed
     CON_writeln message_pass
+    TTY_writeln message_pass
     bra @cont2
 @ram_failed:
     CON_writeln message_fail
+    TTY_writeln message_fail
 @cont2:
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...

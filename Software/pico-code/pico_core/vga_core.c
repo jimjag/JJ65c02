@@ -126,18 +126,18 @@ static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
 static unsigned char inbuf[128];
-static unsigned char *rptr = inbuf;
-static unsigned char *wptr = inbuf;
+volatile static unsigned char *rptr = inbuf;
+volatile static unsigned char *wptr = inbuf;
 static void readByte(void) {
     if (pio_sm_is_rx_fifo_empty(memin_pio, memin_sm)) {
-        pio_interrupt_clear(memin_pio, 1);
+        // pio_interrupt_clear(memin_pio, 0);
         return;
     }
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= (inbuf + sizeof(inbuf)))
         wptr = inbuf;
-    pio_interrupt_clear(memin_pio, 1);
+    pio_interrupt_clear(memin_pio, 0);
 }
 
 bool conInHaveChar(void) {
@@ -148,11 +148,9 @@ bool conInHaveChar(void) {
 // have it available to "read" again.
 unsigned char conInGetChar(void) {
     unsigned char ascii = 0;
-    if (rptr != wptr) {
-        ascii = *rptr++;
-        if (rptr >= (inbuf + sizeof(inbuf)))
-            rptr = inbuf;
-    }
+    ascii = *rptr++;
+    if (rptr >= (inbuf + sizeof(inbuf)))
+        rptr = inbuf;
     return ascii;
 }
 
@@ -260,17 +258,17 @@ void initVGA(void) {
 
     // GPIO pin setup for data sent from 6502 to us (Console Output)
     memin_pio = pio1;
-    memin_pio_irq = PIO1_IRQ_1;
+    memin_pio_irq = PIO1_IRQ_0;
     memin_offset = pio_add_program(memin_pio, &memin_program);
     memin_sm = pio_claim_unused_sm(memin_pio, true);
     memin_program_init(memin_pio, memin_sm, memin_offset, DATA0);
-    pio_set_irq1_source_enabled(memin_pio, pis_interrupt1, true);
+    pio_gpio_init(memin_pio,DREADY);
+    gpio_set_dir(DREADY, GPIO_IN);
+    pio_set_irq0_source_enabled(memin_pio, pis_interrupt0, true);
     irq_set_exclusive_handler(memin_pio_irq, readByte);
     irq_set_enabled(memin_pio_irq, true);
-    gpio_init(DREADY);
-    gpio_set_dir(DREADY, GPIO_IN);
-    pio_sm_set_enabled(memin_pio, memin_sm, true);
     rptr = wptr = inbuf;
+    pio_sm_set_enabled(memin_pio, memin_sm, true);
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 

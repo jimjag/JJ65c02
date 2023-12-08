@@ -8,11 +8,17 @@ pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/ps2_keyboard.p
 pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/memin.pio)
 
 # must match with executable name and source file names
-target_sources(pico_core_code PRIVATE
-    pico_core_demo.c
-    vga_core.c
-    ps2_keyboard.c)
-
+if(DEFINED ENV{PICO_DEMO})
+    target_sources(pico_core_code PRIVATE
+        pico_core_demo.c
+        vga_core.c
+        ps2_keyboard.c)
+else()
+    target_sources(pico_core_code PRIVATE
+        pico_6502.c
+        vga_core.c
+        ps2_keyboard.c)
+endif()
 # must match with executable name
 target_link_libraries(pico_core_code PRIVATE
     pico_stdlib

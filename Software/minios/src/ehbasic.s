@@ -4286,7 +4286,7 @@ LAB_DEF:
 ; check FNx syntax
 
 LAB_200B:
-    lda   #token_FN            ; get FN" token
+    lda   #token_FN         ; get FN token
     jsr   LAB_SCCA          ; scan for CHR$(A) , else do syntax error then warm start
                               ; return character after A
     ora   #$80              ; set FN flag bit
@@ -8832,7 +8832,7 @@ no_save:                 ; empty save vector for EhBASIC
 
 LAB_vec:
     .word IOin              ; byte in from user
-    .word IOout             ; byte out 
+    .word IOout             ; byte out
     .word no_load           ; null load vector for EhBASIC
     .word no_save           ; null save vector for EhBASIC
     .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!
