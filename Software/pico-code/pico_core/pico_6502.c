@@ -42,12 +42,14 @@ int main() {
     initPS2();
     clearPS2();
     setFont(0);
-    setTextSize(1);
     setTextColor2(WHITE, BLUE);
     setTxtCursor(0, 0);
     vgaFillScreen(BLUE);
-    printString("Pi Pico Enabled");
-    setTxtCursor(0, 1);
+    setCursor(65, 0);
+    setTextSize(2);
+    drawString("Pi Pico Enabled");
+    setTextSize(1);
+    setTxtCursor(0, 3);
     enableCurs(true);
     //clearPS2();
     while (true) {
