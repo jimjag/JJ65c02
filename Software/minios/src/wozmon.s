@@ -40,11 +40,13 @@ WOZMON:
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
 @ESCAPE:
-    lda #$5C           ; "\".
+    lda #'\'           ; "\".
     jsr @ECHO          ; Output it.
 
 @GETLINE:
     lda #$0D           ; Send CR
+    jsr @ECHO
+    lda #$0A
     jsr @ECHO
 
     ldy #$01           ; Initialize text index.
@@ -141,6 +143,8 @@ WOZMON:
     bne @PRDATA        ; NE means no address to print.
     lda #$0D           ; CR.
     jsr @ECHO          ; Output it.
+    lda #$0A
+    jsr @ECHO
     lda XAMH           ; 'Examine index' high-order byte.
     jsr @PRBYTE        ; Output it in hex format.
     lda XAML           ; Low-order 'examine index' byte.

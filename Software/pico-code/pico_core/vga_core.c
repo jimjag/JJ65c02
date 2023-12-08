@@ -125,14 +125,10 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[512];
+static unsigned char inbuf[1024];
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 static void readByte(void) {
-    if (pio_sm_is_rx_fifo_empty(memin_pio, memin_sm)) {
-        // pio_interrupt_clear(memin_pio, 0);
-        return;
-    }
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= (inbuf + sizeof(inbuf)))
