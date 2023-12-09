@@ -54,7 +54,11 @@ WOZMON:
 
 @NEXTCHAR:
     jsr CON_read_byte_blk
-    ; TODO: Convert lower case to upper case, internally
+    cmp #$61
+    blt @ADD2BUF
+    sec
+    sbc #$20
+@ADD2BUF:
     sta IN,Y           ; Add to text buffer.
     jsr @ECHO          ; Display character.
     cmp #$0D           ; CR?
