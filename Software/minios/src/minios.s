@@ -238,6 +238,10 @@ MINIOS_load_ram:
     beq @start_load
     rts
 @start_load:
+    lda #<PROGRAM_START
+    sta YMBLPTR
+    lda #>PROGRAM_START
+    sta YMBLPTR+1
     jmp YMODEM_recv
 
 ;================================================================================

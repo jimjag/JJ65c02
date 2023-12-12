@@ -14,10 +14,9 @@ ERRCNT = Z2         ; error counter 10 is the limit
 BFLAG = Z3          ; block flag
 DELAY = Z4          ; DELAY counter
 
+
 .segment "ZEROPAGE"
-BLPTR:  .res 2      ; data pointer (two byte variable)
-EOFP:   .res 2      ; end of file address pointer (2 bytes)
-CRC:    .res 2      ; CRC lo byte  (two byte variable)
+CRC:    .res 2      ; CRC lo byte  (two byte variable
 
 .segment "CODE"
 
@@ -26,7 +25,8 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable)
 ;   YMODEM_send: Send data via YMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops:
+;   Preparatory Ops: Start address must be stored in YMBLPTR,YMBLPTR+1 (eg: 00 05 is $0500)
+;                    Stop address at YMEOFP,YMEOFP+1
 ;
 ;   Returned Values:
 ;   ————————————————————————————————————
@@ -35,9 +35,8 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable)
 
 YMODEM_send:
     ACIA_writeln YM_start_msg      ; send prompt and info
-    lda #$00
-    sta ERRCNT                  ; error counter set to 0
-    sta LASTBLK                 ; set flag to false
+    stz ERRCNT                  ; error counter set to 0
+    stz LASTBLK                 ; set flag to false
     lda #$01
     sta BLKNO                   ; set block # to 1
 @Wait4CRC:
@@ -55,9 +54,9 @@ YMODEM_send:
     sta YMBUF                   ; into 1st byte
     lda #$FE                    ; load 1's comp of block #
     sta YMBUF+1                 ; into 2nd byte
-    lda BLPTR                   ; load low byte of start address
+    lda YMBLPTR                   ; load low byte of start address
     sta YMBUF+2                 ; into 3rd byte
-    lda BLPTR+1                 ; load hi byte of start address
+    lda YMBLPTR+1                 ; load hi byte of start address
     sta YMBUF+3                 ; into 4th byte
     bra @LdBuff1                ; jump into buffer load routine
 
@@ -74,15 +73,16 @@ YMODEM_send:
     eor #$FF
     sta YMBUF+1                 ; save 1's comp of BLKNO next
 @LdBuff1:
-    lda (BLPTR),y               ; save 128 bytes of data
+    lda (YMBLPTR),y             ; save 128 bytes of data
     sta YMBUF,x
 @LdBuff2:
     sec
-    lda EOFP
-    sbc BLPTR                   ; Are we at the last address?
+    lda YMEOFP
+    sbc YMBLPTR                 ; Are we at the last address?
     bne @LdBuff4                ; no, INC  pointer and continue
-    lda EOFP+1
-    sbc BLPTR+1
+    lda YMEOFP+1
+    sbc YMBLPTR+1
+
     bne @LdBuff4
     inc LASTBLK                 ; Yes, Set last byte flag
 @LdBuff3:
@@ -93,9 +93,9 @@ YMODEM_send:
     sta YMBUF,x
     beq @LdBuff3                ; Branch always
 @LdBuff4:
-    inc BLPTR                   ; INC address pointer
+    inc YMBLPTR                   ; INC address pointer
     bne @LdBuff5
-    inc BLPTR+1
+    inc YMBLPTR+1
 @LdBuff5:
     inx
     cpx #$82                    ; last byte in block?
@@ -145,18 +145,14 @@ YMODEM_send:
 ;   YMODEM_recv: Receive data via YMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: Load address must be stored in BLPTR,BLPTR+1
+;   Preparatory Ops: Load address must be stored in YMBLPTR,YMBLPTR+1
 ;
-;   Returned Values:
+;   Returned Values: Ending address-1 stored in YMBLPTR,YMBLPTR+1
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
 YMODEM_recv:
-    lda #<PROGRAM_START
-    sta BLPTR
-    lda #>PROGRAM_START
-    sta BLPTR+1
     ACIA_writeln YM_start_msg      ; send prompt and info
  ;   jsr LCD_clear_video_ram
  ;   jsr LCD_clear_screen
@@ -266,10 +262,10 @@ YMODEM_recv:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
     lda YMBUF,x                 ; get data byte from buffer
-    sta (BLPTR),y               ; save to target
-    inc BLPTR                   ; point to next address
+    sta (YMBLPTR),y             ; save to target
+    inc YMBLPTR                 ; point to next address
     bne @CopyBlk4               ; did it step over page boundary?
-    inc BLPTR+1                 ; adjust high address for page crossing
+    inc YMBLPTR+1               ; adjust high address for page crossing
 @CopyBlk4:
     inx                         ; point to next data byte
     cpx #$82                    ; is it the last byte (all 128)?

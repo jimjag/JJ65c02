@@ -18,6 +18,8 @@ _SYSRAM_INC_ = 1
 .importzp SERIN_WPTR
 .importzp PS2IN_RPTR
 .importzp PS2IN_WPTR
+.importzp YMBLPTR
+.importzp YMEOFP
 
 .import CLK_SPD
 .import ISR_VECTOR

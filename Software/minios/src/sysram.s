@@ -19,6 +19,8 @@
 .exportzp SERIN_WPTR
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
+.exportzp YMBLPTR
+.exportzp YMEOFP
 
 .export CLK_SPD
 .export ISR_VECTOR
@@ -41,6 +43,7 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
+; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
 SERIN_RPTR:  .res 1      ; Read index pointer (0x00->0x7f)
 SERIN_WPTR:  .res 1      ; Write index pointer (0x00->0x7f)
@@ -49,6 +52,8 @@ PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
 ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
 CON_SPTR:      .res 2    ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
+YMBLPTR:  .res 2      ; data pointer (two byte variable)
+YMEOFP:   .res 2      ; end of file address pointer (2 bytes)
 
 ;===================================================================
 
