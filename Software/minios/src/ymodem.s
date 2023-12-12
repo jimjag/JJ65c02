@@ -34,7 +34,6 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable)
 ;================================================================================
 
 YMODEM_send:
-.ifdef _BUILD_YMODEM_send_
     ACIA_writeln YM_start_msg      ; send prompt and info
     lda #$00
     sta ERRCNT                  ; error counter set to 0
@@ -46,7 +45,7 @@ YMODEM_send:
     bcc @Wait4CRC               ; wait for something to come in...
     cmp #'C'                    ; is it the "C" to start a CRC xfer?
     beq @SetstAddr              ; yes
-    cmp #(ESC)                  ; is it a cancel? <Esc> Key
+    cmp #(TTY_char_ESC)                  ; is it a cancel? <Esc> Key
     bne @Wait4CRC               ; No, wait for another character
     jmp @PrtAbort               ; Print abort msg and exit
 @SetstAddr:
@@ -110,7 +109,7 @@ YMODEM_send:
     sta YMBUF,y
 @Resend:
     ldx #$00
-    lda #(SOH)
+    lda #(TTY_char_SOH)
     jsr ACIA_write_byte         ; send SOH
 @SendBlk:
     lda YMBUF,x                 ; Send 132 bytes in buffer to the console
@@ -120,11 +119,11 @@ YMODEM_send:
     bne @SendBlk                ; no, get next
     jsr GetByte                 ; Wait for Ack/Nack
     bcc @Seterror               ; No chr received after 3 seconds, resend
-    cmp #(ACK)                  ; Chr received... is it:
+    cmp #(TTY_char_ACK)                  ; Chr received... is it:
     beq @LdBuffer               ; ACK, send next block
-    cmp #(NAK)
+    cmp #(TTY_char_NAK)
     beq @Seterror               ; NAK, INC errors and resend
-    cmp #(ESC)
+    cmp #(TTY_char_ESC)
     beq @PrtAbort               ; Esc pressed to abort
     ; fall through to error counter
 @Seterror:
@@ -136,10 +135,9 @@ YMODEM_send:
     jsr LIB_flush_serbuf
     ACIA_writeln YM_error_msg      ; print error msg and exit
 @Done:
-    lda #(EOT)
+    lda #(TTY_char_EOT)
     jsr ACIA_write_byte
     ACIA_writeln YM_success_msg    ; All Done..Print msg and exit
-.endif
     rts
 
 ;================================================================================
@@ -170,12 +168,12 @@ YMODEM_recv:
     jsr LIB_flush_serbuf
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
-    jsr @GetByte                ; wait for input
+    jsr GetByte                ; wait for input
     bcs @GotByte1               ; byte received, process it
     bcc @StartCRC               ; resend "C"
 @StartBlk:
-    jsr @ShowBlkNo
-    jsr @GetByte                ; get first byte of block
+    jsr ShowBlkNo
+    jsr GetByte                ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
 @GotByte1:
     cmp #(TTY_char_ESC)         ; quitting?
@@ -194,7 +192,7 @@ YMODEM_recv:
 @BegBlk:
     ldx #$00
 @GetBlk:
-    jsr @GetByte                ; get next character
+    jsr GetByte                ; get next character
     bcs @StoreIt
     jmp @BadByte                ; chr rcv error, flush and send NAK
 @StoreIt:
@@ -224,7 +222,7 @@ YMODEM_recv:
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; bad 1's comp of block#
 @GoodBlk2:
-    jsr @CalcCRC                ; calc CRC
+    jsr CalcCRC                ; calc CRC
     lda YMBUF,y                 ; get hi CRC from buffer
     cmp CRC+1                   ; compare to calculated hi CRC
     bne @BadCRCH                ; bad CRC, send NAK
@@ -324,7 +322,7 @@ YMODEM_recv:
 ;
 ; subroutines
 ;
-@GetByte:
+GetByte:
     lda #150                    ; wait for chr input and cycle timing loop
     sta DELAY                   ; set low value of timing loop
 @StartCRCLp:
@@ -338,7 +336,7 @@ YMODEM_recv:
 @GotByte:
     rts                         ; with character in "A"
 
-@ShowBlkNo:
+ShowBlkNo:
 ;    ldy #00
 ;    ldx #02
 ;    jsr LCD_set_cursor
@@ -355,7 +353,7 @@ YMODEM_recv:
 ;
 ;  CRC subroutines
 ;
-@CalcCRC:
+CalcCRC:
     stz CRC
     stz CRC+1
     ldy #$02
