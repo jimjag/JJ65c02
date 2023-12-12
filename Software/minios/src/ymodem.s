@@ -12,8 +12,6 @@ LASTBLK = Z0        ; flag for last block
 BLKNO = Z1          ; block number
 ERRCNT = Z2         ; error counter 10 is the limit
 BFLAG = Z3          ; block flag
-DELAY = Z4          ; DELAY counter
-
 
 .segment "ZEROPAGE"
 CRC:    .res 2      ; CRC lo byte  (two byte variable
@@ -319,15 +317,11 @@ YMODEM_recv:
 ; subroutines
 ;
 GetByte:
-    lda #150                    ; wait for chr input and cycle timing loop
-    sta DELAY                   ; set low value of timing loop
-@StartCRCLp:
     jsr ACIA_read_byte          ; get chr from serial port, don't wait
     bcs @GotByte                ; got one, so exit
-    lda #20
-    jsr LIB_delay1ms
-    dec DELAY                   ; 3 sec wait
-    bne @StartCRCLp             ; look for character again
+    lda #30
+    jsr LIB_delay100ms          ; 3 sec wait
+    bne GetByte                 ; look for character again
     clc                         ; if loop times out, CLC, else SEC and return
 @GotByte:
     rts                         ; with character in "A"
