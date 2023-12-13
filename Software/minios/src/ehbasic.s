@@ -8780,9 +8780,9 @@ IOin:
     jsr CON_read_byte
     bcc LAB_nobyw       ; No char avail
     cmp #'a'            ; Is it < 'a'?
-    bcc @done           ; Yes, we're done
-    cmp #'{'            ; Is it >= '{'?
-    bcs @done           ; Yes, we're done
+    blt @done           ; Yes, we're done
+    cmp #'z'            ; Is it >= 'z'?
+    bge @done           ; Yes, we're done
     and #$5f            ; Otherwise, mask to uppercase
 @done:
     sec                 ; Flag byte received
@@ -8883,9 +8883,9 @@ ERR_LD:  .asciiz "LOOP without DO"
 ;ERR_UV  .asciiz "Undefined variable"
 ; the above error has been tested and works (see code and comments below LAB_1D8B)
 ;ERR_UA  .asciiz "Undimensioned array"
-LAB_BMSG:    .byte $0D,$0A,"Break",$00
-LAB_EMSG:    .asciiz " Error"
-LAB_LMSG:    .asciiz " in line "
-LAB_RMSG:    .byte $0D,$0A,"Ready",$0D,$0A,$00
-LAB_IMSG:    .byte " Extra ignored",$0D,$0A,$00
-LAB_REDO:    .byte " Redo from start",$0D,$0A,$00
+LAB_BMSG: .asciiz "\r\nBreak"
+LAB_EMSG: .asciiz " Error"
+LAB_LMSG: .asciiz " in line "
+LAB_RMSG: .asciiz "\r\nReady\r\n"
+LAB_IMSG: .asciiz " Extra ignored\r\n"
+LAB_REDO: .asciiz " Redo from start\r\n"
