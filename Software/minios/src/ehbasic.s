@@ -7881,14 +7881,6 @@ StrTab:
       .word Ram_base          ; start of user RAM
 EndTab:
 
-LAB_MSZM:
-      .byte $0D,$0A,"Memory size ",$00
-
-LAB_SMSG:
-      .byte " Bytes free",$0D,$0A,$0A
-      .byte "Enhanced BASIC 2.22p5.9j",$0D,$0A
-      .byte "https://github.com/jimjag/JJ65c02",$0D,$0A,$00
-
 ; numeric constants and series
 
                               ; constants and series for LOG(n)
@@ -8733,33 +8725,6 @@ LAB_BAER:
 ;     .word ERR_UV            ;$24 undefined variable
 ; the above error has been tested and works (see code and comments below LAB_1D8B)
 ;     .word ERR_UA            ;$26 undimensioned array
-ERR_NF:  .asciiz "NEXT without FOR"
-ERR_SN:  .asciiz "Syntax"
-ERR_RG:  .asciiz "RETURN without GOSUB"
-ERR_OD:  .asciiz "Out of DATA"
-ERR_FC:  .asciiz "Function call"
-ERR_OV:  .asciiz "Overflow"
-ERR_OM:  .asciiz "Out of memory"
-ERR_US:  .asciiz "Undefined statement"
-ERR_BS:  .asciiz "Array bounds"
-ERR_DD:  .asciiz "Double dimension"
-ERR_D0:  .asciiz "Divide by zero"
-ERR_ID:  .asciiz "Illegal direct"
-ERR_TM:  .asciiz "Type mismatch"
-ERR_LS:  .asciiz "String too long"
-ERR_ST:  .asciiz "String too complex"
-ERR_CN:  .asciiz "Can't continue"
-ERR_UF:  .asciiz "Undefined function"
-ERR_LD:  .asciiz "LOOP without DO"
-;ERR_UV  .asciiz "Undefined variable"
-; the above error has been tested and works (see code and comments below LAB_1D8B)
-;ERR_UA  .asciiz "Undimensioned array"
-LAB_BMSG:    .byte $0D,$0A,"Break",$00
-LAB_EMSG:    .asciiz " Error"
-LAB_LMSG:    .asciiz " in line "
-LAB_RMSG:    .byte $0D,$0A,"Ready",$0D,$0A,$00
-LAB_IMSG:    .byte " Extra ignored",$0D,$0A,$00
-LAB_REDO:    .byte " Redo from start",$0D,$0A,$00
 
 AA_end_basic:
 
@@ -8889,6 +8854,38 @@ NMI_CODE:
 
 END_CODE:
 
+.segment "RODATA"
+
 LAB_mess:
-    .byte $0D,$0A,"6502 EhBASIC ver 2.22p5.9j [C]old/[W]arm ?",$00
-                              ; sign on string
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.9j [C]old/[W]arm ?" ; sign on string
+LAB_MSZM:
+    .asciiz "\r\nMemory size "
+LAB_SMSG:
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.9j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+ERR_NF:  .asciiz "NEXT without FOR"
+ERR_SN:  .asciiz "Syntax"
+ERR_RG:  .asciiz "RETURN without GOSUB"
+ERR_OD:  .asciiz "Out of DATA"
+ERR_FC:  .asciiz "Function call"
+ERR_OV:  .asciiz "Overflow"
+ERR_OM:  .asciiz "Out of memory"
+ERR_US:  .asciiz "Undefined statement"
+ERR_BS:  .asciiz "Array bounds"
+ERR_DD:  .asciiz "Double dimension"
+ERR_D0:  .asciiz "Divide by zero"
+ERR_ID:  .asciiz "Illegal direct"
+ERR_TM:  .asciiz "Type mismatch"
+ERR_LS:  .asciiz "String too long"
+ERR_ST:  .asciiz "String too complex"
+ERR_CN:  .asciiz "Can't continue"
+ERR_UF:  .asciiz "Undefined function"
+ERR_LD:  .asciiz "LOOP without DO"
+;ERR_UV  .asciiz "Undefined variable"
+; the above error has been tested and works (see code and comments below LAB_1D8B)
+;ERR_UA  .asciiz "Undimensioned array"
+LAB_BMSG:    .byte $0D,$0A,"Break",$00
+LAB_EMSG:    .asciiz " Error"
+LAB_LMSG:    .asciiz " in line "
+LAB_RMSG:    .byte $0D,$0A,"Ready",$0D,$0A,$00
+LAB_IMSG:    .byte " Extra ignored",$0D,$0A,$00
+LAB_REDO:    .byte " Redo from start",$0D,$0A,$00
