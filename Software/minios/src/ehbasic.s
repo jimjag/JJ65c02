@@ -8824,17 +8824,45 @@ IOin:
     rts
 LAB_nobyw:
     clc
-no_load:                 ; empty load vector for EhBASIC
-no_save:                 ; empty save vector for EhBASIC
+no_load:                 ; empty load vector
+no_save:                 ; empty save vector
+    rts
+
+LAB_load:
+    ; This overwrites any existing program
+    lda #<Ram_base        ; set start addr low byte
+    sta YMBLPTR           ; Tell YMODEM where to start
+    sta Smeml             ; And tell EhBasic where we start
+    lda #>Ram_base        ; set start addr high byte
+    sta YMBLPTR+1
+    sta Smemh
+    jsr YMODEM_recv
+    lda YMEOFP            ; Now adjust where the program ends and vars begin
+    sta Svarl
+    lda YMEOFP+1
+    sta Svarh
+    jsr LAB_1477          ; Need to call this EhBasic routine to clear variables and reset the execution pointer
+    jmp LAB_1319          ; Jump to appropriate location in EhBasic to finish
+    rts
+
+LAB_save:
+    lda #<Ram_base        ; set start addr low byte
+    sta YMBLPTR           ; Tell YMODEM where to start
+    lda #>Ram_base        ; set start addr high byte
+    sta YMBLPTR+1
+    lda Svarl             ; set EOF pointer so YMODEM knows where to stop
+    sta YMEOFP
+    lda Svarh
+    sta YMEOFP+1
+    jsr YMODEM_send
     rts
 
 ; vector tables
-
 LAB_vec:
     .word IOin              ; byte in from user
     .word IOout             ; byte out
-    .word no_load           ; null load vector for EhBASIC
-    .word no_save           ; null save vector for EhBASIC
+    .word LAB_load          ; load vector for EhBASIC
+    .word LAB_save          ; save vector for EhBASIC
     .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!
 
 ; EhBASIC IRQ support
