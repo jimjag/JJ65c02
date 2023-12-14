@@ -8779,16 +8779,16 @@ IOout:
 IOin:
     jsr CON_read_byte
     bcc LAB_nobyw       ; No char avail
-    cmp #'a'            ; Is it < 'a'?
-    blt @done           ; Yes, we're done
-    cmp #'z'            ; Is it >= 'z'?
-    bge @done           ; Yes, we're done
-    and #$5f            ; Otherwise, mask to uppercase
+    ;cmp #'a'            ; Is it < 'a'?
+    ;blt @done           ; Yes, we're done
+    ;cmp #'z'            ; Is it >= 'z'?
+    ;bge @done           ; Yes, we're done
+    ;and #$5f            ; Otherwise, mask to uppercase
 @done:
-    sec                 ; Flag byte received
+    sec                  ; Flag byte received (not really needed)
     rts
 LAB_nobyw:
-    clc
+    clc                  ; Just in case
 no_load:                 ; empty load vector
 no_save:                 ; empty save vector
     rts
