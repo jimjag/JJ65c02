@@ -68,9 +68,9 @@ int main() {
     // position of horizontal line primitive
     short Hline_y = 250;
     // Draw some filled rectangles
-    fillRect(64, 0, 176, 50, BLUE); // blue box
-    fillRect(250, 0, 176, 50, RED); // red box
-    fillRect(435, 0, 176, 50, GREEN); // green box
+    drawFilledRect(64, 0, 176, 50, BLUE); // blue box
+    drawFilledRect(250, 0, 176, 50, RED); // red box
+    drawFilledRect(435, 0, 176, 50, GREEN); // green box
 
     // Write some text
     setTextColor2(WHITE, BLUE);
@@ -157,7 +157,7 @@ int main() {
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            fillRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j);
+            drawFilledRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j);
             setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             drawString(video_buffer);

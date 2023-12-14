@@ -2,6 +2,7 @@
 //
 
 void vgaFillScreen(uint16_t color) {
+    if (color == TRANSPARENT) return;
     dma_memset(vga_data_array, (color) | (color << 4), txcount);
 }
 
@@ -10,6 +11,7 @@ void vgaFillScreen(uint16_t color) {
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
 void drawPixel(int x, int y, char color) {
+    if (color == TRANSPARENT) return;
     // Range checks (640x480 display)
     if (x > (SCREENWIDTH - 1))
         x = (SCREENWIDTH - 1);
@@ -35,12 +37,14 @@ void drawPixel(int x, int y, char color) {
 }
 
 void drawVLine(int x, int y, int h, char color) {
+    if (color == TRANSPARENT) return;
     for (int i = y; i < (y + h); i++) {
         drawPixel(x, i, color);
     }
 }
 
 void drawHLine(int x, int y, int w, char color) {
+    if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
         drawPixel(i, y, color);
     }
@@ -58,8 +62,9 @@ void drawLine(int x0, int y0, int x1, int y1, char color) {
      *          the top-left of the screen is 0. It increases to the right.
      *      y1: y-coordinate of ending point of line. The y-coordinate of
      *          the top-left of the screen is 0. It increases to the bottom.
-     *      color: 3-bit color value for line
+     *      color: 4-bit color value for line
      */
+    if (color == TRANSPARENT) return;
     int steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
         swap(x0, y0);
@@ -112,6 +117,7 @@ void drawRect(int x, int y, int w, int h, char color) {
      *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
+    if (color == TRANSPARENT) return;
     drawHLine(x, y, w, color);
     drawHLine(x, y + h - 1, w, color);
     drawVLine(x, y, h, color);
@@ -166,6 +172,7 @@ void drawCircle(int x0, int y0, int r, char color) {
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
+    if (color == TRANSPARENT) return;
     int f = 1 - r;
     int ddF_x = 1;
     int ddF_y = -2 * r;
@@ -228,7 +235,7 @@ static void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, in
     }
 }
 
-void fillCircle(int x0, int y0, int r, char color) {
+void drawFilledCircle(int x0, int y0, int r, char color) {
     /* Draw a filled circle with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -239,6 +246,7 @@ void fillCircle(int x0, int y0, int r, char color) {
      *      color: 4-bit color value for the circle
      * Returns: Nothing
      */
+    if (color == TRANSPARENT) return;
     drawVLine(x0, y0 - r, 2 * r + 1, color);
     fillCircleHelper(x0, y0, r, 3, 0, color);
 }
@@ -258,6 +266,7 @@ void drawRoundRect(int x, int y, int w, int h, int r, char color) {
      * Returns: Nothing
      */
     // smarter version
+    if (color == TRANSPARENT) return;
     drawHLine(x + r, y, w - 2 * r, color);         // Top
     drawHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
     drawVLine(x, y + r, h - 2 * r, color);         // Left
@@ -270,9 +279,9 @@ void drawRoundRect(int x, int y, int w, int h, int r, char color) {
 }
 
 // Fill a rounded rectangle
-void fillRoundRect(int x, int y, int w, int h, int r, char color) {
+void drawFilledRoundRect(int x, int y, int w, int h, int r, char color) {
     // smarter version
-    fillRect(x + r, y, w - 2 * r, h, color);
+    drawFilledRect(x + r, y, w - 2 * r, h, color);
 
     // draw four corners
     fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
@@ -280,7 +289,7 @@ void fillRoundRect(int x, int y, int w, int h, int r, char color) {
 }
 
 // fill a rectangle
-void fillRect(int x, int y, int w, int h, char color) {
+void drawFilledRect(int x, int y, int w, int h, char color) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
      *  width w and height h with given color
      * Parameters:
@@ -300,7 +309,7 @@ void fillRect(int x, int y, int w, int h, char color) {
     // if((y + h - 1) >= SCREENHEIGHT) h = SCREENHEIGHT - y;
 
     // tft_setAddrWindow(x, y, x+w-1, y+h-1);
-
+    if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
         for (int j = y; j < (y + h); j++) {
             drawPixel(i, j, color);
@@ -326,13 +335,13 @@ void drawChar(int x, int y, unsigned char chrx, char color, char bg,
                 if (size == 1) // default size
                     drawPixel(x + px, y + py, color);
                 else { // big size
-                    fillRect(x + (px * size), y + (py * size), size, size, color);
+                    drawFilledRect(x + (px * size), y + (py * size), size, size, color);
                 }
             } else if (bg != color) {
                 if (size == 1) // default size
                     drawPixel(x + px, y + py, bg);
                 else { // big size
-                    fillRect(x + px * size, y + py * size, size, size, bg);
+                    drawFilledRect(x + px * size, y + py * size, size, size, bg);
                 }
             }
             line <<= 1;
@@ -364,7 +373,7 @@ inline char safeColor(char c) {
     if (c < BLACK)
         c = BLACK;
     else if (c > WHITE)
-        c = WHITE;
+        c = TRANSPARENT;
     return c;
 }
 

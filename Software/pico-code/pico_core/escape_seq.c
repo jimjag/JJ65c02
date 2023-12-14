@@ -208,19 +208,19 @@ static void esc_sequence_received() {
                         drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor);
                         break;
                     case 3: // Draw a filled rect: Esc[Z3;x;y;w;hZ
-                        fillRect(escP[1], escP[2], escP[3], escP[4], textfgcolor);
+                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor);
                         break;
                     case 4: // Draw an empty circle: Esc[Z4;x;y;rZ
                         drawCircle(escP[1], escP[2], escP[3], textfgcolor);
                         break;
                     case 5: // Draw an filled circle: Esc[Z5;x;y;rZ
-                        fillCircle(escP[1], escP[2], escP[3], textfgcolor);
+                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor);
                         break;
                     case 6: // Draw an empty rounded rect: Esc[Z6;x;y;w;h;rZ
                         drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
                         break;
                     case 7: // Draw a filled rounded rect: Esc[Z7;x;y;w;h;rZ
-                        fillRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
+                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
                         break;
                     case 8: // Set fg color: Esc[Z8;<color>Z
                         textfgcolor = safeColor(escP[1]);

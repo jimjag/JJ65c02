@@ -43,7 +43,8 @@ enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
-            GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
+            GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
+            TRANSPARENT=0xFF};
 
 // GPIO pins to VIA chip
 enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY=26};
@@ -60,11 +61,11 @@ void drawLine(int x0, int y0, int x1, int y1, char color);
 void drawRect(int x, int y, int w, int h, char color);
 void drawCircle(int x0, int y0, int r, char color);
 // void drawCircleHelper( int x0, int y0, int r, unsigned char cornername, char color);
-void fillCircle(int x0, int y0, int r, char color);
+void drawFilledCircle(int x0, int y0, int r, char color);
 // void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta, char color);
 void drawRoundRect(int x, int y, int w, int h, int r, char color);
-void fillRoundRect(int x, int y, int w, int h, int r, char color);
-void fillRect(int x, int y, int w, int h, char color);
+void drawFilledRoundRect(int x, int y, int w, int h, int r, char color);
+void drawFilledRect(int x, int y, int w, int h, char color);
 void drawChar(int x, int y, unsigned char chrx, char color, char bg, unsigned char size);
 void setCursor(int x, int y);
 void setTextColor(char c);
@@ -83,7 +84,6 @@ void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
 
 void writeChar(unsigned char chrx); // write the interpreted character
-void writeChar(unsigned char chrx);  // write the raw character (no handling)
 void printChar(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
