@@ -9,6 +9,12 @@
 .export LIB_have_ps2data
 .export LIB_flush_serbuf
 .export LIB_flush_ps2buf
+.export LIB_byte2str
+.export LIB_short2str
+
+.export GRA_print_char
+.export GRA_set_fgcolor
+.export GRA_set_bgcolor
 
 ; Actual start of ROM code
 .segment "CODE"
