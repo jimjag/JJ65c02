@@ -9,6 +9,14 @@ _SYSRAM_INC_ = 1
 .importzp Z5
 .importzp Z6
 .importzp Z7
+.importzp R0
+.importzp R1
+.importzp R2
+.importzp R3
+.importzp R4
+.importzp R5
+.importzp R6
+.importzp R7
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
 .importzp CON_SPTR
@@ -27,10 +35,21 @@ _SYSRAM_INC_ = 1
 .import USER_BUFFLEN
 .import YMBUF
 
+.import GX0
+.import GY0
+.import GX1
+.import GY1
+.import GW0
+.import GH0
+.import GR0
+.import GCOLOR
+.import GCHAR
+
 .import INPUT_BUFFER
 
 .import welcome_msg
 .import panic_msg
+.import x_escZ_prefix
 .import x_home_position
 .import x_up
 .import x_down

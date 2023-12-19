@@ -11,6 +11,14 @@
 .exportzp Z5
 .exportzp Z6
 .exportzp Z7
+.exportzp R0
+.exportzp R1
+.exportzp R2
+.exportzp R3
+.exportzp R4
+.exportzp R5
+.exportzp R6
+.exportzp R7
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
 .exportzp CON_SPTR
@@ -22,11 +30,22 @@
 .exportzp YMBLPTR
 .exportzp YMEOFP
 
+
 .export CLK_SPD
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
 .export YMBUF
+
+.export GX0
+.export GY0
+.export GX1
+.export GY1
+.export GW0
+.export GH0
+.export GR0
+.export GCOLOR
+.export GCHAR
 
 .export INPUT_BUFFER
 
@@ -34,6 +53,7 @@
 
 .segment "ZEROPAGE"
 
+; Scratch space: 8bit vars
 Z0:     .res 1
 Z1:     .res 1
 Z2:     .res 1
@@ -43,17 +63,27 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
+; Scratch space: 16bit "registers"
+R0:     .res 2
+R1:     .res 2
+R2:     .res 2
+R3:     .res 2
+R4:     .res 2
+R5:     .res 2
+R6:     .res 2
+R7:     .res 2
+
 ; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
-SERIN_RPTR:  .res 1      ; Read index pointer (0x00->0x7f)
-SERIN_WPTR:  .res 1      ; Write index pointer (0x00->0x7f)
+SERIN_RPTR:     .res 1   ; Read index pointer (0x00->0x7f)
+SERIN_WPTR:     .res 1   ; Write index pointer (0x00->0x7f)
 PS2IN_RPTR:     .res 1   ; PS/2 Keyboard Read index pointer (0x80->0xff)
 PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
 ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
-CON_SPTR:      .res 2    ; String pointer - Console I/O
+CON_SPTR:       .res 2   ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
-YMBLPTR:  .res 2      ; data pointer (two byte variable)
-YMEOFP:   .res 2      ; end of file address pointer (2 bytes)
+YMBLPTR:        .res 2   ; data pointer (two byte variable)
+YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
 
 ;===================================================================
 
@@ -62,13 +92,26 @@ YMEOFP:   .res 2      ; end of file address pointer (2 bytes)
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
-YMBUF:          .res 132
+YMBUF:          .res 132    ; storage for YMODEM. 128bytes buffer + overhead
+; The below are for the interface to the Pi Pico graphics. We re-use
+; space for those commands that don't share variables
+GX0:            .res 2      ; X0 coordinate
+GY0:            .res 2      ; Y0 coordinate
+GX1:            .res 2
+GY1:            .res 2
+GW0 =           GX1         ; Width0 value
+GH0 =           GY1         ; Height0 value
+GR0:            .res 2      ; Radius0 value
+GCOLOR:         .res 1      ; Color value
+GCHAR =         GCOLOR      ; Graphics character byte to "draw"
+;
 INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 
 ;===================================================================
 
 .export welcome_msg
 .export panic_msg
+.export x_escZ_prefix
 .export x_home_position
 .export x_up
 .export x_down
@@ -88,6 +131,8 @@ INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0
 ; xterm control sequences
 ; https://www.xfree86.org/current/ctlseqs.html
 ;
+
+x_escZ_prefix:          .byte TTY_char_ESC,"[Z",TTY_char_NULL
 x_reset:                .byte TTY_char_ESC,"[0m",TTY_char_NULL
 x_set_bold:             .byte TTY_char_ESC,"[1m",TTY_char_NULL
 x_set_underlined:       .byte TTY_char_ESC,"[4m",TTY_char_NULL

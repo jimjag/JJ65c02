@@ -1,7 +1,6 @@
 .include "minios.inc"
 .include "sysram.inc"
-
-.import CLK_SPD
+.include "console.inc"
 
 .export LIB_delay1ms
 .export LIB_delay100ms
@@ -13,6 +12,8 @@
 
 ; Actual start of ROM code
 .segment "CODE"
+
+; *** Various miniOS Library (utility) and Graphics subroutines
 
 ;================================================================================
 ;
@@ -39,7 +40,7 @@ LIB_bin_to_hex:
     pla                                         ; restore A
 @to_hex:
     and #%00001111                              ; mask LSD for hex print
-    ora #'0'                                    ; add "0"
+    ora #'0'                                    ; add '0'
     cmp #'9'+1                                  ; is it a decimal digit?
     bcc @output                                 ; yes! output it
     adc #6                                      ; add offset for letter A-F
@@ -217,4 +218,127 @@ LIB_have_ps2data:
     rts
 @no_data_found:
     clc
+    rts
+
+;================================================================================
+;
+;   LIB_short2str - Convert and print the 2 byte value at R0 to Ascii
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: R0
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_short2str:
+    sed
+    stz Z2
+    stz Z1
+    stz Z0
+    ldx #16
+    ldy #0          ; Our remove starting 0s flag
+@loop:
+    asl R0          ; Shift out one bit
+    rol R0+1
+    lda Z0          ; And add into result
+    adc Z0
+    sta Z0
+    lda Z1          ; propagating any carry
+    adc Z1
+    sta Z1
+    lda Z2          ; ... thru whole result
+    adc Z2
+    sta Z2
+    dex             ; And repeat for next bit
+    bne @loop
+    cld             ; Back to binary
+
+    lda Z2          ; 10k place
+    and #%00001111
+    adc #'0'
+    cmp #'0'
+    bne @w10000
+    ldy #1          ; We have skipped a zero
+    bra @thou
+@w10000:
+    jsr CON_write_byte
+
+@thou:
+    lda Z1          ; 1k place
+    pha
+    lsr
+    lsr
+    lsr
+    lsr
+    adc #'0'
+    cpy #1          ; Are we still checking for starting 0s?
+    bne @w1000
+    cmp #'0'
+    beq @hund
+    ldy #1
+@w1000:
+    jsr CON_write_byte
+
+@hund:
+    pla             ; 100s place
+    and #%00001111
+    adc #'0'
+    cpy #1          ; Still??
+    bne @w100
+    cmp #'0'
+    beq @tens
+    ldy #1
+@w100:
+    jsr CON_write_byte
+
+@tens:
+    lda Z0          ; 10s place
+    pha
+    lsr
+    lsr
+    lsr
+    lsr
+    adc #'0'
+    cpy #1          ; C'mon!
+    bne @w10
+    cmp #'0'
+    beq @ones
+    ldy #1
+@w10:
+    jsr CON_write_byte
+
+@ones:
+    pla             ; 1s place
+    and #%00001111
+    adc #'0'        ; Write no matter what
+    jsr CON_write_byte
+    rts
+
+;================================================================================
+;
+;   GRA_print_char - Print out the character stored in GCHAR
+;       "ESC[Z;<c>Z"
+;   ————————————————————————————————————
+;   Preparatory Ops: GCHAR
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+GRA_print_char:
+    CON_writeln x_escZ_prefix
+    lda #';'
+    jsr CON_write_byte
+    stz R0+1
+    lda GCHAR
+    sta R0
+    jsr LIB_short2str
+    lda #'Z'
+    jsr CON_write_byte
     rts
