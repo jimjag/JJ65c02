@@ -8779,10 +8779,10 @@ IOout:
 IOin:
     jsr CON_read_byte
     bcc LAB_nobyw       ; No char avail
-    ;cmp #'a'            ; Is it < 'a'?
-    ;blt @done           ; Yes, we're done
-    ;cmp #'z'            ; Is it >= 'z'?
-    ;bge @done           ; Yes, we're done
+    cmp #'a'            ; Is it < 'a'?
+    blt @done           ; Yes, we're done
+    cmp #'z'            ; Is it >= 'z'?
+    bge @done           ; Yes, we're done
     ;and #$5f            ; Otherwise, mask to uppercase
 @done:
     sec                  ; Flag byte received (not really needed)
