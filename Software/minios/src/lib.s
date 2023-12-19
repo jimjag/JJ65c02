@@ -222,7 +222,7 @@ LIB_have_ps2data:
 
 ;================================================================================
 ;
-;   LIB_short2str - Convert and print the 2 byte value at R0 to Ascii
+;   LIB_short2str - Convert and print the 2 byte value at R0 to Ascii number (eg: "2562")
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: R0
@@ -240,7 +240,7 @@ LIB_short2str:
     stz Z1
     stz Z0
     ldx #16
-    ldy #0          ; Our remove starting 0s flag
+    ldy #0          ; Our skipped starting 0s flag
 @loop:
     asl R0          ; Shift out one bit
     rol R0+1
@@ -279,7 +279,7 @@ LIB_short2str:
     bne @w1000
     cmp #'0'
     beq @hund
-    ldy #1
+    ldy #0
 @w1000:
     jsr CON_write_byte
 
@@ -291,7 +291,7 @@ LIB_short2str:
     bne @w100
     cmp #'0'
     beq @tens
-    ldy #1
+    ldy #0
 @w100:
     jsr CON_write_byte
 
@@ -307,7 +307,72 @@ LIB_short2str:
     bne @w10
     cmp #'0'
     beq @ones
+@w10:
+    jsr CON_write_byte
+
+@ones:
+    pla             ; 1s place
+    and #%00001111
+    adc #'0'        ; Write no matter what
+    jsr CON_write_byte
+    rts
+
+;================================================================================
+;
+;   LIB_byte2str - Convert and print the 1 byte value at R0 to Ascii number (eg: "254")
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: R0
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_byte2str:
+    sed
+    stz Z1
+    stz Z0
+    stz R0+1
+    ldx #8
+    ldy #0          ; Our skipped starting 0s flag
+@loop:
+    asl R0          ; Shift out one bit
+    rol R0+1
+    lda Z0          ; And add into result
+    adc Z0
+    sta Z0
+    lda Z1          ; propagating any carry
+    adc Z1
+    sta Z1
+    dex             ; And repeat for next bit
+    bne @loop
+    cld             ; Back to binary
+
+    lda Z1             ; 100s place
+    and #%00001111
+    adc #'0'
+    cmp #'0'
+    bne @w100
     ldy #1
+    bra @tens
+@w100:
+    jsr CON_write_byte
+
+@tens:
+    lda Z0          ; 10s place
+    pha
+    lsr
+    lsr
+    lsr
+    lsr
+    adc #'0'
+    cpy #1          ; C'mon!
+    bne @w10
+    cmp #'0'
+    beq @ones
 @w10:
     jsr CON_write_byte
 
@@ -335,10 +400,61 @@ GRA_print_char:
     CON_writeln x_escZ_prefix
     lda #';'
     jsr CON_write_byte
-    stz R0+1
     lda GCHAR
     sta R0
-    jsr LIB_short2str
+    jsr LIB_byte2str
+    lda #'Z'
+    jsr CON_write_byte
+    rts
+
+;================================================================================
+;
+;   GRA_set_fgcolor:
+;       "ESC[Z8;<color>Z"
+;   ————————————————————————————————————
+;   Preparatory Ops: GCOLOR
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+GRA_set_fgcolor:
+    CON_writeln x_escZ_prefix
+    lda #'8'
+    jsr CON_write_byte
+    lda #';'
+    jsr CON_write_byte
+    lda GCOLOR
+    sta R0
+    jsr LIB_byte2str
+    lda #'Z'
+    jsr CON_write_byte
+    rts
+
+;================================================================================
+;
+;   GRA_set_bgcolor:
+;       "ESC[Z9;<color>Z"
+;   ————————————————————————————————————
+;   Preparatory Ops: GCOLOR
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+GRA_set_bgcolor:
+    CON_writeln x_escZ_prefix
+    lda #'9'
+    jsr CON_write_byte
+    lda #';'
+    jsr CON_write_byte
+    lda GCOLOR
+    sta R0
+    jsr LIB_byte2str
     lda #'Z'
     jsr CON_write_byte
     rts
