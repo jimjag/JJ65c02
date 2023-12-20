@@ -184,9 +184,6 @@ CON_reset_user_input:
 
 CON_write_byte:
     sta PICO_ADDR
-    ;nop
-    ;nop
-    ;nop
     rts
 
 ;================================================================================

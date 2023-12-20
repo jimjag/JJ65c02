@@ -35,7 +35,7 @@
 int main() {
     set_sys_clock_khz(250000, true);
     // Initialize stdio
-    stdio_init_all();
+    //stdio_init_all();
 
     // Initialize the VGA screen and PS/2 interface
     initVGA();

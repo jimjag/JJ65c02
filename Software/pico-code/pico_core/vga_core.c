@@ -125,29 +125,33 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[1024];
+static unsigned char inbuf[2400];
+static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 static void readByte(void) {
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
-    *wptr++ = code;
-    if (wptr >= (inbuf + sizeof(inbuf)))
+    *wptr = code;
+    wptr++;
+    if (wptr >= endbuf)
         wptr = inbuf;
     pio_interrupt_clear(memin_pio, 0);
 }
 
-bool conInHaveChar(void) {
-    return (rptr != wptr);
-}
-
 // Once we grab the character/byte we've rec'd, we no longer
 // have it available to "read" again.
-unsigned char conInGetChar(void) {
-    unsigned char ascii = 0;
-    ascii = *rptr++;
-    if (rptr >= (inbuf + sizeof(inbuf)))
-        rptr = inbuf;
-    return ascii;
+// This is the actual task used in polling/looping:
+//   Check if we rec'd a character from the 6502
+//   if so, we print it (send it to the VGA system)
+void conInTask(void) {
+    unsigned char ascii;
+    if (rptr != wptr) {
+        ascii = *rptr;
+        rptr++;
+        if (rptr >= endbuf)
+            rptr = inbuf;
+        printChar(ascii);
+    }
 }
 
 void initVGA(void) {
@@ -308,18 +312,6 @@ void dma_memcpy(void *dest, void *src, size_t num) {
     // thing. In this case the processor has nothing else to do, so we just
     // wait for the DMA to finish.
     dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
-}
-
-// This is the actual task used in polling/looping:
-//   Check if we rec'd a character from the 6502
-//   if so, we print it (send it to the VGA system)
-
-void conInTask(void) {
-    unsigned char c;
-    if (conInHaveChar()) {
-        c = conInGetChar();
-        printChar(c);
-    }
 }
 
 #include "vga_graphics.c"

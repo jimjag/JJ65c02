@@ -132,8 +132,10 @@ static const char ps2_to_ascii_cntl[] = {
 void ps2_ihandler(void) {
     unsigned char ascii = 0;
     // pio_interrupt_clear(ps2_pio, 0);
-    if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm))
+    if (pio_sm_is_rx_fifo_empty(ps2_pio, ps2_sm)) {
+        pio_interrupt_clear(ps2_pio, 1);
         return;
+    }
     // pull a scan code from the PIO SM fifo
     // uint8_t code = *((io_rw_8*)&ps2_pio->rxf[ps2_sm] + 3);
     uint8_t code = pio_sm_get(ps2_pio, ps2_sm) >> 24;
