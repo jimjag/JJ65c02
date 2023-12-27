@@ -625,6 +625,8 @@ void printString(char *str) {
     }
 }
 
+void fill_sprite(uint sn);
+
 // Handle ESC sequences
 #include "escape_seq.c"
 
@@ -678,6 +680,22 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-void drawSprite(int x, int y, char *sa) {
+#define MAXSPRITES 16
+sprite *sprites[MAXSPRITES];
+
+void fill_sprite(uint sn) {
+    unsigned char cx;
+    if (sn >= MAXSPRITES)
+        return;
+    sprite *n = malloc(sizeof(sprite));
+    for (int i = 0; i < SPRITESIZE; i++) {
+        if (!getByte(&cx))
+            continue;
+        n->data[i] = cx;
+    }
+    sprites[sn] = n;
+}
+
+void drawSprite(int x, int y, uint sn) {
 
 }

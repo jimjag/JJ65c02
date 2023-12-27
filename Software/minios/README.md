@@ -6,9 +6,9 @@
 1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
 2. __Run__ programs that were previously loaded into RAM
 3. __Load & Run__ programs in one go
-4. __Debug__ the full address space via an integrated __hex monitor__ (currently read only)
+4. __Debug__ the full address space via an integrated __WOZMON__
 5. __Clean RAM__ for use with non-volatile RAM or during development
-6. __Adjust Clock Speed__ the internal expectation of the external __clock speed__, from 1Mhz to 14Mhz
+6. __EhBasic__ BASIC interpreter
 
 
 ### Install the minios
@@ -22,29 +22,26 @@ $ make
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/minios.o minios.s
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/sysram.o sysram.s
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/via.o via.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/lcd.o lcd.s
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/lib.o lib.s
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/acia.o acia.s
 ca65 -t none --cpu 65c02 -U -I ./include -o objs/tty.o tty.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/ymodem.o ymodem.s
-ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lcd.o objs/lib.o objs/acia.o objs/tty.o objs/ymodem.o
-Opened 'minios'...
-  Dumping 'ZP'
-    Writing 'ZEROPAGE'
-Opened '/dev/null'...
-  Dumping 'RAM0'
-    Writing 'SYSRAM'
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/console.o console.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/xmodem.o xmodem.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/ehbasic.o ehbasic.s
+ca65 -t none --cpu 65c02 -U -I ./include -o objs/wozmon.o wozmon.s
+ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o
 Opened 'minios.bin'...
   Dumping 'RAM'
     Writing 'BSS'
 Opened 'minios.rom'...
+  Dumping 'ROM_FILL'
   Dumping 'IO'
   Dumping 'ROM'
     Writing 'CODE'
     Writing 'RODATA'
     Writing 'RODATA_PA'
     Writing 'VECTORS'
-rm -f minios.bin
+#rm -f minios.bin
 ```
 
 Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
@@ -61,7 +58,7 @@ building and loading RAM-based programs.
 
 ### 1. Allocated Zero Page Locations
 
-The minios needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$19`, which can be confirmed via looking at the
+The minios needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$DC`, which can be confirmed via looking at the
 `__ZEROPAGE_LAST__` variable in the `minios.map` file. Now if you
 follow the below instuctions for assembling and building your own
 RAM programs, you don't need to worry about this, because during the
@@ -89,8 +86,8 @@ The serial connection is hardcoded as 19200 baud, 8 data bits, 1 stop
 bit and no parity. This is commonly refered to as `19200-8N1`. The
 current implementation does not support any flow control, so make sure
 that whatever serial/terminal connection program you use also has that
-configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac. Avoid `MacWise` because it lacks the
-transfer capability we need.
+configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
+Avoid `MacWise` because it lacks the transfer capability we need.
 
 To initiate the transfer, connect your "host" machine (the serial/terminal
 program) to the `JJ65c02` and power up the board. You should see a Welcome
@@ -100,9 +97,9 @@ settings. You do ***not*** need a null modem connection.
 If all looks good, using the mini-keyboard on the board and select *Load*.
 Confirm (again on the LCD and mini-keyboard) that you are ready to
 initiate the transfer and hit any button on the mini-keyboard. At this
-point you'll see on the Host terminal the message to *Begin YMODEM transfer.*
+point you'll see on the Host terminal the message to *Begin XMODEM transfer.*
 
-From the Host machine chose to **upload** the program and select *YMODEM* as
+From the Host machine chose to **upload** the program and select *XMODEM* as
 the transfer protocol. The transfer should take just a few seconds. The
 LCD screen will display any errors as well as the number of the blocks being
 currently transfered. This may happen so fast that you don't even see
@@ -111,13 +108,7 @@ the numbers change; all you may see is the last block number.
 Once complete, you will returned to minios, at which point you can
 chose to *Run* the just downloaded program. Have fun!
 
-### Why YMODEM?
-
-Other bootloaders I've checked out use *XMODEM* for the protocol.
-However, I found varying support for *XMODEM* in modern terminal
-emulation software, and where they do support *XMODEM*, it may not
-be the *CRC* version. Choosing *YMODEM* avoids that complication
-and confusion.
+NOTE: We use *XMODEM CRC*.
 
 ## Assembling your own RAM based programs
 

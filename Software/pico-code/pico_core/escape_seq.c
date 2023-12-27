@@ -231,6 +231,9 @@ static void esc_sequence_received() {
                     case 10: // Set bg color: Esc[Z10;x;y;<char>;Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1);
                         break;
+                    case 11: // Load in Sprite data
+                        fill_sprite(escP[1]);
+                        break;
                 }
                 break;
             default:

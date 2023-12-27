@@ -129,7 +129,7 @@ static unsigned char inbuf[10240];
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
-static void readByte(void) {
+static void readMem(void) {
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= endbuf)
@@ -139,15 +139,22 @@ static void readByte(void) {
 
 // Once we grab the character/byte we've rec'd, we no longer
 // have it available to "read" again.
+bool getByte(unsigned char *ascii) {
+    if (rptr != wptr) {
+        *ascii = *rptr++;
+        if (rptr >= endbuf)
+            rptr = inbuf;
+        return true;
+    }
+    return false;
+}
+
 // This is the actual task used in polling/looping:
 //   Check if we rec'd a character from the 6502
 //   if so, we print it (send it to the VGA system)
 void conInTask(void) {
     unsigned char ascii;
-    if (rptr != wptr) {
-        ascii = *rptr++;
-        if (rptr >= endbuf)
-            rptr = inbuf;
+    if (getByte(&ascii)) {
         printChar(ascii);
     }
 }
@@ -263,7 +270,7 @@ void initVGA(void) {
     pio_gpio_init(memin_pio,DREADY);
     gpio_set_dir(DREADY, GPIO_IN);
     pio_set_irq0_source_enabled(memin_pio, pis_interrupt0, true);
-    irq_set_exclusive_handler(memin_pio_irq, readByte);
+    irq_set_exclusive_handler(memin_pio_irq, readMem);
     irq_set_enabled(memin_pio_irq, true);
     rptr = wptr = inbuf;
     pio_sm_set_enabled(memin_pio, memin_sm, true);

@@ -9,13 +9,11 @@ ROMOBJs = ../src/objs
 ROM =  $(ROMOBJs)/minios.o \
 	$(ROMOBJs)/sysram.o \
 	$(ROMOBJs)/via.o \
-	$(ROMOBJs)/sound.o \
-	$(ROMOBJs)/lcd.o \
 	$(ROMOBJs)/lib.o \
 	$(ROMOBJs)/acia.o \
 	$(ROMOBJs)/tty.o \
-	$(ROMOBJs)/keyboard.o \
-	$(ROMOBJs)/ymodem.o \
+	$(ROMOBJs)/console.o \
+	$(ROMOBJs)/xmodem.o \
 	$(ROMOBJs)/ehbasic.o
 
 SRCS =  hello_world_scroll.s
