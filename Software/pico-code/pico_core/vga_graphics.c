@@ -677,3 +677,7 @@ void printChar(unsigned char chrx) {
     }
     enableCurs(was);
 }
+
+void drawSprite(int x, int y, char *sa) {
+
+}

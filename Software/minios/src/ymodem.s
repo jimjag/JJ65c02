@@ -5,13 +5,14 @@
 .include "lib.inc"
 ;.include "lcd.inc"
 
-.export YMODEM_send
+.export XMODEM_send
 .export YMODEM_recv
 
 LASTBLK = Z0        ; flag for last block
 BLKNO = Z1          ; block number
 ERRCNT = Z2         ; error counter 10 is the limit
 BFLAG = Z3          ; block flag
+DELAY = Z4
 
 .segment "ZEROPAGE"
 CRC:    .res 2      ; CRC lo byte  (two byte variable
@@ -20,7 +21,7 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable
 
 ;================================================================================
 ;
-;   YMODEM_send: Send data via YMODEM protocol through ACIA
+;   XMODEM_send: Send data via XMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: Start address must be stored in YMBLPTR,YMBLPTR+1 (eg: 00 05 is $0500)
@@ -31,8 +32,8 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable
 ;
 ;================================================================================
 
-YMODEM_send:
-    ACIA_writeln YM_start_msg      ; send prompt and info
+XMODEM_send:
+    ACIA_writeln XM_start_msg   ; send prompt and info
     stz ERRCNT                  ; error counter set to 0
     stz LASTBLK                 ; set flag to false
     lda #$01
@@ -42,7 +43,7 @@ YMODEM_send:
     bcc @Wait4CRC               ; wait for something to come in...
     cmp #'C'                    ; is it the "C" to start a CRC xfer?
     beq @SetstAddr              ; yes
-    cmp #(TTY_char_ESC)                  ; is it a cancel? <Esc> Key
+    cmp #(TTY_char_ESC)         ; is it a cancel? <Esc> Key
     bne @Wait4CRC               ; No, wait for another character
     jmp @PrtAbort               ; Print abort msg and exit
 @SetstAddr:
@@ -91,7 +92,7 @@ YMODEM_send:
     sta YMBUF,x
     beq @LdBuff3                ; Branch always
 @LdBuff4:
-    inc YMBLPTR                   ; INC address pointer
+    inc YMBLPTR                 ; INC address pointer
     bne @LdBuff5
     inc YMBLPTR+1
 @LdBuff5:
@@ -132,6 +133,7 @@ YMODEM_send:
 @PrtAbort:
     jsr LIB_flush_serbuf
     ACIA_writeln YM_error_msg      ; print error msg and exit
+    rts
 @Done:
     lda #(TTY_char_EOT)
     jsr ACIA_write_byte
@@ -151,7 +153,7 @@ YMODEM_send:
 ;================================================================================
 
 YMODEM_recv:
-    ACIA_writeln YM_start_msg      ; send prompt and info
+    ACIA_writeln YM_start_msg   ; send prompt and info
  ;   jsr LCD_clear_video_ram
  ;   jsr LCD_clear_screen
     stz BLKNO                   ; YMODEM starts w/ block #0, which we ignore
@@ -162,12 +164,12 @@ YMODEM_recv:
     jsr LIB_flush_serbuf
     lda #'C'                    ; "C" start with CRC mode
     jsr ACIA_write_byte         ; send it
-    jsr GetByte                ; wait for input
+    jsr GetByte                 ; wait for input
     bcs @GotByte1               ; byte received, process it
     bcc @StartCRC               ; resend "C"
 @StartBlk:
     jsr ShowBlkNo
-    jsr GetByte                ; get first byte of block
+    jsr GetByte                 ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
 @GotByte1:
     cmp #(TTY_char_ESC)         ; quitting?
@@ -317,11 +319,15 @@ YMODEM_recv:
 ; subroutines
 ;
 GetByte:
+    lda #150
+    sta DELAY
+@StartCRCLp:
     jsr ACIA_read_byte          ; get chr from serial port, don't wait
     bcs @GotByte                ; got one, so exit
-    lda #30
-    jsr LIB_delay100ms          ; 3 sec wait
-    bne GetByte                 ; look for character again
+    lda #20
+    jsr LIB_delay1ms
+    dec DELAY
+    bne @StartCRCLp             ; look for character again
     clc                         ; if loop times out, CLC, else SEC and return
 @GotByte:
     rts                         ; with character in "A"
@@ -363,7 +369,8 @@ CalcCRC:
 
 .segment "RODATA"
 
-YM_start_msg:      .asciiz "Begin YMODEM transfer.  Press <Esc> to abort...\n\r"
+YM_start_msg:      .asciiz "Begin YMODEM receive.  Press <Esc> to abort...\n\r"
+XM_start_msg:      .asciiz "Begin XMODEM send.  Press <Esc> to abort...\n\r"
 YM_error_msg:      .asciiz "Transfer Error!\n\r"
 YM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
 

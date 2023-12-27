@@ -96,8 +96,8 @@ int textrow_size = (SCREENWIDTH / FONTWIDTH);
 int cursor_y, cursor_x, textsize;
 
 // Data rec'd from the 6502 VIA chip
-volatile static unsigned char inputChar;
-volatile static bool hasChar = false;
+//volatile static unsigned char inputChar;
+//volatile static bool hasChar = false;
 
 // color available to ANSI commands
 static const char ansi_pallet[] = {
@@ -131,8 +131,7 @@ volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 static void readByte(void) {
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
-    *wptr = code;
-    wptr++;
+    *wptr++ = code;
     if (wptr >= endbuf)
         wptr = inbuf;
     pio_interrupt_clear(memin_pio, 0);
@@ -146,8 +145,7 @@ static void readByte(void) {
 void conInTask(void) {
     unsigned char ascii;
     if (rptr != wptr) {
-        ascii = *rptr;
-        rptr++;
+        ascii = *rptr++;
         if (rptr >= endbuf)
             rptr = inbuf;
         printChar(ascii);

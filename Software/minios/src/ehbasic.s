@@ -8808,18 +8808,17 @@ LAB_load:
     sta Svarh
     jsr LAB_1477          ; Need to call this EhBasic routine to clear variables and reset the execution pointer
     jmp LAB_1319          ; Jump to appropriate location in EhBasic to finish
-    rts
 
 LAB_save:
     lda #<Ram_base        ; set start addr low byte
-    sta YMBLPTR           ; Tell YMODEM where to start
+    sta YMBLPTR           ; Tell XMODEM where to start
     lda #>Ram_base        ; set start addr high byte
     sta YMBLPTR+1
-    lda Svarl             ; set EOF pointer so YMODEM knows where to stop
+    lda Svarl             ; set EOF pointer so XMODEM knows where to stop
     sta YMEOFP
     lda Svarh
     sta YMEOFP+1
-    jsr YMODEM_send
+    jsr XMODEM_send
     rts
 
 ; vector tables
