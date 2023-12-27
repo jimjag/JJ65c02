@@ -195,8 +195,6 @@ MINIOS_main_menu:
     jsr MINIOS_test_ram
     jmp @start
 @start_basic:
-    lda #100                                    ; wait a bit, say 100ms
-    jsr LIB_delay1ms
     CON_writeln message_readybasic
     jsr CON_read_byte_blk
     cmp #'B'
@@ -211,8 +209,8 @@ MINIOS_main_menu:
     CON_writeln about
     jmp @start
 @do_load:                                       ; orchestration of program loading
-    lda #100                                    ; wait a bit, say 100ms
-    jsr LIB_delay1ms
+    lda #10                                     ; wait a bit, say 1s
+    jsr LIB_delay100ms
     jsr MINIOS_load_ram                         ; call the bootloaders programming routine
     jmp @start
 @do_run:                                        ; orchestration of running a program
@@ -235,6 +233,10 @@ MINIOS_main_menu:
 
 MINIOS_load_ram:
     CON_writeln message_readyload
+    jsr CON_read_byte_blk
+    cmp #'L'
+    beq @start_load
+    cmp #'l'
     beq @start_load
     rts
 @start_load:
@@ -260,6 +262,8 @@ MINIOS_load_ram:
 
 MINIOS_execute:
     CON_writeln message_runprog
+    lda #10                                     ; wait a bit, say 1s
+    jsr LIB_delay100ms
     jmp PROGRAM_START                           ; and jump to program location
 
 ;================================================================================
@@ -479,7 +483,7 @@ message_cmd:
 message_readybasic:
     .asciiz "\r\nStarting EhBASIC\r\nPress 'B' or 'b' key on console to start: "
 message_readyload:
-    .asciiz "\r\nGetting Ready To LOAD RAM.\r\nPress any key on console to start: "
+    .asciiz "\r\nGetting Ready To LOAD RAM.\r\nPress 'L' or 'l' key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
@@ -495,7 +499,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load & Run\r\n2. Load\r\n3. Run\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
+    .asciiz "1. Load RAM Image & Run\r\n2. Load RAM Image (via XMODEM)\r\n3. Run Prog Loaded @0500\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
 about:
     .asciiz "\r\ngithub.com/jimjag/JJ65c02"
 clock_spd:

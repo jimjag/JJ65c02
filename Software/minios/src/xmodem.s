@@ -32,7 +32,7 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable
 ;================================================================================
 
 XMODEM_send:
-    ACIA_writeln XM_start_msg   ; send prompt and info
+    ACIA_writeln XM_send_msg   ; send prompt and info
     stz ERRCNT                  ; error counter set to 0
     stz LASTBLK                 ; set flag to false
     lda #$01
@@ -131,12 +131,12 @@ XMODEM_send:
     bne @Resend                 ; no, resend block
 @PrtAbort:
     jsr LIB_flush_serbuf
-    ACIA_writeln YM_error_msg      ; print error msg and exit
+    ACIA_writeln XM_error_msg      ; print error msg and exit
     rts
 @Done:
     lda #(TTY_char_EOT)
     jsr ACIA_write_byte
-    ACIA_writeln YM_success_msg    ; All Done..Print msg and exit
+    ACIA_writeln XM_success_msg    ; All Done..Print msg and exit
     rts
 
 ;================================================================================
@@ -152,7 +152,7 @@ XMODEM_send:
 ;================================================================================
 
 XMODEM_recv:
-    ACIA_writeln YM_start_msg   ; send prompt and info
+    ACIA_writeln XM_recv_msg   ; send prompt and info
  ;   jsr LCD_clear_video_ram
  ;   jsr LCD_clear_screen
     lda #$01
@@ -199,8 +199,8 @@ XMODEM_recv:
     lda YMBUF,x                 ; get block # from buffer
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
-    ACIA_writeln YM_error_msg   ; Unexpected block number - abort
- ;   LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    ACIA_writeln XM_error_msg   ; Unexpected block number - abort
+ ;   LCD_writeln XM_error_msg    ; Unexpected block number - abort
     jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
     lda #$FD                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
@@ -210,8 +210,8 @@ XMODEM_recv:
     inx
     cmp YMBUF,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
-    ACIA_writeln YM_error_msg   ; Unexpected block number - abort
- ;   LCD_writeln YM_error_msg    ; Unexpected block number - abort
+    ACIA_writeln XM_error_msg   ; Unexpected block number - abort
+ ;   LCD_writeln XM_error_msg    ; Unexpected block number - abort
     jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
     lda #$FC                    ; put error code in "A" if desired
     ;sta $1000                   ; XXX DEBUGGING
@@ -268,7 +268,7 @@ XMODEM_recv:
     jsr LIB_flush_serbuf
     lda #(TTY_char_EOT)
     jsr ACIA_write_byte
-    ACIA_writeln YM_success_msg
+    ACIA_writeln XM_success_msg
     lda #30
     jsr LIB_delay100ms
     rts
@@ -355,10 +355,10 @@ CalcCRC:
 
 .segment "RODATA"
 
-YM_start_msg:      .asciiz "Begin XMODEM receive.  Press <Esc> to abort...\n\r"
-XM_start_msg:      .asciiz "Begin XMODEM send.  Press <Esc> to abort...\n\r"
-YM_error_msg:      .asciiz "Transfer Error!\n\r"
-YM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
+XM_recv_msg:      .asciiz "Begin XMODEM upload.  Press <Esc> to abort...\n\r"
+XM_send_msg:      .asciiz "Begin XMODEM download.  Press <Esc> to abort...\n\r"
+XM_error_msg:      .asciiz "Transfer Error!\n\r"
+XM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
 
 .segment "RODATA_PA"
 
