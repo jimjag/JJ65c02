@@ -680,14 +680,11 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-#define MAXSPRITES 16
-sprite *sprites[MAXSPRITES];
-
 void fill_sprite(uint sn) {
     unsigned char cx;
     if (sn >= MAXSPRITES)
         return;
-    sprite *n = malloc(sizeof(sprite));
+    sprite_t *n = malloc(sizeof(sprite_t));
     for (int i = 0; i < SPRITESIZE; i++) {
         if (!getByte(&cx))
             continue;

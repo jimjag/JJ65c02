@@ -104,6 +104,10 @@ static const char ansi_pallet[] = {
         BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 };
 
+// Sprites
+#define MAXSPRITES 16
+sprite_t *sprites[MAXSPRITES];
+
 // Stuff for blinking cursor functions
 static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;

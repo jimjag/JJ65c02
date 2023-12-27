@@ -51,9 +51,9 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 
 //
 #define SPRITESIZE 128
-typedef struct sprite {
+typedef struct {
     char data[SPRITESIZE];
-} sprite ;
+} sprite_t ;
 
 // VGA Core Functions
 void initVGA(void);
