@@ -8802,9 +8802,9 @@ LAB_load:
     sta YMBLPTR+1
     sta Smemh
     jsr YMODEM_recv
-    lda YMEOFP            ; Now adjust where the program ends and vars begin
+    lda YMBLPTR           ; Now adjust where the program ends and vars begin
     sta Svarl
-    lda YMEOFP+1
+    lda YMBLPTR+1
     sta Svarh
     jsr LAB_1477          ; Need to call this EhBasic routine to clear variables and reset the execution pointer
     jmp LAB_1319          ; Jump to appropriate location in EhBasic to finish
