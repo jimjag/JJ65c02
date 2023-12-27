@@ -8796,12 +8796,12 @@ no_save:                 ; empty save vector
 LAB_load:
     ; This overwrites any existing program
     lda #<Ram_base        ; set start addr low byte
-    sta YMBLPTR           ; Tell YMODEM where to start
+    sta YMBLPTR           ; Tell XMODEM where to start
     sta Smeml             ; And tell EhBasic where we start
     lda #>Ram_base        ; set start addr high byte
     sta YMBLPTR+1
     sta Smemh
-    jsr YMODEM_recv
+    jsr XMODEM_recv
     lda YMBLPTR           ; Now adjust where the program ends and vars begin
     sta Svarl
     lda YMBLPTR+1

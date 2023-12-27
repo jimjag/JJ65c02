@@ -92,7 +92,7 @@ YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
-YMBUF:          .res 132    ; storage for YMODEM. 128bytes buffer + overhead
+YMBUF:          .res 132    ; storage for XMODEM. 128bytes buffer + overhead
 ; The below are for the interface to the Pi Pico graphics. We re-use
 ; space for those commands that don't share variables
 GX0:            .res 2      ; X0 coordinate

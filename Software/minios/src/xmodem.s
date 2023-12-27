@@ -6,13 +6,12 @@
 ;.include "lcd.inc"
 
 .export XMODEM_send
-.export YMODEM_recv
+.export XMODEM_recv
 
 LASTBLK = Z0        ; flag for last block
 BLKNO = Z1          ; block number
 ERRCNT = Z2         ; error counter 10 is the limit
-BFLAG = Z3          ; block flag
-DELAY = Z4
+DELAY = Z3
 
 .segment "ZEROPAGE"
 CRC:    .res 2      ; CRC lo byte  (two byte variable
@@ -128,7 +127,7 @@ XMODEM_send:
 @Seterror:
     inc ERRCNT                  ; INC error counter
     lda ERRCNT
-    cmp #$0A                    ; are there 10 errors? (YMODEM spec for failure)
+    cmp #$0A                    ; are there 10 errors? (XMODEM spec for failure)
     bne @Resend                 ; no, resend block
 @PrtAbort:
     jsr LIB_flush_serbuf
@@ -142,7 +141,7 @@ XMODEM_send:
 
 ;================================================================================
 ;
-;   YMODEM_recv: Receive data via YMODEM protocol through ACIA
+;   XMODEM_recv: Receive data via XMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: Load address must be stored in YMBLPTR,YMBLPTR+1
@@ -152,12 +151,12 @@ XMODEM_send:
 ;
 ;================================================================================
 
-YMODEM_recv:
+XMODEM_recv:
     ACIA_writeln YM_start_msg   ; send prompt and info
  ;   jsr LCD_clear_video_ram
  ;   jsr LCD_clear_screen
-    stz BLKNO                   ; YMODEM starts w/ block #0, which we ignore
-    stz BFLAG
+    lda #$01
+    sta BLKNO
     stz CRC
     stz CRC+1
 @StartCRC:
@@ -245,19 +244,6 @@ YMODEM_recv:
 
 @GoodCRC:
     ldx #$02
-    lda BLKNO                   ; get the block number
-    cmp #$00                    ; YMODEM block #0?
-    bne @CopyBlk                ; no, copy all 128 bytes
-    lda BFLAG                   ; is it really block 0
-    bne @CopyBlk                ; no, copy all 128 bytes
-    ;
-    ; What we have is YMODEM's blk 0, which we just ignore
-    ;
-    inc BFLAG                   ; set the flag so we won't trigger again
-    inc BLKNO                   ; done. INC the block #
-    lda #(TTY_char_ACK)         ; send ACK
-    jsr ACIA_write_byte
-    jmp @StartCRC               ; and restart the actual data xfer
 @CopyBlk:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
@@ -369,7 +355,7 @@ CalcCRC:
 
 .segment "RODATA"
 
-YM_start_msg:      .asciiz "Begin YMODEM receive.  Press <Esc> to abort...\n\r"
+YM_start_msg:      .asciiz "Begin XMODEM receive.  Press <Esc> to abort...\n\r"
 XM_start_msg:      .asciiz "Begin XMODEM send.  Press <Esc> to abort...\n\r"
 YM_error_msg:      .asciiz "Transfer Error!\n\r"
 YM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
@@ -377,7 +363,7 @@ YM_success_msg:    .asciiz "\n\rTransfer Successful!\n\r"
 .segment "RODATA_PA"
 
 ; The following tables are used to calculate the CRC for the 128 bytes
-; in the YMODEM data blocks.  You can use these tables if you plan to
+; in the XMODEM data blocks.  You can use these tables if you plan to
 ; store this program in ROM.  If you choose to build them at run-time,
 ; then just delete them and define the two labels: CRClo & CRChi.
 ;

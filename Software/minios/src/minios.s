@@ -6,7 +6,7 @@
 .include "lib.inc"
 .include "acia.inc"
 .include "tty.inc"
-.include "ymodem.inc"
+.include "xmodem.inc"
 .include "console.inc"
 
 .import BASIC_init
@@ -242,7 +242,7 @@ MINIOS_load_ram:
     sta YMBLPTR
     lda #>PROGRAM_START
     sta YMBLPTR+1
-    jmp YMODEM_recv
+    jmp XMODEM_recv
 
 ;================================================================================
 ;
