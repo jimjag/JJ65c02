@@ -49,12 +49,6 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 // GPIO pins to VIA chip
 enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY=26};
 
-//
-#define SPRITESIZE 128
-typedef struct {
-    char data[SPRITESIZE];
-} sprite_t ;
-
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
