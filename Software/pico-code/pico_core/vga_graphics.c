@@ -695,13 +695,13 @@ void fillSprite(uint sn) {
         int64_t mask = 0;
         int64_t bitmap = 0;
         for (int j = 0; j < SPRITESIZE; j++) {
-            cx = sdata[j + (i * SPRITESIZE)];
-            if (cx == 0xff) { // transparent
-                mask |= 0b01111;
-            }
-            bitmap |= (TOPMASK & cx);
             mask<<=4;
             bitmap<<=4;
+            cx = sdata[j + (i * SPRITESIZE)];
+            if (cx == 0xff) { // transparent
+                mask |= 0b00001111;
+            }
+            bitmap |= (TOPMASK & cx);
         }
         n->bitmap[i] = bitmap;
         n->mask[i] = mask;
