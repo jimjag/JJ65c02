@@ -13,15 +13,12 @@ void vgaFillScreen(uint16_t color) {
 void drawPixel(int x, int y, char color) {
     if (color == TRANSPARENT) return;
     // Range checks (640x480 display)
-    if (x > (SCREENWIDTH - 1))
-        x = (SCREENWIDTH - 1);
-    if (x < 0)
-        x = 0;
-    if (y < 0)
-        y = 0;
-    if (y > (SCREENHEIGHT - 1))
-        y = (SCREENHEIGHT - 1);
-    // if((x > 639) | (x < 0) | (y > 479) | (y < 0) ) return;
+    if ( (x > (SCREENWIDTH - 1)) ||
+        (x < 0) ||
+        (y < 0) ||
+        (y > (SCREENHEIGHT - 1)) ) {
+        return;
+    }
 
     // Which pixel is it?
     int pixel = ((SCREENWIDTH * y) + x);
@@ -685,14 +682,43 @@ void fill_sprite(uint sn) {
     if (sn >= MAXSPRITES)
         return;
     sprite_t *n = malloc(sizeof(sprite_t));
-    for (int i = 0; i < SPRITESIZE; i++) {
+    for (int i = 0; i < SPRITESIZE; ) {
         if (!getByte(&cx))
             continue;
-        n->data[i] = cx;
+        n->data[i++] = cx;
     }
     sprites[sn] = n;
 }
 
 void drawSprite(int x, int y, uint sn) {
-
+    int width = 8;
+    int offset = 0;
+    int yend = y + 16;
+    if (yend < 0 || x < -16 || x >= SCREENWIDTH || y >=SCREENHEIGHT)  // If completely off-screen, bail
+        return;
+    if (yend > SCREENHEIGHT)
+        yend = SCREENHEIGHT;
+    // First, find starting point of pixel data in the Sprite
+    // If the x coordinate means that we straddle a byte (recall, we
+    // store 2 pixels per byte), then force alignment
+    if ( (x < 0  || x > SCREENWIDTH-17) && !(x%2) )
+        x++;
+    if (x < 0) {
+        offset = abs(x);
+        width -= offset;
+    }
+    else if (x > SCREENWIDTH-17)
+        width = (SCREENWIDTH - x) / 2;
+    // At this point width contains the number of bytes
+    // to DMA and offset puts to the start of the row data
+    // to copy.
+    for (int i = y; i < yend; i++) {
+        if (i < 0)
+            continue;
+        int pixel = ((SCREENWIDTH * i) + x + offset);
+        int spixel = ((8 * i) + x + offset);
+        void *dst = (void *)(vga_data_array+pixel);
+        void *src = (void *)(sprites[sn]->data+spixel);
+        dma_memcpy(dst, src, width);
+    }
 }
