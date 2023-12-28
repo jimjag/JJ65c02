@@ -54,7 +54,7 @@ typedef struct {
     int64_t bgrnd[SPRITESIZE];
     short x;
     short y;
-    bool bValid;
+    bool bgValid;
 } sprite_t;
 
 // GPIO pins to VIA chip

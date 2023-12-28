@@ -680,7 +680,7 @@ void printChar(unsigned char chrx) {
 #define MAXSPRITES 32
 sprite_t *sprites[MAXSPRITES];
 
-void fill_sprite(uint sn) {
+void fillSprite(uint sn) {
     unsigned char cx;
     unsigned char sdata[SPRITESIZE * SPRITESIZE];
     if (sn >= MAXSPRITES)
@@ -692,6 +692,22 @@ void fill_sprite(uint sn) {
         sdata[i++] = cx;
     }
     // NOW CREATE bitmap, mask, etc...
+    for (int i = 0; i < SPRITESIZE; i++) {
+        int64_t mask = 0;
+        int64_t bitmap = 0;
+        for (int j = 0; j < SPRITESIZE; j++) {
+            cx = sdata[i + (j * SPRITESIZE)];
+            if (cx == 0xff) { // transparent
+                mask |= 0b01111;
+            }
+            bitmap |= (BOTTOMMASK & cx);
+            mask<<4;
+            bitmap<<4;
+        }
+        n->bitmap[i] = bitmap;
+        n->mask[i] = mask;
+    }
+    n->bgValid = false;
     sprites[sn] = n;
 }
 
