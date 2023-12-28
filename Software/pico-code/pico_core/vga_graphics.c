@@ -685,6 +685,8 @@ void fillSprite(uint sn) {
     unsigned char sdata[SPRITESIZE * SPRITESIZE];
     if (sn >= MAXSPRITES)
         return;
+    if (sprites[sn])    // already exists
+        return;
     sprite_t *n = malloc(sizeof(sprite_t));
     for (int i = 0; i < sizeof(sdata); ) {
         if (!getByte(&cx))
@@ -701,8 +703,8 @@ void fillSprite(uint sn) {
                 mask |= 0b01111;
             }
             bitmap |= (BOTTOMMASK & cx);
-            mask<<4;
-            bitmap<<4;
+            mask<<=4;
+            bitmap<<=4;
         }
         n->bitmap[i] = bitmap;
         n->mask[i] = mask;
@@ -712,34 +714,33 @@ void fillSprite(uint sn) {
 }
 
 void drawSprite(int x, int y, uint sn) {
-    int width = 8;
-    int offset = 0;
+    // TODO: Handle (x,y) error correction and semi-offscreen
     int yend = y + SPRITESIZE;
-    if (yend < 0 || x < -SPRITESIZE || x >= SCREENWIDTH || y >=SCREENHEIGHT)  // If completely off-screen, bail
+    int64_t bgrnd = 0;
+    int j = 0;
+    for (int i = y; i < yend; i++, j++) {
+        int pixel = ((SCREENWIDTH * i) + x);
+        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
+        sprites[sn]->bgrnd[j] = bgrnd;
+        int64_t masked_screen = sprites[sn]->mask[j] & bgrnd;
+        int64_t new_screen = masked_screen | (~sprites[sn]->mask[j] & sprites[sn]->bitmap[j]);
+        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
+    }
+    sprites[sn]->x = x;
+    sprites[sn]->y = y;
+    sprites[sn]->bgValid = true;
+}
+
+void eraseSprite(uint sn) {
+    // Restore background (original screen)
+    // TODO: (x,y) handling (see drawSprite)
+    if (!sprites[sn]->bgValid)
         return;
-    if (yend > SCREENHEIGHT)
-        yend = SCREENHEIGHT;
-    // First, find starting point of pixel data in the Sprite
-    // If the x coordinate means that we straddle a byte (recall, we
-    // store 2 pixels per byte), then force alignment
-    if ( (x < 0  || x > SCREENWIDTH-17) && !(x%2) )
-        x++;
-    if (x < 0) {
-        offset = abs(x);
-        width -= offset;
+    int yend = sprites[sn]->y + SPRITESIZE;
+    int j = 0;
+    for (int i = sprites[sn]->y; i < yend; i++, j++) {
+        int pixel = ((SCREENWIDTH * i) + sprites[sn]->x);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], 8);
     }
-    else if (x > SCREENWIDTH-17)
-        width = (SCREENWIDTH - x) / 2;
-    // At this point width contains the number of bytes
-    // to DMA and offset puts to the start of the row data
-    // to copy.
-    for (int i = y; i < yend; i++) {
-        if (i < 0)
-            continue;
-        int pixel = ((SCREENWIDTH * i) + x + offset);
-        int spixel = ((8 * i) + x + offset);
-        void *dst = (void *)(vga_data_array+pixel);
-        void *src = (void *)(sprites[sn]->bitmap+spixel);
-        dma_memcpy(dst, src, width);
-    }
+    sprites[sn]->bgValid = false;
 }
