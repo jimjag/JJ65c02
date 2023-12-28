@@ -46,6 +46,17 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
             TRANSPARENT=0xFF};
 
+// Sprite
+#define SPRITESIZE 16
+typedef struct {
+    int64_t bitmap[SPRITESIZE];
+    int64_t mask[SPRITESIZE];
+    int64_t bgrnd[SPRITESIZE];
+    short x;
+    short y;
+    bool bValid;
+} sprite_t;
+
 // GPIO pins to VIA chip
 enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY=26};
 

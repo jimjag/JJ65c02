@@ -677,24 +677,29 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
+#define MAXSPRITES 32
+sprite_t *sprites[MAXSPRITES];
+
 void fill_sprite(uint sn) {
     unsigned char cx;
+    unsigned char sdata[SPRITESIZE * SPRITESIZE];
     if (sn >= MAXSPRITES)
         return;
     sprite_t *n = malloc(sizeof(sprite_t));
-    for (int i = 0; i < SPRITESIZE; ) {
+    for (int i = 0; i < sizeof(sdata); ) {
         if (!getByte(&cx))
             continue;
-        n->data[i++] = cx;
+        sdata[i++] = cx;
     }
+    // NOW CREATE bitmap, mask, etc...
     sprites[sn] = n;
 }
 
 void drawSprite(int x, int y, uint sn) {
     int width = 8;
     int offset = 0;
-    int yend = y + 16;
-    if (yend < 0 || x < -16 || x >= SCREENWIDTH || y >=SCREENHEIGHT)  // If completely off-screen, bail
+    int yend = y + SPRITESIZE;
+    if (yend < 0 || x < -SPRITESIZE || x >= SCREENWIDTH || y >=SCREENHEIGHT)  // If completely off-screen, bail
         return;
     if (yend > SCREENHEIGHT)
         yend = SCREENHEIGHT;
@@ -718,7 +723,7 @@ void drawSprite(int x, int y, uint sn) {
         int pixel = ((SCREENWIDTH * i) + x + offset);
         int spixel = ((8 * i) + x + offset);
         void *dst = (void *)(vga_data_array+pixel);
-        void *src = (void *)(sprites[sn]->data+spixel);
+        void *src = (void *)(sprites[sn]->bitmap+spixel);
         dma_memcpy(dst, src, width);
     }
 }
