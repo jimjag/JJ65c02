@@ -13,6 +13,11 @@ if(DEFINED ENV{PICO_DEMO})
         pico_core_demo.c
         vga_core.c
         ps2_keyboard.c)
+elseif(DEFINED ENV{SPRITE_DEMO})
+    target_sources(pico_core_code PRIVATE
+            pico_core_demo-sprite.c
+            vga_core.c
+            ps2_keyboard.c)
 else()
     target_sources(pico_core_code PRIVATE
         pico_6502.c
