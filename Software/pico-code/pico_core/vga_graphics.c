@@ -677,9 +677,6 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-#define MAXSPRITES 32
-sprite_t *sprites[MAXSPRITES];
-
 void fillSprite(uint sn) {
     unsigned char cx;
     unsigned char sdata[SPRITESIZE * SPRITESIZE];
@@ -698,11 +695,11 @@ void fillSprite(uint sn) {
         int64_t mask = 0;
         int64_t bitmap = 0;
         for (int j = 0; j < SPRITESIZE; j++) {
-            cx = sdata[i + (j * SPRITESIZE)];
+            cx = sdata[j + (i * SPRITESIZE)];
             if (cx == 0xff) { // transparent
                 mask |= 0b01111;
             }
-            bitmap |= (BOTTOMMASK & cx);
+            bitmap |= (TOPMASK & cx);
             mask<<=4;
             bitmap<<=4;
         }
@@ -715,6 +712,7 @@ void fillSprite(uint sn) {
 
 void drawSprite(int x, int y, uint sn) {
     // TODO: Handle (x,y) error correction and semi-offscreen
+    eraseSprite(sn);
     int yend = y + SPRITESIZE;
     int64_t bgrnd = 0;
     int j = 0;
