@@ -9,14 +9,14 @@
 
 .segment "ZEROPAGE"
 ; WOZMON vars
-XAML:  .res 1   ; Last "opened" location Low
-XAMH:  .res 1   ; Last "opened" location High
-STL:  .res 1    ; Store address Low
-STH:  .res 1    ; Store address High
-L:  .res 1      ; Hex value parsing Low
-H:  .res 1      ; Hex value parsing High
-YSAV:  .res 1   ; Used to see if hex value is given
-MODE:  .res 1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+XAML = R0   ; Last "opened" location Low
+XAMH = R0+1   ; Last "opened" location High
+STL = R1    ; Store address Low
+STH = R1+1    ; Store address High
+L = R2      ; Hex value parsing Low
+H = R2+1      ; Hex value parsing High
+YSAV = Z0   ; Used to see if hex value is given
+MODE = Z1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
 
 IN    = YMBUF                          ; Input buffer
 
