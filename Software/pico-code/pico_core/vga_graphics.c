@@ -13,15 +13,12 @@ void vgaFillScreen(uint16_t color) {
 void drawPixel(int x, int y, char color) {
     if (color == TRANSPARENT) return;
     // Range checks (640x480 display)
-    if (x > (SCREENWIDTH - 1))
-        x = (SCREENWIDTH - 1);
-    if (x < 0)
-        x = 0;
-    if (y < 0)
-        y = 0;
-    if (y > (SCREENHEIGHT - 1))
-        y = (SCREENHEIGHT - 1);
-    // if((x > 639) | (x < 0) | (y > 479) | (y < 0) ) return;
+    if ( (x > (SCREENWIDTH - 1)) ||
+        (x < 0) ||
+        (y < 0) ||
+        (y > (SCREENHEIGHT - 1)) ) {
+        return;
+    }
 
     // Which pixel is it?
     int pixel = ((SCREENWIDTH * y) + x);
@@ -678,4 +675,70 @@ void printChar(unsigned char chrx) {
         }
     }
     enableCurs(was);
+}
+
+void fillSprite(uint sn) {
+    unsigned char cx;
+    unsigned char sdata[SPRITESIZE * SPRITESIZE];
+    if (sn >= MAXSPRITES)
+        return;
+    if (sprites[sn])    // already exists
+        return;
+    sprite_t *n = malloc(sizeof(sprite_t));
+    for (int i = 0; i < sizeof(sdata); ) {
+        if (!getByte(&cx))
+            continue;
+        sdata[i++] = cx;
+    }
+    // NOW CREATE bitmap, mask, etc...
+    for (int i = 0; i < SPRITESIZE; i++) {
+        int64_t mask = 0;
+        int64_t bitmap = 0;
+        for (int j = 0; j < SPRITESIZE; j++) {
+            mask<<=4;
+            bitmap<<=4;
+            cx = sdata[j + (i * SPRITESIZE)];
+            if (cx == 0xff) { // transparent
+                mask |= 0b00001111;
+            }
+            bitmap |= (TOPMASK & cx);
+        }
+        n->bitmap[i] = bitmap;
+        n->mask[i] = mask;
+    }
+    n->bgValid = false;
+    sprites[sn] = n;
+}
+
+void drawSprite(int x, int y, uint sn) {
+    // TODO: Handle (x,y) error correction and semi-offscreen
+    eraseSprite(sn);
+    int yend = y + SPRITESIZE;
+    int64_t bgrnd = 0;
+    int j = 0;
+    for (int i = y; i < yend; i++, j++) {
+        int pixel = ((SCREENWIDTH * i) + x);
+        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
+        sprites[sn]->bgrnd[j] = bgrnd;
+        int64_t masked_screen = sprites[sn]->mask[j] & bgrnd;
+        int64_t new_screen = masked_screen | (~sprites[sn]->mask[j] & sprites[sn]->bitmap[j]);
+        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
+    }
+    sprites[sn]->x = x;
+    sprites[sn]->y = y;
+    sprites[sn]->bgValid = true;
+}
+
+void eraseSprite(uint sn) {
+    // Restore background (original screen)
+    // TODO: (x,y) handling (see drawSprite)
+    if (!sprites[sn]->bgValid)
+        return;
+    int yend = sprites[sn]->y + SPRITESIZE;
+    int j = 0;
+    for (int i = sprites[sn]->y; i < yend; i++, j++) {
+        int pixel = ((SCREENWIDTH * i) + sprites[sn]->x);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], 8);
+    }
+    sprites[sn]->bgValid = false;
 }
