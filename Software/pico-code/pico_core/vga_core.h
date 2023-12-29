@@ -36,7 +36,7 @@
 // Screen width/height/freq
 #define SCREENWIDTH 640
 #define SCREENHEIGHT 480
-#define PIXFREQ   25175000.0f
+#define PIXFREQ   25000000.0f
 #define SCANFREQ 125000000.0f
 
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
@@ -49,9 +49,9 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 // Sprite
 #define SPRITESIZE 16
 typedef struct {
-    int64_t bitmap[SPRITESIZE];
-    int64_t mask[SPRITESIZE];
-    int64_t bgrnd[SPRITESIZE];
+    uint64_t bitmap[SPRITESIZE];
+    uint64_t mask[SPRITESIZE];
+    uint64_t bgrnd[SPRITESIZE];
     short x;
     short y;
     bool bgValid;
@@ -108,6 +108,6 @@ bool enableCurs(bool flag);
 void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
-void drawSprite(int x, int y, uint sn);
+void drawSprite(int x, int y, uint sn, bool erase);
 void fillSprite(uint sn);
 void eraseSprite(uint sn);
