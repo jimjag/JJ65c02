@@ -288,8 +288,10 @@ int main() {
             }
             bitmap |= (0b00001111 & cx);
         }
-        n->bitmap[i] = bitmap;
-        n->mask[i] = mask;
+        n->bitmap[1][i] = bitmap;
+        n->mask[1][i] = mask;
+        n->bitmap[0][i] = (bitmap >> 4) | 0xf000000000000000;
+        n->mask[0][i] = (mask >> 4) | 0xf000000000000000;
     }
     n->bgValid = false;
     sprites[1] = n;
