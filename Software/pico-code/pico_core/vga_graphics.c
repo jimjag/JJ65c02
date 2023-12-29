@@ -692,9 +692,9 @@ void fillSprite(uint sn) {
     }
     // NOW CREATE bitmap, mask, etc...
     for (int i = 0; i < SPRITESIZE; i++) {
-        int64_t mask = 0;
-        int64_t bitmap = 0;
-        for (int j = 0; j < SPRITESIZE; j++) {
+        uint64_t mask = 0;
+        uint64_t bitmap = 0;
+        for (int j = SPRITESIZE-1; j >= 0; j--) {
             mask<<=4;
             bitmap<<=4;
             cx = sdata[j + (i * SPRITESIZE)];
@@ -710,18 +710,25 @@ void fillSprite(uint sn) {
     sprites[sn] = n;
 }
 
-void drawSprite(int x, int y, uint sn) {
+void drawSprite(int x, int y, uint sn, bool erase) {
     // TODO: Handle (x,y) error correction and semi-offscreen
-    eraseSprite(sn);
+    if (erase) eraseSprite(sn);
+    uint64_t masked_screen;
+    uint64_t new_screen;
     int yend = y + SPRITESIZE;
-    int64_t bgrnd = 0;
+    uint64_t bgrnd = 0;
     int j = 0;
     for (int i = y; i < yend; i++, j++) {
         int pixel = ((SCREENWIDTH * i) + x);
         dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
         sprites[sn]->bgrnd[j] = bgrnd;
-        int64_t masked_screen = sprites[sn]->mask[j] & bgrnd;
-        int64_t new_screen = masked_screen | (~sprites[sn]->mask[j] & sprites[sn]->bitmap[j]);
+        if (x%2 == 0) {
+            masked_screen = (sprites[sn]->mask[j]>>4|0xf000000000000000) & bgrnd;
+            new_screen = masked_screen | (~(sprites[sn]->mask[j]>>4 | 0xf000000000000000) & (sprites[sn]->bitmap[j]>>4 | 0xf000000000000000));
+        } else {
+            masked_screen = sprites[sn]->mask[j] & bgrnd;
+            new_screen = masked_screen | (~sprites[sn]->mask[j] & sprites[sn]->bitmap[j]);
+        }
         dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
     }
     sprites[sn]->x = x;
