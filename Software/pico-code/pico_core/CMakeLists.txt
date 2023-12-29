@@ -32,5 +32,9 @@ target_link_libraries(pico_core_code PRIVATE
     hardware_adc
     hardware_irq)
 
+if(DEFINED ENV{PICO_DEMO})
+    pico_enable_stdio_usb(pico_core_code 1)
+    pico_enable_stdio_uart(pico_core_code 0)
+endif()
 # must match with executable name
 pico_add_extra_outputs(pico_core_code)
