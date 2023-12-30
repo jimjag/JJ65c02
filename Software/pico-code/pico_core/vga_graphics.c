@@ -724,7 +724,7 @@ void drawSprite(int x, int y, uint sn, bool erase) {
         int pixel = ((SCREENWIDTH * i) + x);
         dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
         sprites[sn]->bgrnd[j] = bgrnd;
-        int w = x&0x1;
+        int w = !(x&0x1);
         masked_screen = sprites[sn]->mask[w][j] & bgrnd;
         new_screen = masked_screen | (~sprites[sn]->mask[w][j] & sprites[sn]->bitmap[w][j]);
         dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
