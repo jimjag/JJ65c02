@@ -49,8 +49,8 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 // Sprite
 #define SPRITESIZE 16
 typedef struct {
-    uint64_t bitmap[SPRITESIZE];
-    uint64_t mask[SPRITESIZE];
+    uint64_t bitmap[2][SPRITESIZE];
+    uint64_t mask[2][SPRITESIZE];
     uint64_t bgrnd[SPRITESIZE];
     short x;
     short y;
