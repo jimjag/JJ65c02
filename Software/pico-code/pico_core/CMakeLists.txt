@@ -9,28 +9,44 @@ pico_generate_pio_header(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/memin.pio)
 
 # must match with executable name and source file names
 if(DEFINED ENV{PICO_DEMO})
-    target_sources(pico_core_code PRIVATE
+    target_sources (
+        pico_core_code PRIVATE
         pico_core_demo.c
         vga_core.c
-        ps2_keyboard.c)
+        ps2_keyboard.c
+        pico_synth_ex.c
+    )
+
 elseif(DEFINED ENV{SPRITE_DEMO})
-    target_sources(pico_core_code PRIVATE
-            pico_core_demo-sprite.c
-            vga_core.c
-            ps2_keyboard.c)
+    target_sources (
+        pico_core_code PRIVATE
+        pico_core_demo-sprite.c
+        vga_core.c
+        ps2_keyboard.c
+        pico_synth_ex.c
+    )
+
 else()
-    target_sources(pico_core_code PRIVATE
+    target_sources (
+        pico_core_code PRIVATE
         pico_6502.c
         vga_core.c
-        ps2_keyboard.c)
+        ps2_keyboard.c
+        pico_synth_ex.c
+    )
 endif()
+
 # must match with executable name
-target_link_libraries(pico_core_code PRIVATE
+target_link_libraries (
+    pico_core_code PRIVATE
     pico_stdlib
     hardware_pio
     hardware_dma
+    hardware_pwm
     hardware_adc
-    hardware_irq)
+    pico_multicore
+    hardware_irq
+)
 
 if(DEFINED ENV{PICO_DEMO})
     pico_enable_stdio_usb(pico_core_code 1)

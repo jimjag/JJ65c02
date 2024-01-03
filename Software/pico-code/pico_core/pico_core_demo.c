@@ -26,6 +26,7 @@
 // VGA graphics library
 #include "vga_core.h"
 #include "ps2_keyboard.h"
+#include "pico_synth_ex.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"

@@ -24,19 +24,34 @@
 // Orig version V. Hunter Adams / Cornell
 
 // VGA graphics library
-#include "vga_core.h"
-#include "ps2_keyboard.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
+#include "pico/multicore.h"
+#include "vga_core.h"
+#include "ps2_keyboard.h"
+#include "pico_synth_ex.h"
+
+void core1_main() {
+    initSOUND();
+    startup_chord();
+    while (true) {
+        soundTask();
+        //tight_loop_contents();
+    }
+}
 
 int main() {
     set_sys_clock_khz(250000, true);
     // Initialize stdio
     //stdio_init_all();
 
+    // start core 1 threads
+    multicore_reset_core1();
+    multicore_launch_core1(&core1_main);
     // Initialize the VGA screen and PS/2 interface
     initVGA();
     initPS2();
