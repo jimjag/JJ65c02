@@ -16,6 +16,7 @@
 #include "hardware/gpio.h"
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
+#include "pico/multicore.h"
 #include "pico_synth_ex_presets.h"
 #include "pico_synth_ex_tables.h"
 
@@ -300,132 +301,76 @@ static inline void load_preset(uint8_t preset)
   LFO_rate           = presets[preset].LFO_rate;
 }
 
+/*
+ * Control method
+
+    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i': Do, Re, Mi, Fa, G, A, C, C sounds. Play (range: from middle C to C one octave above)
+    '2', '3', '5', '6', '7': Sounds C#, D#, F#, G#, A#
+    '1'/'9': Decrease/increase the key octave shift amount by 1 (-5 to +4)
+    '0': Stop all sounds
+    'A'/'a': Decrease/increase the oscillator waveform setting value by 1 (0: descending sawtooth wave, 1: square wave)
+    'S'/'s': Decrease/increase oscillator 2 coarse pitch setting value by 1 (+0 to +24)
+    'D'/'d': Decrease/increase oscillator 2 fine pitch setting value by 1 (+0 to +32)
+    'F'/'f': Decrease/increase the oscillator mix setting value by 1 (0 to 64, mix balance of oscillators 1 and 2)
+    'G'/'g': Lowers/raises the filter cutoff setting value by 1 (0 to 120, cutoff frequency changes from approximately 19Hz to approximately 20kHz)
+    'H'/'h': Decrease/increase filter resonance setting value by 1 (0 to 5, Q value changes from approximately 0.7 to 4.0)
+    'J'/'j': Lower/increase the cutoff modulation amount setting value from the filter's EG by 1 (+0 to +60)
+    'X'/'x': Decrease/increase the EG decay time setting value by 1 (0 to 64)
+    'C'/'c': Decrease/increase the EG sustain level setting value by 1 (0 to 64)
+    'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
+    'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
+
+ */
+
 void soundTask(void) {
-#if 0
-    while (true) {
-        switch (getchar_timeout_us(0)) {
-            case 'q':
-                note_on_off(60);
-                break;
-            case '2':
-                note_on_off(61);
-                break;
-            case 'w':
-                note_on_off(62);
-                break;
-            case '3':
-                note_on_off(63);
-                break;
-            case 'e':
-                note_on_off(64);
-                break;
-            case 'r':
-                note_on_off(65);
-                break;
-            case '5':
-                note_on_off(66);
-                break;
-            case 't':
-                note_on_off(67);
-                break;
-            case '6':
-                note_on_off(68);
-                break;
-            case 'y':
-                note_on_off(69);
-                break;
-            case '7':
-                note_on_off(70);
-                break;
-            case 'u':
-                note_on_off(71);
-                break;
-            case 'i':
-                note_on_off(72);
-                break;
+    if (multicore_fifo_rvalid()) {
+        char cmd = multicore_fifo_pop_blocking();
+        switch (cmd) {
+            case 'q': note_on_off(60); break;
+            case '2': note_on_off(61); break;
+            case 'w': note_on_off(62); break;
+            case '3': note_on_off(63); break;
+            case 'e': note_on_off(64); break;
+            case 'r': note_on_off(65); break;
+            case '5': note_on_off(66); break;
+            case 't': note_on_off(67); break;
+            case '6': note_on_off(68); break;
+            case 'y': note_on_off(69); break;
+            case '7': note_on_off(70); break;
+            case 'u': note_on_off(71); break;
+            case 'i': note_on_off(72); break;
 
-            case '1':
-                if (octave_shift > -5) { --octave_shift; }
-                break;
-            case '9':
-                if (octave_shift < +4) { ++octave_shift; }
-                break;
-            case '0':
-                all_notes_off();
-                break;
+            case '1': if (octave_shift > -5) { --octave_shift; } break;
+            case '9': if (octave_shift < +4) { ++octave_shift; } break;
+            case '0': all_notes_off(); break;
 
-            case 'A':
-                if (Osc_waveform > 0) { --Osc_waveform; }
-                break;
-            case 'a':
-                if (Osc_waveform < 1) { ++Osc_waveform; }
-                break;
-            case 'S':
-                if (Osc_2_coarse_pitch > +0) { --Osc_2_coarse_pitch; }
-                break;
-            case 's':
-                if (Osc_2_coarse_pitch < +24) { ++Osc_2_coarse_pitch; }
-                break;
-            case 'D':
-                if (Osc_2_fine_pitch > +0) { --Osc_2_fine_pitch; }
-                break;
-            case 'd':
-                if (Osc_2_fine_pitch < +32) { ++Osc_2_fine_pitch; }
-                break;
-            case 'F':
-                if (Osc_1_2_mix > 0) { --Osc_1_2_mix; }
-                break;
-            case 'f':
-                if (Osc_1_2_mix < 64) { ++Osc_1_2_mix; }
-                break;
+            case 'A': if (Osc_waveform > 0) { --Osc_waveform; } break;
+            case 'a': if (Osc_waveform < 1) { ++Osc_waveform; } break;
+            case 'S': if (Osc_2_coarse_pitch > +0) { --Osc_2_coarse_pitch; } break;
+            case 's': if (Osc_2_coarse_pitch < +24) { ++Osc_2_coarse_pitch; } break;
+            case 'D': if (Osc_2_fine_pitch > +0) { --Osc_2_fine_pitch; } break;
+            case 'd': if (Osc_2_fine_pitch < +32) { ++Osc_2_fine_pitch; } break;
+            case 'F': if (Osc_1_2_mix > 0) { --Osc_1_2_mix; } break;
+            case 'f': if (Osc_1_2_mix < 64) { ++Osc_1_2_mix; } break;
 
-            case 'G':
-                if (Filter_cutoff > 0) { --Filter_cutoff; }
-                break;
-            case 'g':
-                if (Filter_cutoff < 120) { ++Filter_cutoff; }
-                break;
-            case 'H':
-                if (Filter_resonance > 0) { --Filter_resonance; }
-                break;
-            case 'h':
-                if (Filter_resonance < 5) { ++Filter_resonance; }
-                break;
-            case 'J':
-                if (Filter_mod_amount > +0) { --Filter_mod_amount; }
-                break;
-            case 'j':
-                if (Filter_mod_amount < +60) { ++Filter_mod_amount; }
-                break;
+            case 'G': if (Filter_cutoff > 0) { --Filter_cutoff; } break;
+            case 'g': if (Filter_cutoff < 120) { ++Filter_cutoff; } break;
+            case 'H': if (Filter_resonance > 0) { --Filter_resonance; } break;
+            case 'h': if (Filter_resonance < 5) { ++Filter_resonance; } break;
+            case 'J': if (Filter_mod_amount > +0) { --Filter_mod_amount; } break;
+            case 'j': if (Filter_mod_amount < +60) { ++Filter_mod_amount; } break;
 
-            case 'X':
-                if (EG_decay_time > 0) { --EG_decay_time; }
-                break;
-            case 'x':
-                if (EG_decay_time < 64) { ++EG_decay_time; }
-                break;
-            case 'C':
-                if (EG_sustain_level > 0) { --EG_sustain_level; }
-                break;
-            case 'c':
-                if (EG_sustain_level < 64) { ++EG_sustain_level; }
-                break;
+            case 'X': if (EG_decay_time > 0) { --EG_decay_time; } break;
+            case 'x': if (EG_decay_time < 64) { ++EG_decay_time; } break;
+            case 'C': if (EG_sustain_level > 0) { --EG_sustain_level; } break;
+            case 'c': if (EG_sustain_level < 64) { ++EG_sustain_level; } break;
 
-            case 'B':
-                if (LFO_depth > 0) { --LFO_depth; }
-                break;
-            case 'b':
-                if (LFO_depth < 64) { ++LFO_depth; }
-                break;
-            case 'N':
-                if (LFO_rate > 0) { --LFO_rate; }
-                break;
-            case 'n':
-                if (LFO_rate < 64) { ++LFO_rate; }
-                break;
+            case 'B': if (LFO_depth > 0) { --LFO_depth; } break;
+            case 'b': if (LFO_depth < 64) { ++LFO_depth; } break;
+            case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
+            case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
         }
     }
-#endif
 }
 
 void print_status() {
