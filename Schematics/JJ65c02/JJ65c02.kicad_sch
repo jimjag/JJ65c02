@@ -5273,7 +5273,7 @@
     (property "Value" "AS6C1008-55PCN" (at 125.73 28.7599 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "DIP1524W45P254L4191H419Q32" (at 125.73 66.04 0)
+    (property "Footprint" "JJ65c02:DIP1524W45P254L4191H419Q32" (at 125.73 66.04 0)
       (effects (font (size 1.27 1.27)) (justify left bottom) hide)
     )
     (property "Datasheet" "" (at 125.73 66.04 0)
