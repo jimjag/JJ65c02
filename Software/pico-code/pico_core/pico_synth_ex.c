@@ -324,8 +324,8 @@ static inline void load_preset(uint8_t preset)
 
 void soundTask(void) {
     if (multicore_fifo_rvalid()) {
-        char cmd = multicore_fifo_pop_blocking();
-        switch (cmd) {
+        uint32_t cmd = multicore_fifo_pop_blocking();
+        switch ((char)cmd) {
             case 'q': note_on_off(60); break;
             case '2': note_on_off(61); break;
             case 'w': note_on_off(62); break;

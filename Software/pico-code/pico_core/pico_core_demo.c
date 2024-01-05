@@ -32,6 +32,7 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
+#include "pico/multicore.h"
 
 // Some globals for storing timer information
 volatile int time_accum = 10;
@@ -44,10 +45,23 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     return true;
 }
 
+void core1_main() {
+    initSOUND();
+    startup_chord();
+    while (true) {
+        soundTask();
+        //tight_loop_contents();
+    }
+}
+
 int main() {
     set_sys_clock_khz(250000, true);
     // Initialize stdio
     stdio_init_all();
+
+    // start core 1 threads
+    //multicore_reset_core1();
+    multicore_launch_core1(&core1_main);
 
     // Initialize the VGA screen
     initVGA();
@@ -301,8 +315,14 @@ int main() {
     for (int i = 10; i < 500; i++) {
         drawSprite(i,y,1, true);
         y++;
+        multicore_fifo_push_blocking( i%2 ? 'q' : '7');
         sleep_ms(50);
     }
     drawSprite(0,100,1, false);
     drawSprite(1,116,1, false);
+    while (true) {
+        unsigned char c = ps2GetChar(false);
+        if (c == 'Q') break;
+        multicore_fifo_push_blocking((uint32_t)c);
+    }
 }

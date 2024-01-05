@@ -50,7 +50,7 @@ int main() {
     //stdio_init_all();
 
     // start core 1 threads
-    multicore_reset_core1();
+    //multicore_reset_core1();
     multicore_launch_core1(&core1_main);
     // Initialize the VGA screen and PS/2 interface
     initVGA();
