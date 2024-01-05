@@ -129,13 +129,10 @@ static inline Q14 EG_process(uint8_t id, uint8_t gate_in) {
   } else {
     static uint32_t decay_counter[4]; // Decay counter
     ++decay_counter[id];
-    decay_counter[id] =
-        (decay_counter[id] < EG_exp_table[EG_decay_time]) * decay_counter[id];
+    decay_counter[id] = (decay_counter[id] < EG_exp_table[EG_decay_time]) * decay_counter[id];
     int32_t decay_targ_level = (EG_sustain_level << 18) * curr_gate[id];
-    int32_t to_decay = (curr_level[id] > decay_targ_level) &
-                       (decay_counter[id] == 0);
-    curr_level[id] += to_decay *
-                      ((decay_targ_level - curr_level[id]) >> 5);
+    int32_t to_decay = (curr_level[id] > decay_targ_level) & (decay_counter[id] == 0);
+    curr_level[id] += to_decay * ((decay_targ_level - curr_level[id]) >> 5);
   }
 
   return curr_level[id] >> 10;
@@ -157,9 +154,7 @@ static inline Q14 LFO_process(uint8_t id) {
 }
 
 //////// PWM audio output block ///////////////////////
-static uint8_t PWMA_R_SLICE;
 static uint8_t PWMA_L_SLICE;
-static uint8_t PWMA_R_CHAN;
 static uint8_t PWMA_L_CHAN;
 
 #define PWMA_CYCLE (FCLKSYS / FS) // PWM cycle
@@ -167,15 +162,6 @@ static uint8_t PWMA_L_CHAN;
 static void pwm_irq_handler();
 
 void initSOUND(void) {
-  if(PWMA_R_GPIO > -1) {
-    PWMA_R_SLICE = pwm_gpio_to_slice_num(PWMA_R_GPIO);
-    PWMA_R_CHAN = pwm_gpio_to_channel(PWMA_R_GPIO);
-    gpio_set_function(PWMA_R_GPIO, GPIO_FUNC_PWM);
-    pwm_set_wrap(PWMA_R_SLICE, PWMA_CYCLE - 1);
-    pwm_set_chan_level(PWMA_R_SLICE, PWMA_R_CHAN, PWMA_CYCLE / 2);
-    pwm_set_enabled(PWMA_R_SLICE, true);
-  }
-  if(PWMA_L_GPIO > -1) {
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
     PWMA_L_CHAN = pwm_gpio_to_channel(PWMA_L_GPIO);
     gpio_set_function(PWMA_L_GPIO, GPIO_FUNC_PWM);
@@ -183,26 +169,17 @@ void initSOUND(void) {
     pwm_set_chan_level(PWMA_L_SLICE, PWMA_L_CHAN, PWMA_CYCLE / 2);
     pwm_set_enabled(PWMA_L_SLICE, true);
     pwm_set_irq_enabled(PWMA_L_SLICE, true);
-  } else {
-    pwm_set_irq_enabled(PWMA_R_SLICE, true);
-  }
-  irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
-  irq_set_enabled(PWM_IRQ_WRAP, true);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
+    irq_set_enabled(PWM_IRQ_WRAP, true);
 }
 
 static inline void PWMA_process(Q28 audio_in) {
   int32_t level_int32 = (audio_in >> 18) + (PWMA_CYCLE / 2);
   uint16_t level = (level_int32 > 0) * level_int32;
-  if(PWMA_R_GPIO > -1) pwm_set_chan_level(PWMA_R_SLICE, PWMA_R_CHAN, level);
-  if(PWMA_L_GPIO > -1) pwm_set_chan_level(PWMA_L_SLICE, PWMA_L_CHAN, level);
+  pwm_set_chan_level(PWMA_L_SLICE, PWMA_L_CHAN, level);
 }
 
 //////// Interrupt handler and main function ////////////
-static volatile uint16_t start_time = 0; // start time
-static volatile uint16_t max_start_time = 0; // max start time
-static volatile uint16_t proc_time = 0; // processing time
-static volatile uint16_t max_proc_time = 0; // maximum processing time
-
 static volatile uint8_t gate_voice[4]; // gate control value (per voice)
 static volatile uint8_t pitch_voice[4]; // pitch control value (per voice)
 static volatile int8_t octave_shift; // key octave shift amount
@@ -218,22 +195,13 @@ static inline Q28 process_voice(uint8_t id) {
 
 static void pwm_irq_handler() {
   pwm_clear_irq(PWMA_L_SLICE);
-  start_time = pwm_get_counter(PWMA_L_SLICE);
 
   Q28 voice_out[4];
   voice_out[0] = process_voice(0);
   voice_out[1] = process_voice(1);
   voice_out[2] = process_voice(2);
   voice_out[3] = process_voice(3);
-  PWMA_process((voice_out[0] + voice_out[1] +
-                voice_out[2] + voice_out[3]) >> 2);
-
-  uint16_t end_time = pwm_get_counter(PWMA_L_SLICE);
-  proc_time = end_time - start_time; // simplify calculation
-  max_start_time +=
-      (start_time > max_start_time) * (start_time - max_start_time);
-  max_proc_time +=
-      (proc_time > max_proc_time) * (proc_time - max_proc_time);
+  PWMA_process((voice_out[0] + voice_out[1] + voice_out[2] + voice_out[3]) >> 2);
 }
 
 static inline void note_on_off(uint8_t key)
@@ -390,6 +358,4 @@ void print_status() {
     printf("EG Sustain Level  : %3hhu\n", EG_sustain_level);
     printf("LFO Depth         : %3hhu\n", LFO_depth);
     printf("LFO Rate          : %3hhu\n", LFO_rate);
-    printf("Start Time        : %4hu/%4hu\n", start_time, max_start_time);
-    printf("Processing Time   : %4hu/%4hu\n\n", proc_time, max_proc_time);
 }

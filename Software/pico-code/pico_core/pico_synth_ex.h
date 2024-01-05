@@ -33,7 +33,6 @@ typedef int16_t Q14; // Signed fixed-point number with 14-bit fractional part
 #define FA (440.0F) // reference frequency (Hz)
 
 /* GPIO definitions */
-#define PWMA_R_GPIO             -1 // GPIO number for PWM output (right channel)
 #define PWMA_L_GPIO             28 // GPIO number for PWM output (left channel)
 
 void initSOUND(void);
