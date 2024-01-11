@@ -228,7 +228,7 @@ static void esc_sequence_received() {
                     case 9: // Set bg color: Esc[Z9;<color>Z
                         textbgcolor = safeColor(escP[1]);
                         break;
-                    case 10: // Set bg color: Esc[Z10;x;y;<char>;Z
+                    case 10: // Draw character <char> at x,y: Esc[Z10;x;y;<char>;Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1);
                         break;
                 }

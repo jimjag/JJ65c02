@@ -14,11 +14,11 @@ the JJ65c02 SBC. It performs 3 main functions:
 read and serialized using a __PIO__ state machine. This data is then fed into the
 VGA/terminal subsystem (if desired) as well as sent to the JJ65c02 system using 7 pins on
 the VIA chip and one pin for the data handshake. In general, we expect the 6502 to echo back
-and characters rec'd/sent from the PS/2 system.
+any characters rec'd/sent from the PS/2 system.
 
 PS/2 scancodes are translated to ASCII, and support uppercase, lowercase and
 control characters. The __arrow keys__ are specially handled and mapped
-to ASCII `0x11` through `0x14`. 
+to ASCII `0x11` through `0x14`.
 
 ## VGA Output
 
@@ -84,7 +84,7 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 
 NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI terminal standards.
 
-#### Extension
+#### Extensions
 
 * `ESC[Z;<c>Z` Write character `<c>` at current text cursor position
 * `ESC[Z1;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color

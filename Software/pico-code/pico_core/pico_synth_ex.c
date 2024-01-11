@@ -160,6 +160,7 @@ static uint8_t PWMA_L_CHAN;
 #define PWMA_CYCLE (FCLKSYS / FS) // PWM cycle
 
 static void pwm_irq_handler();
+static void load_preset(uint8_t preset);
 
 void initSOUND(void) {
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
@@ -171,6 +172,7 @@ void initSOUND(void) {
     pwm_set_irq_enabled(PWMA_L_SLICE, true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
+    load_preset(0);
 }
 
 static inline void PWMA_process(Q28 audio_in) {
@@ -252,7 +254,7 @@ int8_t get_octave_shift()
   return octave_shift;
 }
 
-static inline void load_preset(uint8_t preset)
+static void load_preset(uint8_t preset)
 {
     if (preset < 0 || preset > (NUM_PRESETS-1)) return;
     printf("loading preset %d\n", preset);
