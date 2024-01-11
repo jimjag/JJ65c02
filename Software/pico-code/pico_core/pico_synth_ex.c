@@ -254,19 +254,20 @@ int8_t get_octave_shift()
 
 static inline void load_preset(uint8_t preset)
 {
-  printf("loading preset %d\n", preset);
-  octave_shift       = presets[preset].octave_shift;
-  Osc_waveform       = presets[preset].Osc_waveform;
-  Filter_cutoff      = presets[preset].Filter_cutoff;
-  Filter_resonance   = presets[preset].Filter_resonance;
-  Filter_mod_amount  = presets[preset].Filter_mod_amount;
-  EG_decay_time      = presets[preset].EG_decay_time;
-  EG_sustain_level   = presets[preset].EG_sustain_level;
-  Osc_2_coarse_pitch = presets[preset].Osc_2_coarse_pitch;
-  Osc_2_fine_pitch   = presets[preset].Osc_2_fine_pitch;
-  Osc_1_2_mix        = presets[preset].Osc_1_2_mix;
-  LFO_depth          = presets[preset].LFO_depth;
-  LFO_rate           = presets[preset].LFO_rate;
+    if (preset < 0 || preset > (NUM_PRESETS-1)) return;
+    printf("loading preset %d\n", preset);
+    octave_shift       = presets[preset].octave_shift;
+    Osc_waveform       = presets[preset].Osc_waveform;
+    Filter_cutoff      = presets[preset].Filter_cutoff;
+    Filter_resonance   = presets[preset].Filter_resonance;
+    Filter_mod_amount  = presets[preset].Filter_mod_amount;
+    EG_decay_time      = presets[preset].EG_decay_time;
+    EG_sustain_level   = presets[preset].EG_sustain_level;
+    Osc_2_coarse_pitch = presets[preset].Osc_2_coarse_pitch;
+    Osc_2_fine_pitch   = presets[preset].Osc_2_fine_pitch;
+    Osc_1_2_mix        = presets[preset].Osc_1_2_mix;
+    LFO_depth          = presets[preset].LFO_depth;
+    LFO_rate           = presets[preset].LFO_rate;
 }
 
 /*
@@ -287,6 +288,7 @@ static inline void load_preset(uint8_t preset)
     'C'/'c': Decrease/increase the EG sustain level setting value by 1 (0 to 64)
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
+    'P'/'p': Set preset to value
 
  */
 
@@ -337,6 +339,10 @@ void soundTask(void) {
             case 'b': if (LFO_depth < 64) { ++LFO_depth; } break;
             case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
             case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
+            case 'P':
+            case 'p':
+                load_preset(multicore_fifo_pop_blocking());
+                break;
         }
     }
 }

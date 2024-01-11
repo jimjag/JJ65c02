@@ -16,7 +16,8 @@ typedef struct {
   uint8_t LFO_rate;
 } Preset_t;
 
-Preset_t presets[10] = {
+#define NUM_PRESETS 10
+Preset_t presets[NUM_PRESETS] = {
   { 0,  0,  0,  4,  16,  60,  3,  60,  40,  0, 16, 48}, // Default
   { 0,  1,  4,  0,   8,  50,  1,  60,  40,  0, 16, 24}, // Vibrola
   { 0,  1,  0,  2,   1,  33,  4,  42,  35, 50,  7, 39}, // Recorder
