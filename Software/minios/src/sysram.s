@@ -29,6 +29,15 @@
 .exportzp PS2IN_WPTR
 .exportzp YMBLPTR
 .exportzp YMEOFP
+.exportzp GX0
+.exportzp GY0
+.exportzp GX1
+.exportzp GY1
+.exportzp GW0
+.exportzp GH0
+.exportzp GR0
+.exportzp GCOLOR
+.exportzp GCHAR
 
 
 .export CLK_SPD
@@ -36,16 +45,6 @@
 
 .export USER_BUFFLEN
 .export YMBUF
-
-.export GX0
-.export GY0
-.export GX1
-.export GY1
-.export GW0
-.export GH0
-.export GR0
-.export GCOLOR
-.export GCHAR
 
 .export INPUT_BUFFER
 

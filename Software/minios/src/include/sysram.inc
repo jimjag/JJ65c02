@@ -35,15 +35,15 @@ _SYSRAM_INC_ = 1
 .import USER_BUFFLEN
 .import YMBUF
 
-.import GX0
-.import GY0
-.import GX1
-.import GY1
-.import GW0
-.import GH0
-.import GR0
-.import GCOLOR
-.import GCHAR
+.importzp GX0
+.importzp GY0
+.importzp GX1
+.importzp GY1
+.importzp GW0
+.importzp GH0
+.importzp GR0
+.importzp GCOLOR
+.importzp GCHAR
 
 .import INPUT_BUFFER
 
