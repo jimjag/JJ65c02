@@ -63,7 +63,7 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
-; Scratch space: 16bit "registers"
+; 16bit "registers" - Argument/parameter storage (use instead of stack)
 R0:     .res 2
 R1:     .res 2
 R2:     .res 2
@@ -72,6 +72,18 @@ R4:     .res 2
 R5:     .res 2
 R6:     .res 2
 R7:     .res 2
+
+; The below are for the interface to the Pi Pico graphics. We re-use
+; space for those commands that don't share variables
+GX0 =           R0      ; X0 coordinate
+GY0 =           R1      ; Y0 coordinate
+GX1 =           R2
+GY1 =           R3
+GW0 =           GX1     ; Width0 value
+GH0 =           GY1     ; Height0 value
+GR0 =           R4      ; Radius0 value
+GCOLOR =        R0      ; Color value
+GCHAR =         R0      ; Graphics character byte to "draw"
 
 ; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
@@ -93,17 +105,6 @@ CLK_SPD:        .res 1      ; Clock speed, in MHz
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
 YMBUF:          .res 132    ; storage for XMODEM. 128bytes buffer + overhead
-; The below are for the interface to the Pi Pico graphics. We re-use
-; space for those commands that don't share variables
-GX0:            .res 2      ; X0 coordinate
-GY0:            .res 2      ; Y0 coordinate
-GX1:            .res 2
-GY1:            .res 2
-GW0 =           GX1         ; Width0 value
-GH0 =           GY1         ; Height0 value
-GR0:            .res 2      ; Radius0 value
-GCOLOR:         .res 1      ; Color value
-GCHAR =         GCOLOR      ; Graphics character byte to "draw"
 ;
 INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 

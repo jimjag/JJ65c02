@@ -320,8 +320,8 @@ LIB_short2str:
     pla             ; 1s place
     and #%00001111
     adc #'0'        ; Write no matter what
-    jsr CON_write_byte
-    rts
+    jmp CON_write_byte
+    ;rts
 
 ;================================================================================
 ;
@@ -332,7 +332,7 @@ LIB_short2str:
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y
+;   Destroys:        .A, .X, .Y, Z0, Z1
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -386,12 +386,12 @@ LIB_byte2str:
     pla             ; 1s place
     and #%00001111
     adc #'0'        ; Write no matter what
-    jsr CON_write_byte
-    rts
+    jmp CON_write_byte
+    ;rts
 
 ;================================================================================
 ;
-;   GRA_print_char - Print out the character stored in GCHAR
+;   GRA_print_char - Print out the character stored in GCHAR (R0)
 ;       "ESC[Z;<c>Z"
 ;   ————————————————————————————————————
 ;   Preparatory Ops: GCHAR
@@ -406,19 +406,17 @@ GRA_print_char:
     CON_writeln x_escZ_prefix
     lda #';'
     jsr CON_write_byte
-    lda GCHAR
-    sta R0
     jsr LIB_byte2str
     lda #'Z'
-    jsr CON_write_byte
-    rts
+    jmp CON_write_byte
+    ;rts
 
 ;================================================================================
 ;
 ;   GRA_set_fgcolor:
 ;       "ESC[Z8;<color>Z"
 ;   ————————————————————————————————————
-;   Preparatory Ops: GCOLOR
+;   Preparatory Ops: GCOLOR (R0)
 ;
 ;   Returned Values: none
 ;
@@ -432,19 +430,17 @@ GRA_set_fgcolor:
     jsr CON_write_byte
     lda #';'
     jsr CON_write_byte
-    lda GCOLOR
-    sta R0
     jsr LIB_byte2str
     lda #'Z'
-    jsr CON_write_byte
-    rts
+    jmp CON_write_byte
+    ;rts
 
 ;================================================================================
 ;
 ;   GRA_set_bgcolor:
 ;       "ESC[Z9;<color>Z"
 ;   ————————————————————————————————————
-;   Preparatory Ops: GCOLOR
+;   Preparatory Ops: GCOLOR (R0)
 ;
 ;   Returned Values: none
 ;
@@ -458,9 +454,7 @@ GRA_set_bgcolor:
     jsr CON_write_byte
     lda #';'
     jsr CON_write_byte
-    lda GCOLOR
-    sta R0
     jsr LIB_byte2str
     lda #'Z'
-    jsr CON_write_byte
-    rts
+    jmp CON_write_byte
+    ;rts
