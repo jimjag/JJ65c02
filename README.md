@@ -1,7 +1,7 @@
 ![6502 Rulz](./Images/6502-rulz.png)
 # Introduction
 
-**JJ65c02** is my own personal interpretation of the noteworthy [Ben Eaters 6502 Computer](https://eater.net/6502) setup. In addition to Ben's work, I've used code, concepts and inspiration from a number of people, all acknowledged below in the **Credits** section.
+**JJ65c02** is my own personal interpretation of the noteworthy [Ben Eaters 6502 Computer](https://eater.net/6502) setup. In addition to Ben's work, I've used code, concepts and inspiration from a number of people, all acknowledged below in the **Credits** section. The ultimate inspirations are the venerable Apple II and the Atari 800 personal computers
 
 This project contains 3 main sections:
 
@@ -9,10 +9,8 @@ This project contains 3 main sections:
 * [Software](./Software)
   * The miniOS ROM bootloader
   * pico-code : The RP2040 VGA driver
-  * x65c02 Emulator
+  * x65c02 Emulator (stale)
 * [Datasheets](./Datasheets)
-
-The Software itself is my fork of the open source codebases mentioned above, with changes due to improvements, modifications required due to the specifics of the JJ65c02 setup (as compared to the BE6502), and bug fixes.
 
 Each section has its own Readme.md and Folder under this repo.
 

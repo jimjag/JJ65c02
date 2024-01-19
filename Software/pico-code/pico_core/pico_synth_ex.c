@@ -246,7 +246,7 @@ static inline void note_off(uint8_t key)
 void startup_chord(void)
 {
   for (uint8_t id = 0; id < 4; ++id) { pitch_voice[id] = 60; }
-  note_on(60); note_on(64); note_on(67); note_on(71);
+    note_on_off(60); note_on_off(64); note_on_off(67); note_on_off(71);
 }
 
 int8_t get_octave_shift()

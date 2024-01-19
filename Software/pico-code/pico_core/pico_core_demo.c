@@ -319,7 +319,7 @@ int main() {
         multicore_fifo_push_blocking( i%2 ? 'q' : '7');
         if (i > 250 && !changed) {
             multicore_fifo_push_blocking('P');
-            multicore_fifo_push_blocking(8);  // change 'voice'
+            multicore_fifo_push_blocking(5);  // change 'voice'
             changed = true;
         }
         sleep_ms(25);
