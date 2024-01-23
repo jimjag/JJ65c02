@@ -699,7 +699,7 @@ void fillSprite(uint sn) {
             bitmap<<=4;
             cx = sdata[j + (i * SPRITESIZE)];
             if (cx == 0xff) { // transparent
-                mask |= 0b00001111;
+                mask |= TOPMASK;
             }
             bitmap |= (TOPMASK & cx);
         }

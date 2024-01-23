@@ -89,23 +89,23 @@ that whatever serial/terminal connection program you use also has that
 configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
 Avoid `MacWise` because it lacks the transfer capability we need.
 
-To initiate the transfer, connect your "host" machine (the serial/terminal
+To initiate the transfer, connect your "tty" machine (the serial/terminal
 program) to the `JJ65c02` and power up the board. You should see a Welcome
-message on the Host's terminal window. If you don't, check your serial
+message on the tty's terminal window. If you don't, check your serial
 settings. You do ***not*** need a null modem connection.
 
-If all looks good, using the mini-keyboard on the board and select *Load*.
-Confirm (again on the LCD and mini-keyboard) that you are ready to
-initiate the transfer and hit any button on the mini-keyboard. At this
+If all looks good, using the miniOS menu on the Console, select *Load*.
+Confirm that you are ready to
+initiate the transfer and hit anykey. At this
 point you'll see on the Host terminal the message to *Begin XMODEM transfer.*
 
-From the Host machine chose to **upload** the program and select *XMODEM* as
+From the tty machine chose to **upload** the program and select *XMODEM* as
 the transfer protocol. The transfer should take just a few seconds. The
-LCD screen will display any errors as well as the number of the blocks being
+screen will display any errors as well as the number of the blocks being
 currently transfered. This may happen so fast that you don't even see
 the numbers change; all you may see is the last block number.
 
-Once complete, you will returned to minios, at which point you can
+Once complete, you will returned to miniOS, at which point you can
 chose to *Run* the just downloaded program. Have fun!
 
 NOTE: We use *XMODEM CRC*.

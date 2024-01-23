@@ -7,8 +7,8 @@ This project contains 3 main sections:
 
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
-  * The miniOS ROM bootloader
-  * pico-code : The RP2040 VGA driver
+  * The miniOS OS menu and ROM bootloader
+  * pico-code : The RP2040 A/V chip (VGA driver and PS/2 keyboard interface)
   * x65c02 Emulator (stale)
 * [Datasheets](./Datasheets)
 
