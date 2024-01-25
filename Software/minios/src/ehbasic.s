@@ -60,6 +60,7 @@
 ;      5.7     VAL() may cause string variables to be trashed
 ;      5.8j    Fix LAB_1B5B if we hit page edge
 ;      5.9j    Add EXIT command to return to bootloader/ROM
+;      5.10j   STR$(19) should return "19" not " 19"
 
 .segment "ZEROPAGE"
 
@@ -4384,7 +4385,7 @@ LAB_207A:
 
 LAB_STRS:
     jsr   LAB_CTNM          ; check if source is numeric, else do type mismatch
-    jsr   LAB_296E          ; convert FAC1 to string
+    jsr   LAB_2960          ; convert FAC1 to string
     lda   #<Decssp1         ; set result string low pointer
     ldy   #>Decssp1         ; set result string high pointer
     beq   LAB_20AE          ; print null terminated string to Sutill/Sutilh
@@ -6516,12 +6517,21 @@ LAB_295E:
 ; convert FAC1 to ASCII string result in (AY)
 ; not any more, moved scratchpad to page 0
 
+LAB_2960:
+    ldy   #$01              ; set index = 1
+    lda   #$20              ; character = " " (assume +ve)
+    bit   FAC1_s            ; test FAC1 sign (b7)
+    bmi   LAB_2970          ; branch if +ve
+    ldy   #$00
+    lda   #$00
+    bra   LAB_297B
 LAB_296E:
     ldy   #$01              ; set index = 1
     lda   #$20              ; character = " " (assume +ve)
     bit   FAC1_s            ; test FAC1 sign (b7)
     bpl   LAB_2978          ; branch if +ve
 
+LAB_2970:
     lda   #$2D              ; else character = "-"
 LAB_2978:
     sta   Decss,Y           ; save leading character (" " or "-")
@@ -8856,11 +8866,11 @@ END_CODE:
 .segment "RODATA"
 
 LAB_mess:
-    .asciiz "\r\n6502 EhBASIC ver 2.22p5.9j [C]old/[W]arm ?" ; sign on string
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.10j [C]old/[W]arm ?" ; sign on string
 LAB_MSZM:
     .asciiz "\r\nMemory size "
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.9j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.10j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"
