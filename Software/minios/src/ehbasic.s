@@ -60,7 +60,7 @@
 ;      5.7     VAL() may cause string variables to be trashed
 ;      5.8j    Fix LAB_1B5B if we hit page edge
 ;      5.9j    Add EXIT command to return to bootloader/ROM
-;      5.10j   STR$(19) should return "19" not " 19"
+;      5.10j   Added CSTR$(): CSTR$(19) returns "19" not " 19" ala STR$()
 
 .segment "ZEROPAGE"
 
@@ -411,6 +411,7 @@ Decssp1:         .res 16         ; number to decimal string start
     token_SADD
     token_LEN
     token_STRS                  ; STR$ token
+    token_CSTRS                 ; CSTR$ token
     token_VAL
     token_ASC
     token_UCASES                ; UCASE$ token
@@ -4381,14 +4382,23 @@ LAB_207A:
     sta   (func_l),Y        ; save to function
     rts
 
-; perform STR$()
+; perform CSTR$()
 
-LAB_STRS:
+LAB_CSTRS:
     jsr   LAB_CTNM          ; check if source is numeric, else do type mismatch
     jsr   LAB_2960          ; convert FAC1 to string
     lda   #<Decssp1         ; set result string low pointer
     ldy   #>Decssp1         ; set result string high pointer
-    beq   LAB_20AE          ; print null terminated string to Sutill/Sutilh
+    bra   LAB_20AE          ; print null terminated string to Sutill/Sutilh
+
+; perform STR$()
+
+LAB_STRS:
+    jsr   LAB_CTNM          ; check if source is numeric, else do type mismatch
+    jsr   LAB_296E          ; convert FAC1 to string
+    lda   #<Decssp1         ; set result string low pointer
+    ldy   #>Decssp1         ; set result string high pointer
+    bra   LAB_20AE          ; print null terminated string to Sutill/Sutilh
 
 ; Do string vector
 ; copy des_pl/h to des_2l/h and make string space A bytes long
@@ -6521,7 +6531,7 @@ LAB_2960:
     ldy   #$01              ; set index = 1
     lda   #$20              ; character = " " (assume +ve)
     bit   FAC1_s            ; test FAC1 sign (b7)
-    bmi   LAB_2970          ; branch if +ve
+    bmi   LAB_2970          ; branch if -ve
     ldy   #$00
     lda   #$00
     bra   LAB_297B
@@ -8074,6 +8084,7 @@ LAB_FTPM = LAB_FTPL+$01
     .word $0000             ; SADD()    none
     .word LAB_PPFS-1        ; LEN($)    process string expression in ()
     .word LAB_PPFN-1        ; STR$(n)   process numeric expression in ()
+    .word LAB_PPFN-1        ; CSTR$(n)  process numeric expression in ()
     .word LAB_PPFS-1        ; VAL($)    process string expression in ()
     .word LAB_PPFS-1        ; ASC($)          "
     .word LAB_PPFS-1        ; UCASE$($)       "
@@ -8113,6 +8124,7 @@ LAB_FTBM = LAB_FTBL+$01
     .word LAB_SADD-1        ; SADD()          new function
     .word LAB_LENS-1        ; LEN()
     .word LAB_STRS-1        ; STR$()
+    .word LAB_CSTRS-1       ; CSTR$()
     .word LAB_VAL-1         ; VAL()
     .word LAB_ASC-1         ; ASC()
     .word LAB_UCASE-1       ; UCASE$()        new function
@@ -8287,6 +8299,8 @@ LBB_CONT:
       .byte "ONT",token_CONT     ; CONT
 LBB_COS:
       .byte "OS(",token_COS      ; COS(
+LBB_CSTRS:
+      .byte "STR$(",token_CSTRS  ; CSTR$(
       .byte $00
 TAB_ASCD:
 LBB_DATA:
@@ -8676,6 +8690,8 @@ LAB_KEYT:
       .word LBB_LEN           ; LEN
       .byte 5,'S'             ;
       .word LBB_STRS          ; STR$
+      .byte 6,'C'             ;
+      .word LBB_CSTRS         ; CSTR$
       .byte 4,'V'             ;
       .word LBB_VAL           ; VAL
       .byte 4,'A'             ;
