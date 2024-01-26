@@ -61,6 +61,8 @@
 ;      5.8j    Fix LAB_1B5B if we hit page edge
 ;      5.9j    Add EXIT command to return to bootloader/ROM
 ;      5.10j   Added CSTR$(): CSTR$(19) returns "19" not " 19" ala STR$()
+;      5.11j   Tokenizer mixed case keyword recognition
+;              http://forum.6502.org/viewtopic.php?f=5&t=4383
 
 .segment "ZEROPAGE"
 
@@ -1049,6 +1051,16 @@ LAB_13AC:
     lda   Ibuffs,X          ; get byte from input buffer
     beq   LAB_13EC          ; if null save byte then exit
 
+; *** begin patch: lower case token recognition V2 ***
+; ***              WARNING! changes documented behavior!
+; *** add
+      CMP   #'{'              ; convert lower to upper case
+      BCS   LAB_13EC          ; is above lower case
+      CMP   #'a'
+      BCC   PATCH_LC          ; is below lower case
+      AND   #$DF              ; mask lower case bit
+PATCH_LC:
+; *** end
     cmp   #'_'              ; compare with "_"
     bcs   LAB_13EC          ; if >= go save byte then continue crunching
 
@@ -1083,8 +1095,12 @@ LAB_13D0:
     cmp   (ut2_pl),Y        ; compare with keyword first character table byte
     beq   LAB_13D1          ; go do word_table_chr if match
 
-    bcc   LAB_13EA          ; if < keyword first character table byte go restore
+; *** replace
+;   bcc   LAB_13EA         ; if < keyword first character table byte go restore
                               ; Y and save to crunched
+; *** with
+    BCC   PATCH_LC2         ; if < keyword first character table byte go restore
+; *** end
 
     iny                     ; else increment pointer
     bne   LAB_13D0          ; and loop (branch always)
@@ -1110,7 +1126,12 @@ LAB_13D8:
     bmi   LAB_13EA          ; all bytes matched so go save token
 
     inx                     ; next buffer byte
-    cmp   Ibuffs,X          ; compare with byte from input buffer
+; *** replace
+;   cmp   Ibuffs,X          ; compare with byte from input buffer
+; *** with
+    EOR     Ibuffs,x        ; check bits against table
+    AND     #$DF            ; DF masks the upper/lower case bit
+; *** end
     beq   LAB_13D6          ; go compare next if match
 
     bne   LAB_1417          ; branch if >< (not found keyword)
@@ -1172,8 +1193,11 @@ LAB_141B:
 
     lda   (ut2_pl),Y        ; get byte from keyword table
     bne   LAB_13D8          ; go test next word if not zero byte (end of table)
-
-                              ; reached end of table with no match
+                            ; reached end of table with no match
+; *** add label
+PATCH_LC2:
+; *** end
+; *** end   patch: lower case token recognition V2 ***
     lda   Ibuffs,X          ; restore byte from input buffer
     bpl   LAB_13EA          ; branch always (all bytes in buffer are $00-$7F)
                               ; go save byte in output and continue crunching
