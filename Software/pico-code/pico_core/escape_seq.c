@@ -231,6 +231,9 @@ static void esc_sequence_received() {
                     case 10: // Draw character <char> at x,y: Esc[Z10;x;y;<char>;Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1);
                         break;
+                    case 11: // Sound function - send <val> to sound routine (soundTask)
+                        multicore_fifo_push_blocking((uint32_t)escP[1]);
+                        break;
                 }
                 break;
             default:

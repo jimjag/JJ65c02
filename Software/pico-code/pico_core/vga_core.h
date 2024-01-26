@@ -24,6 +24,8 @@
 #include <stddef.h>
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
+#include "pico/multicore.h"
+#include "pico_synth_ex.h"
 
 // TODO: Eventually support resolutions > 640x480
 

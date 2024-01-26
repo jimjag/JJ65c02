@@ -161,6 +161,7 @@ static uint8_t PWMA_L_CHAN;
 
 static void pwm_irq_handler();
 static void load_preset(uint8_t preset);
+static uint8_t current_preset;
 
 void initSOUND(void) {
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
@@ -189,6 +190,7 @@ static volatile int8_t octave_shift; // key octave shift amount
 static inline Q28 process_voice(uint8_t id) {
   Q14 lfo_out    = LFO_process(id);
   Q14 eg_out     = EG_process(id, gate_voice[id]);
+  if (eg_out <= 5) gate_voice[id] = 0;
   Q28 osc_out    = Osc_process(id, pitch_voice[id] << 8, lfo_out);
   Q28 filter_out = Filter_process(id, osc_out, eg_out);
   Q28 amp_out    = Amp_process(id, filter_out, eg_out);
@@ -224,12 +226,10 @@ static inline void all_notes_off()
   for (uint8_t id = 0; id < 4; ++id) { gate_voice[id] = 0; }
 }
 
-//////// Picophonica-specific functions /////////
 static inline void note_on(uint8_t key)
 {
+  static uint8_t current_voice = 0;
   uint8_t pitch = key + (octave_shift * 12);
-  static uint8_t current_voice;
-
   pitch_voice[current_voice] = pitch;
   gate_voice[current_voice] = 1;
   current_voice = (++current_voice % 4);
@@ -245,13 +245,26 @@ static inline void note_off(uint8_t key)
 
 void startup_chord(void)
 {
-  for (uint8_t id = 0; id < 4; ++id) { pitch_voice[id] = 60; }
-    note_on_off(60); note_on_off(64); note_on_off(67); note_on_off(71);
+  //for (uint8_t id = 0; id < 4; ++id) { pitch_voice[id] = 60; }
+    note_on(60); note_on(64); note_on(67); note_on(71);
 }
 
 int8_t get_octave_shift()
 {
   return octave_shift;
+}
+
+uint8_t get_current_preset()
+{
+    return current_preset;
+}
+
+void beep(void)
+{
+    uint8_t preset = get_current_preset();
+    load_preset(1);
+    note_on(65);
+    load_preset(preset);
 }
 
 static void load_preset(uint8_t preset)
@@ -270,6 +283,7 @@ static void load_preset(uint8_t preset)
     Osc_1_2_mix        = presets[preset].Osc_1_2_mix;
     LFO_depth          = presets[preset].LFO_depth;
     LFO_rate           = presets[preset].LFO_rate;
+    current_preset = preset;
 }
 
 /*
@@ -291,12 +305,18 @@ static void load_preset(uint8_t preset)
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
     'P'/'p': Set preset to value
-
+    'L'/'l': Bell beep
  */
 
 void soundTask(void) {
+    static bool await_preset = false;
     if (multicore_fifo_rvalid()) {
         uint32_t cmd = multicore_fifo_pop_blocking();
+        if (await_preset) {
+            load_preset(cmd);
+            await_preset = false;
+            return;
+        }
         switch ((char)cmd) {
             case 'q': note_on_off(60); break;
             case '2': note_on_off(61); break;
@@ -342,9 +362,9 @@ void soundTask(void) {
             case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
             case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
             case 'P':
-            case 'p':
-                load_preset(multicore_fifo_pop_blocking());
-                break;
+            case 'p': await_preset = true; break;
+            case 'L':
+            case 'l': beep(); break;
         }
     }
 }

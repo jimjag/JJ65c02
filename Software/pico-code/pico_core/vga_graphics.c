@@ -603,6 +603,9 @@ static void doChar(unsigned char chrx) {
             tcurs.x--;
             checkCursor();
             break;
+        case '\a':
+            beep();
+            break;
         default:
             writeChar(chrx);
             break;

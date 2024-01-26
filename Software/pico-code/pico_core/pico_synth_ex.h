@@ -38,4 +38,5 @@ typedef int16_t Q14; // Signed fixed-point number with 14-bit fractional part
 void initSOUND(void);
 void soundTask(void);
 void startup_chord(void);
+void beep(void);
 
