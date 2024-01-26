@@ -190,10 +190,10 @@ static volatile int8_t octave_shift; // key octave shift amount
 static inline Q28 process_voice(uint8_t id) {
   Q14 lfo_out    = LFO_process(id);
   Q14 eg_out     = EG_process(id, gate_voice[id]);
-  if (eg_out <= 5) gate_voice[id] = 0;
   Q28 osc_out    = Osc_process(id, pitch_voice[id] << 8, lfo_out);
   Q28 filter_out = Filter_process(id, osc_out, eg_out);
   Q28 amp_out    = Amp_process(id, filter_out, eg_out);
+  if (eg_out <= 5) gate_voice[id] = 0;  // We need to force a note_off
   return amp_out;
 }
 
@@ -246,7 +246,7 @@ static inline void note_off(uint8_t key)
 void startup_chord(void)
 {
   //for (uint8_t id = 0; id < 4; ++id) { pitch_voice[id] = 60; }
-    note_on(60); note_on(64); note_on(67); note_on(71);
+    note_on_off(60); note_on_off(64); note_on_off(67); note_on_off(71);
 }
 
 int8_t get_octave_shift()
@@ -263,7 +263,7 @@ void beep(void)
 {
     uint8_t preset = get_current_preset();
     load_preset(1);
-    note_on(65);
+    note_on_off(65);
     load_preset(preset);
 }
 
