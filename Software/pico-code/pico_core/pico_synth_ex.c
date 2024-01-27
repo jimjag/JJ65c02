@@ -208,7 +208,7 @@ static void pwm_irq_handler() {
   PWMA_process((voice_out[0] + voice_out[1] + voice_out[2] + voice_out[3]) >> 2);
 }
 
-static inline void note_on_off(uint8_t key)
+static void note_on_off(uint8_t key)
 {
   uint8_t pitch = key + (octave_shift * 12);
   if      (pitch_voice[0] == pitch) { gate_voice[0] = (gate_voice[0] == 0); }
@@ -218,24 +218,25 @@ static inline void note_on_off(uint8_t key)
   else if (gate_voice[0] == 0) { pitch_voice[0] = pitch; gate_voice[0] = 1; }
   else if (gate_voice[1] == 0) { pitch_voice[1] = pitch; gate_voice[1] = 1; }
   else if (gate_voice[2] == 0) { pitch_voice[2] = pitch; gate_voice[2] = 1; }
-  else                         { pitch_voice[3] = pitch; gate_voice[3] = 1; }
+  else if (gate_voice[3] == 0) { pitch_voice[3] = pitch; gate_voice[3] = 1; }
+  else                         { pitch_voice[0] = pitch; gate_voice[0] = 1; }
 }
 
-static inline void all_notes_off()
+static void all_notes_off()
 {
   for (uint8_t id = 0; id < 4; ++id) { gate_voice[id] = 0; }
 }
 
-static inline void note_on(uint8_t key)
+static void note_on(uint8_t key)
 {
-  static uint8_t current_voice = 0;
+  static uint8_t current_voice;
   uint8_t pitch = key + (octave_shift * 12);
   pitch_voice[current_voice] = pitch;
   gate_voice[current_voice] = 1;
   current_voice = (++current_voice % 4);
 }
 
-static inline void note_off(uint8_t key)
+static void note_off(uint8_t key)
 {
   uint8_t pitch = key + (octave_shift * 12);
   for (uint8_t id = 0; id < 4; ++id) {
@@ -257,14 +258,6 @@ int8_t get_octave_shift()
 uint8_t get_current_preset()
 {
     return current_preset;
-}
-
-void beep(void)
-{
-    uint8_t preset = get_current_preset();
-    load_preset(1);
-    note_on_off(65);
-    load_preset(preset);
 }
 
 static void load_preset(uint8_t preset)
@@ -304,19 +297,11 @@ static void load_preset(uint8_t preset)
     'C'/'c': Decrease/increase the EG sustain level setting value by 1 (0 to 64)
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
-    'P'/'p': Set preset to value
-    'L'/'l': Bell beep
  */
 
 void soundTask(void) {
-    static bool await_preset = false;
     if (multicore_fifo_rvalid()) {
         uint32_t cmd = multicore_fifo_pop_blocking();
-        if (await_preset) {
-            load_preset(cmd);
-            await_preset = false;
-            return;
-        }
         switch ((char)cmd) {
             case 'q': note_on_off(60); break;
             case '2': note_on_off(61); break;
@@ -361,10 +346,15 @@ void soundTask(void) {
             case 'b': if (LFO_depth < 64) { ++LFO_depth; } break;
             case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
             case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
-            case 'P':
-            case 'p': await_preset = true; break;
-            case 'L':
-            case 'l': beep(); break;
+
+            case ')': load_preset(0); break;
+            case '!': load_preset(1); break;
+            case '@': load_preset(2); break;
+            case '#': load_preset(3); break;
+            case '$': load_preset(4); break;
+            case '%': load_preset(5); break;
+            case '^': load_preset(6); break;
+            case '&': load_preset(7); break;
         }
     }
 }
@@ -386,4 +376,13 @@ void print_status() {
     printf("EG Sustain Level  : %3hhu\n", EG_sustain_level);
     printf("LFO Depth         : %3hhu\n", LFO_depth);
     printf("LFO Rate          : %3hhu\n", LFO_rate);
+}
+
+void beep(void)
+{
+    uint8_t preset = get_current_preset();
+    all_notes_off();
+    load_preset(1);
+    note_on_off(65);
+    load_preset(preset);
 }
