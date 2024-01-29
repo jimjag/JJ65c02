@@ -97,10 +97,11 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z8;<color>Z` Set FG color to `<color>`
 * `ESC[Z9;<color>Z` Set BG color to `<color>`
 * `ESC[Z10;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
+* `ESC[Z11;<code>Z` Send ascii char decimal code`<code>` to the Pi Pico Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z11;101Z` will send `e` to `soundTask()` to play a single `Mi` note
 
 Pixel locations are 0-based: (0,0) to (639, 479).
 
-Graphics use FG color.
+Graphics (lines, circles, ...) use FG color for their color.
 
 Our color set uses:
 ```
@@ -108,4 +109,6 @@ enum colors {BLACK, RED, GREEN, YELLOW,
              BLUE, MAGENTA, CYAN, LIGHT_GREY,
              GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW,
              LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
+
+TRANSPARENT is #FF when creating Sprites
 ```
