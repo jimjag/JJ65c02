@@ -16,3 +16,23 @@ Fonts:
   Source:
     The Ultimate Oldschool PC Font Pack (v2.2) / https://int10h.org/oldschool-pc-fonts/
     Sweet16 / https://github.com/kmar/Sweet16Font
+
+/* pico_synth_ex
+ * Original author: ISGK Instruments (Ryo Ishigaki)
+ * Original version: v0.1.0 (2021-09-02)
+ * https://github.com/risgk/pico_synth_ex   https://risgk.github.io
+ * Licensed under a CC0 license
+ *
+ * Edited by Turi Scandurra as part of Picophonica
+ * https://github.com/TuriSc/Picophonica
+ *
+ */
+
+/*
+
+  LICENSE: Attribution-ShareAlike 4.0 International
+
+  Fonts:   The Ultimate Oldschool PC Font Pack (v2.2) / https://int10h.org/oldschool-pc-fonts/
+       Sweet16 / https://github.com/kmar/Sweet16Font
+  BitMaps: Created Using PCFace / https://github.com/susam/pcface
+*/

@@ -10,16 +10,31 @@
  *  - GPIO 15 ---> PS2 Data pin
  *  - GPIO 16 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
+ *  - GPIO 0-6 ---> 7 bit PS/2 Data to VIA
+ *  - GPIO 7-14 ---> 8 Bit Data In from VIA
+ *  - GPIO 26 ---> Data Ready
+ *  - GPIO 27 ---> IRQ/Handshake to VIA for PS/2
+ *  - GPIO 28 ---> audio/sound
  *
  * RESOURCES USED
+ *  CORE 0
  *  - VGA:
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
  *  -   DMA channels 0, 1, 2, and 3
+ *  -   IRQ 0, 1
  *  -   153.6 kBytes of RAM (for pixel color data)
  *  - PS2:
  *  -   PIO state machine 0 on PIO instance 1
+ *  -   IRQ 1
+ *  - MEMIN:
+ *  -   PIO state machine 1 on PIO instance 1
+ *  -   IRQ 0
  *
+ * CORE 1
+ * - SND:
+ * -   PWM
  */
+
 #include <stdint.h>
 #include <stddef.h>
 #include "hardware/pio.h"

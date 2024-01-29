@@ -1,3 +1,7 @@
+/**
+ * MIT License
+ * Copyright (c) 2021-2024 Jim Jagielski
+ */
 // escape sequence state
 #define ESC_READY    0
 #define SAW_ESC      1

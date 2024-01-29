@@ -1,3 +1,7 @@
+/**
+ * MIT License
+ * Copyright (c) 2021-2024 Jim Jagielski
+ */
 // Core VGA Graphics functions
 //
 

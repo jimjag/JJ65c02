@@ -1,13 +1,8 @@
-/* pico_synth_ex
- * Original author: ISGK Instruments (Ryo Ishigaki)
- * Original version: v0.1.0 (2021-09-02)
- * https://github.com/risgk/pico_synth_ex   https://risgk.github.io
- * Licensed under a CC0 license
- *
- * Edited by Turi Scandurra as part of Picophonica
- * https://github.com/TuriSc/Picophonica
- *
+/**
+ * MIT License
+ * Copyright (c) 2021-2024 Jim Jagielski
  */
+
 
 #include <stdio.h>
 #include <math.h>

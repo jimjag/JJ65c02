@@ -1,7 +1,7 @@
 
-## JJ65c02: The minios
+## JJ65c02: The miniOS
 
-`minios.asm` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
+`miniOS` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
 
 1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
 2. __Run__ programs that were previously loaded into RAM
@@ -11,7 +11,7 @@
 6. __EhBasic__ BASIC interpreter
 
 
-### Install the minios
+### Install the miniOS
 
 minios requires the [cl65 Assembler](https://cc65.github.io) to assemble
 and link the required files. For ease of assembly, you'll find a `Makefile`
@@ -58,7 +58,7 @@ building and loading RAM-based programs.
 
 ### 1. Allocated Zero Page Locations
 
-The minios needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$DC`, which can be confirmed via looking at the
+The miniOS needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$DC`, which can be confirmed via looking at the
 `__ZEROPAGE_LAST__` variable in the `minios.map` file. Now if you
 follow the below instuctions for assembling and building your own
 RAM programs, you don't need to worry about this, because during the
@@ -71,13 +71,13 @@ code (for now)
 
 ### 2. Allocated RAM
 
-The minios also occupies some RAM. Most of the allocated block is used as VideoRam to talk to the LCD and as various I/O buffers. In the `jj65c02.cfg`
+The miniOS also occupies some RAM. In the `jj65c02.cfg`
 file this is set-aside as `RAM0` and is typically refered to as `SYSRAM`.
 Your programs are free to use `BSS`, `HEAP` and `RWDATA` as needed.
 
 ## Bootloader, aka Getting Programs into RAM
 
-As mentioned, one of the main functions of minios is as a bootloader,
+As mentioned, one of the main functions of miniOS is as a bootloader,
 which allows your to download/transfer your own pre-assembled code to
 RAM and run it from there. This uses the `W65c51` ACIA chip and the
 `MAX232` TTL-Serial converter card on the `JJ65c02` board.
