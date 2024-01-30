@@ -292,6 +292,16 @@ static void load_preset(uint8_t preset)
     'C'/'c': Decrease/increase the EG sustain level setting value by 1 (0 to 64)
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
+    ')': Default voice
+    '!': Vibrola voice
+    '@': Recorder voice
+    '#': Superlead voice
+    '$': Chromabits voice
+    '%': Bell voice
+    '^': Oboe voice
+    '&': Acid bass voice
+    '*': Lasercat voice
+    '(': Minitone voice
  */
 
 void soundTask(void) {
@@ -350,6 +360,8 @@ void soundTask(void) {
             case '%': load_preset(5); break;
             case '^': load_preset(6); break;
             case '&': load_preset(7); break;
+            case '*': load_preset(8); break;
+            case '(': load_preset(9); break;
         }
     }
 }
