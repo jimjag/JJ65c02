@@ -178,17 +178,17 @@ static inline void PWMA_process(Q28 audio_in) {
 }
 
 //////// Interrupt handler and main function ////////////
-static volatile uint8_t gate_voice[4]; // gate control value (per voice)
-static volatile uint8_t pitch_voice[4]; // pitch control value (per voice)
+static volatile uint8_t voice_gate[4]; // gate control value (per voice)
+static volatile uint8_t voice_pitch[4]; // pitch control value (per voice)
 static volatile int8_t octave_shift; // key octave shift amount
 
 static inline Q28 process_voice(uint8_t id) {
   Q14 lfo_out    = LFO_process(id);
-  Q14 eg_out     = EG_process(id, gate_voice[id]);
-  Q28 osc_out    = Osc_process(id, pitch_voice[id] << 8, lfo_out);
+  Q14 eg_out     = EG_process(id, voice_gate[id]);
+  Q28 osc_out    = Osc_process(id, voice_pitch[id] << 8, lfo_out);
   Q28 filter_out = Filter_process(id, osc_out, eg_out);
   Q28 amp_out    = Amp_process(id, filter_out, eg_out);
-  if (eg_out <= 5) gate_voice[id] = 0;  // We need to force a note_off
+  if (eg_out <= 5) voice_gate[id] = 0;  // We need to force a note_off
   return amp_out;
 }
 
@@ -206,28 +206,28 @@ static void pwm_irq_handler() {
 static void note_on_off(uint8_t key)
 {
   uint8_t pitch = key + (octave_shift * 12);
-  if      (pitch_voice[0] == pitch) { gate_voice[0] = (gate_voice[0] == 0); }
-  else if (pitch_voice[1] == pitch) { gate_voice[1] = (gate_voice[1] == 0); }
-  else if (pitch_voice[2] == pitch) { gate_voice[2] = (gate_voice[2] == 0); }
-  else if (pitch_voice[3] == pitch) { gate_voice[3] = (gate_voice[3] == 0); }
-  else if (gate_voice[0] == 0) { pitch_voice[0] = pitch; gate_voice[0] = 1; }
-  else if (gate_voice[1] == 0) { pitch_voice[1] = pitch; gate_voice[1] = 1; }
-  else if (gate_voice[2] == 0) { pitch_voice[2] = pitch; gate_voice[2] = 1; }
-  else if (gate_voice[3] == 0) { pitch_voice[3] = pitch; gate_voice[3] = 1; }
-  else                         { pitch_voice[0] = pitch; gate_voice[0] = 1; }
+  if      (voice_pitch[0] == pitch) { voice_gate[0] = (voice_gate[0] == 0); }
+  else if (voice_pitch[1] == pitch) { voice_gate[1] = (voice_gate[1] == 0); }
+  else if (voice_pitch[2] == pitch) { voice_gate[2] = (voice_gate[2] == 0); }
+  else if (voice_pitch[3] == pitch) { voice_gate[3] = (voice_gate[3] == 0); }
+  else if (voice_gate[0] == 0) { voice_pitch[0] = pitch; voice_gate[0] = 1; }
+  else if (voice_gate[1] == 0) { voice_pitch[1] = pitch; voice_gate[1] = 1; }
+  else if (voice_gate[2] == 0) { voice_pitch[2] = pitch; voice_gate[2] = 1; }
+  else if (voice_gate[3] == 0) { voice_pitch[3] = pitch; voice_gate[3] = 1; }
+  else                         { voice_pitch[0] = pitch; voice_gate[0] = 1; }
 }
 
 static void all_notes_off()
 {
-  for (uint8_t id = 0; id < 4; ++id) { gate_voice[id] = 0; }
+  for (uint8_t id = 0; id < 4; ++id) { voice_gate[id] = 0; }
 }
 
 static void note_on(uint8_t key)
 {
   static uint8_t current_voice;
   uint8_t pitch = key + (octave_shift * 12);
-  pitch_voice[current_voice] = pitch;
-  gate_voice[current_voice] = 1;
+  voice_pitch[current_voice] = pitch;
+  voice_gate[current_voice] = 1;
   current_voice = (++current_voice % 4);
 }
 
@@ -235,13 +235,13 @@ static void note_off(uint8_t key)
 {
   uint8_t pitch = key + (octave_shift * 12);
   for (uint8_t id = 0; id < 4; ++id) {
-    if (pitch_voice[id] == pitch) { gate_voice[id] = 0; }
+    if (voice_pitch[id] == pitch) { voice_gate[id] = 0; }
   }
 }
 
 void startup_chord(void)
 {
-  //for (uint8_t id = 0; id < 4; ++id) { pitch_voice[id] = 60; }
+  //for (uint8_t id = 0; id < 4; ++id) { voice_pitch[id] = 60; }
     note_on_off(60); note_on_off(64); note_on_off(67); note_on_off(71);
 }
 
@@ -356,9 +356,9 @@ void soundTask(void) {
 
 void print_status() {
     printf("Pitch             : [ %3hhu, %3hhu, %3hhu, %3hhu ]\n",
-           pitch_voice[0], pitch_voice[1], pitch_voice[2], pitch_voice[3]);
+           voice_pitch[0], voice_pitch[1], voice_pitch[2], voice_pitch[3]);
     printf("Gate              : [ %3hhu, %3hhu, %3hhu, %3hhu ]\n",
-           gate_voice[0], gate_voice[1], gate_voice[2], gate_voice[3]);
+           voice_gate[0], voice_gate[1], voice_gate[2], voice_gate[3]);
     printf("Octave Shift      : %+3hd\n", octave_shift);
     printf("Osc Waveform      : %3hhu\n", Osc_waveform);
     printf("Osc 2 Coarse Pitch: %+3hd\n", Osc_2_coarse_pitch);
