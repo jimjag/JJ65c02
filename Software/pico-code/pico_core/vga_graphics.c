@@ -722,19 +722,22 @@ void fillSprite(uint sn) {
 void drawSprite(int x, int y, uint sn, bool erase) {
     // TODO: Handle (x,y) error correction and semi-offscreen
     if (erase) eraseSprite(sn);
+    if (x <= -SPRITESIZE || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITESIZE) return;
     uint64_t masked_screen;
     uint64_t new_screen;
     int yend = y + SPRITESIZE;
+    int len = 8;
     uint64_t bgrnd = 0;
     int j = 0;
-    for (int i = y; i < yend; i++, j++) {
-        int pixel = ((SCREENWIDTH * i) + x);
-        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
+    for (int y1 = y; y1 < yend; y1++, j++) {
+        if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        int pixel = ((SCREENWIDTH * y1) + x);
+        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], len);
         sprites[sn]->bgrnd[j] = bgrnd;
         int w = x&0x1;
         masked_screen = sprites[sn]->mask[w][j] & bgrnd;
         new_screen = masked_screen | (~sprites[sn]->mask[w][j] & sprites[sn]->bitmap[w][j]);
-        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
+        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, len);
     }
     sprites[sn]->x = x;
     sprites[sn]->y = y;
@@ -748,9 +751,11 @@ void eraseSprite(uint sn) {
         return;
     int yend = sprites[sn]->y + SPRITESIZE;
     int j = 0;
-    for (int i = sprites[sn]->y; i < yend; i++, j++) {
-        int pixel = ((SCREENWIDTH * i) + sprites[sn]->x);
-        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], 8);
+    int len = 8;
+    for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
+        if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], len);
     }
     sprites[sn]->bgValid = false;
 }
