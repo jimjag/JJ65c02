@@ -334,17 +334,10 @@ int main() {
     int y = 2;
     int x0 = 600;
     int y0 = 15;
-    bool direction = true;
     for (int i = 10; i < 400; i++) {
         bool changed = false;
-        if (direction) {
-            drawSprite(i, y, 1, true);
-            drawSprite(x0, y0, 2, true);
-        } else {
-            drawSprite(x0, y0, 2, true);
-            drawSprite(i, y, 1, true);
-        }
-        direction = !direction;
+        drawSprite(i, y, 1, true);
+        drawSprite(x0, y0, 2, true);
         y++;
         x0--;
         y0++;
