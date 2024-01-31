@@ -741,6 +741,7 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     }
     sprites[sn]->x = x;
     sprites[sn]->y = y;
+    sprites[sn]->len = len;
     sprites[sn]->bgValid = true;
 }
 
@@ -755,7 +756,7 @@ void eraseSprite(uint sn) {
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
-        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], len);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], sprites[sn]->len);
     }
     sprites[sn]->bgValid = false;
 }

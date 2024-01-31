@@ -71,6 +71,7 @@ typedef struct {
     uint64_t bgrnd[SPRITESIZE];
     short x;
     short y;
+    short len;
     bool bgValid;
 } sprite_t;
 
