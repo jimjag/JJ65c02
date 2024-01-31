@@ -38,6 +38,7 @@
 .exportzp GR0
 .exportzp GCOLOR
 .exportzp GCHAR
+.exportzp GSND
 
 
 .export CLK_SPD
@@ -83,6 +84,7 @@ GH0 =           GY1     ; Height0 value
 GR0 =           R4      ; Radius0 value
 GCOLOR =        R0      ; Color value
 GCHAR =         R0      ; Graphics character byte to "draw"
+GSND =          R0      ; Sound command
 
 ; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
