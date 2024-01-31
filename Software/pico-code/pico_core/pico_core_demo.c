@@ -328,6 +328,7 @@ int main() {
     }
     n->bgValid = false;
     sprites[1] = n;
+    // Make a copy
     sprite_t n2 = *n;
     sprites[2] = &n2;
 
