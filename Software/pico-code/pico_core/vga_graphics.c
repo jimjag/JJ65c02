@@ -723,20 +723,42 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     // TODO: Handle (x,y) error correction and semi-offscreen
     if (erase) eraseSprite(sn);
     if (x <= -SPRITESIZE || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITESIZE) return;
-    uint64_t masked_screen;
-    uint64_t new_screen;
+    uint64_t masked_screen, new_screen;
+    uint64_t bgrnd, mask, bitmap;
     int yend = y + SPRITESIZE;
     int len = 8;
-    uint64_t bgrnd = 0;
+    int shifts = 0;
+    bool shift_left = true;
+    int maxx = SCREENWIDTH - SPRITESIZE;
     int j = 0;
+    // Handle moving off screen left or right
+    if (x > maxx) {
+        shifts = x - maxx;
+        x = maxx;
+    } else if (x < 0) {
+        shifts = -x;
+        x = 0;
+        shift_left = false;
+    }
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + x);
+        int w = x&0x1;
         dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], len);
         sprites[sn]->bgrnd[j] = bgrnd;
-        int w = x&0x1;
-        masked_screen = sprites[sn]->mask[w][j] & bgrnd;
-        new_screen = masked_screen | (~sprites[sn]->mask[w][j] & sprites[sn]->bitmap[w][j]);
+        mask = sprites[sn]->mask[w][j];
+        bitmap = sprites[sn]->bitmap[w][j];
+        for (int i = 0; i < shifts; i++) {
+            if (shift_left) {
+                bitmap = (bitmap << 4) | 0xf;
+                mask = (mask << 4) | 0xf;
+            } else {
+                bitmap = (bitmap >> 4) | 0xf000000000000000;
+                mask = (mask >> 4) | 0xf000000000000000;
+            }
+        }
+        masked_screen = mask & bgrnd;
+        new_screen = masked_screen | (~mask & bitmap);
         dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, len);
     }
     sprites[sn]->x = x;

@@ -349,6 +349,16 @@ int main() {
         }
         sleep_ms(25);
     }
+    y = 5;
+    for (int i = 0; i > -16; i--) {
+        drawSprite(i, y, 1, false);
+        y += 17;
+    }
+    y = 5;
+    for (int i = 624; i < 641; i++) {
+        drawSprite(i, y, 1, false);
+        y += 17;
+    }
     while (true) {
         unsigned char c = ps2GetChar(false);
         if (c == 'Q') break;
