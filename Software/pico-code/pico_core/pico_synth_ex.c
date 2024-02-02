@@ -25,7 +25,7 @@ static volatile int8_t Osc_2_coarse_pitch = +0; // oscillator 2 coarse pitch set
 static volatile int8_t Osc_2_fine_pitch = +4; // oscillator 2 fine pitch setting value
 static volatile uint8_t Osc_1_2_mix = 16; // oscillator mix setting
 
-static inline Q28 Osc_phase_to_audio(uint32_t phase, uint8_t pitch) {
+static inline Q28 Osc_phase_to_audio(uint8_t id, uint32_t phase, uint8_t pitch) {
     Q14 *wave_table = Osc_wave_tables[Osc_waveform][(pitch + 3) >> 2];
     uint16_t curr_index = phase >> 23;
     uint16_t next_index = (curr_index + 1) & 0x000001FF;
@@ -59,9 +59,9 @@ static inline Q28 Osc_process(uint8_t id,
     phase_2[id] += ((int32_t)(freq_2 >> 8) * Osc_tune_table[tune_2]) >> 6;
 
     // TODO: I want to make wave_table switching smoother (Is it better to switch at the beginning of the cycle?)
-    return ((Osc_phase_to_audio(phase_1[id], pitch_1) >> 14) *
+    return ((Osc_phase_to_audio(id, phase_1[id], pitch_1) >> 14) *
             Osc_mix_table[Osc_1_2_mix - 0]) +
-           ((Osc_phase_to_audio(phase_2[id], pitch_2) >> 14) *
+           ((Osc_phase_to_audio(id, phase_2[id], pitch_2) >> 14) *
             Osc_mix_table[64 - Osc_1_2_mix]);
 }
 
