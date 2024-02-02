@@ -17,16 +17,18 @@
 
 #include "pico_synth_ex.h"
 
-static volatile uint8_t current_preset;
+static volatile uint8_t current_preset = 0;
+static volatile uint8_t current_voice = 0;
+static volatile uint8_t previous_voice = 0;
 
 /////// Oscillator group //////////////////////////////
-static volatile uint8_t Osc_waveform = 0; // waveform setting value
-static volatile int8_t Osc_2_coarse_pitch = +0; // oscillator 2 coarse pitch setting value
-static volatile int8_t Osc_2_fine_pitch = +4; // oscillator 2 fine pitch setting value
-static volatile uint8_t Osc_1_2_mix = 16; // oscillator mix setting
+static volatile uint8_t Osc_waveform[4]; // waveform setting value
+static volatile int8_t Osc_2_coarse_pitch[4]; // oscillator 2 coarse pitch setting value
+static volatile int8_t Osc_2_fine_pitch[4]; // oscillator 2 fine pitch setting value
+static volatile uint8_t Osc_1_2_mix[4]; // oscillator mix setting
 
 static inline Q28 Osc_phase_to_audio(uint8_t id, uint32_t phase, uint8_t pitch) {
-    Q14 *wave_table = Osc_wave_tables[Osc_waveform][(pitch + 3) >> 2];
+    Q14 *wave_table = Osc_wave_tables[Osc_waveform[id]][(pitch + 3) >> 2];
     uint16_t curr_index = phase >> 23;
     uint16_t next_index = (curr_index + 1) & 0x000001FF;
     Q14 curr_sample = wave_table[curr_index];
@@ -49,7 +51,7 @@ static inline Q28 Osc_process(uint8_t id,
 
     static uint32_t phase_2[4]; // Oscillator 2 phase
     int32_t full_pitch_2 =
-            full_pitch_1 + (Osc_2_coarse_pitch << 8) + (Osc_2_fine_pitch << 2);
+            full_pitch_1 + (Osc_2_coarse_pitch[id] << 8) + (Osc_2_fine_pitch[id] << 2);
     full_pitch_2 += (full_pitch_2 < 0) * (0 - full_pitch_2);
     full_pitch_2 -= (full_pitch_2 > (120 << 8)) * (full_pitch_2 - (120 << 8));
     uint8_t pitch_2 = (full_pitch_2 + 128) >> 8;
@@ -60,15 +62,15 @@ static inline Q28 Osc_process(uint8_t id,
 
     // TODO: I want to make wave_table switching smoother (Is it better to switch at the beginning of the cycle?)
     return ((Osc_phase_to_audio(id, phase_1[id], pitch_1) >> 14) *
-            Osc_mix_table[Osc_1_2_mix - 0]) +
+            Osc_mix_table[Osc_1_2_mix[id] - 0]) +
            ((Osc_phase_to_audio(id, phase_2[id], pitch_2) >> 14) *
-            Osc_mix_table[64 - Osc_1_2_mix]);
+            Osc_mix_table[64 - Osc_1_2_mix[id]]);
 }
 
 //////// filter ///////////////////////////////////
-static volatile uint8_t Filter_cutoff = 60; // Cutoff setting value
-static volatile uint8_t Filter_resonance = 3; // Resonance setting value
-static volatile int8_t Filter_mod_amount = +60; // Cutoff modulation amount setting value
+static volatile uint8_t Filter_cutoff[4]; // Cutoff setting value
+static volatile uint8_t Filter_resonance[4]; // Resonance setting value
+static volatile int8_t Filter_mod_amount[4]; // Cutoff modulation amount setting value
 
 static inline int32_t mul_s32_s32_h32(int32_t x, int32_t y) {
     // Higher 32 bits of signed 32-bit multiplication result
@@ -83,14 +85,14 @@ static inline int32_t mul_s32_s32_h32(int32_t x, int32_t y) {
 
 static inline Q28 Filter_process(uint8_t id, Q28 audio_in, Q14 cutoff_mod_in) {
     static uint16_t curr_cutoff[4]; // Cutoff current value
-    int32_t targ_cutoff = Filter_cutoff << 2; // Cutoff target value
-    targ_cutoff += (Filter_mod_amount * cutoff_mod_in) >> (14 - 2);
+    int32_t targ_cutoff = Filter_cutoff[id] << 2; // Cutoff target value
+    targ_cutoff += (Filter_mod_amount[id] * cutoff_mod_in) >> (14 - 2);
     targ_cutoff += (targ_cutoff < 0) * (0 - targ_cutoff);
     targ_cutoff -= (targ_cutoff > 480) * (targ_cutoff - 480);
     curr_cutoff[id] += (curr_cutoff[id] < targ_cutoff);
     curr_cutoff[id] -= (curr_cutoff[id] > targ_cutoff);
     struct FILTER_COEFS *coefs_ptr =
-            &Filter_coefs_table[Filter_resonance][curr_cutoff[id]];
+            &Filter_coefs_table[Filter_resonance[id]][curr_cutoff[id]];
 
     static Q28 x1[4], x2[4], y1[4], y2[4];
     Q28 x0 = audio_in;
@@ -113,8 +115,8 @@ static inline Q28 Amp_process(uint8_t id, Q28 audio_in, Q14 gain_in) {
 //////// EG (Envelope Generator) /////////////////
 static uint32_t EG_exp_table[65]; // Exponential table
 
-static volatile uint8_t EG_decay_time = 40; // Decay time setting value
-static volatile uint8_t EG_sustain_level = 0; // Sustain level setting value
+static volatile uint8_t EG_decay_time[4]; // Decay time setting value
+static volatile uint8_t EG_sustain_level[4]; // Sustain level setting value
 
 static inline Q14 EG_process(uint8_t id, uint8_t gate_in) {
     static int32_t curr_level[4]; // EG output level current value
@@ -131,8 +133,8 @@ static inline Q14 EG_process(uint8_t id, uint8_t gate_in) {
     } else {
         static uint32_t decay_counter[4]; // Decay counter
         ++decay_counter[id];
-        decay_counter[id] = (decay_counter[id] < EG_exp_table[EG_decay_time]) * decay_counter[id];
-        int32_t decay_targ_level = (EG_sustain_level << 18) * curr_gate[id];
+        decay_counter[id] = (decay_counter[id] < EG_exp_table[EG_decay_time[id]]) * decay_counter[id];
+        int32_t decay_targ_level = (EG_sustain_level[id] << 18) * curr_gate[id];
         int32_t to_decay = (curr_level[id] > decay_targ_level) & (decay_counter[id] == 0);
         curr_level[id] += to_decay * ((decay_targ_level - curr_level[id]) >> 5);
     }
@@ -141,22 +143,22 @@ static inline Q14 EG_process(uint8_t id, uint8_t gate_in) {
 }
 
 //////// Low Frequency Oscillator (LFO) /////////
-static volatile uint8_t LFO_depth = 16; // Depth setting value
-static volatile uint8_t LFO_rate = 48; // Speed ​​setting value
+static volatile uint8_t LFO_depth[4]; // Depth setting value
+static volatile uint8_t LFO_rate[4]; // Speed ​​setting value
 
 static inline Q14 LFO_process(uint8_t id) {
     static uint32_t phase[4]; // Phase
-    phase[id] += LFO_freq_table[LFO_rate] + ((id - 1) << 8); // Shift by voice
+    phase[id] += LFO_freq_table[LFO_rate[id]] + ((id - 1) << 8); // Shift by voice
 
     // Generate triangle wave
     uint16_t phase_h16 = phase[id] >> 16;
     uint16_t out = phase_h16;
     out += (phase_h16 >= 32768) * (65536 - (phase_h16 << 1));
-    return ((out - 16384) * LFO_depth) >> 7;
+    return ((out - 16384) * LFO_depth[id]) >> 7;
 }
 
 //////// Low Frequency Oscillator (LFO) /////////
-static volatile uint16_t Voice_lifetime = 2048; // How long the voice lasts
+static volatile uint16_t Voice_lifetime[4]; // How long the voice lasts
 
 //////// PWM audio output block ///////////////////////
 static uint8_t PWMA_L_SLICE;
@@ -166,7 +168,7 @@ static uint8_t PWMA_L_CHAN;
 
 static void pwm_irq_handler();
 
-static void load_preset(uint8_t preset);
+static void set_sound(uint8_t preset);
 
 void initSOUND(void) {
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
@@ -178,7 +180,7 @@ void initSOUND(void) {
     pwm_set_irq_enabled(PWMA_L_SLICE, true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
-    load_preset(0);
+    set_sound(0);
 }
 
 static inline void PWMA_process(Q28 audio_in) {
@@ -190,7 +192,7 @@ static inline void PWMA_process(Q28 audio_in) {
 //////// Interrupt handler and main function ////////////
 static volatile uint16_t voice_gate[4]; // gate control value (per voice)
 static volatile uint8_t voice_pitch[4]; // pitch control value (per voice)
-static volatile int8_t octave_shift; // key octave shift amount
+static volatile int8_t octave_shift[4]; // key octave shift amount
 
 static inline Q28 process_voice(uint8_t id) {
     Q14 lfo_out = LFO_process(id);
@@ -214,31 +216,41 @@ static void pwm_irq_handler() {
     PWMA_process((voice_out[0] + voice_out[1] + voice_out[2] + voice_out[3]) >> 2);
 }
 
-static void note_on_off(uint8_t key) {
-    uint8_t pitch = key + (octave_shift * 12);
-    if (voice_pitch[0] == pitch) {
-        voice_gate[0] = ((voice_gate[0] == 0) * Voice_lifetime);
-    } else if (voice_pitch[1] == pitch) {
-        voice_gate[1] = ((voice_gate[1] == 0) * Voice_lifetime);
-    } else if (voice_pitch[2] == pitch) {
-        voice_gate[2] = ((voice_gate[2] == 0) * Voice_lifetime);
-    } else if (voice_pitch[3] == pitch) {
-        voice_gate[3] = ((voice_gate[3] == 0) * Voice_lifetime);
-    } else if (voice_gate[0] == 0) {
-        voice_pitch[0] = pitch;
-        voice_gate[0] = Voice_lifetime;
-    } else if (voice_gate[1] == 0) {
-        voice_pitch[1] = pitch;
-        voice_gate[1] = Voice_lifetime;
-    } else if (voice_gate[2] == 0) {
-        voice_pitch[2] = pitch;
-        voice_gate[2] = Voice_lifetime;
-    } else if (voice_gate[3] == 0) {
-        voice_pitch[3] = pitch;
-        voice_gate[3] = Voice_lifetime;
-    } else {
-        voice_pitch[0] = pitch;
-        voice_gate[0] = Voice_lifetime;
+static void set_sound(uint8_t preset) {
+    if (preset < 0 || preset > (NUM_PRESETS - 1)) return;
+    current_preset = preset;
+}
+
+static void load_sound() {
+    printf("loading preset %d\n", current_preset);
+    octave_shift[current_voice] = presets[current_preset].octave_shift;
+    Osc_waveform[current_voice] = presets[current_preset].Osc_waveform;
+    Filter_cutoff[current_voice] = presets[current_preset].Filter_cutoff;
+    Filter_resonance[current_voice] = presets[current_preset].Filter_resonance;
+    Filter_mod_amount[current_voice] = presets[current_preset].Filter_mod_amount;
+    EG_decay_time[current_voice] = presets[current_preset].EG_decay_time;
+    EG_sustain_level[current_voice] = presets[current_preset].EG_sustain_level;
+    Osc_2_coarse_pitch[current_voice] = presets[current_preset].Osc_2_coarse_pitch;
+    Osc_2_fine_pitch[current_voice] = presets[current_preset].Osc_2_fine_pitch;
+    Osc_1_2_mix[current_voice] = presets[current_preset].Osc_1_2_mix;
+    LFO_depth[current_voice] = presets[current_preset].LFO_depth;
+    LFO_rate[current_voice] = presets[current_preset].LFO_rate;
+    Voice_lifetime[current_voice] = presets[current_preset].Voice_lifetime;
+}
+
+static void note_on(uint8_t key) {
+    load_sound();
+    uint8_t pitch = key + (octave_shift[current_voice] * 12);
+    voice_pitch[current_voice] = pitch;
+    voice_gate[current_voice] = Voice_lifetime[current_voice];
+    previous_voice = current_voice;
+    current_voice = (++current_voice % 4);
+}
+
+static void note_off(uint8_t key) {
+    uint8_t pitch = key + (octave_shift[previous_voice] * 12);
+    for (uint8_t id = 0; id < 4; ++id) {
+        if (voice_pitch[id] == pitch) { voice_gate[id] = 0; }
     }
 }
 
@@ -246,54 +258,12 @@ static void all_notes_off() {
     for (uint8_t id = 0; id < 4; ++id) { voice_gate[id] = 0; }
 }
 
-static void note_on(uint8_t key) {
-    static uint8_t current_voice;
-    uint8_t pitch = key + (octave_shift * 12);
-    voice_pitch[current_voice] = pitch;
-    voice_gate[current_voice] = 1;
-    current_voice = (++current_voice % 4);
-}
-
-static void note_off(uint8_t key) {
-    uint8_t pitch = key + (octave_shift * 12);
-    for (uint8_t id = 0; id < 4; ++id) {
-        if (voice_pitch[id] == pitch) { voice_gate[id] = 0; }
-    }
-}
-
 void startup_chord(void) {
     //for (uint8_t id = 0; id < 4; ++id) { voice_pitch[id] = 60; }
-    note_on_off(60);
-    note_on_off(64);
-    note_on_off(67);
-    note_on_off(71);
-}
-
-int8_t get_octave_shift() {
-    return octave_shift;
-}
-
-uint8_t get_current_preset() {
-    return current_preset;
-}
-
-static void load_preset(uint8_t preset) {
-    if (preset < 0 || preset > (NUM_PRESETS - 1)) return;
-    printf("loading preset %d\n", preset);
-    octave_shift = presets[preset].octave_shift;
-    Osc_waveform = presets[preset].Osc_waveform;
-    Filter_cutoff = presets[preset].Filter_cutoff;
-    Filter_resonance = presets[preset].Filter_resonance;
-    Filter_mod_amount = presets[preset].Filter_mod_amount;
-    EG_decay_time = presets[preset].EG_decay_time;
-    EG_sustain_level = presets[preset].EG_sustain_level;
-    Osc_2_coarse_pitch = presets[preset].Osc_2_coarse_pitch;
-    Osc_2_fine_pitch = presets[preset].Osc_2_fine_pitch;
-    Osc_1_2_mix = presets[preset].Osc_1_2_mix;
-    LFO_depth = presets[preset].LFO_depth;
-    LFO_rate = presets[preset].LFO_rate;
-    Voice_lifetime = presets[preset].Voice_lifetime;
-    current_preset = preset;
+    note_on(60);
+    note_on(64);
+    note_on(67);
+    note_on(71);
 }
 
 /*
@@ -331,90 +301,77 @@ void soundTask(void) {
     if (multicore_fifo_rvalid()) {
         uint32_t cmd = multicore_fifo_pop_blocking();
         switch ((char)cmd) {
-            case 'q': note_on_off(60); break;
-            case '2': note_on_off(61); break;
-            case 'w': note_on_off(62); break;
-            case '3': note_on_off(63); break;
-            case 'e': note_on_off(64); break;
-            case 'r': note_on_off(65); break;
-            case '5': note_on_off(66); break;
-            case 't': note_on_off(67); break;
-            case '6': note_on_off(68); break;
-            case 'y': note_on_off(69); break;
-            case '7': note_on_off(70); break;
-            case 'u': note_on_off(71); break;
-            case 'i': note_on_off(72); break;
+            case 'q': note_on(60); break;
+            case '2': note_on(61); break;
+            case 'w': note_on(62); break;
+            case '3': note_on(63); break;
+            case 'e': note_on(64); break;
+            case 'r': note_on(65); break;
+            case '5': note_on(66); break;
+            case 't': note_on(67); break;
+            case '6': note_on(68); break;
+            case 'y': note_on(69); break;
+            case '7': note_on(70); break;
+            case 'u': note_on(71); break;
+            case 'i': note_on(72); break;
 
-            case '1': if (octave_shift > -5) { --octave_shift; } break;
-            case '9': if (octave_shift < +4) { ++octave_shift; } break;
+            case '1': if (presets[current_preset].octave_shift > -5) { --presets[current_preset].octave_shift; } break;
+            case '9': if (presets[current_preset].octave_shift < +4) { ++presets[current_preset].octave_shift; } break;
             case '0': all_notes_off(); break;
 
-            case 'A': if (Osc_waveform > 0) { --Osc_waveform; } break;
-            case 'a': if (Osc_waveform < 1) { ++Osc_waveform; } break;
-            case 'S': if (Osc_2_coarse_pitch > +0) { --Osc_2_coarse_pitch; } break;
-            case 's': if (Osc_2_coarse_pitch < +24) { ++Osc_2_coarse_pitch; } break;
-            case 'D': if (Osc_2_fine_pitch > +0) { --Osc_2_fine_pitch; } break;
-            case 'd': if (Osc_2_fine_pitch < +32) { ++Osc_2_fine_pitch; } break;
-            case 'F': if (Osc_1_2_mix > 0) { --Osc_1_2_mix; } break;
-            case 'f': if (Osc_1_2_mix < 64) { ++Osc_1_2_mix; } break;
+            case 'A': if (presets[current_preset].Osc_waveform > 0) { --presets[current_preset].Osc_waveform; } break;
+            case 'a': if (presets[current_preset].Osc_waveform < 1) { ++presets[current_preset].Osc_waveform; } break;
 
-            case 'G': if (Filter_cutoff > 0) { --Filter_cutoff; } break;
-            case 'g': if (Filter_cutoff < 120) { ++Filter_cutoff; } break;
-            case 'H': if (Filter_resonance > 0) { --Filter_resonance; } break;
-            case 'h': if (Filter_resonance < 5) { ++Filter_resonance; } break;
-            case 'J': if (Filter_mod_amount > +0) { --Filter_mod_amount; } break;
-            case 'j': if (Filter_mod_amount < +60) { ++Filter_mod_amount; } break;
+            case 'S': if (presets[current_preset].Osc_2_coarse_pitch > +0)  { --presets[current_preset].Osc_2_coarse_pitch; } break;
+            case 's': if (presets[current_preset].Osc_2_coarse_pitch < +24) { ++presets[current_preset].Osc_2_coarse_pitch; } break;
 
-            case 'X': if (EG_decay_time > 0) { --EG_decay_time; } break;
-            case 'x': if (EG_decay_time < 64) { ++EG_decay_time; } break;
-            case 'C': if (EG_sustain_level > 0) { --EG_sustain_level; } break;
-            case 'c': if (EG_sustain_level < 64) { ++EG_sustain_level; } break;
+            case 'D': if (presets[current_preset].Osc_2_fine_pitch > +0)  { --presets[current_preset].Osc_2_fine_pitch; } break;
+            case 'd': if (presets[current_preset].Osc_2_fine_pitch < +32) { ++presets[current_preset].Osc_2_fine_pitch; } break;
 
-            case 'B': if (LFO_depth > 0) { --LFO_depth; } break;
-            case 'b': if (LFO_depth < 64) { ++LFO_depth; } break;
-            case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
-            case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
+            case 'F': if (presets[current_preset].Osc_1_2_mix > 0)  { --presets[current_preset].Osc_1_2_mix; } break;
+            case 'f': if (presets[current_preset].Osc_1_2_mix < 64) { ++presets[current_preset].Osc_1_2_mix; } break;
 
-            case 'K': if (Voice_lifetime > 0) { Voice_lifetime -= 512; } break;
-            case 'k': if (Voice_lifetime < 64511) { Voice_lifetime += 512; } break;
+            case 'G': if (presets[current_preset].Filter_cutoff > 0)   { --presets[current_preset].Filter_cutoff; } break;
+            case 'g': if (presets[current_preset].Filter_cutoff < 120) { ++presets[current_preset].Filter_cutoff; } break;
 
-            case ')': load_preset(0); break;
-            case '!': load_preset(1); break;
-            case '@': load_preset(2); break;
-            case '#': load_preset(3); break;
-            case '$': load_preset(4); break;
-            case '%': load_preset(5); break;
-            case '^': load_preset(6); break;
-            case '&': load_preset(7); break;
-            case '*': load_preset(8); break;
-            case '(': load_preset(9); break;
+            case 'H': if (presets[current_preset].Filter_resonance > 0) { --presets[current_preset].Filter_resonance; } break;
+            case 'h': if (presets[current_preset].Filter_resonance < 5) { ++presets[current_preset].Filter_resonance; } break;
+
+            case 'J': if (presets[current_preset].Filter_mod_amount > +0)  { --presets[current_preset].Filter_mod_amount; } break;
+            case 'j': if (presets[current_preset].Filter_mod_amount < +60) { ++presets[current_preset].Filter_mod_amount; } break;
+
+            case 'X': if (presets[current_preset].EG_decay_time > 0)  { --presets[current_preset].EG_decay_time; } break;
+            case 'x': if (presets[current_preset].EG_decay_time < 64) { ++presets[current_preset].EG_decay_time; } break;
+
+            case 'C': if (presets[current_preset].EG_sustain_level > 0)  { --presets[current_preset].EG_sustain_level; } break;
+            case 'c': if (presets[current_preset].EG_sustain_level < 64) { ++presets[current_preset].EG_sustain_level; } break;
+
+            case 'B': if (presets[current_preset].LFO_depth > 0)  { --presets[current_preset].LFO_depth; } break;
+            case 'b': if (presets[current_preset].LFO_depth < 64) { ++presets[current_preset].LFO_depth; } break;
+
+            case 'N': if (presets[current_preset].LFO_rate > 0)  { --presets[current_preset].LFO_rate; } break;
+            case 'n': if (presets[current_preset].LFO_rate < 64) { ++presets[current_preset].LFO_rate; } break;
+
+            case 'K': if (presets[current_preset].Voice_lifetime > 0)     { presets[current_preset].Voice_lifetime -= 512; } break;
+            case 'k': if (presets[current_preset].Voice_lifetime < 64511) { presets[current_preset].Voice_lifetime += 512; } break;
+
+            case ')': set_sound(0); break;
+            case '!': set_sound(1); break;
+            case '@': set_sound(2); break;
+            case '#': set_sound(3); break;
+            case '$': set_sound(4); break;
+            case '%': set_sound(5); break;
+            case '^': set_sound(6); break;
+            case '&': set_sound(7); break;
+            case '*': set_sound(8); break;
+            case '(': set_sound(9); break;
         }
     }
 }
 
-void print_status() {
-    printf("Pitch             : [ %3hhu, %3hhu, %3hhu, %3hhu ]\n",
-           voice_pitch[0], voice_pitch[1], voice_pitch[2], voice_pitch[3]);
-    printf("Gate              : [ %3hhu, %3hhu, %3hhu, %3hhu ]\n",
-           voice_gate[0], voice_gate[1], voice_gate[2], voice_gate[3]);
-    printf("Octave Shift      : %+3hd\n", octave_shift);
-    printf("Osc Waveform      : %3hhu\n", Osc_waveform);
-    printf("Osc 2 Coarse Pitch: %+3hd\n", Osc_2_coarse_pitch);
-    printf("Osc 2 Fine Pitch  : %+3hd\n", Osc_2_fine_pitch);
-    printf("Osc 1/2 Mix       : %3hhu\n", Osc_1_2_mix);
-    printf("Filter Cutoff     : %3hhu\n", Filter_cutoff);
-    printf("Filter Resonance  : %3hhu\n", Filter_resonance);
-    printf("Filter EG Amount  : %+3hd\n", Filter_mod_amount);
-    printf("EG Decay Time     : %3hhu\n", EG_decay_time);
-    printf("EG Sustain Level  : %3hhu\n", EG_sustain_level);
-    printf("LFO Depth         : %3hhu\n", LFO_depth);
-    printf("LFO Rate          : %3hhu\n", LFO_rate);
-}
-
 void beep(void) {
-    uint8_t preset = get_current_preset();
-    all_notes_off();
-    load_preset(1);
-    note_on_off(65);
-    load_preset(preset);
+    uint8_t preset = current_preset;
+    load_sound(1);
+    note_on(65);
+    load_sound(preset);
 }
