@@ -21,6 +21,10 @@ static volatile uint8_t current_preset = 0;
 static volatile uint8_t current_voice = 0;
 static volatile uint8_t previous_voice = 0;
 
+static void pwm_irq_handler();
+static void set_sound(uint8_t preset);
+static void load_sound();
+
 /////// Oscillator group //////////////////////////////
 static volatile uint8_t Osc_waveform[4]; // waveform setting value
 static volatile int8_t Osc_2_coarse_pitch[4]; // oscillator 2 coarse pitch setting value
@@ -166,10 +170,6 @@ static uint8_t PWMA_L_CHAN;
 
 #define PWMA_CYCLE (FCLKSYS / FS) // PWM cycle
 
-static void pwm_irq_handler();
-
-static void set_sound(uint8_t preset);
-
 void initSOUND(void) {
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
     PWMA_L_CHAN = pwm_gpio_to_channel(PWMA_L_GPIO);
@@ -238,7 +238,7 @@ static void load_sound() {
     Voice_lifetime[current_voice] = presets[current_preset].Voice_lifetime;
 }
 
-static void note_on(uint8_t key) {
+static void play_note(uint8_t key) {
     load_sound();
     uint8_t pitch = key + (octave_shift[current_voice] * 12);
     voice_pitch[current_voice] = pitch;
@@ -260,10 +260,10 @@ static void all_notes_off() {
 
 void startup_chord(void) {
     //for (uint8_t id = 0; id < 4; ++id) { voice_pitch[id] = 60; }
-    note_on(60);
-    note_on(64);
-    note_on(67);
-    note_on(71);
+    play_note(60);
+    play_note(64);
+    play_note(67);
+    play_note(71);
 }
 
 /*
@@ -301,19 +301,19 @@ void soundTask(void) {
     if (multicore_fifo_rvalid()) {
         uint32_t cmd = multicore_fifo_pop_blocking();
         switch ((char)cmd) {
-            case 'q': note_on(60); break;
-            case '2': note_on(61); break;
-            case 'w': note_on(62); break;
-            case '3': note_on(63); break;
-            case 'e': note_on(64); break;
-            case 'r': note_on(65); break;
-            case '5': note_on(66); break;
-            case 't': note_on(67); break;
-            case '6': note_on(68); break;
-            case 'y': note_on(69); break;
-            case '7': note_on(70); break;
-            case 'u': note_on(71); break;
-            case 'i': note_on(72); break;
+            case 'q': play_note(60); break;
+            case '2': play_note(61); break;
+            case 'w': play_note(62); break;
+            case '3': play_note(63); break;
+            case 'e': play_note(64); break;
+            case 'r': play_note(65); break;
+            case '5': play_note(66); break;
+            case 't': play_note(67); break;
+            case '6': play_note(68); break;
+            case 'y': play_note(69); break;
+            case '7': play_note(70); break;
+            case 'u': play_note(71); break;
+            case 'i': play_note(72); break;
 
             case '1': if (presets[current_preset].octave_shift > -5) { --presets[current_preset].octave_shift; } break;
             case '9': if (presets[current_preset].octave_shift < +4) { ++presets[current_preset].octave_shift; } break;
@@ -372,6 +372,6 @@ void soundTask(void) {
 void beep(void) {
     uint8_t preset = current_preset;
     load_sound(1);
-    note_on(65);
+    play_note(65);
     load_sound(preset);
 }
