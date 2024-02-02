@@ -148,6 +148,9 @@ static inline Q14 LFO_process(uint8_t id) {
   return ((out - 16384) * LFO_depth) >> 7;
 }
 
+//////// Low Frequency Oscillator (LFO) /////////
+static volatile uint16_t Voice_lifetime = 2048; // How long the voice lasts
+
 //////// PWM audio output block ///////////////////////
 static uint8_t PWMA_L_SLICE;
 static uint8_t PWMA_L_CHAN;
@@ -178,17 +181,18 @@ static inline void PWMA_process(Q28 audio_in) {
 }
 
 //////// Interrupt handler and main function ////////////
-static volatile uint8_t voice_gate[4]; // gate control value (per voice)
+static volatile uint16_t voice_gate[4]; // gate control value (per voice)
 static volatile uint8_t voice_pitch[4]; // pitch control value (per voice)
 static volatile int8_t octave_shift; // key octave shift amount
 
 static inline Q28 process_voice(uint8_t id) {
   Q14 lfo_out    = LFO_process(id);
-  Q14 eg_out     = EG_process(id, voice_gate[id]);
+  Q14 eg_out     = EG_process(id, (voice_gate[id] ? 1 : 0));
   Q28 osc_out    = Osc_process(id, voice_pitch[id] << 8, lfo_out);
   Q28 filter_out = Filter_process(id, osc_out, eg_out);
   Q28 amp_out    = Amp_process(id, filter_out, eg_out);
   if (eg_out <= 5) voice_gate[id] = 0;  // We need to force a note_off
+  if (voice_gate[id]) voice_gate[id]--;
   return amp_out;
 }
 
@@ -206,15 +210,15 @@ static void pwm_irq_handler() {
 static void note_on_off(uint8_t key)
 {
   uint8_t pitch = key + (octave_shift * 12);
-  if      (voice_pitch[0] == pitch) { voice_gate[0] = (voice_gate[0] == 0); }
-  else if (voice_pitch[1] == pitch) { voice_gate[1] = (voice_gate[1] == 0); }
-  else if (voice_pitch[2] == pitch) { voice_gate[2] = (voice_gate[2] == 0); }
-  else if (voice_pitch[3] == pitch) { voice_gate[3] = (voice_gate[3] == 0); }
-  else if (voice_gate[0] == 0) { voice_pitch[0] = pitch; voice_gate[0] = 1; }
-  else if (voice_gate[1] == 0) { voice_pitch[1] = pitch; voice_gate[1] = 1; }
-  else if (voice_gate[2] == 0) { voice_pitch[2] = pitch; voice_gate[2] = 1; }
-  else if (voice_gate[3] == 0) { voice_pitch[3] = pitch; voice_gate[3] = 1; }
-  else                         { voice_pitch[0] = pitch; voice_gate[0] = 1; }
+  if      (voice_pitch[0] == pitch) { voice_gate[0] = ((voice_gate[0] == 0) * Voice_lifetime); }
+  else if (voice_pitch[1] == pitch) { voice_gate[1] = ((voice_gate[1] == 0) * Voice_lifetime); }
+  else if (voice_pitch[2] == pitch) { voice_gate[2] = ((voice_gate[2] == 0) * Voice_lifetime); }
+  else if (voice_pitch[3] == pitch) { voice_gate[3] = ((voice_gate[3] == 0) * Voice_lifetime); }
+  else if (voice_gate[0] == 0) { voice_pitch[0] = pitch; voice_gate[0] = Voice_lifetime; }
+  else if (voice_gate[1] == 0) { voice_pitch[1] = pitch; voice_gate[1] = Voice_lifetime; }
+  else if (voice_gate[2] == 0) { voice_pitch[2] = pitch; voice_gate[2] = Voice_lifetime; }
+  else if (voice_gate[3] == 0) { voice_pitch[3] = pitch; voice_gate[3] = Voice_lifetime; }
+  else                         { voice_pitch[0] = pitch; voice_gate[0] = Voice_lifetime; }
 }
 
 static void all_notes_off()
@@ -252,26 +256,27 @@ int8_t get_octave_shift()
 
 uint8_t get_current_preset()
 {
-    return current_preset;
+  return current_preset;
 }
 
 static void load_preset(uint8_t preset)
 {
-    if (preset < 0 || preset > (NUM_PRESETS-1)) return;
-    printf("loading preset %d\n", preset);
-    octave_shift       = presets[preset].octave_shift;
-    Osc_waveform       = presets[preset].Osc_waveform;
-    Filter_cutoff      = presets[preset].Filter_cutoff;
-    Filter_resonance   = presets[preset].Filter_resonance;
-    Filter_mod_amount  = presets[preset].Filter_mod_amount;
-    EG_decay_time      = presets[preset].EG_decay_time;
-    EG_sustain_level   = presets[preset].EG_sustain_level;
-    Osc_2_coarse_pitch = presets[preset].Osc_2_coarse_pitch;
-    Osc_2_fine_pitch   = presets[preset].Osc_2_fine_pitch;
-    Osc_1_2_mix        = presets[preset].Osc_1_2_mix;
-    LFO_depth          = presets[preset].LFO_depth;
-    LFO_rate           = presets[preset].LFO_rate;
-    current_preset = preset;
+  if (preset < 0 || preset > (NUM_PRESETS-1)) return;
+  printf("loading preset %d\n", preset);
+  octave_shift       = presets[preset].octave_shift;
+  Osc_waveform       = presets[preset].Osc_waveform;
+  Filter_cutoff      = presets[preset].Filter_cutoff;
+  Filter_resonance   = presets[preset].Filter_resonance;
+  Filter_mod_amount  = presets[preset].Filter_mod_amount;
+  EG_decay_time      = presets[preset].EG_decay_time;
+  EG_sustain_level   = presets[preset].EG_sustain_level;
+  Osc_2_coarse_pitch = presets[preset].Osc_2_coarse_pitch;
+  Osc_2_fine_pitch   = presets[preset].Osc_2_fine_pitch;
+  Osc_1_2_mix        = presets[preset].Osc_1_2_mix;
+  LFO_depth          = presets[preset].LFO_depth;
+  LFO_rate           = presets[preset].LFO_rate;
+  Voice_lifetime     = presets[preset].Voice_lifetime;
+  current_preset = preset;
 }
 
 /*
@@ -292,6 +297,7 @@ static void load_preset(uint8_t preset)
     'C'/'c': Decrease/increase the EG sustain level setting value by 1 (0 to 64)
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
+    'K'/'k': Decrease/increase Lifetime setting value by 512 (0 to 64511)
     ')': Default voice
     '!': Vibrola voice
     '@': Recorder voice
@@ -351,6 +357,9 @@ void soundTask(void) {
             case 'b': if (LFO_depth < 64) { ++LFO_depth; } break;
             case 'N': if (LFO_rate > 0) { --LFO_rate; } break;
             case 'n': if (LFO_rate < 64) { ++LFO_rate; } break;
+
+            case 'K': if (Voice_lifetime > 0) { Voice_lifetime -= 512; } break;
+            case 'k': if (Voice_lifetime < 64511) { Voice_lifetime += 512; } break;
 
             case ')': load_preset(0); break;
             case '!': load_preset(1); break;

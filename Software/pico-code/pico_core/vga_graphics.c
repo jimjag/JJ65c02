@@ -697,7 +697,9 @@ void fillSprite(uint sn) {
             continue;
         sdata[i++] = cx;
     }
-    // NOW CREATE bitmap, mask, etc...
+    // NOW CREATE bitmap, mask, etc... for this sprite
+    // (which was designed to be at an even X-coordinate)
+    // and its odd X-coord twin.
     for (int i = 0; i < SPRITESIZE; i++) {
         uint64_t mask = 0;
         uint64_t bitmap = 0;
@@ -720,7 +722,6 @@ void fillSprite(uint sn) {
 }
 
 void drawSprite(int x, int y, uint sn, bool erase) {
-    // TODO: Handle (x,y) error correction and semi-offscreen
     if (erase) eraseSprite(sn);
     if (x <= -SPRITESIZE || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITESIZE) return;
     uint64_t masked_screen, new_screen;
@@ -748,6 +749,12 @@ void drawSprite(int x, int y, uint sn, bool erase) {
         sprites[sn]->bgrnd[j] = bgrnd;
         mask = sprites[sn]->mask[w][j];
         bitmap = sprites[sn]->bitmap[w][j];
+        // Yes, this does take time and so one could argue that these
+        // should be part of the stored sprite data (ala the odd/even
+        // variants). But (1) that is a lot of space and (2) this is
+        // only a factor when the sprite intersects with the left or
+        // right border, which is rare (and in most cases never even
+        // happens). So keep for now.
         for (int i = 0; i < shifts; i++) {
             if (shift_left) {
                 bitmap = (bitmap << 4) | 0xf;
@@ -769,12 +776,10 @@ void drawSprite(int x, int y, uint sn, bool erase) {
 
 void eraseSprite(uint sn) {
     // Restore background (original screen)
-    // TODO: (x,y) handling (see drawSprite)
     if (!sprites[sn]->bgValid)
         return;
     int yend = sprites[sn]->y + SPRITESIZE;
     int j = 0;
-    int len = 8;
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
