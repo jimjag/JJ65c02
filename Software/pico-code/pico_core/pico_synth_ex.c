@@ -23,13 +23,19 @@ static volatile uint8_t previous_voice = 0;
 
 static void pwm_irq_handler();
 static void set_sound(uint8_t preset);
-static void load_sound();
+static void load_sound(uint8_t voice, uint8_t preset);
 
 /////// Oscillator group //////////////////////////////
 static volatile uint8_t Osc_waveform[4]; // waveform setting value
 static volatile int8_t Osc_2_coarse_pitch[4]; // oscillator 2 coarse pitch setting value
 static volatile int8_t Osc_2_fine_pitch[4]; // oscillator 2 fine pitch setting value
 static volatile uint8_t Osc_1_2_mix[4]; // oscillator mix setting
+
+static inline void reset_presets() {
+    for (int i = 0; i < NUM_PRESETS; i++) {
+        presets[i] = defaults[i];
+    }
+}
 
 static inline Q28 Osc_phase_to_audio(uint8_t id, uint32_t phase, uint8_t pitch) {
     Q14 *wave_table = Osc_wave_tables[Osc_waveform[id]][(pitch + 3) >> 2];
@@ -171,6 +177,7 @@ static uint8_t PWMA_L_CHAN;
 #define PWMA_CYCLE (FCLKSYS / FS) // PWM cycle
 
 void initSOUND(void) {
+    reset_presets();
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
     PWMA_L_CHAN = pwm_gpio_to_channel(PWMA_L_GPIO);
     gpio_set_function(PWMA_L_GPIO, GPIO_FUNC_PWM);
@@ -181,6 +188,7 @@ void initSOUND(void) {
     irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
     set_sound(0);
+
 }
 
 static inline void PWMA_process(Q28 audio_in) {
@@ -221,25 +229,25 @@ static void set_sound(uint8_t preset) {
     current_preset = preset;
 }
 
-static void load_sound() {
-    printf("loading preset %d\n", current_preset);
-    octave_shift[current_voice] = presets[current_preset].octave_shift;
-    Osc_waveform[current_voice] = presets[current_preset].Osc_waveform;
-    Filter_cutoff[current_voice] = presets[current_preset].Filter_cutoff;
-    Filter_resonance[current_voice] = presets[current_preset].Filter_resonance;
-    Filter_mod_amount[current_voice] = presets[current_preset].Filter_mod_amount;
-    EG_decay_time[current_voice] = presets[current_preset].EG_decay_time;
-    EG_sustain_level[current_voice] = presets[current_preset].EG_sustain_level;
-    Osc_2_coarse_pitch[current_voice] = presets[current_preset].Osc_2_coarse_pitch;
-    Osc_2_fine_pitch[current_voice] = presets[current_preset].Osc_2_fine_pitch;
-    Osc_1_2_mix[current_voice] = presets[current_preset].Osc_1_2_mix;
-    LFO_depth[current_voice] = presets[current_preset].LFO_depth;
-    LFO_rate[current_voice] = presets[current_preset].LFO_rate;
-    Voice_lifetime[current_voice] = presets[current_preset].Voice_lifetime;
+static void load_sound(uint8_t voice, uint8_t preset) {
+    printf("loading preset %d\n", preset);
+    octave_shift[voice] =       presets[preset].octave_shift;
+    Osc_waveform[voice] =       presets[preset].Osc_waveform;
+    Filter_cutoff[voice] =      presets[preset].Filter_cutoff;
+    Filter_resonance[voice] =   presets[preset].Filter_resonance;
+    Filter_mod_amount[voice] =  presets[preset].Filter_mod_amount;
+    EG_decay_time[voice] =      presets[preset].EG_decay_time;
+    EG_sustain_level[voice] =   presets[preset].EG_sustain_level;
+    Osc_2_coarse_pitch[voice] = presets[preset].Osc_2_coarse_pitch;
+    Osc_2_fine_pitch[voice] =   presets[preset].Osc_2_fine_pitch;
+    Osc_1_2_mix[voice] =        presets[preset].Osc_1_2_mix;
+    LFO_depth[voice] =          presets[preset].LFO_depth;
+    LFO_rate[voice] =           presets[preset].LFO_rate;
+    Voice_lifetime[voice] =     presets[preset].Voice_lifetime;
 }
 
 static void play_note(uint8_t key) {
-    load_sound();
+    load_sound(current_voice, current_preset);
     uint8_t pitch = key + (octave_shift[current_voice] * 12);
     voice_pitch[current_voice] = pitch;
     voice_gate[current_voice] = Voice_lifetime[current_voice];
@@ -273,6 +281,7 @@ void startup_chord(void) {
     '2', '3', '5', '6', '7': Sounds C#, D#, F#, G#, A#
     '1'/'9': Decrease/increase the key octave shift amount by 1 (-5 to +4)
     '0': Stop all sounds
+    '.': Restore presets to default
     'A'/'a': Decrease/increase the oscillator waveform setting value by 1 (0: descending sawtooth wave, 1: square wave)
     'S'/'s': Decrease/increase oscillator 2 coarse pitch setting value by 1 (+0 to +24)
     'D'/'d': Decrease/increase oscillator 2 fine pitch setting value by 1 (+0 to +32)
@@ -285,16 +294,16 @@ void startup_chord(void) {
     'B'/'b': Decrease/increase the LFO depth setting value by 1 (0 to 64, pitch modulation amount)
     'N'/'n': Decrease/increase the LFO speed setting value by 1 (0 to 64, frequency changes from approximately 0.2Hz to approximately 20Hz)
     'K'/'k': Decrease/increase Lifetime setting value by 512 (0 to 64511)
-    ')': Default voice
-    '!': Vibrola voice
-    '@': Recorder voice
-    '#': Superlead voice
-    '$': Chromabits voice
-    '%': Bell voice
-    '^': Oboe voice
-    '&': Acid bass voice
-    '*': Lasercat voice
-    '(': Minitone voice
+    ')': Default sound
+    '!': Vibrola sound
+    '@': Recorder sound
+    '#': Superlead sound
+    '$': Chromabits sound
+    '%': Bell sound
+    '^': Oboe sound
+    '&': Acid bass sound
+    '*': Zippy Zap sound
+    '(': Minitone sound
  */
 
 void soundTask(void) {
@@ -318,6 +327,7 @@ void soundTask(void) {
             case '1': if (presets[current_preset].octave_shift > -5) { --presets[current_preset].octave_shift; } break;
             case '9': if (presets[current_preset].octave_shift < +4) { ++presets[current_preset].octave_shift; } break;
             case '0': all_notes_off(); break;
+            case '.': reset_presets(); break;
 
             case 'A': if (presets[current_preset].Osc_waveform > 0) { --presets[current_preset].Osc_waveform; } break;
             case 'a': if (presets[current_preset].Osc_waveform < 1) { ++presets[current_preset].Osc_waveform; } break;
@@ -371,7 +381,7 @@ void soundTask(void) {
 
 void beep(void) {
     uint8_t preset = current_preset;
-    load_sound(1);
+    current_preset = 1;
     play_note(65);
-    load_sound(preset);
+    current_preset = preset;
 }
