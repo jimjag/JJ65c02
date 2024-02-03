@@ -47,7 +47,7 @@
 // VGA timing constants
 #define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
 #define V_ACTIVE 479        // (active - 1)
-#define SCANLINE_ACTIVE 319 // (horizontal active)/2 - 1
+#define SCANLINE_ACTIVE 319 // (horizontal length)/2 - 1
 // #define SCANLINE_ACTIVE 639 // change to this if 1 pixel/byte
 
 // Screen width/height/freq
@@ -62,6 +62,20 @@ enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
             TRANSPARENT=0xFF};
+
+// Bit masks for drawPixel routine - RGBIRGBI
+#define TOPMASK 0b00001111
+#define BOTTOMMASK 0b11110000
+#define ESC 0x1b
+
+// For drawLine
+#define swap(a, b) do { int t = a; a = b; b = t; } while (false)
+
+// For writing text
+#define tabspace 4 // number of spaces for a tab
+
+// For accessing the font library
+#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // Sprite
 #define SPRITESIZE 16

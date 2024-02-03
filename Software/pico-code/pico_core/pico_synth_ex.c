@@ -3,6 +3,7 @@
  * Copyright (c) 2021-2024 Jim Jagielski
  */
 
+// 4 Voice, 10 Instrument Sound Generator
 
 #include <stdio.h>
 #include <math.h>

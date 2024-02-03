@@ -707,7 +707,7 @@ void fillSprite(uint sn) {
             mask<<=4;
             bitmap<<=4;
             cx = sdata[j + (i * SPRITESIZE)];
-            if (cx == 0xff) { // transparent
+            if (cx == TRANSPARENT) {
                 mask |= TOPMASK;
             }
             bitmap |= (TOPMASK & cx);

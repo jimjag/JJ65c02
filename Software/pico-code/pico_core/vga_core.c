@@ -74,20 +74,6 @@ static char txtfont = 0;
 // DMA channel for dma_memcpy and dma_memset
 int memcpy_dma_chan;
 
-// Bit masks for drawPixel routine - RGBIRGBI
-#define TOPMASK 0b00001111
-#define BOTTOMMASK 0b11110000
-#define ESC 0x1b
-
-// For drawLine
-#define swap(a, b) do { int t = a; a = b; b = t; } while (false)
-
-// For writing text
-#define tabspace 4 // number of spaces for a tab
-
-// For accessing the font library
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-
 // configurations
 // wrap: auto wrap around at terminal end
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
