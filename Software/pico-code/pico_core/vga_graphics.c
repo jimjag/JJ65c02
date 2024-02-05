@@ -705,7 +705,7 @@ void fillSprite16(uint sn, short height) {
     n->mask[0] = malloc(SPRITE16_WIDTH * height);
     n->mask[1] = malloc(SPRITE16_WIDTH * height);
     n->bgrnd = malloc(SPRITE16_WIDTH * height);
-    for (int i = 0; i < SPRITE16_WIDTH; i++) {
+    for (int i = 0; i < height; i++) {
         uint64_t mask = 0;
         uint64_t bitmap = 0;
         unsigned char cx;
