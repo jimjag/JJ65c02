@@ -684,7 +684,7 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-void fillSprite(uint sn) {
+void fillSprite16(uint sn) {
     unsigned char cx;
     unsigned char sdata[SPRITESIZE * SPRITESIZE];
     if (sn >= MAXSPRITES)
@@ -721,8 +721,8 @@ void fillSprite(uint sn) {
     sprites[sn] = n;
 }
 
-void drawSprite(int x, int y, uint sn, bool erase) {
-    if (erase) eraseSprite(sn);
+void drawSprite16(int x, int y, uint sn, bool erase) {
+    if (erase) eraseSprite16(sn);
     if (x <= -SPRITESIZE || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITESIZE) return;
     uint64_t masked_screen, new_screen;
     uint64_t bgrnd, mask, bitmap;
@@ -774,7 +774,7 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     sprites[sn]->bgValid = true;
 }
 
-void eraseSprite(uint sn) {
+void eraseSprite16(uint sn) {
     // Restore background (original screen)
     if (!sprites[sn]->bgValid)
         return;

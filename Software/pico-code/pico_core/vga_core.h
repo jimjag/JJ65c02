@@ -140,6 +140,6 @@ bool enableCurs(bool flag);
 void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
-void drawSprite(int x, int y, uint sn, bool erase);
-void fillSprite(uint sn);
-void eraseSprite(uint sn);
+void drawSprite16(int x, int y, uint sn, bool erase);
+void fillSprite16(uint sn);
+void eraseSprite16(uint sn);

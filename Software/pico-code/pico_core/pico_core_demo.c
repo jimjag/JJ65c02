@@ -53,7 +53,7 @@
 #include "pico/multicore.h"
 
 // Some globals for storing timer information
-volatile int time_accum = 10;
+volatile int time_accum = 12;
 int time_accum_old = 0;
 char timetext[40];
 
@@ -337,8 +337,8 @@ int main() {
     int y0 = 15;
     for (int i = 10; i < 400; i++) {
         bool changed = false;
-        drawSprite(i, y, 1, true);
-        drawSprite(x0, y0, 2, true);
+        drawSprite16(i, y, 1, true);
+        drawSprite16(x0, y0, 2, true);
         y++;
         x0--;
         y0++;
@@ -351,12 +351,12 @@ int main() {
     }
     y = 5;
     for (int i = 0; i > -16; i--) {
-        drawSprite(i, y, 1, false);
+        drawSprite16(i, y, 1, false);
         y += 17;
     }
     y = 5;
     for (int i = 624; i < 641; i++) {
-        drawSprite(i, y, 1, false);
+        drawSprite16(i, y, 1, false);
         y += 17;
     }
     while (true) {
