@@ -700,10 +700,10 @@ void fillSprite16(uint sn, short height) {
     // NOW CREATE bitmap, mask, etc... for this sprite
     // (which was designed to be at an even X-coordinate)
     // and its odd X-coord twin.
-    n->bitmap = malloc(SPRITE16_WIDTH * height);
-    n->bitmap2 = malloc(SPRITE16_WIDTH * height);
-    n->mask = malloc(SPRITE16_WIDTH * height);
-    n->mask2 = malloc(SPRITE16_WIDTH * height);
+    n->bitmap[0] = malloc(SPRITE16_WIDTH * height);
+    n->bitmap[1] = malloc(SPRITE16_WIDTH * height);
+    n->mask[0] = malloc(SPRITE16_WIDTH * height);
+    n->mask[1] = malloc(SPRITE16_WIDTH * height);
     n->bgrnd = malloc(SPRITE16_WIDTH * height);
     for (int i = 0; i < SPRITE16_WIDTH; i++) {
         uint64_t mask = 0;
@@ -718,10 +718,10 @@ void fillSprite16(uint sn, short height) {
             }
             bitmap |= (TOPMASK & cx);
         }
-        n->bitmap[i] = bitmap;
-        n->mask[i] = mask;
-        n->bitmap2[i] = (bitmap << 4) | 0xf;
-        n->mask2[i] = (mask << 4) | 0xf;
+        n->bitmap[0][i] = bitmap;
+        n->mask[0][i] = mask;
+        n->bitmap[1][i] = (bitmap << 4) | 0xf;
+        n->mask[1][i] = (mask << 4) | 0xf;
     }
     n->bgValid = false;
     n->height = height;
@@ -748,18 +748,14 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
         x = 0;
         shift_left = false;
     }
+    int offset = x&0x1;
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + x);
         dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
         sprites[sn]->bgrnd[j] = bgrnd;
-        if (x&0x1) {
-            mask = sprites[sn]->mask2[j];
-            bitmap = sprites[sn]->bitmap2[j];
-        } else {
-            mask = sprites[sn]->mask[j];
-            bitmap = sprites[sn]->bitmap[j];
-        }
+        mask = sprites[sn]->mask[offset][j];
+        bitmap = sprites[sn]->bitmap[offset][j];
         // Yes, this does take time and so one could argue that these
         // should be part of the stored sprite data (ala the odd/even
         // variants). But (1) that is a lot of space and (2) this is

@@ -80,11 +80,9 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 // Sprite
 #define SPRITE16_WIDTH 16
 typedef struct {
-    uint64_t *bitmap;
-    uint64_t *mask;
+    uint64_t *bitmap[2];
+    uint64_t *mask[2];
     uint64_t *bgrnd;
-    uint64_t *bitmap2;
-    uint64_t *mask2;
     short x;
     short y;
     short height;

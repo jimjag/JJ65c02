@@ -302,10 +302,10 @@ int main() {
             sdata[i] = foo[i];
         }
         // NOW CREATE bitmap, mask, etc...
-        n->bitmap = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->bitmap2 = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask2 = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->bitmap[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->bitmap[1] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->mask[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->mask[1] = malloc(SPRITE16_WIDTH * FOO_LEN);
         n->bgrnd = malloc(SPRITE16_WIDTH * FOO_LEN);
         for (int i = 0; i < FOO_LEN; i++) {
             uint64_t mask = 0;
@@ -319,10 +319,10 @@ int main() {
                 }
                 bitmap |= (0b00001111 & cx);
             }
-            n->bitmap[i] = bitmap;
-            n->mask[i] = mask;
-            n->bitmap2[i] = (bitmap << 4) | 0xf;
-            n->mask2[i] = (mask << 4) | 0xf;
+            n->bitmap[0][i] = bitmap;
+            n->mask[0][i] = mask;
+            n->bitmap[1][i] = (bitmap << 4) | 0xf;
+            n->mask[1][i] = (mask << 4) | 0xf;
         }
         n->bgValid = false;
         n->height = FOO_LEN;
