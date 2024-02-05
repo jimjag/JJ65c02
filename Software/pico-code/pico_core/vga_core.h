@@ -78,14 +78,16 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // Sprite
-#define SPRITESIZE 16
+#define SPRITE16_WIDTH 16
 typedef struct {
-    uint64_t bitmap[2][SPRITESIZE];
-    uint64_t mask[2][SPRITESIZE];
-    uint64_t bgrnd[SPRITESIZE];
+    uint64_t *bitmap;
+    uint64_t *mask;
+    uint64_t *bgrnd;
+    uint64_t *bitmap2;
+    uint64_t *mask2;
     short x;
     short y;
-    short len;
+    short height;
     bool bgValid;
 } sprite_t;
 
@@ -141,5 +143,5 @@ void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
 void drawSprite16(int x, int y, uint sn, bool erase);
-void fillSprite16(uint sn);
+void fillSprite16(uint sn, short len);
 void eraseSprite16(uint sn);

@@ -684,15 +684,15 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-void fillSprite16(uint sn) {
-    unsigned char cx;
-    unsigned char sdata[SPRITESIZE * SPRITESIZE];
+void fillSprite16(uint sn, short height) {
     if (sn >= MAXSPRITES)
         return;
     if (sprites[sn])    // already exists
         return;
     sprite_t *n = malloc(sizeof(sprite_t));
+    unsigned char *sdata = malloc(SPRITE16_WIDTH * height);
     for (int i = 0; i < sizeof(sdata); ) {
+        unsigned char cx;
         if (!getByte(&cx))
             continue;
         sdata[i++] = cx;
@@ -700,37 +700,44 @@ void fillSprite16(uint sn) {
     // NOW CREATE bitmap, mask, etc... for this sprite
     // (which was designed to be at an even X-coordinate)
     // and its odd X-coord twin.
-    for (int i = 0; i < SPRITESIZE; i++) {
+    n->bitmap = malloc(SPRITE16_WIDTH * height);
+    n->bitmap2 = malloc(SPRITE16_WIDTH * height);
+    n->mask = malloc(SPRITE16_WIDTH * height);
+    n->mask2 = malloc(SPRITE16_WIDTH * height);
+    n->bgrnd = malloc(SPRITE16_WIDTH * height);
+    for (int i = 0; i < SPRITE16_WIDTH; i++) {
         uint64_t mask = 0;
         uint64_t bitmap = 0;
-        for (int j = SPRITESIZE-1; j >= 0; j--) {
+        unsigned char cx;
+        for (int j = SPRITE16_WIDTH-1; j >= 0; j--) {
             mask<<=4;
             bitmap<<=4;
-            cx = sdata[j + (i * SPRITESIZE)];
+            cx = sdata[j + (i * SPRITE16_WIDTH)];
             if (cx == TRANSPARENT) {
                 mask |= TOPMASK;
             }
             bitmap |= (TOPMASK & cx);
         }
-        n->bitmap[0][i] = bitmap;
-        n->mask[0][i] = mask;
-        n->bitmap[1][i] = (bitmap << 4) | 0xf;
-        n->mask[1][i] = (mask << 4) | 0xf;
+        n->bitmap[i] = bitmap;
+        n->mask[i] = mask;
+        n->bitmap2[i] = (bitmap << 4) | 0xf;
+        n->mask2[i] = (mask << 4) | 0xf;
     }
     n->bgValid = false;
+    n->height = height;
     sprites[sn] = n;
+    free(sdata);
 }
 
 void drawSprite16(int x, int y, uint sn, bool erase) {
     if (erase) eraseSprite16(sn);
-    if (x <= -SPRITESIZE || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITESIZE) return;
+    if (x <= -SPRITE16_WIDTH || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITE16_WIDTH) return;
     uint64_t masked_screen, new_screen;
     uint64_t bgrnd, mask, bitmap;
-    int yend = y + SPRITESIZE;
-    int len = 8;
+    int yend = y + sprites[sn]->height;
     int shifts = 0;
     bool shift_left = true;
-    int maxx = SCREENWIDTH - SPRITESIZE;
+    int maxx = SCREENWIDTH - SPRITE16_WIDTH;
     int j = 0;
     // Handle moving off screen left or right
     if (x > maxx) {
@@ -744,11 +751,15 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + x);
-        int w = x&0x1;
-        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], len);
+        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
         sprites[sn]->bgrnd[j] = bgrnd;
-        mask = sprites[sn]->mask[w][j];
-        bitmap = sprites[sn]->bitmap[w][j];
+        if (x&0x1) {
+            mask = sprites[sn]->mask2[j];
+            bitmap = sprites[sn]->bitmap2[j];
+        } else {
+            mask = sprites[sn]->mask[j];
+            bitmap = sprites[sn]->bitmap[j];
+        }
         // Yes, this does take time and so one could argue that these
         // should be part of the stored sprite data (ala the odd/even
         // variants). But (1) that is a lot of space and (2) this is
@@ -766,11 +777,10 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
         }
         masked_screen = mask & bgrnd;
         new_screen = masked_screen | (~mask & bitmap);
-        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, len);
+        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
     }
     sprites[sn]->x = x;
     sprites[sn]->y = y;
-    sprites[sn]->len = len;
     sprites[sn]->bgValid = true;
 }
 
@@ -778,12 +788,12 @@ void eraseSprite16(uint sn) {
     // Restore background (original screen)
     if (!sprites[sn]->bgValid)
         return;
-    int yend = sprites[sn]->y + SPRITESIZE;
+    int yend = sprites[sn]->y + sprites[sn]->height;
     int j = 0;
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
-        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], sprites[sn]->len);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], 8);
     }
     sprites[sn]->bgValid = false;
 }

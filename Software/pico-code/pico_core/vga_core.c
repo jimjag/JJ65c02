@@ -107,7 +107,6 @@ static const char ansi_pallet[] = {
         BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 };
 
-
 #define MAXSPRITES 32
 sprite_t *sprites[MAXSPRITES];
 
