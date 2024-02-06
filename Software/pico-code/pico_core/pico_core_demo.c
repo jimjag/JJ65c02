@@ -294,42 +294,11 @@ int main() {
             0xff,0xff,0xff,0xff,0xff,0x0f,0x00,0x0f,0x00,0x0f,0xff,0xff,0xff,0xff,0xff,0xff
     };
     extern sprite_t *sprites[];
-    for (int s = 1; s <=2; s++) {
-        unsigned char cx;
-        unsigned char sdata[SPRITE16_WIDTH * FOO_LEN];
-        sprite_t *n = malloc(sizeof(sprite_t));
-        for (int i = 0; i < sizeof(sdata); i++) {
-            sdata[i] = foo[i];
-        }
-        // NOW CREATE bitmap, mask, etc...
-        n->bitmap[0][0] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->bitmap[0][1] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask[0][0] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask[0][1] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->bgrnd[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        for (int i = 0; i < FOO_LEN; i++) {
-            uint64_t mask = 0;
-            uint64_t bitmap = 0;
-            for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
-                mask <<= 4;
-                bitmap <<= 4;
-                cx = sdata[j + (i * SPRITE16_WIDTH)];
-                if (cx >= 0xf0) { // transparent
-                    mask |= 0b00001111;
-                }
-                bitmap |= (0b00001111 & cx);
-            }
-            n->bitmap[0][0][i] = bitmap;
-            n->mask[0][0][i] = mask;
-            n->bitmap[0][1][i] = (bitmap << 4) | 0xf;
-            n->mask[0][1][i] = (mask << 4) | 0xf;
-        }
-        n->bgValid = false;
-        n->height = FOO_LEN;
-        n->width =SPRITE16_WIDTH;
-        sprites[s] = n;
+    int height = FOO_LEN;
+    int width = SPRITE16_WIDTH;
+    for (int sn = 1; sn <=2; sn++) {
+        loadSprite(sn, width, height, foo);
     }
-    // Make a copy
 
     int y = 2;
     int x0 = 600;

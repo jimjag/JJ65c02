@@ -68,6 +68,9 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 #define BOTTOMMASK 0b11110000
 #define ESC 0x1b
 
+#define LSN64 0x0f
+#define MSN64 0xf000000000000000
+
 // For drawLine
 #define swap(a, b) do { int t = a; a = b; b = t; } while (false)
 
@@ -88,6 +91,7 @@ typedef struct {
     short y;
     short height;
     short width;
+    short len;
     bool bgValid;
 } sprite_t;
 
@@ -143,5 +147,5 @@ void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
 void drawSprite(int x, int y, uint sn, bool erase);
-void loadSprite(uint sn, short width, short height);
+void loadSprite(uint sn, short width, short height, unsigned char *sdata);
 void eraseSprite(uint sn);

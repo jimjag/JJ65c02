@@ -684,95 +684,104 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-static void loadSprite16(uint sn, short height) {
+void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sn >= MAXSPRITES)
         return;
     if (sprites[sn])    // already exists
         return;
+    if (width != SPRITE32_WIDTH) width = SPRITE16_WIDTH;
     sprite_t *n = malloc(sizeof(sprite_t));
-    unsigned char *sdata = malloc(SPRITE16_WIDTH * height);
-    for (int i = 0; i < sizeof(sdata); ) {
-        unsigned char cx;
-        if (!getByte(&cx))
-            continue;
-        sdata[i++] = cx;
+    bool needFree = false;
+    if (!sdata) {
+        sdata = malloc(width * height);
+        for (int i = 0; i < sizeof(sdata);) {
+            unsigned char cx;
+            if (!getByte(&cx))
+                continue;
+            sdata[i++] = cx;
+        }
+        needFree = true;
     }
     // NOW CREATE bitmap, mask, etc... for this sprite
     // (which was designed to be at an even X-coordinate)
     // and its odd X-coord twin.
+    //
+    // 1st or ONLY 64bit int
     n->bitmap[0][0] = malloc(SPRITE16_WIDTH * height);
     n->bitmap[0][1] = malloc(SPRITE16_WIDTH * height);
     n->mask[0][0] = malloc(SPRITE16_WIDTH * height);
     n->mask[0][1] = malloc(SPRITE16_WIDTH * height);
     n->bgrnd[0] = malloc(SPRITE16_WIDTH * height);
+    if (width == SPRITE32_WIDTH) {
+        // 2nd 64bit int
+        n->bitmap[1][0] = malloc(SPRITE16_WIDTH * height);
+        n->bitmap[1][1] = malloc(SPRITE16_WIDTH * height);
+        n->mask[1][0] = malloc(SPRITE16_WIDTH * height);
+        n->mask[1][1] = malloc(SPRITE16_WIDTH * height);
+        n->bgrnd[1] = malloc(SPRITE16_WIDTH * height);
+    }
+    int chunks = width / SPRITE16_WIDTH;
     for (int i = 0; i < height; i++) {
-        uint64_t mask = 0;
-        uint64_t bitmap = 0;
-        unsigned char cx;
-        for (int j = SPRITE16_WIDTH-1; j >= 0; j--) {
-            mask<<=4;
-            bitmap<<=4;
-            cx = sdata[j + (i * SPRITE16_WIDTH)];
-            if (cx == TRANSPARENT) {
-                mask |= TOPMASK;
+        uint64_t carryb, carrym;
+        for (int k = 0; k < chunks; k++) {
+            uint64_t mask = 0;
+            uint64_t bitmap = 0;
+            unsigned char cx;
+            for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
+                mask <<= 4;
+                bitmap <<= 4;
+                cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
+                if (cx == TRANSPARENT) {
+                    mask |= TOPMASK;
+                }
+                bitmap |= (TOPMASK & cx);
             }
-            bitmap |= (TOPMASK & cx);
+            n->bitmap[k][0][i] = bitmap;
+            n->mask[k][0][i] = mask;
         }
-        n->bitmap[0][0][i] = bitmap;
-        n->mask[0][0][i] = mask;
-        n->bitmap[0][1][i] = (bitmap << 4) | 0xf;
-        n->mask[0][1][i] = (mask << 4) | 0xf;
+        if (width == SPRITE32_WIDTH) {
+            carryb = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
+            carrym = (n->mask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted mask[0]
+            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) & carryb; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
+            n->mask[1][1][i] = (n->mask[1][0][i] << 4) & carrym;
+        }
+        n->bitmap[0][1][i] = (n->bitmap[0][0][i] << 4) | LSN64;
+        n->mask[0][1][i] = (n->mask[0][0][i] << 4) | LSN64;
     }
     n->bgValid = false;
     n->height = height;
+    n->width = width;
     sprites[sn] = n;
-    free(sdata);
+    if (needFree) free(sdata);
 }
 
-static void loadSprite32(uint sn, short height) {
-}
-
-void loadSprite(uint sn, short width, short height) {
-    if (width == SPRITE32_WIDTH)
-        loadSprite32(sn, height);
-    else
-        loadSprite16(sn, height);
-}
-
-static void eraseSprite16(uint sn) {
+void eraseSprite(uint sn) {
     // Restore background (original screen)
     if (!sprites[sn]->bgValid)
         return;
     int yend = sprites[sn]->y + sprites[sn]->height;
     int j = 0;
+    int chunks = sprites[sn]->width / SPRITE16_WIDTH;
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
-        int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
-        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[0][j], 8);
+        for (int k = 0; k < chunks; k++) {
+            int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * 8));
+            dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
+        }
     }
     sprites[sn]->bgValid = false;
 }
 
-static void eraseSprite32(uint sn) {
-}
-
-void eraseSprite(uint sn) {
-    if (sprites[sn]->width == SPRITE32_WIDTH)
-        eraseSprite32(sn);
-    else
-        eraseSprite16(sn);
-}
-
-void drawSprite16(int x, int y, uint sn, bool erase) {
-    if (erase) eraseSprite16(sn);
-    if (x <= -SPRITE16_WIDTH || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -SPRITE16_WIDTH) return;
+void drawSprite(int x, int y, uint sn, bool erase) {
+    if (erase) eraseSprite(sn);
+    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->width) return;
     uint64_t masked_screen, new_screen;
     uint64_t bgrnd, mask, bitmap;
     int yend = y + sprites[sn]->height;
     int shifts = 0;
     bool shift_left = true;
-    int maxx = SCREENWIDTH - SPRITE16_WIDTH;
-    int j = 0;
+    int maxx = SCREENWIDTH - sprites[sn]->width;
+    int chunks = sprites[sn]->width / SPRITE16_WIDTH;
     // Handle moving off screen left or right
     if (x > maxx) {
         shifts = x - maxx;
@@ -782,44 +791,37 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
         x = 0;
         shift_left = false;
     }
-    int offset = x&0x1;
+    int oddeven = x & 0x1;
+    int j = 0;
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
-        int pixel = ((SCREENWIDTH * y1) + x);
-        dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
-        sprites[sn]->bgrnd[0][j] = bgrnd;
-        mask = sprites[sn]->mask[0][offset][j];
-        bitmap = sprites[sn]->bitmap[0][offset][j];
-        // Yes, this does take time and so one could argue that these
-        // should be part of the stored sprite data (ala the odd/even
-        // variants). But (1) that is a lot of space and (2) this is
-        // only a factor when the sprite intersects with the left or
-        // right border, which is rare (and in most cases never even
-        // happens). So keep for now.
-        for (int i = 0; i < shifts; i++) {
-            if (shift_left) {
-                bitmap = (bitmap << 4) | 0xf;
-                mask = (mask << 4) | 0xf;
-            } else {
-                bitmap = (bitmap >> 4) | 0xf000000000000000;
-                mask = (mask >> 4) | 0xf000000000000000;
+        for (int k = 0; k < chunks; k++) {
+            int pixel = ((SCREENWIDTH * y1) + x + (k * 8));
+            dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
+            sprites[sn]->bgrnd[k][j] = bgrnd;
+            mask = sprites[sn]->mask[k][oddeven][j];
+            bitmap = sprites[sn]->bitmap[k][oddeven][j];
+            // Yes, this does take time and so one could argue that these
+            // should be part of the stored sprite data (ala the odd/even
+            // variants). But (1) that is a lot of space and (2) this is
+            // only a factor when the sprite intersects with the left or
+            // right border, which is rare (and in most cases never even
+            // happens). So keep for now.
+            for (int i = 0; i < shifts; i++) {
+                if (shift_left) {
+                    bitmap = (bitmap << 4) | LSN64;
+                    mask = (mask << 4) | LSN64;
+                } else {
+                    bitmap = (bitmap >> 4) | MSN64;
+                    mask = (mask >> 4) | MSN64;
+                }
             }
+            masked_screen = mask & bgrnd;
+            new_screen = masked_screen | (~mask & bitmap);
+            dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
         }
-        masked_screen = mask & bgrnd;
-        new_screen = masked_screen | (~mask & bitmap);
-        dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
     }
     sprites[sn]->x = x;
     sprites[sn]->y = y;
     sprites[sn]->bgValid = true;
-}
-
-static void drawSprite32(int x, int y, uint sn, bool erase) {
-}
-
-void drawSprite(int x, int y, uint sn, bool erase) {
-    if (sprites[sn]->width == SPRITE32_WIDTH)
-        drawSprite32(x, y, sn, erase);
-    else
-        drawSprite16(x, y, sn, erase);
 }
