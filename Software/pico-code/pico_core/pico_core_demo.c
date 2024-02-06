@@ -302,11 +302,11 @@ int main() {
             sdata[i] = foo[i];
         }
         // NOW CREATE bitmap, mask, etc...
-        n->bitmap[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->bitmap[1] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->mask[1] = malloc(SPRITE16_WIDTH * FOO_LEN);
-        n->bgrnd = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->bitmap[0][0] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->bitmap[0][1] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->mask[0][0] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->mask[0][1] = malloc(SPRITE16_WIDTH * FOO_LEN);
+        n->bgrnd[0] = malloc(SPRITE16_WIDTH * FOO_LEN);
         for (int i = 0; i < FOO_LEN; i++) {
             uint64_t mask = 0;
             uint64_t bitmap = 0;
@@ -319,13 +319,14 @@ int main() {
                 }
                 bitmap |= (0b00001111 & cx);
             }
-            n->bitmap[0][i] = bitmap;
-            n->mask[0][i] = mask;
-            n->bitmap[1][i] = (bitmap << 4) | 0xf;
-            n->mask[1][i] = (mask << 4) | 0xf;
+            n->bitmap[0][0][i] = bitmap;
+            n->mask[0][0][i] = mask;
+            n->bitmap[0][1][i] = (bitmap << 4) | 0xf;
+            n->mask[0][1][i] = (mask << 4) | 0xf;
         }
         n->bgValid = false;
         n->height = FOO_LEN;
+        n->width =SPRITE16_WIDTH;
         sprites[s] = n;
     }
     // Make a copy
@@ -335,8 +336,8 @@ int main() {
     int y0 = 15;
     for (int i = 10; i < 400; i++) {
         bool changed = false;
-        drawSprite16(i, y, 1, true);
-        drawSprite16(x0, y0, 2, true);
+        drawSprite(i, y, 1, true);
+        drawSprite(x0, y0, 2, true);
         y++;
         x0--;
         y0++;
@@ -349,12 +350,12 @@ int main() {
     }
     y = 5;
     for (int i = 0; i > -16; i--) {
-        drawSprite16(i, y, 1, false);
+        drawSprite(i, y, 1, false);
         y += 17;
     }
     y = 5;
     for (int i = 624; i < 641; i++) {
-        drawSprite16(i, y, 1, false);
+        drawSprite(i, y, 1, false);
         y += 17;
     }
     while (true) {

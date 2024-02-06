@@ -684,7 +684,7 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-void fillSprite16(uint sn, short height) {
+static void loadSprite16(uint sn, short height) {
     if (sn >= MAXSPRITES)
         return;
     if (sprites[sn])    // already exists
@@ -700,11 +700,11 @@ void fillSprite16(uint sn, short height) {
     // NOW CREATE bitmap, mask, etc... for this sprite
     // (which was designed to be at an even X-coordinate)
     // and its odd X-coord twin.
-    n->bitmap[0] = malloc(SPRITE16_WIDTH * height);
-    n->bitmap[1] = malloc(SPRITE16_WIDTH * height);
-    n->mask[0] = malloc(SPRITE16_WIDTH * height);
-    n->mask[1] = malloc(SPRITE16_WIDTH * height);
-    n->bgrnd = malloc(SPRITE16_WIDTH * height);
+    n->bitmap[0][0] = malloc(SPRITE16_WIDTH * height);
+    n->bitmap[0][1] = malloc(SPRITE16_WIDTH * height);
+    n->mask[0][0] = malloc(SPRITE16_WIDTH * height);
+    n->mask[0][1] = malloc(SPRITE16_WIDTH * height);
+    n->bgrnd[0] = malloc(SPRITE16_WIDTH * height);
     for (int i = 0; i < height; i++) {
         uint64_t mask = 0;
         uint64_t bitmap = 0;
@@ -718,15 +718,49 @@ void fillSprite16(uint sn, short height) {
             }
             bitmap |= (TOPMASK & cx);
         }
-        n->bitmap[0][i] = bitmap;
-        n->mask[0][i] = mask;
-        n->bitmap[1][i] = (bitmap << 4) | 0xf;
-        n->mask[1][i] = (mask << 4) | 0xf;
+        n->bitmap[0][0][i] = bitmap;
+        n->mask[0][0][i] = mask;
+        n->bitmap[0][1][i] = (bitmap << 4) | 0xf;
+        n->mask[0][1][i] = (mask << 4) | 0xf;
     }
     n->bgValid = false;
     n->height = height;
     sprites[sn] = n;
     free(sdata);
+}
+
+static void loadSprite32(uint sn, short height) {
+}
+
+void loadSprite(uint sn, short width, short height) {
+    if (width == SPRITE32_WIDTH)
+        loadSprite32(sn, height);
+    else
+        loadSprite16(sn, height);
+}
+
+static void eraseSprite16(uint sn) {
+    // Restore background (original screen)
+    if (!sprites[sn]->bgValid)
+        return;
+    int yend = sprites[sn]->y + sprites[sn]->height;
+    int j = 0;
+    for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
+        if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
+        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[0][j], 8);
+    }
+    sprites[sn]->bgValid = false;
+}
+
+static void eraseSprite32(uint sn) {
+}
+
+void eraseSprite(uint sn) {
+    if (sprites[sn]->width == SPRITE32_WIDTH)
+        eraseSprite32(sn);
+    else
+        eraseSprite16(sn);
 }
 
 void drawSprite16(int x, int y, uint sn, bool erase) {
@@ -753,9 +787,9 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         int pixel = ((SCREENWIDTH * y1) + x);
         dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
-        sprites[sn]->bgrnd[j] = bgrnd;
-        mask = sprites[sn]->mask[offset][j];
-        bitmap = sprites[sn]->bitmap[offset][j];
+        sprites[sn]->bgrnd[0][j] = bgrnd;
+        mask = sprites[sn]->mask[0][offset][j];
+        bitmap = sprites[sn]->bitmap[0][offset][j];
         // Yes, this does take time and so one could argue that these
         // should be part of the stored sprite data (ala the odd/even
         // variants). But (1) that is a lot of space and (2) this is
@@ -780,16 +814,12 @@ void drawSprite16(int x, int y, uint sn, bool erase) {
     sprites[sn]->bgValid = true;
 }
 
-void eraseSprite16(uint sn) {
-    // Restore background (original screen)
-    if (!sprites[sn]->bgValid)
-        return;
-    int yend = sprites[sn]->y + sprites[sn]->height;
-    int j = 0;
-    for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
-        if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
-        int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x);
-        dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[j], 8);
-    }
-    sprites[sn]->bgValid = false;
+static void drawSprite32(int x, int y, uint sn, bool erase) {
+}
+
+void drawSprite(int x, int y, uint sn, bool erase) {
+    if (sprites[sn]->width == SPRITE32_WIDTH)
+        drawSprite32(x, y, sn, erase);
+    else
+        drawSprite16(x, y, sn, erase);
 }
