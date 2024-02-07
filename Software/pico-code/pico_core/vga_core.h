@@ -81,8 +81,8 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 // Sprite
-#define SPRITE16_WIDTH 16
-#define SPRITE32_WIDTH 32
+#define SPRITE16_WIDTH 16  // in pixels
+#define SPRITE32_WIDTH 32  // "" ""
 typedef struct {
     uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
     uint64_t *mask[2][2];

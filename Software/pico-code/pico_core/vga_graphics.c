@@ -629,8 +629,6 @@ void printString(char *str) {
     }
 }
 
-void fill_sprite(uint sn);
-
 // Handle ESC sequences
 #include "escape_seq.c"
 
@@ -684,6 +682,28 @@ void printChar(unsigned char chrx) {
     enableCurs(was);
 }
 
+/*
+ * The Sprite code seems complicated at first, but this is mostly
+ * due to the RP2040 being a little endian machine. What does this
+ * mean? Say we want to display the following hex code:
+ *     0x0f020500   (White Pixel, Green Pixel, Magenta Pixel, Black Pixel)
+ * Because we store the bitmaps in integer based variables, these are
+ * stored *in memory* as:
+ *     0x00 0x05 0x02 0x0f
+ * that is, the address of the variable points to the least significant
+ * byte. So even though it looks like we may want to shift the bitmap
+ * to the right, to add space to the left of the image, we actually
+ * need to shift left (and vice versa).
+ *
+ * So why not use char[] instead? Because we need to do bitwise operations
+ * for masking, and one can only do that on integer based values. Moving
+ * to a char[] would be looping through each byte of the array and
+ * doing the bitwise ops on the unsigned char/uint8_t type and those
+ * loops can be expensive.
+ *
+ * And YES, things would be much easier if the RP2040 SDK supported 128bit
+ * values directly.
+ */
 void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sn >= MAXSPRITES)
         return;
@@ -738,6 +758,9 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
             n->bitmap[k][0][i] = bitmap;
             n->mask[k][0][i] = mask;
         }
+        // We now generate, and store, the image shifted right by 1 pixel, for
+        // when the image starts at an odd X-coord. Why? We store 2 pixels
+        // per byte, so we need to straddle odd x-coords.
         if (width == SPRITE32_WIDTH) {
             uint64_t carry;
             carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
@@ -801,6 +824,9 @@ void drawSprite(int x, int y, uint sn, bool erase) {
         // only a factor when the sprite intersects with the left or
         // right border, which is rare (and in most cases never even
         // happens). So keep for now.
+        //
+        // We could likely do away with the looping for the
+        // nibble shifts at some point...
         mask[0] = sprites[sn]->mask[0][oddeven][j];
         bitmap[0] = sprites[sn]->bitmap[0][oddeven][j];
         if (sprites[sn]->width == SPRITE32_WIDTH) {
