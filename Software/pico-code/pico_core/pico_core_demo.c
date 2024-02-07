@@ -328,18 +328,16 @@ int main() {
         sleep_ms(25);
     }
     y = 5;
-    for (int i = 0; i > -16; i--) {
-        drawSprite(i, y, 1, false);
+    for (int i = 0; i > -32; i--) {
+        drawSprite(i, y, 2, false);
         y += 17;
     }
     y = 5;
-    for (int i = 624; i < 641; i++) {
-        drawSprite(i, y, 1, false);
+    for (int i = 608; i < 641; i++) {
+        drawSprite(i, y, 2, false);
         y += 17;
     }
-    drawSprite(200, 200, 2, false);
-    drawSprite(201, 212, 2, false);
-    drawSprite(202, 224, 2, false);
+
     while (true) {
         unsigned char c = ps2GetChar(false);
         if (c == 'Q') break;
