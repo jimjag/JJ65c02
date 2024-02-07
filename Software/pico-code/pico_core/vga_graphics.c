@@ -707,22 +707,21 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     // and its odd X-coord twin.
     //
     // 1st or ONLY 64bit int
-    n->bitmap[0][0] = malloc(SPRITE16_WIDTH * height);
-    n->bitmap[0][1] = malloc(SPRITE16_WIDTH * height);
-    n->mask[0][0] = malloc(SPRITE16_WIDTH * height);
-    n->mask[0][1] = malloc(SPRITE16_WIDTH * height);
-    n->bgrnd[0] = malloc(SPRITE16_WIDTH * height);
+    n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
+    n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
+    n->mask[0][0] = malloc(sizeof(uint64_t) * height);
+    n->mask[0][1] = malloc(sizeof(uint64_t) * height);
+    n->bgrnd[0] = malloc(sizeof(uint64_t) * height);
     if (width == SPRITE32_WIDTH) {
         // 2nd 64bit int
-        n->bitmap[1][0] = malloc(SPRITE16_WIDTH * height);
-        n->bitmap[1][1] = malloc(SPRITE16_WIDTH * height);
-        n->mask[1][0] = malloc(SPRITE16_WIDTH * height);
-        n->mask[1][1] = malloc(SPRITE16_WIDTH * height);
-        n->bgrnd[1] = malloc(SPRITE16_WIDTH * height);
+        n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
+        n->bitmap[1][1] = malloc(sizeof(uint64_t) * height);
+        n->mask[1][0] = malloc(sizeof(uint64_t) * height);
+        n->mask[1][1] = malloc(sizeof(uint64_t) * height);
+        n->bgrnd[1] = malloc(sizeof(uint64_t) * height);
     }
     int chunks = width / SPRITE16_WIDTH;
     for (int i = 0; i < height; i++) {
-        uint64_t carryb, carrym;
         for (int k = 0; k < chunks; k++) {
             uint64_t mask = 0;
             uint64_t bitmap = 0;
@@ -740,10 +739,11 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
             n->mask[k][0][i] = mask;
         }
         if (width == SPRITE32_WIDTH) {
-            carryb = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
-            carrym = (n->mask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted mask[0]
-            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) & carryb; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
-            n->mask[1][1][i] = (n->mask[1][0][i] << 4) & carrym;
+            uint64_t carry;
+            carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
+            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
+            carry = (n->mask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted mask[0]
+            n->mask[1][1][i] = (n->mask[1][0][i] << 4) | carry;
         }
         n->bitmap[0][1][i] = (n->bitmap[0][0][i] << 4) | LSN64;
         n->mask[0][1][i] = (n->mask[0][0][i] << 4) | LSN64;
@@ -765,7 +765,7 @@ void eraseSprite(uint sn) {
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         for (int k = 0; k < chunks; k++) {
-            int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * 8));
+            int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * SPRITE16_WIDTH));
             dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
         }
     }
@@ -776,10 +776,10 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     if (erase) eraseSprite(sn);
     if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->width) return;
     uint64_t masked_screen, new_screen;
-    uint64_t bgrnd, mask, bitmap;
+    uint64_t bgrnd, mask[2], bitmap[2];
     int yend = y + sprites[sn]->height;
     int shifts = 0;
-    bool shift_left = true;
+    bool shift_right = true;
     int maxx = SCREENWIDTH - sprites[sn]->width;
     int chunks = sprites[sn]->width / SPRITE16_WIDTH;
     // Handle moving off screen left or right
@@ -789,35 +789,53 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     } else if (x < 0) {
         shifts = -x;
         x = 0;
-        shift_left = false;
+        shift_right = false;
     }
     int oddeven = x & 0x1;
     int j = 0;
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        // Yes, this does take time and so one could argue that these
+        // should be part of the stored sprite data (ala the odd/even
+        // variants). But (1) that is a lot of space and (2) this is
+        // only a factor when the sprite intersects with the left or
+        // right border, which is rare (and in most cases never even
+        // happens). So keep for now.
+        mask[0] = sprites[sn]->mask[0][oddeven][j];
+        bitmap[0] = sprites[sn]->bitmap[0][oddeven][j];
+        if (sprites[sn]->width == SPRITE32_WIDTH) {
+            mask[1] = sprites[sn]->mask[1][oddeven][j];
+            bitmap[1] = sprites[sn]->bitmap[1][oddeven][j];
+        }
+        uint64_t carry[2];
+        for (int i = 0; i < shifts; i++) {
+            if (shift_right) {
+                if (sprites[sn]->width == SPRITE32_WIDTH) {
+                    carry[0] = (bitmap[0] & MSN64) >> 60;
+                    bitmap[1] = (bitmap[1] << 4) | carry[0];
+                    carry[1] = (mask[0] & MSN64) >> 60;
+                    mask[1] = (mask[1] << 4) | carry[1];
+                }
+                bitmap[0] = (bitmap[0] << 4) | LSN64;
+                mask[0] = (mask[0] << 4) | LSN64;
+            } else {
+                carry[0] = carry[1] = MSN64;
+                if (sprites[sn]->width == SPRITE32_WIDTH) {
+                    carry[0] = (bitmap[1] & LSN64) << 60;
+                    bitmap[1] = (bitmap[1] >> 4) | MSN64;
+                    carry[1] = (mask[1] & LSN64) << 60;
+                    mask[1] = (mask[1] >> 4) | MSN64;
+                }
+                bitmap[0] = (bitmap[0] >> 4) | carry[0];
+                mask[0] = (mask[0] >> 4) | carry[1];
+            }
+        }
         for (int k = 0; k < chunks; k++) {
-            int pixel = ((SCREENWIDTH * y1) + x + (k * 8));
+            int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
             dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
-            mask = sprites[sn]->mask[k][oddeven][j];
-            bitmap = sprites[sn]->bitmap[k][oddeven][j];
-            // Yes, this does take time and so one could argue that these
-            // should be part of the stored sprite data (ala the odd/even
-            // variants). But (1) that is a lot of space and (2) this is
-            // only a factor when the sprite intersects with the left or
-            // right border, which is rare (and in most cases never even
-            // happens). So keep for now.
-            for (int i = 0; i < shifts; i++) {
-                if (shift_left) {
-                    bitmap = (bitmap << 4) | LSN64;
-                    mask = (mask << 4) | LSN64;
-                } else {
-                    bitmap = (bitmap >> 4) | MSN64;
-                    mask = (mask >> 4) | MSN64;
-                }
-            }
-            masked_screen = mask & bgrnd;
-            new_screen = masked_screen | (~mask & bitmap);
+            masked_screen = mask[k] & bgrnd;
+            new_screen = masked_screen | (~mask[k] & bitmap[k]);
             dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
         }
     }
