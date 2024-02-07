@@ -56,6 +56,7 @@
 volatile int time_accum = 12;
 int time_accum_old = 0;
 char timetext[40];
+char mem[40];
 
 // Timer interrupt
 bool repeating_timer_callback(struct repeating_timer *t) {
@@ -70,6 +71,32 @@ void core1_main() {
         soundTask();
         //tight_loop_contents();
     }
+}
+
+#include <malloc.h>
+
+uint32_t getTotalHeap(void) {
+    extern char __StackLimit, __bss_end__;
+    return &__StackLimit  - &__bss_end__;
+}
+
+uint32_t getFreeHeap(void) {
+    struct mallinfo m = mallinfo();
+    return getTotalHeap() - m.uordblks;
+}
+
+uint32_t getChunks(void) {
+    struct mallinfo m = mallinfo();
+    return m.ordblks;
+}
+
+uint32_t getProgramSize(void) {
+    extern char __flash_binary_start, __flash_binary_end;
+    return &__flash_binary_end - &__flash_binary_start;
+}
+
+uint32_t getFreeProgramSpace() {
+    return PICO_FLASH_SIZE_BYTES - getProgramSize();
 }
 
 int main() {
@@ -308,15 +335,54 @@ int main() {
             0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 
     };
-    loadSprite(1, SPRITE16_WIDTH, 7, foo);
-    loadSprite(2, SPRITE32_WIDTH, 11, foo2);
+    setTextColor2(WHITE, BLUE);
+    setTextSize(1);
+    setCursor(65, 0);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getTotalHeap());
+    drawString(mem);
+    setCursor(65, 16);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeHeap());
+    drawString(mem);
+    setCursor(65, 32);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getChunks());
+    drawString(mem);
+    setCursor(65, 48);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getProgramSize());
+    drawString(mem);
+    setCursor(65, 64);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeProgramSpace());
+    drawString(mem);
+    sleep_ms(15000);
+    loadSprite(0, SPRITE16_WIDTH, 7, foo);
+    for (int i = 1; i < 31; i++) {
+        loadSprite(i, SPRITE32_WIDTH, 11, foo2);
+    }
+    setCursor(65, 0);
+    setTextSize(1);
+    setCursor(65, 0);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getTotalHeap());
+    drawString(mem);
+    setCursor(65, 16);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeHeap());
+    drawString(mem);
+    setCursor(65, 32);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getChunks());
+    drawString(mem);
+    setCursor(65, 48);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getProgramSize());
+    drawString(mem);
+    setCursor(65, 64);
+    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeProgramSpace());
+    drawString(mem);
     int y = 2;
-    int x0 = 600;
-    int y0 = 15;
+    int x0 = 605;
+    int y0 = 1;
     for (int i = 10; i < 400; i++) {
         bool changed = false;
-        drawSprite(i, y, 1, true);
-        drawSprite(x0, y0, 2, true);
+        drawSprite(i, y, 0, true);
+        for (int j = 1; j < 31; j++) {
+            drawSprite((x0 - (j*40)), (y0 + (j*15)), j, true);
+        }
         y++;
         x0--;
         y0++;

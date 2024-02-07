@@ -387,7 +387,7 @@ static const int16_t Osc_tune_table[256] = { // Q14 frequency tuning table
 476,
 };
 
-static int16_t Osc_wave_tables[2][31][512] = {  // Q14 waveform tables
+static int16_t __in_flash() Osc_wave_tables[2][31][512] = {  // Q14 waveform tables
 {
 {
 0,
@@ -32262,7 +32262,7 @@ static int16_t Osc_wave_tables[2][31][512] = {  // Q14 waveform tables
 }
 };
 
-static int16_t Osc_mix_table[65] = { // Q14 mix table
+static int16_t __in_flash() Osc_mix_table[65] = { // Q14 mix table
 16384,
 16255,
 16125,
@@ -32330,7 +32330,7 @@ static int16_t Osc_mix_table[65] = { // Q14 mix table
 0,
 };
 
-static uint32_t LFO_freq_table[65] = {
+static uint32_t __in_flash() LFO_freq_table[65] = {
 19478,
 20931,
 22493,
@@ -32398,7 +32398,7 @@ static uint32_t LFO_freq_table[65] = {
 1947831,
 };
 
-static uint32_t EG_exp_table[65] = {                                            
+static uint32_t __in_flash() EG_exp_table[65] = {
 1,                                                                              
 1,                                                                              
 1,                                                                              
@@ -32466,7 +32466,7 @@ static uint32_t EG_exp_table[65] = {
 10000,                                                                          
 };
 
-static struct FILTER_COEFS Filter_coefs_table[6][481] = {
+static struct FILTER_COEFS __in_flash() Filter_coefs_table[6][481] = {
 {
 {518, -535819104, 267385760},
 {534, -535803808, 267370512},

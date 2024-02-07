@@ -124,7 +124,7 @@ static inline Q28 Amp_process(uint8_t id, Q28 audio_in, Q14 gain_in) {
 }
 
 //////// EG (Envelope Generator) /////////////////
-static uint32_t EG_exp_table[65]; // Exponential table
+//static uint32_t EG_exp_table[65]; // Exponential table
 
 static volatile uint8_t EG_decay_time[4]; // Decay time setting value
 static volatile uint8_t EG_sustain_level[4]; // Sustain level setting value

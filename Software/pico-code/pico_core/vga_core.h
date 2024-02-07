@@ -41,6 +41,7 @@
 #include "hardware/gpio.h"
 #include "pico/multicore.h"
 #include "pico_synth_ex.h"
+#include "pico/platform.h"
 
 // TODO: Eventually support resolutions > 640x480
 
@@ -89,9 +90,8 @@ typedef struct {
     uint64_t *bgrnd[2];
     short x;
     short y;
-    short height;
-    short width;
-    short len;
+    unsigned char height;
+    unsigned char width;
     bool bgValid;
 } sprite_t;
 
