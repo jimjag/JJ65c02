@@ -81,11 +81,6 @@ int memcpy_dma_chan;
 static bool wrap = true, cr2crlf = false, lf2crlf = false, smooth_scroll = false;
 char textfgcolor = WHITE, textbgcolor = BLACK;
 
-// Cursor position
-typedef struct scrpos {
-    char x;
-    char y;
-} scrpos;
 struct scrpos savedTcurs = {0,0};
 struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
@@ -102,13 +97,7 @@ int cursor_y, cursor_x, textsize;
 //volatile static unsigned char inputChar;
 //volatile static bool hasChar = false;
 
-// color available to ANSI commands
-static const char ansi_pallet[] = {
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
-};
 
-#define MAXSPRITES 32
-sprite_t *sprites[MAXSPRITES];
 
 // Stuff for blinking cursor functions
 static struct repeating_timer ctimer;

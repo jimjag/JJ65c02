@@ -34,6 +34,8 @@
  * - SND:
  * -   PWM
  */
+#ifndef VGA_CORE_H_
+#define VGA_CORE_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -45,7 +47,7 @@
 
 // TODO: Eventually support resolutions > 640x480
 
-#define VERSION_6502 "Pi Pico A/V|I/O Chip: v1.0"
+#define VERSION_6502 "Pi Pico A/V|I/O Chip: v1.0b1"
 
 // VGA timing constants
 #define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
@@ -65,6 +67,11 @@ enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
             TRANSPARENT=0xFF};
+
+// color available to ANSI commands
+static const char ansi_pallet[] = {
+        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+};
 
 // Bit masks for drawPixel routine - RGBIRGBI
 #define TOPMASK 0b00001111
@@ -86,6 +93,7 @@ enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
 // Sprite
 #define SPRITE16_WIDTH 16  // in pixels
 #define SPRITE32_WIDTH 32  // "" ""
+#define MAXSPRITES 32
 typedef struct {
     uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
     uint64_t *mask[2][2];
@@ -96,6 +104,24 @@ typedef struct {
     unsigned char width;
     bool bgValid;
 } sprite_t;
+
+// Tiles
+#define TILE16_WIDTH 16  // in pixels
+#define TILE32_WIDTH 32  // "" ""
+#define MAXTILES 32
+typedef struct {
+    uint64_t *bitmap;  // [# of 64bit values][odd/even]
+    short x;
+    short y;
+    unsigned char height;
+    unsigned char width;
+} tile_t;
+
+// Cursor position
+typedef struct scrpos {
+    char x;
+    char y;
+} scrpos;
 
 // GPIO pins to VIA chip
 enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY=26};
@@ -148,6 +174,11 @@ bool enableCurs(bool flag);
 void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
-void drawSprite(int x, int y, uint sn, bool erase);
+void drawSprite(short x, short y, uint sn, bool erase);
 void loadSprite(uint sn, short width, short height, unsigned char *sdata);
 void eraseSprite(uint sn);
+
+void drawTile(short x, short y, uint sn);
+void loadTile(uint sn, short width, short height, unsigned char *sdata);
+
+#endif // VGA_CORE_H_

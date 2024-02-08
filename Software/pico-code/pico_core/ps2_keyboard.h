@@ -1,4 +1,6 @@
 
+#ifndef P2_KEYBOARD_H_
+#define P2_KEYBOARD_H_
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
@@ -17,3 +19,5 @@ unsigned char ps2GetChar(bool auto_print);
 unsigned char ps2GetCharBlk(bool auto_print);
 void clearPS2(void);
 void ps2Task(bool auto_print);
+
+#endif // P2_KEYBOARD_H_

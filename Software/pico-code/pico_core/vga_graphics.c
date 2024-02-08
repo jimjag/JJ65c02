@@ -704,6 +704,8 @@ void printChar(unsigned char chrx) {
  * And YES, things would be much easier if the RP2040 SDK supported 128bit
  * values directly.
  */
+sprite_t *sprites[MAXSPRITES];
+
 void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sn >= MAXSPRITES)
         return;
@@ -795,9 +797,9 @@ void eraseSprite(uint sn) {
     sprites[sn]->bgValid = false;
 }
 
-void drawSprite(int x, int y, uint sn, bool erase) {
+void drawSprite(short x, short y, uint sn, bool erase) {
     if (erase) eraseSprite(sn);
-    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->width) return;
+    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) return;
     uint64_t masked_screen, new_screen;
     uint64_t bgrnd, mask[2], bitmap[2];
     int yend = y + sprites[sn]->height;
@@ -868,4 +870,64 @@ void drawSprite(int x, int y, uint sn, bool erase) {
     sprites[sn]->x = x;
     sprites[sn]->y = y;
     sprites[sn]->bgValid = true;
+}
+
+//
+
+tile_t *tiles[MAXTILES];
+void loadTile(uint sn, short width, short height, unsigned char *sdata) {
+    if (sn >= MAXTILES)
+        return;
+    if (tiles[sn])    // already exists
+        return;
+    if (width != TILE32_WIDTH) width = TILE16_WIDTH;
+    tile_t *n = malloc(sizeof(tile_t));
+    bool needFree = false;
+    if (!sdata) {
+        sdata = malloc(width * height);
+        for (int i = 0; i < sizeof(sdata);) {
+            unsigned char cx;
+            if (!getByte(&cx))
+                continue;
+            sdata[i++] = cx;
+        }
+        needFree = true;
+    }
+
+    int chunks = width / SPRITE16_WIDTH;
+    n->bitmap = malloc(sizeof(uint64_t) * height * chunks);
+    for (int i = 0; i < height; i++) {
+        for (int k = 0; k < chunks; k++) {
+            uint64_t bitmap = 0;
+            unsigned char cx;
+            for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
+                bitmap <<= 4;
+                cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
+                bitmap |= (TOPMASK & cx);
+            }
+            n->bitmap[i+k] = bitmap;
+        }
+    }
+    n->height = height;
+    n->width = width;
+    tiles[sn] = n;
+    if (needFree) free(sdata);
+}
+
+// Tiles must align on a modulo of their width
+void drawTile(short x, short y, uint sn) {
+    if (x < 0 || x >= (SCREENWIDTH - tiles[sn]->width) || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
+    if (x % tiles[sn]->width) return;  // TODO: Maybe force to a multiple of width ??
+    int yend = y + tiles[sn]->height;
+    int chunks = tiles[sn]->width / SPRITE16_WIDTH;
+    int j = 0;
+    for (int y1 = y; y1 < yend; y1++, j++) {
+        if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        for (int k = 0; k < chunks; k++) {
+            int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
+            dma_memcpy(&vga_data_array[pixel >> 1], &tiles[sn]->bitmap[j + k], 8);
+        }
+    }
+    tiles[sn]->x = x;
+    tiles[sn]->y = y;
 }
