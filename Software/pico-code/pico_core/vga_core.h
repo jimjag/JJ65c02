@@ -45,6 +45,8 @@
 
 // TODO: Eventually support resolutions > 640x480
 
+#define VERSION_6502 "Pi Pico A/V|I/O Chip: v1.0"
+
 // VGA timing constants
 #define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
 #define V_ACTIVE 479        // (active - 1)

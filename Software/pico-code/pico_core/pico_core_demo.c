@@ -47,10 +47,12 @@
 #include "pico_synth_ex.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "pico.h"
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
 #include "pico/multicore.h"
+#include "hardware/vreg.h"
 
 // Some globals for storing timer information
 volatile int time_accum = 12;
@@ -100,6 +102,7 @@ uint32_t getFreeProgramSpace() {
 }
 
 int main() {
+    //vreg_set_voltage(VREG_VOLTAGE_1_15);
     set_sys_clock_khz(250000, true);
     // Initialize stdio
     stdio_init_all();
@@ -129,18 +132,18 @@ int main() {
     short Hline_y = 250;
     // Draw some filled rectangles
 
-    drawFilledRect(64, 0, 176, 50, BLUE); // blue box
+    drawFilledRect(20, 0, 176+44, 50, BLUE); // blue box
     drawFilledRect(250, 0, 176, 50, RED); // red box
     drawFilledRect(435, 0, 176, 50, GREEN); // green box
 
     // Write some text
     setTextColor2(WHITE, BLUE);
-    setCursor(65, 0);
+    setCursor(22, 0);
     setTextSize(1);
-    drawString("Raspberry Pi Pico");
-    setCursor(65, 16);
+    drawString(VERSION_6502);
+    setCursor(22, 16);
     drawString("Graphics demo/HA based");
-    setCursor(65, 32);
+    setCursor(22, 32);
     drawString("JJ65C02");
     setCursor(250, 4);
     setTextSize(2);
@@ -338,21 +341,21 @@ int main() {
     setTextColor2(WHITE, BLUE);
     setTextSize(1);
     setCursor(65, 0);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getTotalHeap());
+    sprintf(mem, "TotalHeap: %llu", (int64_t)(uint32_t)getTotalHeap());
     drawString(mem);
     setCursor(65, 16);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeHeap());
+    sprintf(mem, "FreeHeap: %llu", (int64_t)(uint32_t)getFreeHeap());
     drawString(mem);
     setCursor(65, 32);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getChunks());
+    sprintf(mem, "Chunks: %llu", (int64_t)(uint32_t)getChunks());
     drawString(mem);
     setCursor(65, 48);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getProgramSize());
+    sprintf(mem, "ProgSize: %llu", (int64_t)(uint32_t)getProgramSize());
     drawString(mem);
     setCursor(65, 64);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeProgramSpace());
+    sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
     drawString(mem);
-    sleep_ms(15000);
+    sleep_ms(5000);
     loadSprite(0, SPRITE16_WIDTH, 7, foo);
     for (int i = 1; i < 31; i++) {
         loadSprite(i, SPRITE32_WIDTH, 11, foo2);
@@ -360,19 +363,19 @@ int main() {
     setCursor(65, 0);
     setTextSize(1);
     setCursor(65, 0);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getTotalHeap());
+    sprintf(mem, "TotalHeap: %llu", (int64_t)(uint32_t)getTotalHeap());
     drawString(mem);
     setCursor(65, 16);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeHeap());
+    sprintf(mem, "FreeHeap: %llu", (int64_t)(uint32_t)getFreeHeap());
     drawString(mem);
     setCursor(65, 32);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getChunks());
+    sprintf(mem, "Chunks: %llu", (int64_t)(uint32_t)getChunks());
     drawString(mem);
     setCursor(65, 48);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getProgramSize());
+    sprintf(mem, "ProgSize: %llu", (int64_t)(uint32_t)getProgramSize());
     drawString(mem);
     setCursor(65, 64);
-    sprintf(mem, "%llu", (int64_t)(uint32_t)getFreeProgramSpace());
+    sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
     drawString(mem);
     int y = 2;
     int x0 = 605;
@@ -380,8 +383,11 @@ int main() {
     for (int i = 10; i < 400; i++) {
         bool changed = false;
         drawSprite(i, y, 0, true);
-        for (int j = 1; j < 31; j++) {
-            drawSprite((x0 - (j*40)), (y0 + (j*15)), j, true);
+        for (int j = 1; j < 15; j++) {
+            drawSprite((x0 - (j*20)), (y0 + (j*15)), j, true);
+        }
+        for (int j = 15; j < 31; j++) {
+            drawSprite((x0 - (j*10)), (y0 + (j*15)), j, true);
         }
         y++;
         x0--;

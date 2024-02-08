@@ -76,7 +76,7 @@ int main() {
     vgaFillScreen(BLUE);
     setCursor(65, 0);
     setTextSize(2);
-    drawString("Pi Pico Enabled");
+    drawString(VERSION_6502);
     setTextSize(1);
     setTxtCursor(0, 3);
     enableCurs(true);
