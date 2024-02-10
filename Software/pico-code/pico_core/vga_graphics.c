@@ -5,7 +5,8 @@
 // Core VGA Graphics functions
 //
 
-void vgaFillScreen(uint16_t color) {
+void vgaFillScreen(unsigned char color) {
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     dma_memset(vga_data_array, (color) | (color << 4), txcount);
 }
@@ -14,7 +15,8 @@ void vgaFillScreen(uint16_t color) {
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
-void drawPixel(int x, int y, char color) {
+void drawPixel(int x, int y, unsigned char color) {
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     // Range checks (640x480 display)
     if ( (x > (SCREENWIDTH - 1)) ||
@@ -37,14 +39,16 @@ void drawPixel(int x, int y, char color) {
     }
 }
 
-void drawVLine(int x, int y, int h, char color) {
+void drawVLine(int x, int y, int h, unsigned char color) {
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     for (int i = y; i < (y + h); i++) {
         drawPixel(x, i, color);
     }
 }
 
-void drawHLine(int x, int y, int w, char color) {
+void drawHLine(int x, int y, int w, unsigned char color) {
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
         drawPixel(i, y, color);
@@ -52,7 +56,7 @@ void drawHLine(int x, int y, int w, char color) {
 }
 
 // Bresenham's algorithm - thx wikipedia and thx Bruce!
-void drawLine(int x0, int y0, int x1, int y1, char color) {
+void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
     /* Draw a straight line from (x0,y0) to (x1,y1) with given color
      * Parameters:
      *      x0: x-coordinate of starting point of line. The x-coordinate of
@@ -65,6 +69,7 @@ void drawLine(int x0, int y0, int x1, int y1, char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      color: 4-bit color value for line
      */
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     int steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
@@ -105,7 +110,7 @@ void drawLine(int x0, int y0, int x1, int y1, char color) {
 }
 
 // Draw a rectangle
-void drawRect(int x, int y, int w, int h, char color) {
+void drawRect(int x, int y, int w, int h, unsigned char color) {
     /* Draw a rectangle outline with top left vertex (x,y), width w
      * and height h at given color
      * Parameters:
@@ -118,6 +123,7 @@ void drawRect(int x, int y, int w, int h, char color) {
      *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     drawHLine(x, y, w, color);
     drawHLine(x, y + h - 1, w, color);
@@ -125,7 +131,7 @@ void drawRect(int x, int y, int w, int h, char color) {
     drawVLine(x + w - 1, y, h, color);
 }
 
-static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, char color) {
+static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, unsigned char color) {
     // Helper function for drawing circles and circular objects
     int f = 1 - r;
     int ddF_x = 1;
@@ -161,7 +167,7 @@ static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, ch
     }
 }
 
-void drawCircle(int x0, int y0, int r, char color) {
+void drawCircle(int x0, int y0, int r, unsigned char color) {
     /* Draw a circle outline with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -173,6 +179,7 @@ void drawCircle(int x0, int y0, int r, char color) {
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     int f = 1 - r;
     int ddF_x = 1;
@@ -236,7 +243,7 @@ static void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, in
     }
 }
 
-void drawFilledCircle(int x0, int y0, int r, char color) {
+void drawFilledCircle(int x0, int y0, int r, unsigned char color) {
     /* Draw a filled circle with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -247,13 +254,14 @@ void drawFilledCircle(int x0, int y0, int r, char color) {
      *      color: 4-bit color value for the circle
      * Returns: Nothing
      */
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     drawVLine(x0, y0 - r, 2 * r + 1, color);
     fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 // Draw a rounded rectangle
-void drawRoundRect(int x, int y, int w, int h, int r, char color) {
+void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
     /* Draw a rounded rectangle outline with top left vertex (x,y), width w,
      * height h and radius of curvature r at given color
      * Parameters:
@@ -267,6 +275,7 @@ void drawRoundRect(int x, int y, int w, int h, int r, char color) {
      * Returns: Nothing
      */
     // smarter version
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     drawHLine(x + r, y, w - 2 * r, color);         // Top
     drawHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
@@ -280,7 +289,7 @@ void drawRoundRect(int x, int y, int w, int h, int r, char color) {
 }
 
 // Fill a rounded rectangle
-void drawFilledRoundRect(int x, int y, int w, int h, int r, char color) {
+void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
     // smarter version
     drawFilledRect(x + r, y, w - 2 * r, h, color);
 
@@ -290,7 +299,7 @@ void drawFilledRoundRect(int x, int y, int w, int h, int r, char color) {
 }
 
 // fill a rectangle
-void drawFilledRect(int x, int y, int w, int h, char color) {
+void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
      *  width w and height h with given color
      * Parameters:
@@ -310,6 +319,7 @@ void drawFilledRect(int x, int y, int w, int h, char color) {
     // if((y + h - 1) >= SCREENHEIGHT) h = SCREENHEIGHT - y;
 
     // tft_setAddrWindow(x, y, x+w-1, y+h-1);
+    color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
         for (int j = y; j < (y + h); j++) {
@@ -319,7 +329,7 @@ void drawFilledRect(int x, int y, int w, int h, char color) {
 }
 
 // Draw a character
-void drawChar(int x, int y, unsigned char chrx, char color, char bg,
+void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
               unsigned char size) {
     char px, py;
     if ((x >= SCREENWIDTH) ||                     // Clip right
@@ -327,7 +337,8 @@ void drawChar(int x, int y, unsigned char chrx, char color, char bg,
         ((x + FONTWIDTH * size - 1) < 0) || // Clip left
         ((y + FONTHEIGHT * size - 1) < 0))  // Clip top
         return;
-
+    color = RGB332ToUs(color);
+    if (color == TRANSPARENT) return;
     for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
         line = pgm_read_byte(font + (chrx * FONTHEIGHT) + py);
@@ -370,18 +381,35 @@ inline void setTextSize(unsigned char s) {
     textsize = (s > 0) ? s : 1;
 }
 
-inline char safeColor(char c) {
-    if (c < BLACK)
-        c = BLACK;
-    else if (c > WHITE)
-        c = TRANSPARENT;
+// Convert RGB332 value to our internal value, used to set the VGA pins
+unsigned char RGB332ToUs(unsigned char color) {
+    unsigned char c;
+    switch (color) {
+        case 0x00: c = BLACK; break;         // 0x000000
+        case 0xc0: c = RED; break;           // 0xc00000
+        case 0x18: c = GREEN; break;         // 0x00c000
+        case 0xd8: c = YELLOW; break;        // 0xc0c000
+        case 0x03: c = BLUE; break;          // 0x0000c0
+        case 0xc3: c = MAGENTA; break;       // 0xc000c0
+        case 0x1b: c = CYAN; break;          // 0x00c0c0
+        case 0xdb: c = LIGHT_GREY; break;    // 0xc0c0c0
+        case 0x92: c = GREY; break;          // 0x808080
+        case 0xe0: c = LIGHT_RED; break;     // 0xff0000
+        case 0x1c: c = LIGHT_GREEN; break;   // 0x00ff00
+        case 0xfc: c = LIGHT_YELLOW; break;  // 0xffff00
+        case 0x13: c = LIGHT_BLUE; break;    // 0x0080ff
+        case 0xe3: c = LIGHT_MAGENTA; break; // 0xff00ff
+        case 0x1f: c = LIGHT_CYAN; break;    // 0x00ffff
+        case 0xff: c = WHITE; break;         // 0xffffff
+        default:   c = TRANSPARENT; break;   // 0xffc0cb, 0xfb, et.al.
+    }
     return c;
 }
 
 inline void setTextColor(char c) {
     // For 'transparent' background, we'll set the bg
     // to the same as fg instead of using a flag
-    textfgcolor = safeColor(c);
+    textfgcolor = RGB332ToUs(c);
 }
 
 inline void setTextColor2(char c, char b) {
@@ -390,8 +418,8 @@ inline void setTextColor2(char c, char b) {
      *      c = 4-bit color of text
      *      b = 4-bit color of text background
      */
-    textfgcolor = safeColor(c);
-    textbgcolor = safeColor(b);
+    textfgcolor = RGB332ToUs(c);
+    textbgcolor = RGB332ToUs(b);
 }
 
 inline void setFont(char n) {
@@ -751,7 +779,8 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
             for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
                 mask <<= 4;
                 bitmap <<= 4;
-                cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
+                cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];  // Read in the RGB332 value
+                cx = RGB332ToUs(cx);                           // And convert it
                 if (cx == TRANSPARENT) {
                     mask |= TOPMASK;
                 }
@@ -903,6 +932,7 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
             for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
                 bitmap <<= 4;
                 cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
+                cx = RGB332ToUs(cx);
                 bitmap |= (TOPMASK & cx);
             }
             n->bitmap[i+k] = bitmap;

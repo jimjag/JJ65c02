@@ -124,7 +124,9 @@ static unsigned char inbuf[1024];
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
-static void readMem(void) {
+
+// ISR
+static void __not_in_flash_func() readMem(void) {
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= endbuf)
@@ -293,7 +295,7 @@ void dma_memset(void *dest, uint8_t val, size_t num) {
     dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
 }
 
-void dma_memcpy(void *dest, void *src, size_t num) {
+void __not_in_flash_func() dma_memcpy(void *dest, void *src, size_t num) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
     channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, true);

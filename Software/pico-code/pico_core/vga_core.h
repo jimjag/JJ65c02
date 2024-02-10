@@ -64,7 +64,7 @@
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
-enum colors {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
+enum colors_internal {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
             TRANSPARENT=0xFF};
 
@@ -131,19 +131,19 @@ void initVGA(void);
 void conInTask(void);
 
 // Graphics functions
-void drawPixel(int x, int y, char color);
-void drawVLine(int x, int y, int h, char color);
-void drawHLine(int x, int y, int w, char color);
-void drawLine(int x0, int y0, int x1, int y1, char color);
-void drawRect(int x, int y, int w, int h, char color);
-void drawCircle(int x0, int y0, int r, char color);
-// void drawCircleHelper( int x0, int y0, int r, unsigned char cornername, char color);
-void drawFilledCircle(int x0, int y0, int r, char color);
-// void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta, char color);
-void drawRoundRect(int x, int y, int w, int h, int r, char color);
-void drawFilledRoundRect(int x, int y, int w, int h, int r, char color);
-void drawFilledRect(int x, int y, int w, int h, char color);
-void drawChar(int x, int y, unsigned char chrx, char color, char bg, unsigned char size);
+void drawPixel(int x, int y, unsigned char color);
+void drawVLine(int x, int y, int h, unsigned char color);
+void drawHLine(int x, int y, int w, unsigned char color);
+void drawLine(int x0, int y0, int x1, int y1, unsigned char color);
+void drawRect(int x, int y, int w, int h, unsigned char color);
+void drawCircle(int x0, int y0, int r, unsigned char color);
+// void drawCircleHelper( int x0, int y0, int r, unsigned char cornername, unsigned char color);
+void drawFilledCircle(int x0, int y0, int r, unsigned char color);
+// void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta, unsigned char color);
+void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color);
+void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color);
+void drawFilledRect(int x, int y, int w, int h, unsigned char color);
+void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg, unsigned char size);
 void setCursor(int x, int y);
 void setTextColor(char c);
 void setTextColor2(char c, char bg);
@@ -155,7 +155,7 @@ void setFont(char n);
 // void tft_write(unsigned char c);
 void drawString(unsigned char* str);
 
-void vgaFillScreen(uint16_t color);
+void vgaFillScreen(unsigned char color);
 
 void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
@@ -164,7 +164,7 @@ void writeChar(unsigned char chrx); // write the interpreted character
 void printChar(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
-char safeColor(char c);
+unsigned char RGB332ToUs(unsigned char c);
 void setTxtCursor(int x, int y);
 void printString(char* str);
 bool conInHaveChar(void);
