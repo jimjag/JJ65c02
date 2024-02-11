@@ -79,7 +79,7 @@ int memcpy_dma_chan;
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
 //      we handle "special" characters (like arrows and other non-printables
 static bool wrap = true, cr2crlf = false, lf2crlf = false, smooth_scroll = false;
-char textfgcolor = WHITE, textbgcolor = BLACK;
+char textfgcolor = WHITE_INT, textbgcolor = BLACK_INT;
 
 struct scrpos savedTcurs = {0,0};
 struct scrpos tcurs = {0,0};
@@ -106,10 +106,10 @@ static bool cursorOn = false;
 volatile bool bon = true;
 bool cursor_callback(struct repeating_timer *t) {
     if (bon) {
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize, false);
     } else {
         unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
     }
     bon = !bon;
     return true;

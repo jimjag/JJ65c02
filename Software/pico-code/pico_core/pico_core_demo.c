@@ -132,9 +132,9 @@ int main() {
     short Hline_y = 250;
     // Draw some filled rectangles
 
-    drawFilledRect(20, 0, 176+44, 50, BLUE); // blue box
-    drawFilledRect(250, 0, 176, 50, RED); // red box
-    drawFilledRect(435, 0, 176, 50, GREEN); // green box
+    drawFilledRect(20, 0, 176+44, 50, BLUE, true); // blue box
+    drawFilledRect(250, 0, 176, 50, RED, true); // red box
+    drawFilledRect(435, 0, 176, 50, GREEN, true); // green box
 
     // Write some text
     setTextColor2(WHITE, BLUE);
@@ -159,32 +159,32 @@ int main() {
         if (color_index++ == 15) color_index = 0;
 
         // A row of filled circles
-        drawFilledCircle(disc_x, 100, 20, color_index);
+        drawFilledCircle(disc_x, 100, 20, color_index, false);
         disc_x += 35;
         if (disc_x > 640) disc_x = 0;
 
         // Concentric empty circles
-        drawCircle(circle_x, 200, circle_r, color_index);
+        drawCircle(circle_x, 200, circle_r, color_index, false);
         if (circle_r++ > 95) circle_r = 0;
         circle_x += 2;
         if (circle_x > 350) circle_x = 320;
 
         // A series of rectangles
-        drawRect(10, 300, box_x, box_x, color_index);
+        drawRect(10, 300, box_x, box_x, color_index, false);
         box_x += 5;
         if (box_x > 195) box_x = 10;
 
         // Random lines
         drawLine(210 + (rand() & 0x7f), 350 + (rand() & 0x7f), 210 + (rand() & 0x7f),
-                 350 + (rand() & 0x7f), color_index);
+                 350 + (rand() & 0x7f), color_index, false);
 
         // Vertical lines
-        drawVLine(Vline_x, 300, (Vline_x >> 2), color_index);
+        drawVLine(Vline_x, 300, (Vline_x >> 2), color_index, false);
         Vline_x += 2;
         if (Vline_x > 620) Vline_x = 350;
 
         // Horizontal lines
-        drawHLine(400, Hline_y, 150, color_index);
+        drawHLine(400, Hline_y, 150, color_index, false);
         Hline_y += 2;
         if (Hline_y > 400) Hline_y = 240;
 
@@ -221,7 +221,7 @@ int main() {
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            drawFilledRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j);
+            drawFilledRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j, false);
             setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             drawString(video_buffer);

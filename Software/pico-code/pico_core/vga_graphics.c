@@ -15,8 +15,8 @@ void vgaFillScreen(unsigned char color) {
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
-void drawPixel(int x, int y, unsigned char color, bool isColorRGB332) {
-    if (isColorRGB332) color = convertRGB332(color);
+void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332) {
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     // Range checks (640x480 display)
     if ( (x > (SCREENWIDTH - 1)) ||
@@ -39,16 +39,16 @@ void drawPixel(int x, int y, unsigned char color, bool isColorRGB332) {
     }
 }
 
-void drawVLine(int x, int y, int h, unsigned char color) {
-    color = convertRGB332(color);
+void drawVLine(int x, int y, int h, unsigned char color, bool colorIsRGB332) {
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     for (int i = y; i < (y + h); i++) {
         drawPixel(x, i, color, false);
     }
 }
 
-void drawHLine(int x, int y, int w, unsigned char color) {
-    color = convertRGB332(color);
+void drawHLine(int x, int y, int w, unsigned char color, bool colorIsRGB332) {
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     for (int i = x; i < (x + w); i++) {
         drawPixel(i, y, color, false);
@@ -56,7 +56,7 @@ void drawHLine(int x, int y, int w, unsigned char color) {
 }
 
 // Bresenham's algorithm - thx wikipedia and thx Bruce!
-void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
+void drawLine(int x0, int y0, int x1, int y1, unsigned char color, bool colorIsRGB332) {
     /* Draw a straight line from (x0,y0) to (x1,y1) with given color
      * Parameters:
      *      x0: x-coordinate of starting point of line. The x-coordinate of
@@ -69,7 +69,7 @@ void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      color: 4-bit color value for line
      */
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     int steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
@@ -110,7 +110,7 @@ void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
 }
 
 // Draw a rectangle
-void drawRect(int x, int y, int w, int h, unsigned char color) {
+void drawRect(int x, int y, int w, int h, unsigned char color, bool colorIsRGB332) {
     /* Draw a rectangle outline with top left vertex (x,y), width w
      * and height h at given color
      * Parameters:
@@ -123,12 +123,12 @@ void drawRect(int x, int y, int w, int h, unsigned char color) {
      *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    drawHLine(x, y, w, color);
-    drawHLine(x, y + h - 1, w, color);
-    drawVLine(x, y, h, color);
-    drawVLine(x + w - 1, y, h, color);
+    drawHLine(x, y, w, color, false);
+    drawHLine(x, y + h - 1, w, color, false);
+    drawVLine(x, y, h, color, false);
+    drawVLine(x + w - 1, y, h, color, false);
 }
 
 static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, unsigned char color) {
@@ -167,7 +167,7 @@ static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, un
     }
 }
 
-void drawCircle(int x0, int y0, int r, unsigned char color) {
+void drawCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332) {
     /* Draw a circle outline with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -179,7 +179,7 @@ void drawCircle(int x0, int y0, int r, unsigned char color) {
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     int f = 1 - r;
     int ddF_x = 1;
@@ -233,17 +233,17 @@ static void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, in
         f += ddF_x;
 
         if (cornername & 0x1) {
-            drawVLine(x0 + x, y0 - y, 2 * y + 1 + delta, color);
-            drawVLine(x0 + y, y0 - x, 2 * x + 1 + delta, color);
+            drawVLine(x0 + x, y0 - y, 2 * y + 1 + delta, color, false);
+            drawVLine(x0 + y, y0 - x, 2 * x + 1 + delta, color, false);
         }
         if (cornername & 0x2) {
-            drawVLine(x0 - x, y0 - y, 2 * y + 1 + delta, color);
-            drawVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color);
+            drawVLine(x0 - x, y0 - y, 2 * y + 1 + delta, color, false);
+            drawVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color, false);
         }
     }
 }
 
-void drawFilledCircle(int x0, int y0, int r, unsigned char color) {
+void drawFilledCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332) {
     /* Draw a filled circle with center (x0,y0) and radius r, with given color
      * Parameters:
      *      x0: x-coordinate of center of circle. The top-left of the screen
@@ -254,14 +254,14 @@ void drawFilledCircle(int x0, int y0, int r, unsigned char color) {
      *      color: 4-bit color value for the circle
      * Returns: Nothing
      */
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    drawVLine(x0, y0 - r, 2 * r + 1, color);
+    drawVLine(x0, y0 - r, 2 * r + 1, color, false);
     fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 // Draw a rounded rectangle
-void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
+void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color, bool colorIsRGB332) {
     /* Draw a rounded rectangle outline with top left vertex (x,y), width w,
      * height h and radius of curvature r at given color
      * Parameters:
@@ -275,12 +275,12 @@ void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
      * Returns: Nothing
      */
     // smarter version
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    drawHLine(x + r, y, w - 2 * r, color);         // Top
-    drawHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
-    drawVLine(x, y + r, h - 2 * r, color);         // Left
-    drawVLine(x + w - 1, y + r, h - 2 * r, color); // Right
+    drawHLine(x + r, y, w - 2 * r, color, false);         // Top
+    drawHLine(x + r, y + h - 1, w - 2 * r, color, false); // Bottom
+    drawVLine(x, y + r, h - 2 * r, color, false);         // Left
+    drawVLine(x + w - 1, y + r, h - 2 * r, color, false); // Right
     // draw four corners
     drawCircleHelper(x + r, y + r, r, 1, color);
     drawCircleHelper(x + w - r - 1, y + r, r, 2, color);
@@ -289,9 +289,11 @@ void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
 }
 
 // Fill a rounded rectangle
-void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
+void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color, bool colorIsRGB332) {
     // smarter version
-    drawFilledRect(x + r, y, w - 2 * r, h, color);
+    if (colorIsRGB332) color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
+    drawFilledRect(x + r, y, w - 2 * r, h, color, false);
 
     // draw four corners
     fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
@@ -299,7 +301,7 @@ void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color)
 }
 
 // fill a rectangle
-void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
+void drawFilledRect(int x, int y, int w, int h, unsigned char color, bool isColorRGB332) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
      *  width w and height h with given color
      * Parameters:
@@ -319,7 +321,7 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
     // if((y + h - 1) >= SCREENHEIGHT) h = SCREENHEIGHT - y;
 
     // tft_setAddrWindow(x, y, x+w-1, y+h-1);
-    color = convertRGB332(color);
+    if (isColorRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     for (int i = x; i < (x + w); i++) {
         for (int j = y; j < (y + h); j++) {
@@ -330,14 +332,14 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
 
 // Draw a character
 void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
-              unsigned char size) {
+              unsigned char size, bool colorIsRGB332) {
     char px, py;
     if ((x >= SCREENWIDTH) ||                     // Clip right
         (y >= SCREENHEIGHT) ||                    // Clip bottom
         ((x + FONTWIDTH * size - 1) < 0) || // Clip left
         ((y + FONTHEIGHT * size - 1) < 0))  // Clip top
         return;
-    color = convertRGB332(color);
+    if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
@@ -347,13 +349,13 @@ void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
                 if (size == 1) // default size
                     drawPixel(x + px, y + py, color, false);
                 else { // big size
-                    drawFilledRect(x + (px * size), y + (py * size), size, size, color);
+                    drawFilledRect(x + (px * size), y + (py * size), size, size, color, false);
                 }
             } else if (bg != color) {
                 if (size == 1) // default size
                     drawPixel(x + px, y + py, bg, false);
                 else { // big size
-                    drawFilledRect(x + px * size, y + py * size, size, size, bg);
+                    drawFilledRect(x + px * size, y + py * size, size, size, bg, false);
                 }
             }
             line <<= 1;
@@ -406,13 +408,13 @@ unsigned char convertRGB332(unsigned char color) {
     return c;
 }
 
-inline void setTextColor(char c) {
+void setTextColor(char c) {
     // For 'transparent' background, we'll set the bg
     // to the same as fg instead of using a flag
     textfgcolor = convertRGB332(c);
 }
 
-inline void setTextColor2(char c, char b) {
+void setTextColor2(char c, char b) {
     /* Set color of text to be displayed
      * Parameters:
      *      c = 4-bit color of text
@@ -422,7 +424,7 @@ inline void setTextColor2(char c, char b) {
     textbgcolor = convertRGB332(b);
 }
 
-inline void setFont(char n) {
+void setFont(char n) {
     switch (n) {
         case 3:
             font = font_sperry;
@@ -455,7 +457,7 @@ static void tft_write(unsigned char chrx) {
             cursor_x = new_x;
         }
     } else {
-        drawChar(cursor_x, cursor_y, chrx, textfgcolor, textbgcolor, textsize);
+        drawChar(cursor_x, cursor_y, chrx, textfgcolor, textbgcolor, textsize, false);
         cursor_x += textsize * FONTWIDTH;
         if (wrap && (cursor_x > (SCREENWIDTH - textsize * FONTWIDTH))) {
             cursor_y += textsize * FONTHEIGHT;
@@ -501,7 +503,7 @@ bool enableCurs(bool flag) {
     } else if (!flag && cursorOn) { // turning it off when on
         cancel_repeating_timer(&ctimer);
         unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
     }
     cursorOn = flag;
     return was;
@@ -558,7 +560,7 @@ void setTxtCursor(int x, int y) {
 void writeChar(unsigned char chrx) {
     bool was = enableCurs(false);
     terminal[tcurs.x + (tcurs.y * textrow_size)] = chrx;
-    drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize);
+    drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize, false);
     tcurs.x++;
     if (tcurs.x > maxTcurs.x) {
         // End of line
