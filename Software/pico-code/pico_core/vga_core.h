@@ -131,7 +131,7 @@ void initVGA(void);
 void conInTask(void);
 
 // Graphics functions
-void drawPixel(int x, int y, unsigned char color);
+void drawPixel(int x, int y, unsigned char color, bool isColorRGB332);
 void drawVLine(int x, int y, int h, unsigned char color);
 void drawHLine(int x, int y, int w, unsigned char color);
 void drawLine(int x0, int y0, int x1, int y1, unsigned char color);

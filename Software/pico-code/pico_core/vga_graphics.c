@@ -15,8 +15,8 @@ void vgaFillScreen(unsigned char color) {
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
-void drawPixel(int x, int y, unsigned char color) {
-    color = RGB332ToUs(color);
+void drawPixel(int x, int y, unsigned char color, bool isColorRGB332) {
+    if (isColorRGB332) color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     // Range checks (640x480 display)
     if ( (x > (SCREENWIDTH - 1)) ||
@@ -43,7 +43,7 @@ void drawVLine(int x, int y, int h, unsigned char color) {
     color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     for (int i = y; i < (y + h); i++) {
-        drawPixel(x, i, color);
+        drawPixel(x, i, color, false);
     }
 }
 
@@ -51,7 +51,7 @@ void drawHLine(int x, int y, int w, unsigned char color) {
     color = RGB332ToUs(color);
     if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
-        drawPixel(i, y, color);
+        drawPixel(i, y, color, false);
     }
 }
 
@@ -97,9 +97,9 @@ void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
 
     for (; x0 <= x1; x0++) {
         if (steep) {
-            drawPixel(y0, x0, color);
+            drawPixel(y0, x0, color, false);
         } else {
-            drawPixel(x0, y0, color);
+            drawPixel(x0, y0, color, false);
         }
         err -= dy;
         if (err < 0) {
@@ -149,20 +149,20 @@ static void drawCircleHelper(int x0, int y0, int r, unsigned char cornername, un
         ddF_x += 2;
         f += ddF_x;
         if (cornername & 0x4) {
-            drawPixel(x0 + x, y0 + y, color);
-            drawPixel(x0 + y, y0 + x, color);
+            drawPixel(x0 + x, y0 + y, color, false);
+            drawPixel(x0 + y, y0 + x, color, false);
         }
         if (cornername & 0x2) {
-            drawPixel(x0 + x, y0 - y, color);
-            drawPixel(x0 + y, y0 - x, color);
+            drawPixel(x0 + x, y0 - y, color, false);
+            drawPixel(x0 + y, y0 - x, color, false);
         }
         if (cornername & 0x8) {
-            drawPixel(x0 - y, y0 + x, color);
-            drawPixel(x0 - x, y0 + y, color);
+            drawPixel(x0 - y, y0 + x, color, false);
+            drawPixel(x0 - x, y0 + y, color, false);
         }
         if (cornername & 0x1) {
-            drawPixel(x0 - y, y0 - x, color);
-            drawPixel(x0 - x, y0 - y, color);
+            drawPixel(x0 - y, y0 - x, color, false);
+            drawPixel(x0 - x, y0 - y, color, false);
         }
     }
 }
@@ -187,10 +187,10 @@ void drawCircle(int x0, int y0, int r, unsigned char color) {
     int x = 0;
     int y = r;
 
-    drawPixel(x0, y0 + r, color);
-    drawPixel(x0, y0 - r, color);
-    drawPixel(x0 + r, y0, color);
-    drawPixel(x0 - r, y0, color);
+    drawPixel(x0, y0 + r, color, false);
+    drawPixel(x0, y0 - r, color, false);
+    drawPixel(x0 + r, y0, color, false);
+    drawPixel(x0 - r, y0, color, false);
 
     while (x < y) {
         if (f >= 0) {
@@ -202,14 +202,14 @@ void drawCircle(int x0, int y0, int r, unsigned char color) {
         ddF_x += 2;
         f += ddF_x;
 
-        drawPixel(x0 + x, y0 + y, color);
-        drawPixel(x0 - x, y0 + y, color);
-        drawPixel(x0 + x, y0 - y, color);
-        drawPixel(x0 - x, y0 - y, color);
-        drawPixel(x0 + y, y0 + x, color);
-        drawPixel(x0 - y, y0 + x, color);
-        drawPixel(x0 + y, y0 - x, color);
-        drawPixel(x0 - y, y0 - x, color);
+        drawPixel(x0 + x, y0 + y, color, false);
+        drawPixel(x0 - x, y0 + y, color, false);
+        drawPixel(x0 + x, y0 - y, color, false);
+        drawPixel(x0 - x, y0 - y, color, false);
+        drawPixel(x0 + y, y0 + x, color, false);
+        drawPixel(x0 - y, y0 + x, color, false);
+        drawPixel(x0 + y, y0 - x, color, false);
+        drawPixel(x0 - y, y0 - x, color, false);
     }
 }
 
@@ -323,7 +323,7 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
     if (color == TRANSPARENT) return;
     for (int i = x; i < (x + w); i++) {
         for (int j = y; j < (y + h); j++) {
-            drawPixel(i, j, color);
+            drawPixel(i, j, color, false);
         }
     }
 }
@@ -345,13 +345,13 @@ void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
         for (px = 0; px < FONTWIDTH; px++) {
             if (line & 0x80) {
                 if (size == 1) // default size
-                    drawPixel(x + px, y + py, color);
+                    drawPixel(x + px, y + py, color, false);
                 else { // big size
                     drawFilledRect(x + (px * size), y + (py * size), size, size, color);
                 }
             } else if (bg != color) {
                 if (size == 1) // default size
-                    drawPixel(x + px, y + py, bg);
+                    drawPixel(x + px, y + py, bg, false);
                 else { // big size
                     drawFilledRect(x + px * size, y + py * size, size, size, bg);
                 }
