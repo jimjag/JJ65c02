@@ -6,8 +6,8 @@
 //
 
 void vgaFillScreen(unsigned char color) {
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     dma_memset(vga_data_array, (color) | (color << 4), txcount);
 }
 
@@ -16,8 +16,8 @@ void vgaFillScreen(unsigned char color) {
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
 void drawPixel(int x, int y, unsigned char color, bool isColorRGB332) {
-    if (isColorRGB332) color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    if (isColorRGB332) color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     // Range checks (640x480 display)
     if ( (x > (SCREENWIDTH - 1)) ||
         (x < 0) ||
@@ -40,16 +40,16 @@ void drawPixel(int x, int y, unsigned char color, bool isColorRGB332) {
 }
 
 void drawVLine(int x, int y, int h, unsigned char color) {
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     for (int i = y; i < (y + h); i++) {
         drawPixel(x, i, color, false);
     }
 }
 
 void drawHLine(int x, int y, int w, unsigned char color) {
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     for (int i = x; i < (x + w); i++) {
         drawPixel(i, y, color, false);
     }
@@ -69,8 +69,8 @@ void drawLine(int x0, int y0, int x1, int y1, unsigned char color) {
      *          the top-left of the screen is 0. It increases to the bottom.
      *      color: 4-bit color value for line
      */
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     int steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
         swap(x0, y0);
@@ -123,8 +123,8 @@ void drawRect(int x, int y, int w, int h, unsigned char color) {
      *      color:  4-bit color of the rectangle outline
      * Returns: Nothing
      */
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     drawHLine(x, y, w, color);
     drawHLine(x, y + h - 1, w, color);
     drawVLine(x, y, h, color);
@@ -179,8 +179,8 @@ void drawCircle(int x0, int y0, int r, unsigned char color) {
      *          isn't filled. So, this is the color of the outline of the circle
      * Returns: Nothing
      */
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     int f = 1 - r;
     int ddF_x = 1;
     int ddF_y = -2 * r;
@@ -254,8 +254,8 @@ void drawFilledCircle(int x0, int y0, int r, unsigned char color) {
      *      color: 4-bit color value for the circle
      * Returns: Nothing
      */
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     drawVLine(x0, y0 - r, 2 * r + 1, color);
     fillCircleHelper(x0, y0, r, 3, 0, color);
 }
@@ -275,8 +275,8 @@ void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color) {
      * Returns: Nothing
      */
     // smarter version
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     drawHLine(x + r, y, w - 2 * r, color);         // Top
     drawHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
     drawVLine(x, y + r, h - 2 * r, color);         // Left
@@ -319,8 +319,8 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color) {
     // if((y + h - 1) >= SCREENHEIGHT) h = SCREENHEIGHT - y;
 
     // tft_setAddrWindow(x, y, x+w-1, y+h-1);
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     for (int i = x; i < (x + w); i++) {
         for (int j = y; j < (y + h); j++) {
             drawPixel(i, j, color, false);
@@ -337,8 +337,8 @@ void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
         ((x + FONTWIDTH * size - 1) < 0) || // Clip left
         ((y + FONTHEIGHT * size - 1) < 0))  // Clip top
         return;
-    color = RGB332ToUs(color);
-    if (color == TRANSPARENT) return;
+    color = convertRGB332(color);
+    if (color == TRANSPARENT_INT) return;
     for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
         line = pgm_read_byte(font + (chrx * FONTHEIGHT) + py);
@@ -382,26 +382,26 @@ inline void setTextSize(unsigned char s) {
 }
 
 // Convert RGB332 value to our internal value, used to set the VGA pins
-unsigned char RGB332ToUs(unsigned char color) {
+unsigned char convertRGB332(unsigned char color) {
     unsigned char c;
     switch (color) {
-        case 0x00: c = BLACK; break;         // 0x000000
-        case 0xc0: c = RED; break;           // 0xc00000
-        case 0x18: c = GREEN; break;         // 0x00c000
-        case 0xd8: c = YELLOW; break;        // 0xc0c000
-        case 0x03: c = BLUE; break;          // 0x0000c0
-        case 0xc3: c = MAGENTA; break;       // 0xc000c0
-        case 0x1b: c = CYAN; break;          // 0x00c0c0
-        case 0xdb: c = LIGHT_GREY; break;    // 0xc0c0c0
-        case 0x92: c = GREY; break;          // 0x808080
-        case 0xe0: c = LIGHT_RED; break;     // 0xff0000
-        case 0x1c: c = LIGHT_GREEN; break;   // 0x00ff00
-        case 0xfc: c = LIGHT_YELLOW; break;  // 0xffff00
-        case 0x13: c = LIGHT_BLUE; break;    // 0x0080ff
-        case 0xe3: c = LIGHT_MAGENTA; break; // 0xff00ff
-        case 0x1f: c = LIGHT_CYAN; break;    // 0x00ffff
-        case 0xff: c = WHITE; break;         // 0xffffff
-        default:   c = TRANSPARENT; break;   // 0xffc0cb, 0xfb, et.al.
+        case BLACK:         c = BLACK_INT; break;         // 0x000000
+        case RED:           c = RED_INT; break;           // 0xc00000
+        case GREEN:         c = GREEN_INT; break;         // 0x00c000
+        case YELLOW:        c = YELLOW_INT; break;        // 0xc0c000
+        case BLUE:          c = BLUE_INT; break;          // 0x0000c0
+        case MAGENTA:       c = MAGENTA_INT; break;       // 0xc000c0
+        case CYAN:          c = CYAN_INT; break;          // 0x00c0c0
+        case LIGHT_GREY:    c = LIGHT_GREY_INT; break;    // 0xc0c0c0
+        case GREY:          c = GREY_INT; break;          // 0x808080
+        case LIGHT_RED:     c = LIGHT_RED_INT; break;     // 0xff0000
+        case LIGHT_GREEN:   c = LIGHT_GREEN_INT; break;   // 0x00ff00
+        case LIGHT_YELLOW:  c = LIGHT_YELLOW_INT; break;  // 0xffff00
+        case LIGHT_BLUE:    c = LIGHT_BLUE_INT; break;    // 0x0080ff
+        case LIGHT_MAGENTA: c = LIGHT_MAGENTA_INT; break; // 0xff00ff
+        case LIGHT_CYAN:    c = LIGHT_CYAN_INT; break;    // 0x00ffff
+        case WHITE:         c = WHITE_INT; break;         // 0xffffff
+        default:            c = TRANSPARENT_INT; break;   // 0xffc0cb, 0xfb, et.al.
     }
     return c;
 }
@@ -409,7 +409,7 @@ unsigned char RGB332ToUs(unsigned char color) {
 inline void setTextColor(char c) {
     // For 'transparent' background, we'll set the bg
     // to the same as fg instead of using a flag
-    textfgcolor = RGB332ToUs(c);
+    textfgcolor = convertRGB332(c);
 }
 
 inline void setTextColor2(char c, char b) {
@@ -418,8 +418,8 @@ inline void setTextColor2(char c, char b) {
      *      c = 4-bit color of text
      *      b = 4-bit color of text background
      */
-    textfgcolor = RGB332ToUs(c);
-    textbgcolor = RGB332ToUs(b);
+    textfgcolor = convertRGB332(c);
+    textbgcolor = convertRGB332(b);
 }
 
 inline void setFont(char n) {
@@ -780,8 +780,8 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
                 mask <<= 4;
                 bitmap <<= 4;
                 cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];  // Read in the RGB332 value
-                cx = RGB332ToUs(cx);                           // And convert it
-                if (cx == TRANSPARENT) {
+                cx = convertRGB332(cx);                           // And convert it
+                if (cx == TRANSPARENT_INT) {
                     mask |= TOPMASK;
                 }
                 bitmap |= (TOPMASK & cx);
@@ -932,7 +932,7 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
             for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
                 bitmap <<= 4;
                 cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
-                cx = RGB332ToUs(cx);
+                cx = convertRGB332(cx);
                 bitmap |= (TOPMASK & cx);
             }
             n->bitmap[i+k] = bitmap;

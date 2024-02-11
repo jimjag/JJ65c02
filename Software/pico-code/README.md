@@ -105,10 +105,10 @@ Graphics (lines, circles, ...) use FG color for their color.
 
 Our color set uses:
 ```
-enum colors {BLACK, RED, GREEN, YELLOW,
-             BLUE, MAGENTA, CYAN, LIGHT_GREY,
-             GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW,
-             LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE};
+enum colors {BLACK_INT, RED, GREEN, YELLOW_INT,
+             BLUE, MAGENTA_INT, CYAN_INT, LIGHT_GREY_INT,
+             GREY_INT, LIGHT_RED_INT, LIGHT_GREEN_INT, LIGHT_YELLOW_INT,
+             LIGHT_BLUE_INT, LIGHT_MAGENTA_INT, LIGHT_CYAN_INT, WHITE_INT};
 
-TRANSPARENT is #FF when creating Sprites
+TRANSPARENT_INT is #FF when creating Sprites
 ```

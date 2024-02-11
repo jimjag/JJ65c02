@@ -64,13 +64,22 @@
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
-enum colors_internal {BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY,
-            GREY, LIGHT_RED, LIGHT_GREEN, LIGHT_YELLOW, LIGHT_BLUE, LIGHT_MAGENTA, LIGHT_CYAN, WHITE,
-            TRANSPARENT=0xFF};
+enum colors_internal {BLACK_INT, RED_INT, GREEN_INT, YELLOW_INT,
+        BLUE_INT, MAGENTA_INT, CYAN_INT, LIGHT_GREY_INT,
+        GREY_INT, LIGHT_RED_INT, LIGHT_GREEN_INT, LIGHT_YELLOW_INT,
+        LIGHT_BLUE_INT, LIGHT_MAGENTA_INT, LIGHT_CYAN_INT, WHITE_INT,
+        TRANSPARENT_INT=0xFF};
+
+// The RGB332 colors that map to the above
+enum colors {BLACK=0x00, RED=0xc0, GREEN=0x18, YELLOW=0xd8,
+        BLUE=0x03, MAGENTA=0xc3, CYAN=0x1b, LIGHT_GREY=0xdb,
+        GREY=0x92, LIGHT_RED=0xe0, LIGHT_GREEN=0x1c, LIGHT_YELLOW=0xfc,
+        LIGHT_BLUE=0x13, LIGHT_MAGENTA=0xe3, LIGHT_CYAN=0x1f, WHITE=0xff,
+        TRANSPARENT=0xfb};
 
 // color available to ANSI commands
 static const char ansi_pallet[] = {
-        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+        BLACK_INT, RED_INT, GREEN_INT, YELLOW_INT, BLUE_INT, MAGENTA_INT, CYAN_INT, WHITE_INT
 };
 
 // Bit masks for drawPixel routine - RGBIRGBI
@@ -164,7 +173,7 @@ void writeChar(unsigned char chrx); // write the interpreted character
 void printChar(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
-unsigned char RGB332ToUs(unsigned char c);
+unsigned char convertRGB332(unsigned char c);
 void setTxtCursor(int x, int y);
 void printString(char* str);
 bool conInHaveChar(void);

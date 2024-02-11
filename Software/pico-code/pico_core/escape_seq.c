@@ -227,10 +227,10 @@ static void esc_sequence_received() {
                         drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor);
                         break;
                     case 8: // Set fg color: Esc[Z8;<color>Z
-                        textfgcolor = RGB332ToUs(escP[1]);
+                        textfgcolor = convertRGB332(escP[1]);
                         break;
                     case 9: // Set bg color: Esc[Z9;<color>Z
-                        textbgcolor = RGB332ToUs(escP[1]);
+                        textbgcolor = convertRGB332(escP[1]);
                         break;
                     case 10: // Draw character <char> at x,y: Esc[Z10;x;y;<char>;Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1);
