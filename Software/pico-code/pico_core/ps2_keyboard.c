@@ -105,12 +105,7 @@ static const char __in_flash() ps2_to_ascii_cntl[] = {
 0x00, 0x00, 0x12, 0x00, 0x13, 0x11, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-// Return keyboard status
-// Returns: 0 for not ready, ASCII code otherwise ready
-// The default is to auto-print to the VGA console, but we
-// can disable this if, for some reason, we want/need the
-// *host* (ie, the 6502) to echo rec'd characters itself.
-
+// ISR
 void ps2_ihandler(void) {
     unsigned char ascii = 0;
     // pio_interrupt_clear(ps2_pio, 0);
@@ -176,6 +171,11 @@ void ps2_ihandler(void) {
     pio_interrupt_clear(ps2_pio, 1);
 }
 
+// Return keyboard status
+// Returns: 0 for not ready, ASCII code otherwise ready
+// The default is to auto-print to the VGA console, but we
+// can disable this if, for some reason, we want/need the
+// *host* (ie, the 6502) to echo rec'd characters itself.
 unsigned char ps2GetChar(bool auto_print) {
     unsigned char ascii = 0;
     if (rptr != wptr) {
@@ -201,7 +201,6 @@ unsigned char ps2GetCharBlk(bool auto_print) {
 //   Check if we rec'd a character from the PS/2 Keyboard
 //   if so, we print it (send it to the VGA system) and
 //   then send it to the 6502 via the VIA.
-
 void ps2Task(bool auto_print) {
     unsigned char c;
     if ((c = ps2GetChar(auto_print))) {
@@ -210,7 +209,7 @@ void ps2Task(bool auto_print) {
             c = c>>1;
         }
         gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
-        sleep_us(10);               // Give the 6502 time to read
+        sleep_us(1);               // Give the 6502 time to read
         gpio_put(PIRQ, 0);  // Reset
     }
 }

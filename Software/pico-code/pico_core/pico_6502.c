@@ -50,10 +50,13 @@
 #include "pico_synth_ex.h"
 
 void core1_main() {
+    initPS2();
+    clearPS2();
     initSOUND();
     startup_chord();
     while (true) {
         soundTask();
+        ps2Task(false);
         //tight_loop_contents();
     }
 }
@@ -68,8 +71,8 @@ int main() {
     multicore_launch_core1(&core1_main);
     // Initialize the VGA screen and PS/2 interface
     initVGA();
-    initPS2();
-    clearPS2();
+    //initPS2();
+    //clearPS2();
     setFont(0);
     setTextColor2(WHITE, BLUE);
     setTxtCursor(0, 0);
@@ -83,7 +86,7 @@ int main() {
     //clearPS2();
     while (true) {
         conInTask();  // Look for incoming data
-        ps2Task(false);  // And send out any PS/2 data
+        //ps2Task(false);  // And send out any PS/2 data
         //tight_loop_contents();
     }
 }

@@ -206,25 +206,25 @@ static void esc_sequence_received() {
                         writeChar(escP[1]);
                         break;
                     case 1: // Draw a line: Esc[Z1;x1;y1;x2;y2Z
-                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, true);
+                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
                     case 2: // Draw an empty rect: Esc[Z2;x;y;w;hZ
-                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, true);
+                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
                     case 3: // Draw a filled rect: Esc[Z3;x;y;w;hZ
-                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, true);
+                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
                     case 4: // Draw an empty circle: Esc[Z4;x;y;rZ
-                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, true);
+                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
                         break;
                     case 5: // Draw an filled circle: Esc[Z5;x;y;rZ
-                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, true);
+                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
                         break;
                     case 6: // Draw an empty rounded rect: Esc[Z6;x;y;w;h;rZ
-                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, true);
+                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
                     case 7: // Draw a filled rounded rect: Esc[Z7;x;y;w;h;rZ
-                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, true);
+                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
                     case 8: // Set fg color: Esc[Z8;<color>Z
                         textfgcolor = convertRGB332(escP[1]);

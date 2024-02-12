@@ -4,6 +4,7 @@
 ;
 .program memin
 ;.wrap_target
+    mov isr, null
     wait 1 gpio 26 [10]  ; Wait for data ready, and delay for 6502's Tmds (~40ns)
     in pins 8
     irq  set 0
