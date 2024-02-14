@@ -105,10 +105,40 @@ Graphics (lines, circles, ...) use FG color for their color.
 
 Our color set uses:
 ```
-enum colors {BLACK_INT, RED, GREEN, YELLOW_INT,
-             BLUE, MAGENTA_INT, CYAN_INT, LIGHT_GREY_INT,
-             GREY_INT, LIGHT_RED_INT, LIGHT_GREEN_INT, LIGHT_YELLOW_INT,
-             LIGHT_BLUE_INT, LIGHT_MAGENTA_INT, LIGHT_CYAN_INT, WHITE_INT};
+RGB:          332:      Us:
+--------      ----      ------------
+0x000000  ->  0x00  ->  Black
+0xc00000  ->  0xc0  ->  Red
+0x00c000  ->  0x18  ->  Green
+0xc0c000  ->  0xd8  ->  Yellow
+0x0000c0  ->  0x03  ->  Blue
+0xc000c0  ->  0xc3  ->  Magenta
+0x00c0c0  ->  0x1b  ->  Cyan
+0xc0c0c0  ->  0xdb  ->  Light Grey
+0x808080  ->  0x92  ->  Grey
+0xff0000  ->  0xe0  ->  Bright Red
+0x00ff00  ->  0x1c  ->  Bright Green
+0xffff00  ->  0xfc  ->  Bright Yellow
+0x0080ff  ->  0x13  ->  Bright Blue
+0xff00ff  ->  0xe3  ->  Bright Magenta
+0x00ffff  ->  0x1f  ->  Bright Cyan
+0xffffff  ->  0xff  ->  White
 
-TRANSPARENT_INT is #FF when creating Sprites
+0xffc0cb/*  ->  0xfb  ->  Transparent  // All other colors are assumed to be transparent
+
+enum colors { BLACK=0x00, RED=0xc0; GREEN=0x18, YELLOW=0xd8,
+    BLUE=0x03, MAGENTA=0xc3, CYAN=0x1b, LIGHT_GREY=0xdb,
+    GREY=0x92, LIGHT_RED=0xe0, LIGHT_GREEN=0x1c, LIGHT_YELLOW=0xfc,
+    LIGHT_BLUE=0x13, LIGHT_MAGENTA=0xe3, LIGHT_CYAN=0x1f, WHITE=0xff,
+    TRANSPARENT=0xfb };
+
 ```
+
+When creating graphics, including Sprites and Tiles, use the above RGB colors
+for the master copies and then use software such as
+`./lv_img_conv.js -c CF_TRUE_COLOR -f` to create an RGB332 bitmap from
+the RGB image itself. You can also create the bimap directly, using the
+RGB332 values as well. When Sprites and Tiles are loaded, the RGB332 colors,
+including transparency, are converted to our internal colors. When specifying
+colors for graphic primitives (eg: `ESC[Z8;<color>Z`), the color must
+be in the corresponding RGB332 value noted above.
