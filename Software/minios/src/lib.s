@@ -1,6 +1,7 @@
 .include "minios.inc"
 .include "sysram.inc"
 .include "console.inc"
+.include "via.h"
 
 .export LIB_delay1ms
 .export LIB_delay100ms
@@ -11,6 +12,8 @@
 .export LIB_flush_ps2buf
 .export LIB_byte2str
 .export LIB_short2str
+.export LIB_setrambank
+.export LIB_getrambank
 
 .export GRA_print_char
 .export GRA_set_fgcolor
@@ -388,6 +391,30 @@ LIB_byte2str:
     adc #'0'        ; Write no matter what
     jmp CON_write_byte
     ;rts
+
+;================================================================================
+;
+;   LIB_setrambank - Set the RAM bank value
+;   LIB_getrambank - Get current RAM bank value in .A
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: .A
+;
+;   Returned Values: none
+;
+;   Destroys: .A (LIB_getrambank)
+;   ————————————————————————————————————
+;
+;================================================================================
+
+LIB_setrambank:
+    sta BANK_NUM
+    sta VIA1_PORTB
+    rts
+
+LIB_getrambank:
+    lda BANK_NUM
+    rts
 
 ;================================================================================
 ;

@@ -10,6 +10,8 @@ _LIB_INC_ = 1
 .import LIB_flush_ps2buf
 .import LIB_byte2str
 .import LIB_short2str
+.import LIB_setrambank
+.import LIB_getrambank
 
 .import GRA_print_char
 .import GRA_set_fgcolor

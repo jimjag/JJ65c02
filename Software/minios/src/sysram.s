@@ -42,6 +42,7 @@
 
 
 .export CLK_SPD
+.export BANK_NUM
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
@@ -103,6 +104,7 @@ YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
 .segment "SYSRAM"
 
 CLK_SPD:        .res 1      ; Clock speed, in MHz
+BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
 YMBUF:          .res 132    ; storage for XMODEM. 128bytes buffer + overhead

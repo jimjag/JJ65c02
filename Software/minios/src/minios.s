@@ -89,6 +89,8 @@ main:                                           ; boot routine, first thing load
     jsr ACIA_init
     jsr TTY_setup_term
     jsr VIA_init
+    lda #0
+    jsr LIB_setrambank
     jsr CON_init
     CON_writeln logo
     TTY_writeln logo
