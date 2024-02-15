@@ -127,11 +127,12 @@ volatile static unsigned char *wptr = inbuf;
 
 // ISR
 static void __not_in_flash_func() readMem(void) {
-    uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
-    *wptr++ = code;
+    //uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
+    *wptr++ = memin_pio->rxf[memin_sm] >> 24;
+    memin_pio->irq = (1u << 0);
     if (wptr >= endbuf)
         wptr = inbuf;
-    pio_interrupt_clear(memin_pio, 0);
+    //pio_interrupt_clear(memin_pio, 0);
 }
 
 // Once we grab the character/byte we've rec'd, we no longer
