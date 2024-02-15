@@ -505,7 +505,7 @@ menu_items:
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
-    .asciiz " Clock Mhz:"
+    .asciiz " Clock Mhz: "
 
 .segment "VECTORS"
 

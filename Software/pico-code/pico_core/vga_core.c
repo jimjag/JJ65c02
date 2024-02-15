@@ -120,13 +120,13 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[5120];
+static unsigned char inbuf[8192];
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 
 // ISR
-static void readMem(void) {
+static void __not_in_flash_func() readMem(void) {
     uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = code;
     if (wptr >= endbuf)
