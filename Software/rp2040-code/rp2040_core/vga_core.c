@@ -53,6 +53,7 @@
 #include "scanline.pio.h"
 #include "vsync.pio.h"
 #include "memin.pio.h"
+#include "clk.pio.h"
 // Header file
 #include "vga_core.h"
 // Font file
@@ -124,6 +125,11 @@ static unsigned char inbuf[8192];
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
+
+// Clock
+static uint clk_offset;
+static uint clk_sm;
+static PIO clk_pio;
 
 // ISR
 static void __not_in_flash_func() readMem(void) {
@@ -260,6 +266,7 @@ void initVGA(void) {
     dma_memset(terminal, ' ', terminal_size);
 
     // GPIO pin setup for data sent from 6502 to us (Console Output)
+    rptr = wptr = inbuf;
     memin_pio = pio1;
     memin_pio_irq = PIO1_IRQ_0;
     memin_offset = pio_add_program(memin_pio, &memin_program);
@@ -270,8 +277,14 @@ void initVGA(void) {
     pio_set_irq0_source_enabled(memin_pio, pis_interrupt0, true);
     irq_set_exclusive_handler(memin_pio_irq, readMem);
     irq_set_enabled(memin_pio_irq, true);
-    rptr = wptr = inbuf;
     pio_sm_set_enabled(memin_pio, memin_sm, true);
+    // The 6502 Clock signal
+    clk_pio = pio1;
+    clk_offset = pio_add_program(clk_pio, &clk_program);
+    clk_sm = pio_claim_unused_sm(clk_pio, true);
+    clk_program_init(clk_pio, clk_sm, clk_offset, CLK_PIN);
+    //pio_sm_set_enabled(clk_pio, clk_sm, true);
+    //
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 

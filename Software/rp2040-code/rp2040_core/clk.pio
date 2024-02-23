@@ -1,0 +1,18 @@
+; Program name
+;  Runs at 250MHz so each rp2050 clock is 4ns
+;
+.program clk
+set pins 0 [30]  ; 124ns
+set pins 1 [30]  ; 124ns
+
+
+% c-sdk {
+static inline void clk_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    pio_sm_config c = clk_program_get_default_config(offset);
+    sm_config_set_set_pins(&c, pin, 1);
+    pio_gpio_init(pio, pin);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

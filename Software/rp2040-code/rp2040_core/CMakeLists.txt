@@ -6,6 +6,7 @@ pico_generate_pio_header(rp2040_core_code ${CMAKE_CURRENT_LIST_DIR}/vsync.pio)
 pico_generate_pio_header(rp2040_core_code ${CMAKE_CURRENT_LIST_DIR}/scanline.pio)
 pico_generate_pio_header(rp2040_core_code ${CMAKE_CURRENT_LIST_DIR}/ps2_keyboard.pio)
 pico_generate_pio_header(rp2040_core_code ${CMAKE_CURRENT_LIST_DIR}/memin.pio)
+pico_generate_pio_header(rp2040_core_code ${CMAKE_CURRENT_LIST_DIR}/clk.pio)
 
 # must match with executable name and source file names
 if(DEFINED ENV{PICO_DEMO})

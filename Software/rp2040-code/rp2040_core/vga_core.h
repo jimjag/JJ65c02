@@ -62,6 +62,7 @@
 #define SCANFREQ 125000000.0f
 
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
+enum clk_pins {CLK_PIN=24};
 
 // We can only produce 16 (4-bit) colors, so let's give them readable names - usable in main()
 enum colors_internal {BLACK_INT, RED_INT, GREEN_INT, YELLOW_INT,
