@@ -1,7 +1,7 @@
 
-# JJ65c02: The Pi Pico Console Chip
+# JJ65c02: The RP2040 Console Chip
 
-`pico_core` serves as the core code for the Pi Pico support chip for
+`rp2040_core` serves as the core code for the rp2040 support chip for
 the JJ65c02 SBC. It performs 4 main functions:
 
 * Interfaces with a PS/2 keyboard for console input
@@ -11,7 +11,7 @@ the JJ65c02 SBC. It performs 4 main functions:
 
 ## PS/2 Keyboard
 
-2 __GPIO__ pins are used on the Pi Pico for the PS/2 data and clock signals. Data is
+2 __GPIO__ pins are used on the rp2040 for the PS/2 data and clock signals. Data is
 read and serialized using a __PIO__ state machine. This data is then fed into the
 VGA/terminal subsystem (if desired) as well as sent to the JJ65c02 system using 7 pins on
 the VIA chip and one pin for the data handshake. In general, we expect the 6502 to echo back
@@ -23,7 +23,7 @@ to ASCII `0x11` through `0x14`.
 
 ## VGA Output
 
-The Pi Pico supports a resolution of 640x480 pixels at 60Khz, with a 4 bit
+The rp2040 supports a resolution of 640x480 pixels at 60Khz, with a 4 bit
 color palette. The `HSYNC`, `VSYNC` and `RGBI` signals are generated using
 3 __PIO__ state machines with 6 output pins. Higher resolutions are possible
 but are limited by the onboard memory available on the __RP2040__.
@@ -33,7 +33,7 @@ to be directly addressed.  Changes to the bitmap are automatically reflected
 in the output using the __RP2040__ DMA capability.
 
 Character bytes can be written to the __RP2040__ from the 65C02 by simply writing
-to the Pi Pico's mapped direct address. This uses 8 pins on the Pi Pico for the
+to the rp2040's mapped direct address. This uses 8 pins on the rp2040 for the
 data and 1 pin to serve as a `write/data-ready/chip-select` signal.
 
 ## Terminal, Graphics and Text
@@ -98,7 +98,7 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z8;<color>Z` Set FG color to `<color>`
 * `ESC[Z9;<color>Z` Set BG color to `<color>`
 * `ESC[Z10;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
-* `ESC[Z11;<code>Z` Send ascii char decimal code`<code>` to the Pi Pico Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z11;101Z` will send `e` to `soundTask()` to play a single `Mi` note
+* `ESC[Z11;<code>Z` Send ascii char decimal code`<code>` to the rp2040 Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z11;101Z` will send `e` to `soundTask()` to play a single `Mi` note
 
 Pixel locations are 0-based: (0,0) to (639, 479).
 
