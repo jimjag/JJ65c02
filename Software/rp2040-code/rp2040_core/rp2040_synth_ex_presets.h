@@ -1,5 +1,5 @@
-#ifndef PICO_SYNTH_EX_PRESETS_H_
-#define PICO_SYNTH_EX_PRESETS_H_
+#ifndef RP2040_SYNTH_EX_PRESETS_H_
+#define RP2040_SYNTH_EX_PRESETS_H_
 
 typedef struct {
     int8_t octave_shift;

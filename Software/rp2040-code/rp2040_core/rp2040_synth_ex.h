@@ -1,5 +1,5 @@
-#ifndef PICO_SYNTH_EX_H_
-#define PICO_SYNTH_EX_H_
+#ifndef RP2040_SYNTH_EX_H_
+#define RP2040_SYNTH_EX_H_
 
 typedef int32_t Q28; // Signed fixed-point number with 28-bit fractional part
 typedef int16_t Q14; // Signed fixed-point number with 14-bit fractional part
@@ -18,4 +18,4 @@ void initSOUND(void);
 void soundTask(void);
 void startup_chord(void);
 void beep(void);
-#endif // PICO_SYNTH_EX_H_
+#endif // RP2040_SYNTH_EX_H_

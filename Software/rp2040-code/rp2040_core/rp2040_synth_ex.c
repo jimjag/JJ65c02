@@ -13,10 +13,10 @@
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
 #include "pico/multicore.h"
-#include "pico_synth_ex_presets.h"
-#include "pico_synth_ex_tables.h"
+#include "rp2040_synth_ex_presets.h"
+#include "rp2040_synth_ex_tables.h"
 
-#include "pico_synth_ex.h"
+#include "rp2040_synth_ex.h"
 
 static volatile uint8_t current_preset = 0;
 static volatile uint8_t current_voice = 0;

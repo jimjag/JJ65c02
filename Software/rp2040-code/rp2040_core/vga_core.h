@@ -42,7 +42,7 @@
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "pico/multicore.h"
-#include "pico_synth_ex.h"
+#include "rp2040_synth_ex.h"
 #include "pico/platform.h"
 
 // TODO: Eventually support resolutions > 640x480
