@@ -1,0 +1,59 @@
+;
+; VSync generation for VGA driver
+
+; Program name
+.program vsync
+.side_set 1 opt
+
+; frontporch: 10  lines
+; sync pulse: 2   lines
+; back porch: 33  lines
+; active for: 480 lines
+;
+
+pull block                        ; Pull from FIFO to OSR (only once)
+.wrap_target                      ; Program wraps to here
+
+; ACTIVE
+mov x, osr                        ; Copy value from OSR to x scratch register
+activefront:
+    wait 1 irq 0                  ; Wait for hsync to go high
+    irq 1                         ; Signal that we're in active mode
+    jmp x-- activefront           ; Remain in active mode, decrementing counter
+
+; FRONTPORCH
+set y, 9                          ;
+frontporch:
+    wait 1 irq 0                  ;
+    jmp y-- frontporch            ;
+
+; SYNC PULSE
+set pins, 0                       ; Set pin low
+wait 1 irq 0                      ; Wait for one line
+wait 1 irq 0                      ; Wait for a second line
+
+; BACKPORCH
+set y, 31                         ; First part of back porch into y scratch register (and delays a cycle)
+backporch:
+    wait 1 irq 0   side 1         ; Wait for hsync to go high
+    jmp y-- backporch             ; Remain in backporch, decrementing counter
+
+.wrap                             ; Program wraps from here
+
+
+
+% c-sdk {
+static inline void vsync_program_init(PIO pio, uint sm, uint offset, uint pin, float freq) {
+    pio_sm_config c = vsync_program_get_default_config(offset);
+    sm_config_set_set_pins(&c, pin, 1);
+    sm_config_set_sideset_pins(&c, pin);
+    float div = clock_get_hz(clk_sys) / freq;
+    sm_config_set_clkdiv(&c, div);
+    // sm_config_set_clkdiv(&c, 5) ;
+    pio_gpio_init(pio, pin);
+    // pio_gpio_init(pio, pin+1);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+    pio_sm_init(pio, sm, offset, &c);
+    // pio_sm_set_enabled(pio, sm, true);
+}
+%}
