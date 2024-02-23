@@ -1,12 +1,13 @@
 
-# JJ65c02: The Pi Pico PS/2|VGA Support Chip
+# JJ65c02: The Pi Pico Console Chip
 
 `pico_core` serves as the core code for the Pi Pico support chip for
-the JJ65c02 SBC. It performs 3 main functions:
+the JJ65c02 SBC. It performs 4 main functions:
 
 * Interfaces with a PS/2 keyboard for console input
 * Outputs VGA at 640x480, 4-bit color
 * Provides Smart Terminal, Graphics and Text mode primitives
+* Sound generation and output (4 voices, 10 tones)
 
 ## PS/2 Keyboard
 

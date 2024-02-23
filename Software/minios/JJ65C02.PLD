@@ -70,7 +70,8 @@ IS_IO = IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
-PICO_DR = !RW & IS_IO & A11 & PHI;
+/* Pi Pico is 0XA800 */
+PICO_DR = !RW & IS_IO & A11 & !PHI;  /* DR once CLK goes low and is latched */
 
 /*
  A15 -> A15

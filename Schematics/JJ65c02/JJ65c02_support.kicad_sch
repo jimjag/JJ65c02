@@ -667,7 +667,7 @@
       (property "Value" "74LS573" (at 2.1941 16.9601 0)
         (effects (font (size 1.27 1.27)) (justify left))
       )
-      (property "Footprint" "Package_SO:SSOP-20_5.3x7.2mm_P0.65mm" (at 0 0 0)
+      (property "Footprint" "Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm" (at 0 0 0)
         (effects (font (size 1.27 1.27)) hide)
       )
       (property "Datasheet" "74xx/74hc573.pdf" (at 0 0 0)
@@ -686,7 +686,7 @@
         (effects (font (size 1.27 1.27)) hide)
       )
       (symbol "74LS573_1_0"
-        (pin input inverted (at -12.7 -12.7 0) (length 5.08)
+        (pin input line (at -12.7 -12.7 0) (length 5.08)
           (name "~{OE}" (effects (font (size 1.27 1.27))))
           (number "1" (effects (font (size 1.27 1.27))))
         )
