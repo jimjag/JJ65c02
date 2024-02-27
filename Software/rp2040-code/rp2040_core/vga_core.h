@@ -15,6 +15,7 @@
  *  - GPIO 26 ---> Data Ready
  *  - GPIO 27 ---> IRQ/Handshake to VIA for PS/2
  *  - GPIO 28 ---> audio/sound
+ *  - GPIO 24 ---> 6502 PHI/CLK
  *
  * RESOURCES USED
  *  CORE 0
@@ -29,11 +30,14 @@
  *  - MEMIN:
  *  -   PIO state machine 1 on PIO instance 1
  *  -   IRQ 0
+ *  - CLK:
+ *  -   PIO state machine 2 on PIO instance 1
  *
  * CORE 1
  * - SND:
  * -   PWM
  */
+
 #ifndef VGA_CORE_H_
 #define VGA_CORE_H_
 
