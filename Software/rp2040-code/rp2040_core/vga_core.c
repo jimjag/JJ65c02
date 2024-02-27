@@ -132,7 +132,7 @@ static uint clk_sm;
 static PIO clk_pio;
 
 // ISR
-static void __not_in_flash_func() readMem(void) {
+static void __time_critical_func(readMem)(void) {
     //uint8_t code = pio_sm_get(memin_pio, memin_sm) >> 24;
     *wptr++ = memin_pio->rxf[memin_sm] >> 24;
     memin_pio->irq = (1u << 0);
@@ -288,7 +288,7 @@ void initVGA(void) {
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
 }
 
-void dma_memset(void *dest, uint8_t val, size_t num) {
+void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
     channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, false);
@@ -309,7 +309,7 @@ void dma_memset(void *dest, uint8_t val, size_t num) {
     dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
 }
 
-void __not_in_flash_func() dma_memcpy(void *dest, void *src, size_t num) {
+void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
     channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, true);
