@@ -4,7 +4,7 @@
  */
 /**
  *
- * HARDWARE CONNECTIONS
+ * RP2040 HARDWARE CONNECTIONS
  *  - GPIO 17 ---> VGA Hsync
  *  - GPIO 18 ---> VGA Vsync
  *  - GPIO 19 ---> 470 ohm resistor ---> VGA Red

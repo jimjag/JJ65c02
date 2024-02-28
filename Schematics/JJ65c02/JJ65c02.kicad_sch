@@ -4501,225 +4501,6 @@
 				)
 			)
 		)
-		(symbol "Device:R_Network06_Split"
-			(pin_names
-				(offset 0) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "RN"
-				(at 2.032 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "R_Network06_Split"
-				(at 0 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Resistor_THT:R_Array_SIP7"
-				(at -2.032 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "6 resistor network, star topology, bussed resistors, split"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "R network star-topology"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "R?Array?SIP*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "R_Network06_Split_0_1"
-				(rectangle
-					(start 1.016 2.54)
-					(end -1.016 -2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "R1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_1_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R1.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_2_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R2.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_3_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R3.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_4_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R4.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_5_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R5.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "R_Network06_Split_6_1"
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "R6.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "JJ65c02-rescue:AS6C1008-55PCN"
 			(pin_names
 				(offset 1.016)
@@ -5436,22 +5217,20 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "ROM"
+			(property "Reference" "U"
 				(at 2.54 33.02 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Value" "SST39SF010"
-				(at 11.43 -19.05 0)
+				(at 0 -30.48 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Footprint" ""
@@ -5779,7 +5558,7 @@
 				(pin input input_low
 					(at -15.24 -25.4 0)
 					(length 5.08)
-					(name "~{CE}"
+					(name "CE"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5815,7 +5594,7 @@
 				(pin input input_low
 					(at -15.24 -27.94 0)
 					(length 5.08)
-					(name "~{OE}"
+					(name "OE"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5959,7 +5738,7 @@
 				(pin input input_low
 					(at -15.24 -20.32 0)
 					(length 5.08)
-					(name "~{WE}"
+					(name "PGM"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -6657,10 +6436,6 @@
 		(uuid "33e054d8-90b5-4b84-8ee3-d4157011dd79")
 	)
 	(no_connect
-		(at 187.96 74.93)
-		(uuid "3448fc74-6fa3-42e7-857f-d946c415ccbb")
-	)
-	(no_connect
 		(at 119.38 149.86)
 		(uuid "459159cf-127f-4c3b-895c-ce1ddfb1b0f5")
 	)
@@ -6699,10 +6474,6 @@
 	(no_connect
 		(at 45.72 50.8)
 		(uuid "a5be2cb8-c68d-4180-8412-69a6b4c5b1d4")
-	)
-	(no_connect
-		(at 187.96 77.47)
-		(uuid "a63baeb5-2f51-46c1-9484-ab225b79a6ba")
 	)
 	(no_connect
 		(at 119.38 152.4)
@@ -6943,6 +6714,15 @@
 			(type default)
 		)
 		(uuid "4d2f47fc-6d1a-4892-b611-a0a1c2fbff1b")
+	)
+	(bus_entry
+		(at 180.34 77.47)
+		(size 2.54 -2.54)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "52d52ba7-d707-4471-95d2-af493523bb5a")
 	)
 	(bus_entry
 		(at 102.87 58.42)
@@ -7700,6 +7480,16 @@
 	)
 	(wire
 		(pts
+			(xy 187.96 77.47) (xy 186.69 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "054764a2-bc29-4bfd-8417-bc8d0561ed62")
+	)
+	(wire
+		(pts
 			(xy 182.88 69.85) (xy 187.96 69.85)
 		)
 		(stroke
@@ -7957,6 +7747,16 @@
 			(type default)
 		)
 		(uuid "131e3ba8-27b5-4ce7-97e2-0952fc0633f1")
+	)
+	(wire
+		(pts
+			(xy 186.69 80.01) (xy 185.42 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1453743e-30f5-4cdc-991b-3ab5b0d35c9e")
 	)
 	(bus
 		(pts
@@ -8227,6 +8027,16 @@
 			(type default)
 		)
 		(uuid "2bd228a1-bf7f-434c-a867-aaf72d9e458f")
+	)
+	(wire
+		(pts
+			(xy 182.88 74.93) (xy 187.96 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2c24a1b1-fb3c-49e8-a834-5f2105fa2a99")
 	)
 	(wire
 		(pts
@@ -8917,6 +8727,16 @@
 			(type default)
 		)
 		(uuid "6001222e-c80d-495c-99c0-4d902497a933")
+	)
+	(bus
+		(pts
+			(xy 180.34 74.93) (xy 180.34 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6038c3d6-128b-43de-8f7c-7c84a7105e8b")
 	)
 	(bus
 		(pts
@@ -10198,6 +10018,16 @@
 		)
 		(uuid "c1d52e00-61f9-4e66-af72-2ee458e11eea")
 	)
+	(wire
+		(pts
+			(xy 186.69 77.47) (xy 186.69 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c1e4d60c-8b10-41fb-9adc-b74e8dfd4471")
+	)
 	(bus
 		(pts
 			(xy 226.06 54.61) (xy 226.06 57.15)
@@ -11168,6 +10998,17 @@
 			(justify left bottom)
 		)
 		(uuid "1876c30c-72b2-4a8d-9f32-bf8b213530b4")
+	)
+	(label "a15"
+		(at 185.42 74.93 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify left bottom)
+		)
+		(uuid "18990238-1373-4755-b849-681129619e70")
 	)
 	(label "d1"
 		(at 63.5 148.59 0)
@@ -12448,6 +12289,28 @@
 		(uuid "37657eee-b379-4145-b65d-79c82b53e49e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 67.8372 99.1346 0)
+			(effects
+				(font
+					(size 1.1938 1.1938)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape input)
+		(at 185.42 80.01 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify right)
+		)
+		(uuid "383c9dc8-141a-4de3-bb82-9021bea581d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 179.5972 79.9354 0)
 			(effects
 				(font
 					(size 1.1938 1.1938)
@@ -14217,7 +14080,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Quad And2"
 			(at 246.38 71.12 0)
 			(effects
 				(font
@@ -14320,7 +14183,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "quad 2-input NAND gate"
 			(at 224.79 123.19 0)
 			(effects
 				(font
@@ -14425,7 +14288,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 114.3 172.72 0)
 			(effects
 				(font
@@ -14475,7 +14338,7 @@
 				)
 			)
 		)
-		(property "Footprint" "JJ65c02:DIP1524W45P254L4191H419Q32"
+		(property "Footprint" "DIP1524W45P254L4191H419Q32"
 			(at 125.73 66.04 0)
 			(effects
 				(font
@@ -14670,88 +14533,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Network06_Split")
-		(at 29.21 58.42 90)
-		(unit 2)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "2b0faeac-f776-4be2-8c70-666368e23297")
-		(property "Reference" "RN1"
-			(at 29.21 55.88 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "4.7K"
-			(at 29.21 58.42 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Array_SIP6"
-			(at 29.21 60.452 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-			(at 29.21 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 29.21 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "46efd69a-a171-46fa-98ad-6082d3b298a4")
-		)
-		(pin "1"
-			(uuid "1849d264-1bc3-44dd-b05c-84a848492b44")
-		)
-		(pin "3"
-			(uuid "4f70267d-1f06-47a8-9d96-2f3fd764f45a")
-		)
-		(pin "4"
-			(uuid "e791a4c5-f2f9-4bbd-a152-8d86abe2deed")
-		)
-		(pin "7"
-			(uuid "2b73f935-19f4-44f3-b766-81ca4771009b")
-		)
-		(pin "5"
-			(uuid "dd2a4e75-5cfa-4d82-a914-20d67ff68fa4")
-		)
-		(pin "6"
-			(uuid "9afb545b-225a-4d2e-8eb1-6f829a7c5082")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "RN1")
-					(unit 2)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C_Polarized")
 		(at 212.09 139.7 0)
 		(unit 1)
@@ -14796,7 +14577,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Polarized capacitor"
 			(at 212.09 139.7 0)
 			(effects
 				(font
@@ -14865,7 +14646,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 196.85 29.21 0)
 			(effects
 				(font
@@ -14934,7 +14715,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 54.61 171.45 0)
 			(effects
 				(font
@@ -15003,7 +14784,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Silicon Storage Technology (SSF) 128k x 8 Flash ROM"
 			(at 203.2 67.31 0)
 			(effects
 				(font
@@ -15160,7 +14941,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 234.95 116.84 0)
 			(effects
 				(font
@@ -15185,16 +14966,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Network06_Split")
-		(at 80.01 55.88 270)
-		(unit 3)
+		(lib_id "Device:R")
+		(at 29.21 58.42 270)
+		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "78aca0bd-3c1b-4ab7-875e-21c4bfe1733d")
-		(property "Reference" "RN1"
-			(at 81.28 53.34 90)
+		(uuid "803df20a-d012-4195-bbd7-c710df2277ff")
+		(property "Reference" "R9"
+			(at 29.21 55.88 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15202,24 +14983,15 @@
 			)
 		)
 		(property "Value" "4.7K"
-			(at 80.01 55.88 90)
+			(at 29.21 58.42 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Array_SIP6"
-			(at 80.01 53.848 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-			(at 80.01 55.88 0)
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
+			(at 29.21 56.642 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15227,8 +14999,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
-			(at 80.01 55.88 0)
+		(property "Datasheet" "~"
+			(at 29.21 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15236,114 +15008,26 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "46efd69a-a171-46fa-98ad-6082d3b298a5")
+		(property "Description" "Resistor"
+			(at 29.21 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "1849d264-1bc3-44dd-b05c-84a848492b45")
+			(uuid "1ff1d978-596f-4db1-9b6f-706959bba244")
 		)
-		(pin "3"
-			(uuid "4f70267d-1f06-47a8-9d96-2f3fd764f45b")
-		)
-		(pin "4"
-			(uuid "e791a4c5-f2f9-4bbd-a152-8d86abe2deee")
-		)
-		(pin "7"
-			(uuid "2b73f935-19f4-44f3-b766-81ca4771009c")
-		)
-		(pin "5"
-			(uuid "dd2a4e75-5cfa-4d82-a914-20d67ff68fa5")
-		)
-		(pin "6"
-			(uuid "9afb545b-225a-4d2e-8eb1-6f829a7c5083")
+		(pin "2"
+			(uuid "acc624a7-269d-4efc-af89-de9858ca0ae4")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "RN1")
-					(unit 3)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Network06_Split")
-		(at 99.06 27.94 270)
-		(unit 4)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "7f91c49f-b21d-40df-aa9f-d6d1caead498")
-		(property "Reference" "RN1"
-			(at 99.06 30.48 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "4.7K"
-			(at 99.06 27.94 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Array_SIP6"
-			(at 99.06 25.908 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-			(at 99.06 27.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 99.06 27.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "46efd69a-a171-46fa-98ad-6082d3b298a6")
-		)
-		(pin "1"
-			(uuid "4eff8c57-73c2-4958-9be3-5c4a15ade05c")
-		)
-		(pin "3"
-			(uuid "a22c6bb0-efaf-4364-9291-df458f72a052")
-		)
-		(pin "4"
-			(uuid "e791a4c5-f2f9-4bbd-a152-8d86abe2deef")
-		)
-		(pin "7"
-			(uuid "2b73f935-19f4-44f3-b766-81ca4771009d")
-		)
-		(pin "5"
-			(uuid "dd2a4e75-5cfa-4d82-a914-20d67ff68fa6")
-		)
-		(pin "6"
-			(uuid "9afb545b-225a-4d2e-8eb1-6f829a7c5084")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "RN1")
-					(unit 4)
+					(reference "R9")
+					(unit 1)
 				)
 			)
 		)
@@ -15393,7 +15077,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 177.8 139.7 0)
 			(effects
 				(font
@@ -15462,7 +15146,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 191.77 113.03 0)
 			(effects
 				(font
@@ -15529,7 +15213,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 212.09 116.84 0)
 			(effects
 				(font
@@ -15548,6 +15232,73 @@
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
 					(reference "R6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 29.21 48.26 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a33f80a4-f45e-45a0-bbcc-2b5cc80c3541")
+		(property "Reference" "R8"
+			(at 29.21 45.72 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7K"
+			(at 29.21 48.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
+			(at 29.21 46.482 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 29.21 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 29.21 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "11c4227d-f8ab-44a5-87f5-e95d390c9b9c")
+		)
+		(pin "2"
+			(uuid "f83fa8ea-a142-4a79-b5d5-d72d92f6ba39")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
+					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -15598,7 +15349,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 30.48 69.85 0)
 			(effects
 				(font
@@ -15623,16 +15374,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Network06_Split")
-		(at 180.34 87.63 90)
-		(unit 5)
+		(lib_id "Device:R")
+		(at 80.01 55.88 270)
+		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b5211e90-d2d5-4f1d-af8d-6ca4b7bee3ec")
-		(property "Reference" "RN1"
-			(at 180.34 90.17 90)
+		(uuid "b8c4f078-e65e-4aa4-95e7-fd8e755ffd91")
+		(property "Reference" "R10"
+			(at 80.01 53.34 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15640,24 +15391,15 @@
 			)
 		)
 		(property "Value" "4.7K"
-			(at 180.34 87.63 90)
+			(at 80.01 55.88 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Array_SIP6"
-			(at 180.34 89.662 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-			(at 180.34 87.63 0)
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
+			(at 80.01 54.102 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15665,8 +15407,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
-			(at 180.34 87.63 0)
+		(property "Datasheet" "~"
+			(at 80.01 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15674,32 +15416,26 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "46efd69a-a171-46fa-98ad-6082d3b298a7")
+		(property "Description" "Resistor"
+			(at 80.01 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "7e53639b-33c6-42ae-b1af-ebed9bf5b6b3")
+			(uuid "c9b401dc-51fc-41be-8217-2807f3241cc8")
 		)
-		(pin "3"
-			(uuid "a22c6bb0-efaf-4364-9291-df458f72a053")
-		)
-		(pin "4"
-			(uuid "e791a4c5-f2f9-4bbd-a152-8d86abe2def0")
-		)
-		(pin "7"
-			(uuid "2b73f935-19f4-44f3-b766-81ca4771009e")
-		)
-		(pin "5"
-			(uuid "2aee0c83-2644-4ee7-b5c6-c52b1c75073f")
-		)
-		(pin "6"
-			(uuid "9afb545b-225a-4d2e-8eb1-6f829a7c5085")
+		(pin "2"
+			(uuid "ded18561-fa05-43be-a467-1b5a53896a7a")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "RN1")
-					(unit 5)
+					(reference "R10")
+					(unit 1)
 				)
 			)
 		)
@@ -15749,7 +15485,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 138.43 22.86 0)
 			(effects
 				(font
@@ -15816,7 +15552,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 177.8 116.84 0)
 			(effects
 				(font
@@ -15883,7 +15619,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Quad And2"
 			(at 261.62 33.02 0)
 			(effects
 				(font
@@ -15986,7 +15722,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Timer, 555 compatible, PDIP-8"
 			(at 196.85 128.27 0)
 			(effects
 				(font
@@ -16073,7 +15809,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 261.62 78.74 0)
 			(effects
 				(font
@@ -16092,6 +15828,73 @@
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
 					(reference "C13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 99.06 27.94 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e9f76b9e-847f-44a4-a8c4-a9afcd14a9f0")
+		(property "Reference" "R18"
+			(at 99.06 25.4 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7K"
+			(at 99.06 27.94 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
+			(at 99.06 26.162 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 99.06 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 99.06 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "caad3c9f-e933-41b4-bda2-c025780298b8")
+		)
+		(pin "2"
+			(uuid "9a79b18a-41da-4ba4-9183-d3f0af874191")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
+					(reference "R18")
 					(unit 1)
 				)
 			)
@@ -16142,7 +15945,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Push button switch, generic, two pins"
 			(at 173.99 134.62 0)
 			(effects
 				(font
@@ -16167,16 +15970,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Network06_Split")
-		(at 29.21 48.26 90)
+		(lib_id "Device:R")
+		(at 180.34 87.63 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "fcc3c5ff-6ebe-4e90-9d6e-8439e361028a")
-		(property "Reference" "RN1"
-			(at 29.21 45.72 90)
+		(uuid "f88ad260-6ca4-466c-974a-7c2b3612fb98")
+		(property "Reference" "R19"
+			(at 180.34 85.09 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16184,24 +15987,15 @@
 			)
 		)
 		(property "Value" "4.7K"
-			(at 29.21 48.26 90)
+			(at 180.34 87.63 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Array_SIP6"
-			(at 29.21 50.292 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
-			(at 29.21 48.26 0)
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
+			(at 180.34 85.852 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16209,8 +16003,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
-			(at 29.21 48.26 0)
+		(property "Datasheet" "~"
+			(at 180.34 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16218,31 +16012,25 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "46efd69a-a171-46fa-98ad-6082d3b298a8")
+		(property "Description" "Resistor"
+			(at 180.34 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "1849d264-1bc3-44dd-b05c-84a848492b46")
+			(uuid "e31c239f-15d4-4a2c-b2d2-d63f8e126ad2")
 		)
-		(pin "3"
-			(uuid "4f70267d-1f06-47a8-9d96-2f3fd764f45c")
-		)
-		(pin "4"
-			(uuid "e791a4c5-f2f9-4bbd-a152-8d86abe2def1")
-		)
-		(pin "7"
-			(uuid "2b73f935-19f4-44f3-b766-81ca4771009f")
-		)
-		(pin "5"
-			(uuid "dd2a4e75-5cfa-4d82-a914-20d67ff68fa7")
-		)
-		(pin "6"
-			(uuid "9afb545b-225a-4d2e-8eb1-6f829a7c5086")
+		(pin "2"
+			(uuid "409cdeb5-f732-493a-9cdd-49a0d1fb2c0e")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "RN1")
+					(reference "R19")
 					(unit 1)
 				)
 			)

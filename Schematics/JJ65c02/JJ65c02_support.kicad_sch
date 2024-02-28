@@ -1972,25 +1972,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "U4"
-				(at 2.1941 19.3843 0)
+			(property "Reference" "U"
+				(at -7.62 16.51 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Value" "74LS573"
-				(at 2.1941 16.9601 0)
+				(at -7.62 -16.51 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" "Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm"
+			(property "Footprint" ""
 				(at 0 0 0)
 				(effects
 					(font
@@ -2044,10 +2042,10 @@
 				)
 			)
 			(symbol "74LS573_1_0"
-				(pin input line
+				(pin input inverted
 					(at -12.7 -12.7 0)
 					(length 5.08)
-					(name "~{OE}"
+					(name "OE"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2083,7 +2081,7 @@
 				(pin input line
 					(at -12.7 -10.16 0)
 					(length 5.08)
-					(name "~{LE}"
+					(name "Load"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2425,8 +2423,8 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "VGA1"
-				(at 0 21.9243 0)
+			(property "Reference" "J"
+				(at 0 21.59 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2434,15 +2432,15 @@
 				)
 			)
 			(property "Value" "DE15_Receptacle_HighDensity"
-				(at 0 19.5001 0)
+				(at 0 19.05 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Footprint" "JJ65c02:CONN_HDE15P_AMP"
-				(at 0 -17.78 0)
+			(property "Footprint" ""
+				(at -24.13 10.16 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3005,8 +3003,8 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "PS/2"
-				(at 0.0177 9.2243 0)
+			(property "Reference" "J"
+				(at 0 6.35 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3014,15 +3012,15 @@
 				)
 			)
 			(property "Value" "Mini-DIN-6"
-				(at 0.0177 6.8001 0)
+				(at 0 -6.35 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Footprint" "JJ65c02:mini_din-6"
-				(at 0 -6.35 0)
+			(property "Footprint" ""
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3407,25 +3405,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J"
-				(at 0 16.51 0)
+			(property "Reference" "USBC1"
+				(at 0 16.8443 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
 				)
 			)
 			(property "Value" "USB_C_Receptacle_PowerOnly"
-				(at 0 13.97 0)
+				(at 0 14.4201 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
 				)
 			)
-			(property "Footprint" ""
+			(property "Footprint" "JJ65c02:USBC_power"
 				(at 3.81 2.54 0)
 				(effects
 					(font
@@ -3468,6 +3464,52 @@
 						(size 1.27 1.27)
 					)
 					(hide yes)
+				)
+			)
+			(symbol "USB_C_Receptacle_PowerOnly_6P_0_0"
+				(rectangle
+					(start -0.254 -12.7)
+					(end 0.254 -11.684)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 9.144 -4.826)
+					(end 10.16 -5.334)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 10.16 -7.366)
+					(end 9.144 -7.874)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 10.16 7.874)
+					(end 9.144 7.366)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
 				)
 			)
 			(symbol "USB_C_Receptacle_PowerOnly_6P_0_1"
@@ -3672,6 +3714,24 @@
 				)
 			)
 			(symbol "USB_C_Receptacle_PowerOnly_6P_1_1"
+				(pin passive line
+					(at 15.24 7.62 180)
+					(length 5.08) hide
+					(name "VBUS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin power_out line
 					(at 15.24 7.62 180)
 					(length 5.08)
@@ -3709,7 +3769,7 @@
 					)
 				)
 				(pin power_out line
-					(at 15.24 -3.81 180)
+					(at 0 -17.78 90)
 					(length 5.08)
 					(name "GND"
 						(effects
@@ -3727,7 +3787,7 @@
 					)
 				)
 				(pin power_out line
-					(at 15.24 -7.62 180)
+					(at 5.08 -17.78 90)
 					(length 5.08)
 					(name "GND"
 						(effects
@@ -3737,6 +3797,24 @@
 						)
 					)
 					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -17.78 90)
+					(length 5.08) hide
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "B12"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -6430,7 +6508,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "SW"
-				(at 0 4.318 0)
+				(at 0 5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -6455,7 +6533,7 @@
 				)
 			)
 			(property "Datasheet" "~"
-				(at 0 0 0)
+				(at 0 -7.62 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -6481,10 +6559,22 @@
 					(hide yes)
 				)
 			)
-			(symbol "SW_SPDT_0_0"
+			(symbol "SW_SPDT_0_1"
 				(circle
 					(center -2.032 0)
-					(radius 0.508)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.651 0.254) (xy 1.651 2.286)
+					)
 					(stroke
 						(width 0)
 						(type default)
@@ -6495,21 +6585,7 @@
 				)
 				(circle
 					(center 2.032 -2.54)
-					(radius 0.508)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SW_SPDT_0_1"
-				(polyline
-					(pts
-						(xy -1.524 0.254) (xy 1.651 2.286)
-					)
+					(radius 0.4572)
 					(stroke
 						(width 0)
 						(type default)
@@ -6520,7 +6596,7 @@
 				)
 				(circle
 					(center 2.032 2.54)
-					(radius 0.508)
+					(radius 0.4572)
 					(stroke
 						(width 0)
 						(type default)
@@ -6531,6 +6607,17 @@
 				)
 			)
 			(symbol "SW_SPDT_1_1"
+				(rectangle
+					(start -3.175 3.81)
+					(end 3.175 -3.81)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
 				(pin passive line
 					(at 5.08 2.54 180)
 					(length 2.54)
@@ -6703,12 +6790,6 @@
 		(uuid "b97e5932-d2dd-4e1b-892a-315cd22cd406")
 	)
 	(junction
-		(at 222.25 44.45)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "bd8ec7fa-4fce-44f7-87bd-2bfb70c144cd")
-	)
-	(junction
 		(at 200.66 76.2)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6731,6 +6812,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "eeadbfc6-5c26-4d44-a0e6-3231312604c6")
+	)
+	(junction
+		(at 212.09 54.61)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f52c9a19-ccbb-4d5d-8fff-4c89f09a0283")
 	)
 	(no_connect
 		(at 39.37 30.48)
@@ -6773,6 +6860,10 @@
 		(uuid "600d4432-b468-4716-a2e4-649d0a21998d")
 	)
 	(no_connect
+		(at 173.99 76.2)
+		(uuid "6d5e625a-c5f4-4da9-ad92-312642461cb2")
+	)
+	(no_connect
 		(at 39.37 43.18)
 		(uuid "72fa87b3-e1a7-42b9-981d-c2eaa5530808")
 	)
@@ -6795,10 +6886,6 @@
 	(no_connect
 		(at 39.37 40.64)
 		(uuid "98763316-fda1-4105-b1ff-6fa0cd861745")
-	)
-	(no_connect
-		(at 173.99 99.06)
-		(uuid "a583d773-3573-4dae-8ef7-98854d83d162")
 	)
 	(no_connect
 		(at 234.95 31.75)
@@ -7554,16 +7641,6 @@
 	)
 	(wire
 		(pts
-			(xy 172.72 73.66) (xy 172.72 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1e3e3cdb-719b-4cfe-8d3b-8d1582d96248")
-	)
-	(wire
-		(pts
 			(xy 38.1 185.42) (xy 39.37 185.42)
 		)
 		(stroke
@@ -7671,6 +7748,16 @@
 			(type default)
 		)
 		(uuid "264b70ba-4e31-44ea-a429-b4cefaae8899")
+	)
+	(wire
+		(pts
+			(xy 212.09 54.61) (xy 222.25 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "277b331e-3753-4bb4-9b8a-ea368e01a4cc")
 	)
 	(wire
 		(pts
@@ -8034,6 +8121,16 @@
 	)
 	(wire
 		(pts
+			(xy 222.25 44.45) (xy 222.25 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4b4ea017-aecf-4997-be49-428a78675bae")
+	)
+	(wire
+		(pts
 			(xy 232.41 77.47) (xy 229.87 77.47)
 		)
 		(stroke
@@ -8354,6 +8451,16 @@
 	)
 	(wire
 		(pts
+			(xy 207.01 54.61) (xy 212.09 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71c0c39d-6fa2-4971-ac3b-e6aa72fd6f15")
+	)
+	(wire
+		(pts
 			(xy 250.19 72.39) (xy 250.19 74.93)
 		)
 		(stroke
@@ -8652,6 +8759,16 @@
 		)
 		(uuid "8b90dbf1-d7e4-45d7-9239-35813befc818")
 	)
+	(wire
+		(pts
+			(xy 171.45 99.06) (xy 173.99 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c267190-5c03-408b-b132-31578f02e09b")
+	)
 	(bus
 		(pts
 			(xy 166.37 76.2) (xy 166.37 78.74)
@@ -8681,16 +8798,6 @@
 			(type default)
 		)
 		(uuid "8e747713-a4c9-433f-9e93-a565e60bcaa8")
-	)
-	(wire
-		(pts
-			(xy 222.25 40.64) (xy 222.25 44.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8fccdd40-4aa2-4b55-b522-ef181eb60690")
 	)
 	(wire
 		(pts
@@ -8801,16 +8908,6 @@
 			(type default)
 		)
 		(uuid "95bbce87-21c5-40bb-a9f6-198d71ff52b1")
-	)
-	(wire
-		(pts
-			(xy 171.45 73.66) (xy 172.72 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9607078c-4aa9-472e-84bd-352e9b0de2a2")
 	)
 	(wire
 		(pts
@@ -9674,16 +9771,6 @@
 	)
 	(wire
 		(pts
-			(xy 172.72 76.2) (xy 173.99 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f9cb35db-0b7a-4165-ae39-0c9620b6a9b4")
-	)
-	(wire
-		(pts
 			(xy 157.48 137.16) (xy 157.48 148.59)
 		)
 		(stroke
@@ -10374,7 +10461,7 @@
 	)
 	(global_label "CLK"
 		(shape input)
-		(at 171.45 73.66 180)
+		(at 171.45 99.06 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10384,7 +10471,7 @@
 		)
 		(uuid "0b4caf15-57fc-4ce3-bf5f-c9addc0e0b6b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 165.9051 73.66 0)
+			(at 165.9051 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12107,7 +12194,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Crystal Clock Oscillator, DIP14-style metal package"
 			(at 120.65 36.83 0)
 			(effects
 				(font
@@ -12182,7 +12269,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Light emitting diode"
 			(at 162.56 40.64 0)
 			(effects
 				(font
@@ -12249,7 +12336,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 162.56 33.02 0)
 			(effects
 				(font
@@ -12318,7 +12405,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 125.73 144.78 0)
 			(effects
 				(font
@@ -12385,7 +12472,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 135.89 144.78 0)
 			(effects
 				(font
@@ -12452,7 +12539,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "quad 2-input NAND gate"
 			(at 242.57 74.93 0)
 			(effects
 				(font
@@ -12555,7 +12642,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 232.41 83.82 0)
 			(effects
 				(font
@@ -12622,7 +12709,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 24.13 48.26 0)
 			(effects
 				(font
@@ -12690,7 +12777,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Switch, single pole double throw"
 			(at 229.87 29.21 0)
 			(effects
 				(font
@@ -12941,7 +13028,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 152.4 144.78 0)
 			(effects
 				(font
@@ -12993,7 +13080,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+		(property "Footprint" "Package_SO:TSSOP-14_4.4x5mm_P0.65mm"
 			(at 124.46 109.22 0)
 			(effects
 				(font
@@ -13011,7 +13098,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4-Bit Bidirectional Voltage-Level Translator, Auto Direction Sensing and ±15-kV ESD Protection, 1.2 - 3.6V APort, 1.65 - 5.5V BPort, TSSOP-14"
 			(at 124.46 90.17 0)
 			(effects
 				(font
@@ -13249,7 +13336,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Audio Jack, 3 Poles (Stereo / TRS)"
 			(at 162.56 151.13 0)
 			(effects
 				(font
@@ -13319,7 +13406,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 26.67 27.94 0)
 			(effects
 				(font
@@ -13388,7 +13475,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 72.39 125.73 0)
 			(effects
 				(font
@@ -13535,7 +13622,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "6-pin Mini-DIN connector"
 			(at 81.28 54.61 0)
 			(effects
 				(font
@@ -13616,7 +13703,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Polarized capacitor"
 			(at 262.89 39.37 0)
 			(effects
 				(font
@@ -13807,7 +13894,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "15-pin female receptacle socket D-SUB connector, High density (3 columns), Triple Row, Generic, VGA-connector"
 			(at 46.99 38.1 0)
 			(effects
 				(font
@@ -13915,7 +14002,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 196.85 64.77 0)
 			(effects
 				(font
@@ -13984,7 +14071,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Unpolarized capacitor"
 			(at 143.51 153.67 0)
 			(effects
 				(font
@@ -14051,7 +14138,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 34.29 48.26 0)
 			(effects
 				(font
@@ -14118,7 +14205,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 29.21 48.26 0)
 			(effects
 				(font
@@ -14185,7 +14272,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 26.67 38.1 0)
 			(effects
 				(font
@@ -14252,7 +14339,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "quad 2-input NAND gate"
 			(at 257.81 74.93 0)
 			(effects
 				(font
@@ -14355,7 +14442,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 119.38 153.67 0)
 			(effects
 				(font
@@ -14423,7 +14510,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "USB Power-Only 6P Type-C Receptacle connector"
 			(at 207.01 36.83 0)
 			(effects
 				(font
@@ -14435,14 +14522,20 @@
 		(pin "1"
 			(uuid "a84b204e-5275-4081-97d6-e4df979d0fb3")
 		)
-		(pin "2"
+		(pin "3"
 			(uuid "6ff8ff8b-a356-4d6d-9767-e232ab3e89fd")
 		)
-		(pin "3"
+		(pin "4"
 			(uuid "6bf5a354-85c6-4fe8-97d6-0d2693efec89")
 		)
-		(pin "4"
+		(pin "B12"
 			(uuid "dd84aa86-e88e-4099-ab34-b00a5ac62946")
+		)
+		(pin "1"
+			(uuid "29882780-79fb-40dc-8492-0e3b92418d0f")
+		)
+		(pin "2"
+			(uuid "a57fafb7-b879-4b57-9bb6-a8ca1958d1b2")
 		)
 		(instances
 			(project "JJ65c02"
@@ -14499,7 +14592,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "8-bit Latch 3-state outputs"
 			(at 220.98 133.35 0)
 			(effects
 				(font
@@ -14620,7 +14713,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Resistor"
 			(at 26.67 33.02 0)
 			(effects
 				(font
@@ -14689,7 +14782,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "50mA Ultra-Low Quiescent Current LDO Voltage Regulator, 3.3V fixed output, TO-252/SOT-223"
 			(at 250.19 33.02 0)
 			(effects
 				(font

@@ -15,7 +15,7 @@ Device   p22v10 ;
 
 /* Pin Map: ATF22V10C
        --------
-PHI   |1     24| Vcc
+--    |1     24| Vcc
 A15   |2     23| /RAM_CS
 A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
@@ -24,7 +24,7 @@ A11   |6     19| BA14
 BK0   |7     18| --
 BK1   |8     17| --
 RW    |9     16| --
---    |10    15| PICO_DR
+PHI   |10    15| PICO_DR
 --    |11    14| --
 Gnd   |12    13| --
        --------
@@ -32,7 +32,6 @@ Gnd   |12    13| --
 
 /* Inputs:  From CPU*/
 
-Pin 1  =  PHI;   /* 65C02 CLK */
 Pin 2  =  A15;   /* Address lines from CPU */
 Pin 3  =  A14;
 Pin 4  =  A13;
@@ -41,6 +40,8 @@ Pin 6  =  A11;   /* For Pico */
 Pin 7  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
 Pin 8  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
 Pin 9  =  RW;    /* R/W of the 6502 */
+Pin 10  =  PHI;   /* 65C02 CLK */
+
 
 /* Outputs:  Chip Selects */
 Pin 23 = RAM_CS;  /* to RAM /CS pin */
