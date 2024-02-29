@@ -3714,24 +3714,6 @@
 				)
 			)
 			(symbol "USB_C_Receptacle_PowerOnly_6P_1_1"
-				(pin passive line
-					(at 15.24 7.62 180)
-					(length 5.08) hide
-					(name "VBUS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
 				(pin power_out line
 					(at 15.24 7.62 180)
 					(length 5.08)
@@ -3797,24 +3779,6 @@
 						)
 					)
 					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -17.78 90)
-					(length 5.08) hide
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "B12"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -4581,6 +4545,201 @@
 						)
 					)
 					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "Device:R_Pack03_SIP_Split"
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "RN"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R_Pack03_SIP_Split"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Resistor_THT:R_Array_SIP6"
+				(at -2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "3 resistor network, parallel topology, SIP package, split"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R network parallel topology isolated"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R?Array?SIP*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_Pack03_SIP_Split_0_1"
+				(rectangle
+					(start 1.016 2.54)
+					(end -1.016 -2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_Pack03_SIP_Split_1_1"
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "R1.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "R1.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "R_Pack03_SIP_Split_2_1"
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "R2.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "R2.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "R_Pack03_SIP_Split_3_1"
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "R3.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "R3.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -12149,6 +12308,28 @@
 			)
 		)
 	)
+	(netclass_flag ""
+		(length 2.54)
+		(shape round)
+		(at 223.52 29.21 0)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify left bottom)
+		)
+		(uuid "88fde3b4-56eb-4a5c-acdd-37f8d6e85cd6")
+		(property "Netclass" "POWER"
+			(at 218.186 25.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(justify left)
+			)
+		)
+	)
 	(symbol
 		(lib_id "Oscillator:CXO_DIP14")
 		(at 120.65 36.83 0)
@@ -12594,140 +12775,6 @@
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
 					(reference "U1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 232.41 83.82 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "0ec608a1-10f0-42bd-86da-319a46f5899e")
-		(property "Reference" "R1"
-			(at 229.87 83.82 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "4.7K"
-			(at 232.41 83.82 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 230.632 83.82 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 232.41 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 232.41 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "94be574a-7f69-4bf3-af3b-88a0ed086f5b")
-		)
-		(pin "2"
-			(uuid "24e5b5be-4790-45b0-bed5-64b6f2153b11")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 24.13 48.26 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "0ee8fccb-fae1-4964-a65d-a9257d0c4fc4")
-		(property "Reference" "R15"
-			(at 21.59 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 24.13 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 22.352 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 24.13 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 24.13 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "201b3320-1651-4ad6-90df-5bb55450f965")
-		)
-		(pin "2"
-			(uuid "6e976b8c-550f-4f6a-ae73-0a5ef3d1610f")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R15")
 					(unit 1)
 				)
 			)
@@ -13364,41 +13411,34 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 26.67 27.94 270)
-		(unit 1)
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 34.29 48.26 0)
+		(unit 3)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3e662f0b-2b29-4d0b-94d3-4860b365d6da")
-		(property "Reference" "R11"
-			(at 26.67 25.4 90)
+		(uuid "3ece21c7-bf5f-4f66-8e8d-c76bb093920e")
+		(property "Reference" "RN3"
+			(at 32.258 50.546 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
-		(property "Value" "470"
-			(at 26.67 27.94 90)
+		(property "Value" "1k"
+			(at 34.29 49.276 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 26.67 26.162 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 26.67 27.94 0)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 32.258 48.26 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13406,8 +13446,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Resistor"
-			(at 26.67 27.94 0)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 34.29 48.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13415,17 +13455,38 @@
 				(hide yes)
 			)
 		)
-		(pin "1"
-			(uuid "cd520d1f-9e14-49f0-8329-f7f451f46a5d")
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 34.29 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "3585da65-b6ff-407a-ae76-8fb1a6b5c223")
 		)
 		(pin "2"
-			(uuid "ccc05a3c-ac9e-4400-81f5-654092aae255")
+			(uuid "b1d6743e-ee03-4953-b21b-0a2446b9b7be")
+		)
+		(pin "6"
+			(uuid "f6127961-dfd2-455d-9d7d-629346cb378f")
+		)
+		(pin "4"
+			(uuid "5c236e5f-b6b9-4c51-b312-03ea18deec9d")
+		)
+		(pin "1"
+			(uuid "09a87641-4b9f-4ecb-bb61-f783c394daa4")
+		)
+		(pin "5"
+			(uuid "14302693-1c2a-464b-9891-a87b542b3c6a")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R11")
-					(unit 1)
+					(reference "RN3")
+					(unit 3)
 				)
 			)
 		)
@@ -13654,6 +13715,166 @@
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
 					(reference "PS/2")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 24.13 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "54b1e4eb-1d93-46af-9ec1-3f751a1accdb")
+		(property "Reference" "RN3"
+			(at 21.082 50.546 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1k"
+			(at 24.13 49.276 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 22.098 48.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 24.13 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 24.13 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "3585da65-b6ff-407a-ae76-8fb1a6b5c223")
+		)
+		(pin "2"
+			(uuid "b1d6743e-ee03-4953-b21b-0a2446b9b7be")
+		)
+		(pin "6"
+			(uuid "f6127961-dfd2-455d-9d7d-629346cb378f")
+		)
+		(pin "4"
+			(uuid "5c236e5f-b6b9-4c51-b312-03ea18deec9d")
+		)
+		(pin "1"
+			(uuid "09a87641-4b9f-4ecb-bb61-f783c394daa4")
+		)
+		(pin "5"
+			(uuid "14302693-1c2a-464b-9891-a87b542b3c6a")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
+					(reference "RN3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 26.67 38.1 270)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "559bb0bd-64d2-4ec2-8be6-ce165313b819")
+		(property "Reference" "RN4"
+			(at 26.67 35.814 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "470"
+			(at 26.416 38.1 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 26.67 36.068 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 26.67 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 26.67 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "b1725c80-ea9a-4a1b-b743-1fb99aee5c3b")
+		)
+		(pin "3"
+			(uuid "01bd746b-cb3c-45af-a19a-9bde352bb652")
+		)
+		(pin "4"
+			(uuid "1c7fe352-de60-4611-bb23-9bff59e2b264")
+		)
+		(pin "1"
+			(uuid "c3f8a854-0034-4d6a-a122-c090957b5c9c")
+		)
+		(pin "5"
+			(uuid "0d9c85b1-ebad-4172-b88a-17e580432cb1")
+		)
+		(pin "6"
+			(uuid "b6e7414a-d108-45f7-a722-67396dc6ab19")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
+					(reference "RN4")
+					(unit 3)
 				)
 			)
 		)
@@ -14096,150 +14317,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 34.29 48.26 0)
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 26.67 27.94 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "84c2040a-cb74-4844-ae7a-672b714e3447")
-		(property "Reference" "R17"
-			(at 31.75 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 34.29 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 32.512 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 34.29 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 34.29 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "eed32720-bc22-4ba0-b52c-6337fba96720")
-		)
-		(pin "2"
-			(uuid "272db1a1-441e-43b9-9732-67970fcb1fa4")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R17")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 29.21 48.26 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "86a66803-1a72-45c2-acf2-bddf7f162200")
-		(property "Reference" "R16"
-			(at 26.67 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 29.21 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 27.432 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 29.21 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 29.21 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e2f50eb5-b542-4472-962c-2eb523cd5372")
-		)
-		(pin "2"
-			(uuid "2272d289-f1d6-4388-bf52-c2097e3609db")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R16")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 26.67 38.1 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "9d703c76-6579-4bf6-b460-af9cc715ff6b")
-		(property "Reference" "R14"
-			(at 26.67 35.56 90)
+		(uuid "6775cc3c-03b6-434f-b199-38e9dbd4bcbb")
+		(property "Reference" "RN4"
+			(at 26.67 25.654 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14247,24 +14334,15 @@
 			)
 		)
 		(property "Value" "470"
-			(at 26.67 38.1 90)
+			(at 26.416 28.194 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 26.67 36.322 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 26.67 38.1 0)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 26.67 25.908 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14272,8 +14350,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Resistor"
-			(at 26.67 38.1 0)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 26.67 27.94 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14281,17 +14359,119 @@
 				(hide yes)
 			)
 		)
-		(pin "1"
-			(uuid "fa59956c-2483-49cb-9db0-f0a84e476286")
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 26.67 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "2"
-			(uuid "25b62475-8ce2-4d42-a331-d0cbfe5d3412")
+			(uuid "b1725c80-ea9a-4a1b-b743-1fb99aee5c3b")
+		)
+		(pin "3"
+			(uuid "01bd746b-cb3c-45af-a19a-9bde352bb652")
+		)
+		(pin "4"
+			(uuid "1c7fe352-de60-4611-bb23-9bff59e2b264")
+		)
+		(pin "1"
+			(uuid "c3f8a854-0034-4d6a-a122-c090957b5c9c")
+		)
+		(pin "5"
+			(uuid "0d9c85b1-ebad-4172-b88a-17e580432cb1")
+		)
+		(pin "6"
+			(uuid "b6e7414a-d108-45f7-a722-67396dc6ab19")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R14")
+					(reference "RN4")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 29.21 48.26 0)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "77499534-b124-4ee6-be91-7bac575874b1")
+		(property "Reference" "RN3"
+			(at 27.178 50.292 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1k"
+			(at 29.21 49.022 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 27.178 48.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 29.21 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 29.21 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "3585da65-b6ff-407a-ae76-8fb1a6b5c223")
+		)
+		(pin "2"
+			(uuid "b1d6743e-ee03-4953-b21b-0a2446b9b7be")
+		)
+		(pin "6"
+			(uuid "f6127961-dfd2-455d-9d7d-629346cb378f")
+		)
+		(pin "4"
+			(uuid "5c236e5f-b6b9-4c51-b312-03ea18deec9d")
+		)
+		(pin "1"
+			(uuid "09a87641-4b9f-4ecb-bb61-f783c394daa4")
+		)
+		(pin "5"
+			(uuid "14302693-1c2a-464b-9891-a87b542b3c6a")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
+					(reference "RN3")
+					(unit 2)
 				)
 			)
 		)
@@ -14467,6 +14647,85 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R_Pack03_SIP_Split")
+		(at 232.41 83.82 0)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b3cc4990-9e69-4f30-86f8-8df004774d90")
+		(property "Reference" "RN2"
+			(at 230.124 83.82 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7k"
+			(at 232.41 83.82 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 230.378 83.82 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
+			(at 232.41 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
+			(at 232.41 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "d17e69e6-53da-494a-9fe3-350f131e54b2")
+		)
+		(pin "3"
+			(uuid "c532c0fe-4e3c-4f35-a25e-17b88a1afa3f")
+		)
+		(pin "6"
+			(uuid "2f7a475b-4319-4207-a66e-5dc542c7d543")
+		)
+		(pin "2"
+			(uuid "362fcb25-e993-4612-ae77-06ab5ee5d2ad")
+		)
+		(pin "5"
+			(uuid "6d5a48a1-5dd8-40cd-ad0f-bcb12a1c48e5")
+		)
+		(pin "1"
+			(uuid "92dec2c8-afea-42e4-8856-fbf58b417641")
+		)
+		(instances
+			(project "JJ65c02"
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
+					(reference "RN2")
+					(unit 3)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector:USB_C_Receptacle_PowerOnly_6P")
 		(at 207.01 36.83 0)
 		(unit 1)
@@ -14527,12 +14786,6 @@
 		)
 		(pin "4"
 			(uuid "6bf5a354-85c6-4fe8-97d6-0d2693efec89")
-		)
-		(pin "B12"
-			(uuid "dd84aa86-e88e-4099-ab34-b00a5ac62946")
-		)
-		(pin "1"
-			(uuid "29882780-79fb-40dc-8492-0e3b92418d0f")
 		)
 		(pin "2"
 			(uuid "a57fafb7-b879-4b57-9bb6-a8ca1958d1b2")
@@ -14671,16 +14924,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
+		(lib_id "Device:R_Pack03_SIP_Split")
 		(at 26.67 33.02 270)
-		(unit 1)
+		(unit 2)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "e0860572-17db-4d7b-aba5-80f0e448343a")
-		(property "Reference" "R13"
-			(at 26.67 30.48 90)
+		(uuid "d747ce12-a128-48ab-ab12-0494a940842a")
+		(property "Reference" "RN4"
+			(at 26.67 30.988 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14688,15 +14941,15 @@
 			)
 		)
 		(property "Value" "470"
-			(at 26.67 33.02 90)
+			(at 26.416 33.02 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
-			(at 26.67 31.242 90)
+		(property "Footprint" "Resistor_THT:R_Array_SIP6"
+			(at 26.67 30.988 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14704,7 +14957,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "http://www.vishay.com/docs/31509/csc.pdf"
 			(at 26.67 33.02 0)
 			(effects
 				(font
@@ -14713,7 +14966,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Resistor"
+		(property "Description" "3 resistor network, parallel topology, SIP package, split"
 			(at 26.67 33.02 0)
 			(effects
 				(font
@@ -14721,18 +14974,30 @@
 				)
 				(hide yes)
 			)
-		)
-		(pin "1"
-			(uuid "e46d4e49-e958-4050-9b45-257d844c0fb5")
 		)
 		(pin "2"
-			(uuid "d5bab2e5-6363-4c19-b959-33a7dca1f7fc")
+			(uuid "b1725c80-ea9a-4a1b-b743-1fb99aee5c3b")
+		)
+		(pin "3"
+			(uuid "01bd746b-cb3c-45af-a19a-9bde352bb652")
+		)
+		(pin "4"
+			(uuid "1c7fe352-de60-4611-bb23-9bff59e2b264")
+		)
+		(pin "1"
+			(uuid "c3f8a854-0034-4d6a-a122-c090957b5c9c")
+		)
+		(pin "5"
+			(uuid "0d9c85b1-ebad-4172-b88a-17e580432cb1")
+		)
+		(pin "6"
+			(uuid "b6e7414a-d108-45f7-a722-67396dc6ab19")
 		)
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56/00000000-0000-0000-0000-000061660cac"
-					(reference "R13")
-					(unit 1)
+					(reference "RN4")
+					(unit 2)
 				)
 			)
 		)
