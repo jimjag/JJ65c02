@@ -573,7 +573,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "JJ65c02.net",
-      "plot": "",
+      "plot": "/Users/jim/Desktop/jj65c02-gerbers/",
       "pos_files": "",
       "specctra_dsn": "JJ65c02.dsn",
       "step": "",
@@ -727,7 +727,7 @@
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
-    "plot_directory": "",
+    "plot_directory": "./",
     "spice_adjust_passive_values": false,
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",

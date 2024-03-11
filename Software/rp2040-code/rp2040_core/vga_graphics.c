@@ -760,6 +760,8 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     //
     // 1st or ONLY 64bit int
     //
+    // NOTE: Mask is inverse black/white
+    //
     // TODO: Change mask to bit-values and create the uint64_t from it when we display,
     //       to save some space
     n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
@@ -834,7 +836,7 @@ void eraseSprite(uint sn) {
 void drawSprite(short x, short y, uint sn, bool erase) {
     if (erase) eraseSprite(sn);
     if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) return;
-    uint64_t masked_screen, new_screen;
+    uint64_t maskedScreen, newScreen;
     uint64_t bgrnd, mask[2], bitmap[2];
     int yend = y + sprites[sn]->height;
     int shifts = 0;
@@ -896,9 +898,9 @@ void drawSprite(short x, short y, uint sn, bool erase) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
             dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
-            masked_screen = mask[k] & bgrnd;
-            new_screen = masked_screen | (~mask[k] & bitmap[k]);
-            dma_memcpy(&vga_data_array[pixel >> 1], &new_screen, 8);
+            maskedScreen = mask[k] & bgrnd;
+            newScreen = maskedScreen | (~mask[k] & bitmap[k]);
+            dma_memcpy(&vga_data_array[pixel >> 1], &newScreen, 8);
         }
     }
     sprites[sn]->x = x;
