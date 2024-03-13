@@ -387,6 +387,7 @@ inline void setTextSize(unsigned char s) {
 unsigned char convertRGB332(unsigned char color) {
     unsigned char c;
     switch (color) {
+        //  RGB332             Our Internal Value         Regular RGB
         case BLACK:         c = BLACK_INT; break;         // 0x000000
         case RED:           c = RED_INT; break;           // 0xc00000
         case GREEN:         c = GREEN_INT; break;         // 0x00c000
