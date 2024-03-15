@@ -125,6 +125,9 @@ ACIA_write_byte:
     phx
     tax
     pha
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
+    bit MINIOS_STATUS
+    beq @done
 @wait_txd_empty_char:
     lda ACIA_STATUS
     and #(ACIA_STATUS_TX_EMPTY)
@@ -132,6 +135,7 @@ ACIA_write_byte:
     stx ACIA_DATA
     lda #$01                            ; wait 1ms (more than 520us for 19200 baud)
     jsr LIB_delay1ms
+@done:
     pla
     plx
     rts
@@ -152,6 +156,9 @@ ACIA_write_byte:
 
 ACIA_write_string:
     pha
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
+    bit MINIOS_STATUS
+    beq @done
     phx
     phy
     ldy #$00
@@ -168,6 +175,7 @@ ACIA_write_string:
 @end_loop:
     ply
     plx
+@done:
     pla
     rts
 

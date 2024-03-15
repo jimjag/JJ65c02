@@ -5,10 +5,10 @@
 .program memin
 ;.wrap_target
     ;mov isr, null
-    wait 1 gpio 26  ; Wait for data ready - latched data
-    ;wait 1 gpio 26 [12]  ; Wait for data ready and delay for Tmds
-    in pins 8       ; read data
-    wait 0 gpio 26
+    wait 1 gpio 26  ; Wait for data ready
+    wait 0 gpio 26  ; Wait for CLK low and latched data
+    in pins 8       ; read latched data
+    ;wait 0 gpio 26
     irq wait 0
 ;.wrap
 

@@ -124,7 +124,7 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[8192];
+static unsigned char inbuf[10240];
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;

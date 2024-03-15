@@ -10,6 +10,7 @@ Device   p22v10 ;
 
 /*
   Create JED file: WinCUPL
+  Serial Number for WinCUPL: 60008009
   Program PLD: minipro -p ATF22V10CQZ -w ./JJ65C02.jed
 */
 
@@ -72,7 +73,7 @@ IS_IO = IO;
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
 /* Pi Pico is 0XA800 */
-PICO_DR = !RW & IS_IO & A11 & !PHI;  /* DR once CLK goes low and is latched */
+PICO_DR = !RW & IS_IO & A11 & PHI;
 
 /*
  A15 -> A15

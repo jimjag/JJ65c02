@@ -99,7 +99,6 @@ main:                                           ; boot routine, first thing load
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
-    TTY_writeln welcome_msg
     TTY_writeln message_welcomeacia
     CON_writeln message_welcomeacia
     bra @welcome
@@ -109,7 +108,6 @@ main:                                           ; boot routine, first thing load
 @welcome:
     ; Show clock speed (compile-time constant)
     CON_writeln clock_spd
-    TTY_writeln clock_spd
     lda CLK_SPD
     clc
     adc #'0'
@@ -118,16 +116,13 @@ main:                                           ; boot routine, first thing load
     ; Rest of boot up
     cli                                         ; interupts are back on
     CON_writeln message_ramtest
-    TTY_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
     beq @ram_failed
     CON_writeln message_pass
-    TTY_writeln message_pass
     bra @cont2
 @ram_failed:
     CON_writeln message_fail
-    TTY_writeln message_fail
 @cont2:
     jsr CON_read_byte_blk
     jsr MINIOS_main_menu                    ; start the menu routine
@@ -483,19 +478,19 @@ message_welcomeacia:
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .asciiz "\r\nStarting EhBASIC\r\nPress 'B' or 'b' key on console to start: "
+    .asciiz "\r\n Starting EhBASIC\r\n Press 'B' or 'b' key on console to start: "
 message_readyload:
-    .asciiz "\r\nGetting Ready To LOAD RAM.\r\nPress 'L' or 'l' key on console to start: "
+    .asciiz "\r\n Getting Ready To LOAD RAM.\r\n Press 'L' or 'l' key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
     .asciiz "Loading done!"
 message_runprog:
-    .asciiz "\r\nRunning RAM@$0500"
+    .asciiz "\r\n Running RAM@$0500"
 message_ramclean:
-    .asciiz "\r\nCleaning RAM... "
+    .asciiz "\r\n Cleaning RAM... "
 message_ramtest:
-    .asciiz "\r\nTesting RAM... "
+    .asciiz "\r\n Testing RAM... "
 message_pass:
     .asciiz "PASS"
 message_fail:
