@@ -77,8 +77,8 @@ main:                                           ; boot routine, first thing load
     tsb MINIOS_STATUS
 
 @continue:
-    lda #5
-    sta CLK_SPD                                 ; Assume a 5Mhz clock to start
+    lda #8
+    sta CLK_SPD                                 ; Assume a 8Mhz clock to start
 
     ;lda #<ISR_HANDLER
     ;sta ISR_VECTOR

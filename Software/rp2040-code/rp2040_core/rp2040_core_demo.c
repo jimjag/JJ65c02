@@ -309,6 +309,7 @@ int main() {
     writeChar('b');
     while (true) {
         unsigned char c = ps2GetChar(true);
+        cursorLoop();
         if (c == 'Q') break;
     }
     enableCurs(false);

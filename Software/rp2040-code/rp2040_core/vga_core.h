@@ -143,6 +143,7 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
+void cursorLoop(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);
@@ -181,8 +182,6 @@ void termScroll (int rows);
 unsigned char convertRGB332(unsigned char c);
 void setTxtCursor(int x, int y);
 void printString(char* str);
-bool conInHaveChar(void);
-unsigned char conInGetChar(void);
 void clearScreen(void);
 bool enableCurs(bool flag);
 void enableSmoothScroll(bool flag);
