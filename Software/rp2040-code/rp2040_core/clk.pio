@@ -2,8 +2,8 @@
 ;  Runs at 250MHz so each rp2050 clock is 4ns
 ;
 .program clk
-set pins 0 [24]  ; 100ns
-set pins 1 [24]  ; 100ns
+set pins 0 [15]  ; 100ns
+set pins 1 [15]  ; 100ns
 
 
 % c-sdk {
