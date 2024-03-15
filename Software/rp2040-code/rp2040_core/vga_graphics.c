@@ -512,6 +512,7 @@ void vgaScroll (int scanlines) {
 }
 
 void termScroll (int rows) {
+    bool was = enableCurs(false);
     int orows = rows;
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
@@ -519,6 +520,7 @@ void termScroll (int rows) {
     dma_memcpy(terminal, terminal + rows, terminal_size - rows);
     dma_memset(terminal + terminal_size - rows, ' ', rows);
     vgaScroll(orows * FONTHEIGHT);
+    enableCurs(was);
 }
 
 static void checkCursor(void) {
@@ -534,13 +536,16 @@ static void checkCursor(void) {
 }
 
 void setTxtCursor(int x, int y) {
+    bool was = enableCurs(false);
     tcurs.x = x;
     tcurs.y = y;
     checkCursor();
+    enableCurs(was);
 }
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
 void writeChar(unsigned char chrx) {
+    bool was = enableCurs(false);
     terminal[tcurs.x + (tcurs.y * textrow_size)] = chrx;
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize, false);
     tcurs.x++;
@@ -553,6 +558,7 @@ void writeChar(unsigned char chrx) {
             termScroll(1);
         }
     }
+    enableCurs(was);
 }
 
 // See if the character is special in any way
@@ -648,6 +654,7 @@ void printString(char *str) {
 // be terminal related. If we want/need to print the
 // graphics characters, use writeChar()
 void printChar(unsigned char chrx) {
+    bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
             esc_state = SAW_ESC;
@@ -689,6 +696,7 @@ void printChar(unsigned char chrx) {
                 break;
         }
     }
+    enableCurs(was);
 }
 
 /*

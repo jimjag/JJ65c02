@@ -16,7 +16,7 @@ static unsigned char esc_c1;
 static unsigned char esc_final_byte;
 
 // Clear escape sequence parameters
-static void clear_escape_parameters() {
+static void clear_escape_parameters(void) {
     for (int i = 0; i < MAX_ESC_PARAMS; i++) {
         escP[i] = 0;
     }
@@ -24,7 +24,7 @@ static void clear_escape_parameters() {
 }
 
 // Reset escape sequence processing
-static void reset_escape_sequence() {
+static void reset_escape_sequence(void) {
     clear_escape_parameters();
     esc_state = ESC_READY;
     esc_c1 = 0;
@@ -32,7 +32,7 @@ static void reset_escape_sequence() {
     parameter_q = false;
 }
 
-static void not_implemented() {}
+static void not_implemented(void) {}
 
 // Treat ESC sequence received
 /*
@@ -42,7 +42,7 @@ static void not_implemented() {}
     static unsigned char esc_c1;
     static unsigned char esc_final_byte;       
 */
-static void esc_sequence_received() {
+static void esc_sequence_received(void) {
     int n,m; 
 
     if (esc_c1 == '[') {
