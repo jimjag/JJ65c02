@@ -496,20 +496,6 @@ void setLf2Crlf(bool w) { lf2crlf = w; }
 
 void enableSmoothScroll(bool flag) { smooth_scroll = flag; }
 
-bool enableCurs(bool flag) {
-    bool was = cursorOn;
-    if (flag && !cursorOn) { // turning it on when off
-        bon = true;
-        alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
-    } else if (!flag && cursorOn) { // turning it off when on
-        cancel_repeating_timer(&ctimer);
-        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
-    }
-    cursorOn = flag;
-    return was;
-}
-
 void vgaScroll (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;

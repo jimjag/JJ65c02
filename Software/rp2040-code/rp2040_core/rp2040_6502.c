@@ -82,7 +82,7 @@ int main() {
     drawString(VERSION_6502);
     setTextSize(1);
     setTxtCursor(0, 3);
-    enableCurs(false);
+    enableCurs(true);
     //clearPS2();
     while (true) {
         conInTask();  // Look for incoming data

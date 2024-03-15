@@ -106,17 +106,35 @@ int cursor_y, cursor_x, textsize;
 // Stuff for blinking cursor functions
 static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
+static bool cursorEnabled = false;
 static bool cursorOn = false;
-volatile bool bon = true;
+volatile bool ctriggered = false;
+
 bool cursor_callback(struct repeating_timer *t) {
-    if (bon) {
+    ctriggered = true;
+    return true;
+}
+
+void cursorLoop(void) {
+    if (!ctriggered || !cursorEnabled) return;
+    if (!cursorOn) {
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize, false);
     } else {
         unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
     }
-    bon = !bon;
-    return true;
+    cursorOn = !cursorOn;
+    ctriggered = false;
+}
+
+bool enableCurs(bool flag) {
+    bool was = cursorEnabled;
+    if (!flag && cursorEnabled && cursorOn) { // turning it off when on
+        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
+    }
+    cursorEnabled = flag;
+    return was;
 }
 
 // Interrupt Handler: We have data on GPIO7-14 and DREADY on GPIO26
@@ -164,6 +182,7 @@ void conInTask(void) {
     if (getByte(&ascii)) {
         printChar(ascii);
     }
+    cursorLoop();
 }
 
 void initVGA(void) {
@@ -289,6 +308,7 @@ void initVGA(void) {
     //pio_sm_set_enabled(clk_pio, clk_sm, true);
     //
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
+    alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
 void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num) {
