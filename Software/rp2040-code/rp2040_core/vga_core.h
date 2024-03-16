@@ -62,7 +62,7 @@
 // Screen width/height/freq
 #define SCREENWIDTH 640
 #define SCREENHEIGHT 480
-#define PIXFREQ   25175000.0f
+#define PIXFREQ   25000000.0f
 #define SCANFREQ 125000000.0f
 
 enum vga_pins {HSYNC=17, VSYNC, RED_PIN, GREEN_PIN, BLUE_PIN, I_PIN};
@@ -143,7 +143,6 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
-void cursorLoop(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);
