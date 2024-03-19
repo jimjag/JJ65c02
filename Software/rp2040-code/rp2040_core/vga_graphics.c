@@ -561,8 +561,8 @@ void writeChar(unsigned char chrx) {
     enableCurs(was);
 }
 
-// See if the character is special in any way
-static void doChar(unsigned char chrx) {
+// Print the text character provided, handling special chars
+static void printChar(unsigned char chrx) {
     char x,y;
     switch (chrx) {
         // Handle "special" characters.
@@ -642,24 +642,24 @@ void clearScreen(void) {
 
 void printString(char *str) {
     while (*str) {
-        printChar(*str++);
+        handleByte(*str++);
     }
 }
 
 // Handle ESC sequences
 #include "escape_seq.c"
 
-// Print the character and check for Esc sequences. We use
-// this for input from the PS/2 or elsewhere that may
+// Interpret the byte and check for Esc sequences. We use
+// this for input from the 6502 or elsewhere that may
 // be terminal related. If we want/need to print the
-// graphics characters, use writeChar()
-void printChar(unsigned char chrx) {
+// char as-is, use writeChar()
+void handleByte(unsigned char chrx) {
     bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
             esc_state = SAW_ESC;
         } else {
-            doChar(chrx);
+            printChar(chrx);
         }
     } else {
         switch(esc_state) {
@@ -674,25 +674,25 @@ void printChar(unsigned char chrx) {
                     else {
                         // punt
                         reset_escape_sequence();
-                        doChar(chrx);
+                        printChar(chrx);
                     }
                 }
                 else {
                     // unrecognised character after escape.
                     reset_escape_sequence();
-                    doChar(chrx);
+                    printChar(chrx);
                 }
                 break;
             case ESC_COLLECT:
                 if (!collect_sequence(chrx)) {
                     // Weird ending char
                     reset_escape_sequence();
-                    doChar(chrx);
+                    printChar(chrx);
                 }
                 break;
             default:
                 reset_escape_sequence();
-                doChar(chrx);
+                printChar(chrx);
                 break;
         }
     }

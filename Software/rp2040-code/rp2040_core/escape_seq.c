@@ -269,7 +269,7 @@ static bool collect_sequence(unsigned char chrx) {
         }
     } else if (chrx == '?') {
         parameter_q=true;
-    } else if ((chrx >= 0x40) && (chrx < 0x7e)) {
+    } else if ((chrx >= '@') && (chrx < '~')) {
         // final byte, register and handle
         esc_final_byte = chrx;
         esc_sequence_received();

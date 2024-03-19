@@ -174,7 +174,7 @@ bool getByte(unsigned char *ascii) {
 void conInTask(void) {
     unsigned char ascii;
     if (getByte(&ascii)) {
-        printChar(ascii);
+        handleByte(ascii);
     }
 }
 

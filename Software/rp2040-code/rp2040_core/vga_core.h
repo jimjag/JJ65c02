@@ -175,7 +175,7 @@ void dma_memset(void *dest, uint8_t val, size_t num);
 void dma_memcpy(void *dest, void *src, size_t num);
 
 void writeChar(unsigned char chrx); // write the interpreted character
-void printChar(unsigned char c);     // auto-decide based on graphics/text mode
+void handleByte(unsigned char c);     // auto-decide based on graphics/text mode
 void vgaScroll (int scanlines);
 void termScroll (int rows);
 unsigned char convertRGB332(unsigned char c);
