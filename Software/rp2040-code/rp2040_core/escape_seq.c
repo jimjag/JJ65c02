@@ -3,12 +3,10 @@
  * Copyright (c) 2021-2024 Jim Jagielski
  */
 // escape sequence state
-#define ESC_READY    0
-#define SAW_ESC      1
-#define ESC_COLLECT  2
+enum escape_state{ESC_READY, MAYBE_ESC_SEQ, ESC_COLLECT};
 
 #define MAX_ESC_PARAMS 6
-static int esc_state = ESC_READY;
+enum escape_state esc_state = ESC_READY;
 static int escP[MAX_ESC_PARAMS];
 static bool parameter_q;
 static int esc_parameter_count = 0;

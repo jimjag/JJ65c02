@@ -657,13 +657,13 @@ void handleByte(unsigned char chrx) {
     bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
-            esc_state = SAW_ESC;
+            esc_state = MAYBE_ESC_SEQ;
         } else {
             printChar(chrx);
         }
     } else {
         switch(esc_state) {
-            case SAW_ESC:
+            case MAYBE_ESC_SEQ:
                 // waiting on c1 character
                 if ((chrx >= 'N') && (chrx < '_')) {
                     if(chrx=='[') {
