@@ -285,7 +285,7 @@ int main() {
         if (c == '\b') break;
         if (c) {
             setTxtCursor(60, 24);
-            printChar(c);
+            writeChar(c);
             sprintf(hex, "0x%02x", c);
             setTxtCursor(70, 24);
             printString(hex);
