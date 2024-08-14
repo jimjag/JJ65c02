@@ -67,6 +67,8 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 }
 
 void core1_main() {
+    initPS2();
+    clearPS2();
     initSOUND();
     startup_chord();
     while (true) {
@@ -113,7 +115,6 @@ int main() {
 
     // Initialize the VGA screen
     initVGA();
-    initPS2();
     setFont(0);
     // circle radii
     short circle_r = 0;
