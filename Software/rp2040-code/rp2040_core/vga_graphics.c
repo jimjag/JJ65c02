@@ -512,6 +512,7 @@ void vgaScroll (int scanlines) {
 }
 
 void termScroll (int rows) {
+    bool was = enableCurs(false);
     int orows = rows;
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
@@ -519,6 +520,7 @@ void termScroll (int rows) {
     dma_memcpy(terminal, terminal + rows, terminal_size - rows);
     dma_memset(terminal + terminal_size - rows, ' ', rows);
     vgaScroll(orows * FONTHEIGHT);
+    enableCurs(was);
 }
 
 static void checkCursor(void) {
@@ -534,13 +536,16 @@ static void checkCursor(void) {
 }
 
 void setTxtCursor(int x, int y) {
+    bool was = enableCurs(false);
     tcurs.x = x;
     tcurs.y = y;
     checkCursor();
+    enableCurs(was);
 }
 
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
 void writeChar(unsigned char chrx) {
+    bool was = enableCurs(false);
     terminal[tcurs.x + (tcurs.y * textrow_size)] = chrx;
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize, false);
     tcurs.x++;
@@ -553,10 +558,11 @@ void writeChar(unsigned char chrx) {
             termScroll(1);
         }
     }
+    enableCurs(was);
 }
 
-// See if the character is special in any way
-static void doChar(unsigned char chrx) {
+// Print the text character provided, handling special chars
+static void printChar(unsigned char chrx) {
     char x,y;
     switch (chrx) {
         // Handle "special" characters.
@@ -636,27 +642,28 @@ void clearScreen(void) {
 
 void printString(char *str) {
     while (*str) {
-        printChar(*str++);
+        handleByte(*str++);
     }
 }
 
 // Handle ESC sequences
 #include "escape_seq.c"
 
-// Print the character and check for Esc sequences. We use
-// this for input from the PS/2 or elsewhere that may
+// Interpret the byte and check for Esc sequences. We use
+// this for input from the 6502 or elsewhere that may
 // be terminal related. If we want/need to print the
-// graphics characters, use writeChar()
-void printChar(unsigned char chrx) {
+// char as-is, use writeChar()
+void handleByte(unsigned char chrx) {
+    bool was = enableCurs(false);
     if (esc_state == ESC_READY) {
         if (chrx == ESC) {
-            esc_state = SAW_ESC;
+            esc_state = MAYBE_ESC_SEQ;
         } else {
-            doChar(chrx);
+            printChar(chrx);
         }
     } else {
         switch(esc_state) {
-            case SAW_ESC:
+            case MAYBE_ESC_SEQ:
                 // waiting on c1 character
                 if ((chrx >= 'N') && (chrx < '_')) {
                     if(chrx=='[') {
@@ -667,28 +674,29 @@ void printChar(unsigned char chrx) {
                     else {
                         // punt
                         reset_escape_sequence();
-                        doChar(chrx);
+                        printChar(chrx);
                     }
                 }
                 else {
                     // unrecognised character after escape.
                     reset_escape_sequence();
-                    doChar(chrx);
+                    printChar(chrx);
                 }
                 break;
             case ESC_COLLECT:
                 if (!collect_sequence(chrx)) {
                     // Weird ending char
                     reset_escape_sequence();
-                    doChar(chrx);
+                    printChar(chrx);
                 }
                 break;
             default:
                 reset_escape_sequence();
-                doChar(chrx);
+                printChar(chrx);
                 break;
         }
     }
+    enableCurs(was);
 }
 
 /*

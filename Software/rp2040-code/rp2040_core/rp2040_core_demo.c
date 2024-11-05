@@ -67,6 +67,8 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 }
 
 void core1_main() {
+    initPS2();
+    clearPS2();
     initSOUND();
     startup_chord();
     while (true) {
@@ -113,7 +115,6 @@ int main() {
 
     // Initialize the VGA screen
     initVGA();
-    initPS2();
     setFont(0);
     // circle radii
     short circle_r = 0;
@@ -285,7 +286,7 @@ int main() {
         if (c == '\b') break;
         if (c) {
             setTxtCursor(60, 24);
-            printChar(c);
+            writeChar(c);
             sprintf(hex, "0x%02x", c);
             setTxtCursor(70, 24);
             printString(hex);
@@ -309,7 +310,6 @@ int main() {
     writeChar('b');
     while (true) {
         unsigned char c = ps2GetChar(true);
-        cursorLoop();
         if (c == 'Q') break;
     }
     enableCurs(false);

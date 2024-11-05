@@ -183,7 +183,7 @@ unsigned char ps2GetChar(bool auto_print) {
         if (rptr >= (keybuf + sizeof(keybuf)))
             rptr = keybuf;
     }
-    if (ascii && auto_print) printChar(ascii);
+    if (ascii && auto_print) handleByte(ascii);
     return ascii;
 }
 

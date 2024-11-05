@@ -3,12 +3,10 @@
  * Copyright (c) 2021-2024 Jim Jagielski
  */
 // escape sequence state
-#define ESC_READY    0
-#define SAW_ESC      1
-#define ESC_COLLECT  2
+enum escape_state{ESC_READY, MAYBE_ESC_SEQ, ESC_COLLECT};
 
 #define MAX_ESC_PARAMS 6
-static int esc_state = ESC_READY;
+enum escape_state esc_state = ESC_READY;
 static int escP[MAX_ESC_PARAMS];
 static bool parameter_q;
 static int esc_parameter_count = 0;
@@ -16,7 +14,7 @@ static unsigned char esc_c1;
 static unsigned char esc_final_byte;
 
 // Clear escape sequence parameters
-static void clear_escape_parameters() {
+static void clear_escape_parameters(void) {
     for (int i = 0; i < MAX_ESC_PARAMS; i++) {
         escP[i] = 0;
     }
@@ -24,7 +22,7 @@ static void clear_escape_parameters() {
 }
 
 // Reset escape sequence processing
-static void reset_escape_sequence() {
+static void reset_escape_sequence(void) {
     clear_escape_parameters();
     esc_state = ESC_READY;
     esc_c1 = 0;
@@ -32,7 +30,7 @@ static void reset_escape_sequence() {
     parameter_q = false;
 }
 
-static void not_implemented() {}
+static void not_implemented(void) {}
 
 // Treat ESC sequence received
 /*
@@ -42,7 +40,7 @@ static void not_implemented() {}
     static unsigned char esc_c1;
     static unsigned char esc_final_byte;       
 */
-static void esc_sequence_received() {
+static void esc_sequence_received(void) {
     int n,m; 
 
     if (esc_c1 == '[') {
@@ -269,7 +267,7 @@ static bool collect_sequence(unsigned char chrx) {
         }
     } else if (chrx == '?') {
         parameter_q=true;
-    } else if ((chrx >= 0x40) && (chrx < 0x7e)) {
+    } else if ((chrx >= '@') && (chrx < '~')) {
         // final byte, register and handle
         esc_final_byte = chrx;
         esc_sequence_received();

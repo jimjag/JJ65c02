@@ -16,6 +16,7 @@ So starting from Ben's design (as of Sept. 2021), here's a list of modifications
 * Console terminal
 * Dependent on 65c02 chip (not "generic" 6502)
 * Added W65c51 ACIA chip and TTL-serial converter.
+* Video/Audio/PS2 Keyboard interface via RP2040 (Pi Pico)
 
 Let's look at each in more detail.
 
@@ -36,7 +37,7 @@ The design I came up with requires the use of the ATF22V10C PLD for decoding. Wi
  $a000 - $afff      IO
    $a010 - $a01f      ACIA
    $a020 - $a02f      VIA
-   $a100 - $a1ff      Pi PICO
+   $a100 - $a1ff      RP2040
  $b000 - $ffff      ROM: 20K
 ```
 

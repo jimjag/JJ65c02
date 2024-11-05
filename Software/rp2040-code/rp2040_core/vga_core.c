@@ -106,17 +106,11 @@ int cursor_y, cursor_x, textsize;
 // Stuff for blinking cursor functions
 static struct repeating_timer ctimer;
 alarm_pool_t *apool = NULL;
-static bool cursorEnabled = false;
-static bool cursorOn = false;
-volatile bool ctriggered = false;
+volatile bool cursorEnabled = false;
+volatile bool cursorOn = false;
 
 bool cursor_callback(struct repeating_timer *t) {
-    ctriggered = true;
-    return true;
-}
-
-void cursorLoop(void) {
-    if (!ctriggered || !cursorEnabled) return;
+    if (!cursorEnabled) return true;
     if (!cursorOn) {
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize, false);
     } else {
@@ -124,7 +118,7 @@ void cursorLoop(void) {
         drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
     }
     cursorOn = !cursorOn;
-    ctriggered = false;
+    return true;
 }
 
 bool enableCurs(bool flag) {
@@ -142,7 +136,7 @@ static uint memin_offset;
 static uint memin_sm;
 static PIO memin_pio;
 static uint memin_pio_irq;
-static unsigned char inbuf[10240];
+static unsigned char inbuf[5120];  // Increase these if you start dropping bytes
 static unsigned char *endbuf = inbuf + sizeof(inbuf);
 volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
@@ -180,9 +174,8 @@ bool getByte(unsigned char *ascii) {
 void conInTask(void) {
     unsigned char ascii;
     if (getByte(&ascii)) {
-        printChar(ascii);
+        handleByte(ascii);
     }
-    cursorLoop();
 }
 
 void initVGA(void) {
