@@ -11,8 +11,6 @@ to use, and re-use, what you need.
 
 NOTE: Updates will now be posted on [Hackaday](https://hackaday.io/project/193153-jj65c02). Follow me there.
 
-### PCBs sponsored by [PCBWay](https://www.pcbway.com/): Fast and Accurate, inexpensive but not cheap. Use PCBWay for all your PCBs!
-
 ## The Historical Documents
 
 ### Jan 22, 2022
