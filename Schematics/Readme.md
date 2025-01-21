@@ -34,11 +34,11 @@ The design I came up with requires the use of the ATF22V10C PLD for decoding. Wi
    $0200 - $04ff      RAM: Bootloader set-aside / Page 2
    $0500 - $9fff      RAM: Runnable code area
    $8000 - $9fff      RAM: Bankable/swappable 8k segment
- $a000 - $afff      IO
+ $a000 - $afff      IO: 4k
    $a010 - $a01f      ACIA
    $a020 - $a02f      VIA
    $a100 - $a1ff      RP2040
- $b000 - $ffff      ROM: 20K
+ $b000 - $ffff      ROM: 20k
 ```
 
 This allows for a pretty sizable ROM-based loader and even OS, as well as extremely large (for a 6502) RAM-based code.
