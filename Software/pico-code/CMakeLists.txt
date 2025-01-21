@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 # Pull in SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(jj65c02_rp2040 C CXX ASM)
+project(jj65c02_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -13,7 +13,7 @@ set(JJ65C02_PICO_PATH ${PROJECT_SOURCE_DIR})
 pico_sdk_init()
 
 # Add multi example
-add_subdirectory(rp2040_core)
+add_subdirectory(pico_core)
 
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int

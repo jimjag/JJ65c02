@@ -1,5 +1,5 @@
-#ifndef RP2040_SYNTH_EX_TABLES_H_
-#define RP2040_SYNTH_EX_TABLES_H_
+#ifndef PICO_SYNTH_EX_TABLES_H_
+#define PICO_SYNTH_EX_TABLES_H_
 
 struct FILTER_COEFS { int32_t b0_a0, a1_a0, a2_a0; }; // Q28 Filter coefficients
 

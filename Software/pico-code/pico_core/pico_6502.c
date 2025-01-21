@@ -47,7 +47,7 @@
 #include "pico/multicore.h"
 #include "vga_core.h"
 #include "ps2_keyboard.h"
-#include "rp2040_synth_ex.h"
+#include "pico_synth_ex.h"
 
 void core1_main() {
     initPS2();
