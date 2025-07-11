@@ -11,9 +11,9 @@
 6. __EhBasic__ BASIC interpreter
 
 
-### Install the miniOS
+## Build and Install the miniOS
 
-minios requires the [cl65 Assembler](https://cc65.github.io) to assemble
+minios requires the [ca65 Assembler](https://cc65.github.io) to assemble
 and link the required files. For ease of assembly, you'll find a `Makefile`
 in the JJ65c02/minios directory. From there simply type `make`:
 
@@ -48,6 +48,12 @@ Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in 
 
 ```
 minipro -p AT28C256 -w ./minios.rom
+```
+
+Later versions of the board use the SSL39SF010 RAM chip as a ROM (for performance reasons); to burn the image to that chip, perform the following:
+
+```
+minipro -p "SST39SF010A" -w ./minios.rom
 ```
 
 The `minios.lbl` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. There is also a more detailed `minios.map` file that provides even
@@ -120,3 +126,15 @@ addresses and location of set-aside memory as well as the exported
 functions. In the example, you'll also notice that the resultant
 file has the `.bin` suffix. That is the file/image to be transfered
 to RAM.
+
+## Build and Install the PLD Image
+
+We use the `ATF22V10C` PLD to handle our address logic. First you'll
+need to use `WinCUPL` to compile the `JJ65C02.PLD` file to the `.jed`
+image format expected by the chip. Once you do that, copy over the
+image to the chip using `minipro`
+
+```
+minipro -p ATF22V10CQZ -w ./JJ65C02.jed
+```
+A pre-built version is available in the repo.
