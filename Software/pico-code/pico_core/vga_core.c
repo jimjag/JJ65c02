@@ -19,7 +19,6 @@
  *  - GPIO 26 ---> Data Ready
  *  - GPIO 27 ---> IRQ/Handshake to VIA for PS/2
  *  - GPIO 28 ---> audio/sound
- *  - GPIO 24 ---> 6502 PHI/CLK
  *
  * RESOURCES USED
  *  CORE 0
@@ -56,7 +55,7 @@
 #include "scanline.pio.h"
 #include "vsync.pio.h"
 #include "memin.pio.h"
-#include "clk.pio.h"
+// #include "clk.pio.h"
 // Header file
 #include "vga_core.h"
 // Font file
@@ -142,9 +141,9 @@ volatile static unsigned char *rptr = inbuf;
 volatile static unsigned char *wptr = inbuf;
 
 // Clock
-static uint clk_offset;
-static uint clk_sm;
-static PIO clk_pio;
+// static uint clk_offset;
+// static uint clk_sm;
+// static PIO clk_pio;
 
 // ISR
 static void __time_critical_func(readMem)(void) {
@@ -294,10 +293,10 @@ void initVGA(void) {
     irq_set_enabled(memin_pio_irq, true);
     pio_sm_set_enabled(memin_pio, memin_sm, true);
     // The 6502 Clock signal
-    clk_pio = pio1;
-    clk_offset = pio_add_program(clk_pio, &clk_program);
-    clk_sm = pio_claim_unused_sm(clk_pio, true);
-    clk_program_init(clk_pio, clk_sm, clk_offset, CLK_PIN);
+    // clk_pio = pio1;
+    // clk_offset = pio_add_program(clk_pio, &clk_program);
+    // clk_sm = pio_claim_unused_sm(clk_pio, true);
+    // clk_program_init(clk_pio, clk_sm, clk_offset, CLK_PIN);
     //pio_sm_set_enabled(clk_pio, clk_sm, true);
     //
     apool = alarm_pool_create_with_unused_hardware_alarm(10);
