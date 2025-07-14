@@ -1,0 +1,7 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "JJ65c02")(type "KiCad")(uri "${KIPRJMOD}/JJ65c02.pretty")(options "")(descr ""))
+  (lib (name "more")(type "KiCad")(uri "/Users/jim/Desktop/untitled folder/ul_L717HDE15P/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "footprints")(type "KiCad")(uri "${KIPRJMOD}/Xtra/KiCADv6a/footprints.pretty")(options "")(descr ""))
+  (lib (name "TXB0108PWR")(type "KiCad")(uri "${KIPRJMOD}/Xtra/TXB0108PWR")(options "")(descr ""))
+)

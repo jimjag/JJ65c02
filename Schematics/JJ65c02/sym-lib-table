@@ -1,0 +1,8 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "6502")(type "KiCad")(uri "${KIPRJMOD}/Libs/6502.kicad_sym")(options "")(descr ""))
+  (lib (name "65C02_Computer-rescue")(type "KiCad")(uri "/Users/jim/src/6502/dbuchwald-6502/Schematics/65C02_Computer/65C02_Computer-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "JJ65c02-rescue")(type "KiCad")(uri "${KIPRJMOD}/JJ65c02-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "TXB0108PWR")(type "KiCad")(uri "${KIPRJMOD}/Xtra/TXB0108PWR/TXB0108PWR.kicad_sym")(options "")(descr ""))
+  (lib (name "2024-01-03_21-33-35")(type "KiCad")(uri "${KIPRJMOD}/Xtra/KiCADv6a/2024-01-03_21-33-35.kicad_sym")(options "")(descr ""))
+)
