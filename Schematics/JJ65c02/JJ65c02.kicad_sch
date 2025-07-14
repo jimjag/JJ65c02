@@ -6504,6 +6504,12 @@
 		(uuid "16d33ef2-bc7f-464f-87c3-0d24345fdca9")
 	)
 	(junction
+		(at 60.96 158.75)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "17154724-c018-4d4b-914d-67661ff991b8")
+	)
+	(junction
 		(at 21.59 48.26)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6568,12 +6574,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "78ce93ad-a48c-4ff3-91fd-bcd1a5d28228")
-	)
-	(junction
-		(at 60.96 158.75)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "7c4a7a1c-5431-4a01-aed5-a9b48c52ee7f")
 	)
 	(junction
 		(at 196.85 146.05)
@@ -6674,10 +6674,6 @@
 		(uuid "2e90e294-82e1-45da-9bf1-b91dfe0dc8f6")
 	)
 	(no_connect
-		(at 269.24 33.02)
-		(uuid "33e054d8-90b5-4b84-8ee3-d4157011dd79")
-	)
-	(no_connect
 		(at 119.38 149.86)
 		(uuid "459159cf-127f-4c3b-895c-ce1ddfb1b0f5")
 	)
@@ -6688,6 +6684,10 @@
 	(no_connect
 		(at 119.38 162.56)
 		(uuid "57d8cc79-cf18-4d5a-bc87-7a45d0cac6b3")
+	)
+	(no_connect
+		(at 267.97 27.94)
+		(uuid "5e58f2a2-e698-46e0-b195-c150bd6b5980")
 	)
 	(no_connect
 		(at 187.96 82.55)
@@ -8059,6 +8059,16 @@
 			(type default)
 		)
 		(uuid "18f1018d-5857-4c32-a072-f3de80352f74")
+	)
+	(wire
+		(pts
+			(xy 60.96 158.75) (xy 67.31 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19200183-0ed5-4e96-8d87-2783e586078b")
 	)
 	(wire
 		(pts
@@ -9572,16 +9582,6 @@
 	)
 	(wire
 		(pts
-			(xy 60.96 158.75) (xy 60.96 171.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8cc96193-e616-4b6a-a314-ea621a95fd75")
-	)
-	(wire
-		(pts
 			(xy 71.12 45.72) (xy 73.66 45.72)
 		)
 		(stroke
@@ -10700,16 +10700,6 @@
 		)
 		(uuid "dd9cea3b-728e-41ec-90e8-dae4bb1e3176")
 	)
-	(wire
-		(pts
-			(xy 60.96 158.75) (xy 67.31 158.75)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "de552ae9-cde6-4643-8cc7-9de2579dadae")
-	)
 	(bus
 		(pts
 			(xy 39.37 96.52) (xy 39.37 104.14)
@@ -10899,6 +10889,16 @@
 			(type default)
 		)
 		(uuid "edde9d3b-777e-4121-a1a5-6aadaa1a0240")
+	)
+	(wire
+		(pts
+			(xy 60.96 158.75) (xy 60.96 171.45)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ee8cf789-1a85-437d-b4f3-e127bf36435a")
 	)
 	(wire
 		(pts
@@ -12321,6 +12321,28 @@
 	)
 	(global_label "GND"
 		(shape input)
+		(at 252.73 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify right)
+		)
+		(uuid "2e281f9b-e993-4af1-a299-8ccd0358c1d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 246.9009 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape input)
 		(at 24.13 116.84 270)
 		(fields_autoplaced yes)
 		(effects
@@ -12447,28 +12469,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "GND"
-		(shape input)
-		(at 254 30.48 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.1938 1.1938)
-			)
-			(justify right)
-		)
-		(uuid "4a3d306b-8842-458a-b248-33143cbdaaf2")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 248.1709 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -12782,6 +12782,28 @@
 			)
 		)
 	)
+	(global_label "+5V"
+		(shape input)
+		(at 67.31 158.75 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify left)
+		)
+		(uuid "7e401108-0e4a-4034-a692-2c1d060a5a9c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 73.1392 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "R~{W}"
 		(shape output)
 		(at 87.63 60.96 0)
@@ -12796,28 +12818,6 @@
 		(uuid "7f2b3ce3-2f20-426d-b769-e0329b6a8111")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 92.379 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "+5V"
-		(shape input)
-		(at 67.31 158.75 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.1938 1.1938)
-			)
-			(justify left)
-		)
-		(uuid "82204892-ec79-4d38-a593-52fb9a9b4b87")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 73.1392 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13019,6 +13019,28 @@
 			(effects
 				(font
 					(size 0.889 0.889)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GND"
+		(shape input)
+		(at 252.73 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.1938 1.1938)
+			)
+			(justify right)
+		)
+		(uuid "a25a0c73-b14a-4b16-8877-2cac22734e14")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 246.9009 25.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
 				)
 				(justify right)
 				(hide yes)
@@ -13392,28 +13414,6 @@
 					(size 1.1938 1.1938)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "GND"
-		(shape input)
-		(at 254 35.56 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.1938 1.1938)
-			)
-			(justify right)
-		)
-		(uuid "e07e0568-cdbd-4f94-b8f2-65de403dde5a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 248.1709 35.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -14440,7 +14440,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "10068305-c05d-4328-9c46-5cab0e3aa5af")
-		(property "Reference" "C10"
+		(property "Reference" "C3"
 			(at 113.03 168.91 90)
 			(effects
 				(font
@@ -14494,8 +14494,112 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C10")
+					(reference "C3")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "74xx:74HC00")
+		(at 260.35 27.94 0)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "184e97ac-6ea8-4a66-bb0c-3279f452a46a")
+		(property "Reference" "U1"
+			(at 260.3417 19.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "74HC00"
+			(at 260.3417 21.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 260.35 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74hc00"
+			(at 260.35 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "quad 2-input NAND gate"
+			(at 260.35 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "9"
+			(uuid "6286337f-967d-44b1-846e-cb48a42afbff")
+		)
+		(pin "10"
+			(uuid "1fc297ab-995d-4d62-af77-21b1a1bd1dee")
+		)
+		(pin "8"
+			(uuid "828d1848-9de6-4e47-ae31-dd0c31cdce1c")
+		)
+		(pin "12"
+			(uuid "5f8a00bd-4a51-4994-a9a2-6c6856f2a73a")
+		)
+		(pin "13"
+			(uuid "51a6b33a-668e-447b-8840-d8f60fae1197")
+		)
+		(pin "11"
+			(uuid "62f83761-b47d-4a88-9c54-368f0cb9cde0")
+		)
+		(pin "4"
+			(uuid "bbd2bc83-78ef-45b3-bf2b-4cd7c4c97051")
+		)
+		(pin "5"
+			(uuid "e0a18a84-f5cf-47ca-a411-7730c78061a1")
+		)
+		(pin "6"
+			(uuid "b547f3b1-2900-4b93-aed3-df6c75b8ac04")
+		)
+		(pin "14"
+			(uuid "eb3b4505-ee1a-437a-b820-b6a1ca1a08e1")
+		)
+		(pin "7"
+			(uuid "d67396d6-6b2e-4dd7-a81d-2c5d4540c03c")
+		)
+		(pin "3"
+			(uuid "c6a9a3d3-d06e-45df-aee4-70aff45bf743")
+		)
+		(pin "2"
+			(uuid "47c36607-a065-46f4-b596-92e87e71df5c")
+		)
+		(pin "1"
+			(uuid "853c8ce9-71e6-4301-bcbd-76e10dc94de9")
+		)
+		(instances
+			(project ""
+				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
+					(reference "U1")
+					(unit 3)
 				)
 			)
 		)
@@ -14729,7 +14833,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "33c74152-fdee-47b1-8777-ae6ed1368775")
-		(property "Reference" "C14"
+		(property "Reference" "C8"
 			(at 215.0872 138.5316 0)
 			(effects
 				(font
@@ -14783,7 +14887,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C14")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -14798,7 +14902,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "449578e7-5561-45ea-8ea8-478bf4ee4b9e")
-		(property "Reference" "C12"
+		(property "Reference" "C7"
 			(at 195.58 25.4 90)
 			(effects
 				(font
@@ -14852,7 +14956,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C12")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -14867,7 +14971,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "4b724a58-7782-4fb0-85bb-73cee8bfacec")
-		(property "Reference" "C9"
+		(property "Reference" "C2"
 			(at 53.34 167.64 90)
 			(effects
 				(font
@@ -14921,7 +15025,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C9")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -15253,7 +15357,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5f845b0f-1377-46bf-a8de-667a0c5a3efd")
-		(property "Reference" "R7"
+		(property "Reference" "R3"
 			(at 232.41 116.84 90)
 			(effects
 				(font
@@ -15305,7 +15409,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "R7")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -15399,7 +15503,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8a1017c0-e9a9-4cde-bebc-206b0225f879")
-		(property "Reference" "C1"
+		(property "Reference" "C5"
 			(at 180.721 138.5316 0)
 			(effects
 				(font
@@ -15453,7 +15557,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C1")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -15468,7 +15572,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "91394f21-aab4-485e-949b-f91963fd2ffd")
-		(property "Reference" "C2"
+		(property "Reference" "C6"
 			(at 190.5 109.22 90)
 			(effects
 				(font
@@ -15522,7 +15626,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C2")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -15537,7 +15641,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "93ed2a66-5de9-49e7-95cd-8ef9bcd1f377")
-		(property "Reference" "R6"
+		(property "Reference" "R2"
 			(at 209.55 116.84 90)
 			(effects
 				(font
@@ -15589,7 +15693,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "R6")
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -15604,7 +15708,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "aa662aca-aa48-48ee-8cd6-3262189fe6bc")
-		(property "Reference" "C8"
+		(property "Reference" "C1"
 			(at 29.21 66.04 90)
 			(effects
 				(font
@@ -15658,7 +15762,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C8")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -15673,7 +15777,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "bf3d31aa-3ea7-4c83-b68e-634dd6a4e61c")
-		(property "Reference" "C11"
+		(property "Reference" "C4"
 			(at 137.16 19.05 90)
 			(effects
 				(font
@@ -15727,7 +15831,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C11")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -15742,7 +15846,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c5e564dd-055f-437f-8011-0a1cdbd03841")
-		(property "Reference" "R4"
+		(property "Reference" "R1"
 			(at 175.26 116.84 90)
 			(effects
 				(font
@@ -15794,111 +15898,8 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "R4")
+					(reference "R1")
 					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "74xx:74LS08")
-		(at 261.62 33.02 0)
-		(unit 3)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "c79e4ec2-0fa1-4f23-94b9-d7e72c678c2e")
-		(property "Reference" "U1"
-			(at 261.62 24.765 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "74HC00"
-			(at 261.62 27.0764 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_DIP:DIP-14_W7.62mm_Socket"
-			(at 261.62 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 261.62 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Quad And2"
-			(at 261.62 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "047862e4-581f-402d-88f0-0d1527a1d69d")
-		)
-		(pin "2"
-			(uuid "d02cb6d1-5b53-44bd-a767-7e8dc481b240")
-		)
-		(pin "3"
-			(uuid "86661e22-9105-407b-a436-ca14b2810eb2")
-		)
-		(pin "4"
-			(uuid "76367958-b2ae-46b8-8977-c3dc5fa1a037")
-		)
-		(pin "5"
-			(uuid "e1f2baf0-fd4a-436b-8321-d7f20b720c1a")
-		)
-		(pin "6"
-			(uuid "7d3486e4-a561-4b29-88fe-81ee2c684d0f")
-		)
-		(pin "10"
-			(uuid "2742961a-47fe-4eb5-b854-f55a6cd5092e")
-		)
-		(pin "8"
-			(uuid "314df00d-13ce-4585-ae67-03ac0a878061")
-		)
-		(pin "9"
-			(uuid "06301d41-8d4c-4b03-8b95-4e86bbf7acda")
-		)
-		(pin "11"
-			(uuid "501e02b5-38dd-4d8d-ba17-0a23b740a22d")
-		)
-		(pin "12"
-			(uuid "44778a8a-5001-485f-97ed-74e8347539d1")
-		)
-		(pin "13"
-			(uuid "a48499f7-9cd8-4ba8-b5ef-c66cbe735e07")
-		)
-		(pin "14"
-			(uuid "0032d531-f928-453d-9d47-39adf6634366")
-		)
-		(pin "7"
-			(uuid "f2bf09de-8185-4dca-b111-4d51c44dd792")
-		)
-		(instances
-			(project "JJ65c02"
-				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "U1")
-					(unit 3)
 				)
 			)
 		)
@@ -15912,7 +15913,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d4c01da0-4c94-49fa-8236-2d99376ff950")
-		(property "Reference" "NE555"
+		(property "Reference" "NE1"
 			(at 196.85 127 0)
 			(effects
 				(font
@@ -15982,7 +15983,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "NE555")
+					(reference "NE1")
 					(unit 1)
 				)
 			)
@@ -15997,7 +15998,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "dd1ece4f-8646-45d4-8f5b-204989dd7b16")
-		(property "Reference" "C13"
+		(property "Reference" "C9"
 			(at 262.89 82.55 90)
 			(effects
 				(font
@@ -16051,7 +16052,7 @@
 		(instances
 			(project "JJ65c02"
 				(path "/2db910a0-b943-40b4-b81f-068ba5265f56"
-					(reference "C13")
+					(reference "C9")
 					(unit 1)
 				)
 			)
