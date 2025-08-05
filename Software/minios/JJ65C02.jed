@@ -1,7 +1,7 @@
 
 CUPL(WM)        5.0a  Serial# 60008009
 Device          p22v10  Library DLIB-h-40-17
-Created         Fri Jul 11 10:44:34 2025
+Created         Tue Aug 05 18:38:33 2025
 Name            JJ65C02 
 Partno          00 
 Revision        01 
@@ -47,4 +47,4 @@ Location
 *L05792 00000000000000000101011111000000
 *L05824 1100
 *C5D38
-*42C3
+*42CF
