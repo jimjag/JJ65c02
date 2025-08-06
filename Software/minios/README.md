@@ -56,7 +56,10 @@ Later versions of the board use the SSL39SF010 RAM chip as a ROM (for performanc
 minipro -p "SST39SF010A" -w ./minios.rom
 ```
 
-The `minios.lbl` file is the resultant symbol list with the hexadecimal addresses for all routines and labels. If you scroll down to the bottom, you will find the addresses of every routine that the minios exports for program use. There is also a more detailed `minios.map` file that provides even
+The `minios.lbl` file is the resultant symbol list with the hexadecimal
+addresses for all routines and labels. If you scroll down to the bottom,
+you will find the addresses of every routine that the minios exports
+for program use. There is also a more detailed `minios.map` file that provides even
 more in depth info. We will talk more about this when we discuss
 building and loading RAM-based programs.
 
@@ -64,7 +67,9 @@ building and loading RAM-based programs.
 
 ### 1. Allocated Zero Page Locations
 
-The miniOS needs to use some Zero Page locations, so expect trouble if you overwrite / use them from within your own programs. Currently, we use locations `$00-$DC`, which can be confirmed via looking at the
+The miniOS needs to use some Zero Page locations, so expect trouble if you
+overwrite / use them from within your own programs. Currently, we use
+locations `$00-$DC`, which can be confirmed via looking at the
 `__ZEROPAGE_LAST__` variable in the `minios.map` file. Now if you
 follow the below instuctions for assembling and building your own
 RAM programs, you don't need to worry about this, because during the

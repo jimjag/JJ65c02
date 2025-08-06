@@ -124,7 +124,7 @@ main:                                           ; boot routine, first thing load
 @ram_failed:
     CON_writeln message_fail
 @cont2:
-    jsr CON_read_byte_blk
+    jsr CON_read_byte                       ; in case there is junk in the buffer
     jsr MINIOS_main_menu                    ; start the menu routine
     jmp main                                ; should the menu ever return ...
 
@@ -472,9 +472,9 @@ ISR:
 logo:
     .asciiz "     _     _  __  ____   ____ ___ ____\r\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\r\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\r\n| |_| | |_| | (_) |__) | |__| |_| / __/\r\n \\___/ \\___/ \\___/____/ \\____\\___/_____|\r\n"
 message_welcome:
-    .asciiz "      JJ65c02\r\n   miniOS v2.0b1"
+    .asciiz "      JJ65c02\r\n   miniOS v2.0.0"
 message_welcomeacia:
-    .asciiz "      JJ65c02\r\n  miniOS v2.0b1 ACIA"
+    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA"
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
