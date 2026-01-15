@@ -140,6 +140,10 @@ image format expected by the chip. Once you do that, copy over the
 image to the chip using `minipro`
 
 ```
+minipro -p ATF22V10C -w ./JJ65C02.jed
+```
+or
+```
 minipro -p ATF22V10CQZ -w ./JJ65C02.jed
 ```
-A pre-built version is available in the repo.
+A pre-built version of the JED file is available in the repo.
