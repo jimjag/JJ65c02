@@ -31,7 +31,7 @@
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
 ;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2-4
-;      . $0500 - $9fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
+;      . $0400 - $9fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
 ;      . $8000 - $9fff      RAM Bank (8K)
 ;    $A010 - $Afff      IO Blk: 4k
 ;      . $A010 - $A01f      ACIA:
@@ -486,7 +486,7 @@ message_waitdata:
 message_loaddone:
     .asciiz "Loading done!"
 message_runprog:
-    .asciiz "\r\n Running RAM@$0500"
+    .asciiz "\r\n Running RAM@$0400"
 message_ramclean:
     .asciiz "\r\n Cleaning RAM... "
 message_ramtest:

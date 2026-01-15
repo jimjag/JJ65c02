@@ -13229,18 +13229,17 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "3c7de307-ba20-4861-9855-48fd8f844b65")
 		(property "Reference" "DECODER1"
-			(at 186.69 69.6427 0)
+			(at 185.928 69.342 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "22V10C"
-			(at 186.69 72.0669 0)
+		(property "Value" "ATF22V10C-7"
+			(at 186.436 71.628 0)
 			(effects
 				(font
 					(size 1.27 1.27)

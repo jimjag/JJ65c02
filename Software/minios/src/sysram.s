@@ -103,13 +103,12 @@ YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
 
 .segment "SYSRAM"
 
+INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
 YMBUF:          .res 132    ; storage for XMODEM. 128bytes buffer + overhead
-;
-INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 
 ;===================================================================
 
