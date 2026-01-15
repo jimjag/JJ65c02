@@ -25,7 +25,7 @@ A11   |6     19| BA14
 BK0   |7     18| --
 BK1   |8     17| --
 RW    |9     16| --
-PHI   |10    15| PICO_DR
+PHI2  |10    15| PICO_DR
 --    |11    14| --
 Gnd   |12    13| --
        --------
@@ -41,7 +41,7 @@ Pin 6  =  A11;   /* For Pico */
 Pin 7  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
 Pin 8  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
 Pin 9  =  RW;    /* R/W of the 6502 */
-Pin 10  =  PHI;   /* 65C02 CLK */
+Pin 10 =  PHI2;  /* 65C02 CLK */
 
 
 /* Outputs:  Chip Selects */
@@ -68,12 +68,12 @@ IS_IO = IO;
 
 !ROM_CS  = IS_ROM;
 !IO_CS   = IS_IO;
-!RAM_CS  = PHI & !IS_ROM & !IS_IO;
+!RAM_CS  = PHI2 & !IS_ROM & !IS_IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
 /* Pi Pico is 0XA800 */
-PICO_DR = !RW & IS_IO & A11 & PHI;
+PICO_DR = !RW & IS_IO & A11 & PHI2;
 
 /*
  A15 -> A15
