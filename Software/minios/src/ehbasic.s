@@ -448,7 +448,7 @@ LAB_SKFF          = LAB_STAK+$FF
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
 ; __RAM0_START__
-ccflag     = $0200             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
+ccflag     = CC_BASIC             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte     = ccflag+1     ; BASIC CTRL-C byte
 ccnull  = ccbyte+1     ; BASIC CTRL-C byte timeout
 VEC_CC            = ccnull+1  ; ctrl c check vector
@@ -510,7 +510,7 @@ LAB_GMEM:
     ldx   #EndTab-StrTab-1  ; set byte count-1
 TabLoop:
     lda   StrTab,X          ; get byte from table
-    sta   LAB_WARM,X          ; save byte in page zero
+    sta   LAB_WARM,X        ; save byte in page zero
     dex                     ; decrement count
     bpl   TabLoop           ; loop if not all done
 
@@ -633,8 +633,8 @@ LAB_2E05:
     lda   #<LAB_SMSG          ; point to sign-on message (low addr)
     ldy   #>LAB_SMSG          ; point to sign-on message (high addr)
     jsr   LAB_18C3        ; print null terminated string from memory
-    lda   #<LAB_1274          ; warm start vector low byte
-    ldy   #>LAB_1274          ; warm start vector high byte
+    lda   #<LAB_WSTART          ; warm start vector low byte
+    ldy   #>LAB_WSTART          ; warm start vector high byte
     sta   Wrmjpl       ; save warm start vector low byte
     sty   Wrmjph       ; save warm start vector high byte
     jmp   (Wrmjpl)     ; go do warm start
@@ -800,14 +800,14 @@ LAB_1269:
     jsr   LAB_18C3        ; print null terminated string from memory
     ldy   Clineh              ; get current line high byte
     iny                       ; increment it
-    beq   LAB_1274            ; go do warm start (was immediate mode)
+    beq   LAB_WSTART            ; go do warm start (was immediate mode)
 
                                 ; else print line number
     jsr   LAB_2953            ; print " in line [LINE #]"
 
 ; BASIC warm start entry point
 ; wait for Basic command
-LAB_1274:
+LAB_WSTART:
                                 ; clear ON IRQ/NMI bytes
     lda   #$00                ; clear A
     sta   IrqBase             ; clear enabled byte
@@ -817,13 +817,13 @@ LAB_1274:
     jsr   LAB_18C3        ; go do print string
 
 ; wait for Basic command (no "Ready")
-LAB_127D:
+LAB_MAIN:
     jsr   LAB_1357            ; call for BASIC input
 LAB_1280:
     stx   Bpntrl            ; set BASIC execute pointer low byte
     sty   Bpntrh            ; set BASIC execute pointer high byte
     jsr   LAB_GBYT          ; scan memory
-    beq   LAB_127D          ; loop while null
+    beq   LAB_MAIN          ; loop while null
 
 ; got to interpret input line now ..
     ldx   #$FF              ; current line to null value
@@ -971,7 +971,7 @@ LAB_1330:
 
 
 LAB_133E:
-    jmp   LAB_127D          ; else we just wait for Basic command, no "Ready"
+    jmp   LAB_MAIN          ; else we just wait for Basic command, no "Ready"
 
 ; print "? " and get BASIC input
 LAB_INLN:
@@ -1672,7 +1672,7 @@ LAB_1651:
     jmp   LAB_1269          ; print "Break" and do warm start
 
 LAB_165E:
-    jmp   LAB_1274          ; go do warm start
+    jmp   LAB_WSTART        ; go do warm start
 
 ; perform RESTORE
 
