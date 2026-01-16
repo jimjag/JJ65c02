@@ -58,18 +58,18 @@ TTY_readln:
 @read_next:
     jsr ACIA_read_byte
 @enter_pressed:
-    cmp #(TTY_char_CR)           ; User pressed enter?
+    cmp #TTY_char_CR             ; User pressed enter?
     beq @read_done               ; Yes, don't save the CR
-    cmp #(TTY_char_BS)
+    cmp #TTY_char_BS
     beq @is_backspace
-    cmp #(TTY_char_DEL)
+    cmp #TTY_char_DEL
     bne @echo_char
 @is_backspace:
     cpy #$00                     ; Already at the start of the buffer?
     beq @read_next               ; Yep
     ACIA_writeln x_backspace     ; left, space, left to delete the character
     dey                          ; Back up a position in our buffer, need to check for $00
-    lda #(TTY_char_NULL)
+    lda #TTY_char_NULL
     sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
     bra @read_next               ; Get the next character
 @echo_char:
@@ -82,7 +82,7 @@ TTY_readln:
     bra @read_next               ; And read the next key
 @read_done:
     iny                          ; Add a NULL in the next position
-    lda #(TTY_char_NULL)
+    lda #TTY_char_NULL
     sta (USER_INPUT_PTR),y       ; Make sure the last char is null
     ACIA_writeln new_line
     rts
@@ -127,7 +127,7 @@ TTY_clear_screen:
 TTY_reset_user_input:
     ldy #0
 @clear_user_input_loop:
-    lda #(TTY_char_NULL)
+    lda #TTY_char_NULL
     sta (USER_INPUT_PTR),y      ; Zero it out
     cpy USER_BUFFLEN
     beq @reset_user_input_done

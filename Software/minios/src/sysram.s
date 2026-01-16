@@ -1,3 +1,4 @@
+.include "sysram.h"
 .include "tty.h"
 
 ;
@@ -108,7 +109,7 @@ CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
-YMBUF:          .res 132    ; storage for XMODEM. 128bytes buffer + overhead
+YMBUF:          .res YMBUF_SIZE    ; storage for XMODEM. 128bytes buffer + overhead
 
 ;===================================================================
 

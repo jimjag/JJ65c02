@@ -6,6 +6,7 @@
 .include "minios.inc"
 .include "sysram.inc"
 .include "console.inc"
+.include "tty.h"
 
 .segment "ZEROPAGE"
 ; WOZMON vars
@@ -21,16 +22,17 @@ MODE = Z1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
 IN    = YMBUF                          ; Input buffer
 
 .segment "CODE"
+
 WOZMON:
-    CON_writeln new_line
+    CON_writeln WOZM_welcome
     cld                ; just in case
     lda #$A7
     ldy #$7F
 
 @NOTCR:
-    cmp #$08           ; Backspace key?
+    cmp #TTY_char_BS   ; Backspace key?
     beq @BACKSPACE     ; Yes.
-    cmp #$1B           ; ESC?
+    cmp #TTY_char_ESC  ; ESC?
     beq @ESCAPE        ; Yes.
     cmp #'Q'           ; Quit?
     bne @NOQUIT
@@ -40,11 +42,11 @@ WOZMON:
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
 @ESCAPE:
-    lda #'\'           ; "\".
+    lda #'\\'          ; "\".
     jsr @ECHO          ; Output it.
 
 @GETLINE:
-    lda #$0D           ; Send CR
+    lda #TTY_char_CR   ; Send CR
     jsr @ECHO
 
     ldy #$01           ; Initialize text index.
@@ -61,7 +63,7 @@ WOZMON:
 @ADD2BUF:
     sta IN,Y           ; Add to text buffer.
     jsr @ECHO          ; Display character.
-    cmp #$0D           ; CR?
+    cmp #TTY_char_CR   ; CR?
     bne @NOTCR         ; No.
 
     ldy #$FF           ; Reset text index.
@@ -76,7 +78,7 @@ WOZMON:
     iny                ; Advance text index.
 @NEXTITEM:
     lda IN,Y           ; Get character.
-    cmp #$0D           ; CR?
+    cmp #TTY_char_CR   ; CR?
     beq @GETLINE       ; Yes, done this line.
     cmp #'.'           ; "."?
     bcc @BLSKIP        ; Skip delimiter.
@@ -144,7 +146,7 @@ WOZMON:
 
 @NXTPRNT:
     bne @PRDATA        ; NE means no address to print.
-    lda #$0D           ; CR.
+    lda #TTY_char_CR   ; CR.
     jsr @ECHO          ; Output it.
     lda XAMH           ; 'Examine index' high-order byte.
     jsr @PRBYTE        ; Output it in hex format.
@@ -194,10 +196,14 @@ WOZMON:
 @ECHO:
     ; Auto convert CR to CRLF
     jsr CON_write_byte
-    cmp #$0D
+    cmp #TTY_char_CR
     bne @WEDONE
     lda #$0A
     jsr CON_write_byte
-    lda #$0D
+    lda #TTY_char_CR
 @WEDONE:
     rts                ; Return.
+
+.segment "RODATA"
+WOZM_welcome:     .asciiz "\r\nWelcome to EWOZMON 1.0."
+

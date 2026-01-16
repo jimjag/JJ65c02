@@ -32,7 +32,7 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable
 ;================================================================================
 
 XMODEM_send:
-    ACIA_writeln XM_send_msg   ; send prompt and info
+    ACIA_writeln XM_send_msg    ; send prompt and info
     stz ERRCNT                  ; error counter set to 0
     stz LASTBLK                 ; set flag to false
     lda #$01
@@ -42,7 +42,7 @@ XMODEM_send:
     bcc @Wait4CRC               ; wait for something to come in...
     cmp #'C'                    ; is it the "C" to start a CRC xfer?
     beq @SetstAddr              ; yes
-    cmp #(TTY_char_ESC)         ; is it a cancel? <Esc> Key
+    cmp #TTY_char_ESC           ; is it a cancel? <Esc> Key
     bne @Wait4CRC               ; No, wait for another character
     jmp @PrtAbort               ; Print abort msg and exit
 @SetstAddr:
@@ -85,7 +85,7 @@ XMODEM_send:
     inc LASTBLK                 ; Yes, Set last byte flag
 @LdBuff3:
     inx
-    cpx #$82                    ; Are we at the end of the 128 byte block?
+    cpx #(YMBUF_SIZE-2)         ; Are we at the end of the 128 byte block?
     beq @SCalcCRC               ; Yes, calc CRC
     lda #$00                    ; Fill rest of 128 bytes with $00
     sta YMBUF,x
@@ -96,7 +96,7 @@ XMODEM_send:
     inc YMBLPTR+1
 @LdBuff5:
     inx
-    cpx #$82                    ; last byte in block?
+    cpx #(YMBUF_SIZE-2)         ; last byte in block?
     bne @LdBuff1                ; no, get the next
 @SCalcCRC:
     jsr CalcCRC
@@ -107,21 +107,21 @@ XMODEM_send:
     sta YMBUF,y
 @Resend:
     ldx #$00
-    lda #(TTY_char_SOH)
+    lda #TTY_char_SOH
     jsr ACIA_write_byte         ; send SOH
 @SendBlk:
     lda YMBUF,x                 ; Send 132 bytes in buffer to the console
     jsr ACIA_write_byte
     inx
-    cpx #$84                    ; last byte?
+    cpx #YMBUF_SIZE             ; last byte?
     bne @SendBlk                ; no, get next
     jsr GetByte                 ; Wait for Ack/Nack
     bcc @Seterror               ; No chr received after 3 seconds, resend
-    cmp #(TTY_char_ACK)                  ; Chr received... is it:
+    cmp #TTY_char_ACK           ; Chr received... is it:
     beq @LdBuffer               ; ACK, send next block
-    cmp #(TTY_char_NAK)
+    cmp #TTY_char_NAK
     beq @Seterror               ; NAK, INC errors and resend
-    cmp #(TTY_char_ESC)
+    cmp #TTY_char_ESC
     beq @PrtAbort               ; Esc pressed to abort
     ; fall through to error counter
 @Seterror:
@@ -134,7 +134,7 @@ XMODEM_send:
     ACIA_writeln XM_error_msg      ; print error msg and exit
     rts
 @Done:
-    lda #(TTY_char_EOT)
+    lda #TTY_char_EOT
     jsr ACIA_write_byte
     ACIA_writeln XM_success_msg    ; All Done..Print msg and exit
     rts
@@ -171,15 +171,15 @@ XMODEM_recv:
     jsr GetByte                 ; get first byte of block
     bcc @StartBlk               ; timed out, keep waiting...
 @GotByte1:
-    cmp #(TTY_char_ESC)         ; quitting?
+    cmp #TTY_char_ESC           ; quitting?
     bne @CheckSOH               ; no
     lda #$FE                    ; Error code in "A" of desired
     ;sta $1000                   ; XXX DEBUGGING
     rts                         ; YES - do BRK or change to RTS if desired
 @CheckSOH:
-    cmp #(TTY_char_SOH)         ; Start of block?
+    cmp #TTY_char_SOH           ; Start of block?
     beq @BegBlk                 ; yes
-    cmp #(TTY_char_EOT)
+    cmp #TTY_char_EOT
     beq @done
     jmp @BadByte1               ; Not SOH or EOT, so flush buffer & send NAK
 @done:
@@ -187,13 +187,13 @@ XMODEM_recv:
 @BegBlk:
     ldx #$00
 @GetBlk:
-    jsr GetByte                ; get next character
+    jsr GetByte                 ; get next character
     bcs @StoreIt
     jmp @BadByte                ; chr rcv error, flush and send NAK
 @StoreIt:
     sta YMBUF,x                 ; good char, save it in the rcv buffer
     inx                         ; INC buffer pointer
-    cpx #132                    ; <01> <FE> <128 bytes> <CRCH> <CRCL>
+    cpx #YMBUF_SIZE             ; <01> <FE> <128 bytes> <CRCH> <CRCL>
     bne @GetBlk                 ; get 132 characters
     ldx #$00
     lda YMBUF,x                 ; get block # from buffer
@@ -238,7 +238,7 @@ XMODEM_recv:
 ;    jsr LCD_set_cursor
 ;    jsr LCD_send_data
     jsr LIB_flush_serbuf
-    lda #(TTY_char_NAK)
+    lda #TTY_char_NAK
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
@@ -254,19 +254,19 @@ XMODEM_recv:
     inc YMBLPTR+1               ; adjust high address for page crossing
 @CopyBlk4:
     inx                         ; point to next data byte
-    cpx #$82                    ; is it the last byte (all 128)?
+    cpx #(YMBUF_SIZE-2)         ; is it the last byte (all 128)?
     bne @CopyBlk3               ; no, get the next one
 @IncBlk:
     inc BLKNO                   ; done. INC the block #
-    lda #(TTY_char_ACK)         ; send ACK
+    lda #TTY_char_ACK           ; send ACK
     jsr ACIA_write_byte
     jmp @StartBlk               ; get next block
 
 @RDone:
-    lda #(TTY_char_ACK)          ; last block, send ACK and exit.
+    lda #TTY_char_ACK           ; last block, send ACK and exit.
     jsr ACIA_write_byte
     jsr LIB_flush_serbuf
-    lda #(TTY_char_EOT)
+    lda #TTY_char_EOT
     jsr ACIA_write_byte
     ACIA_writeln XM_success_msg
     lda #30
@@ -280,7 +280,7 @@ XMODEM_recv:
 ;    lda #'B'
 ;    jsr LCD_send_data
     jsr LIB_flush_serbuf
-    lda #(TTY_char_NAK)
+    lda #TTY_char_NAK
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk
 
@@ -295,7 +295,7 @@ XMODEM_recv:
 ;    pla
 ;    jsr LCD_send_data
     jsr LIB_flush_serbuf
-    lda #(TTY_char_NAK)
+    lda #TTY_char_NAK
     jsr ACIA_write_byte         ; send NAK to resend block
     jmp @StartBlk               ; Start over, get the block again
 
@@ -349,7 +349,7 @@ CalcCRC:
     lda CRClo,x
     sta CRC
     iny
-    cpy #$82                    ; done yet?
+    cpy #(YMBUF_SIZE-2)         ; done yet?
     bne @CalcCRC1               ; no, get next
     rts                         ; y=82 on exit
 
