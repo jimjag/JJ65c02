@@ -17,7 +17,7 @@
 ; that need to be updated for *your* system
 ;=====================================================================
 
-; Enhanced BASIC to assemble under 6502 simulator, $ver 2.22p5.9j
+; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.11j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
@@ -69,7 +69,7 @@
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
 LAB_WARM:        .res 1          ; BASIC warm start entry point
 Wrmjpl:          .res 1          ; BASIC warm start vector jump low byte
-Wrmjph:          .res 8          ; BASIC warm start vector jump high byte
+Wrmjph:          .res 1          ; BASIC warm start vector jump high byte
 
 Usrjmp:          .res 1          ; USR function JMP address
 Usrjpl:          .res 1          ; USR function JMP vector low byte
@@ -316,6 +316,7 @@ IrqBase:         .res 3          ; IRQ handler enabled/setup/triggered flags
 
 Decss:           .res 1          ; number to decimal string start
 Decssp1:         .res 16         ; number to decimal string start
+Console:         .res 1          ; I/O using Console (0) or Serial (xff)
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
@@ -1095,7 +1096,7 @@ LAB_13D0:
 ;   bcc   LAB_13EA         ; if < keyword first character table byte go restore
                               ; Y and save to crunched
 ; *** with
-    BCC   PATCH_LC2         ; if < keyword first character table byte go restore
+    bcc   PATCH_LC2         ; if < keyword first character table byte go restore
 ; *** end
 
     iny                     ; else increment pointer
@@ -4413,7 +4414,7 @@ LAB_STRS:
     jsr   LAB_296E          ; convert FAC1 to string
     lda   #<Decssp1         ; set result string low pointer
     ldy   #>Decssp1         ; set result string high pointer
-    bra   LAB_20AE          ; print null terminated string to Sutill/Sutilh
+    bra   LAB_20AE          ; print null terminated string to Sutill/Sutilh (beq?)
 
 ; Do string vector
 ; copy des_pl/h to des_2l/h and make string space A bytes long
@@ -7902,11 +7903,6 @@ StrTab:
       .byte $4C               ; JMP opcode
       .word LAB_COLD          ; initial warm start vector (cold start)
 
-      .byte $00               ; these bytes are not used by BASIC
-      .word $0000             ;
-      .word $0000             ;
-      .word $0000             ;
-
       .byte $4C               ; JMP opcode
       .word LAB_FCER          ; initial user function vector ("Function call" error)
       .byte $00               ; default NULL count
@@ -8897,11 +8893,11 @@ END_CODE:
 .segment "RODATA"
 
 LAB_mess:
-    .asciiz "\r\n6502 EhBASIC ver 2.22p5.10j [C]old/[W]arm ?" ; sign on string
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.11j [C]old/[W]arm ?" ; sign on string
 LAB_MSZM:
     .asciiz "\r\nMemory size "
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.10j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.11j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"
