@@ -28,7 +28,7 @@
 .exportzp SERIN_WPTR
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
-.exportzp YMBLPTR
+.exportzp XMDMPTR
 .exportzp YMEOFP
 .exportzp GX0
 .exportzp GY0
@@ -97,7 +97,7 @@ PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
 ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
 CON_SPTR:       .res 2   ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
-YMBLPTR:        .res 2   ; data pointer (two byte variable)
+XMDMPTR:        .res 2   ; data pointer (two byte variable)
 YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
 
 ;===================================================================

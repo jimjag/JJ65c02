@@ -467,14 +467,14 @@ VEC_EXIT          = VEC_SV+2        ; exit vector
 ; program RAM pages!
 
 ;Ibuffs            = IRQ_vec+$14
-Ibuffs            = $0400     ; SYSTEM SPECIFIC VALUE!
+Ibuffs            =  (YMBUF+YMBUF_SIZE)    ; SYSTEM SPECIFIC VALUE!
                               ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
 ; __RAM_START__
-Ram_base          = $0500    ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+Ram_base          = __RAM_START__    ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 ; __IO_START__
-Ram_top           = $a000     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+Ram_top           = __IO_START__     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 
 Stack_floor       = 16        ; bytes left free on stack for background interrupts
 
@@ -610,20 +610,20 @@ LAB_2DB6:
     stx   Smemh             ; save start of mem high byte
 
 ; this line is only needed if Ram_base is not $xx00
-      .IF   Ram_base&$FF>0
-    ldy   #$00              ; clear Y
-      .ENDIF
+    ;  .IF   Ram_base&$FF>0
+    ;ldy   #$00              ; clear Y
+    ;  .ENDIF
 
     tya                     ; clear A
     sta   (Smeml),Y         ; clear first byte
     inc   Smeml             ; increment start of mem low byte
 
 ; these two lines are only needed if Ram_base is $xxFF
-      .IF   Ram_base&$FF=$FF
-    bne   LAB_2E05          ; branch if no rollover
-    inc   Smemh             ; increment start of mem high byte
+    ;  .IF   Ram_base&$FF=$FF
+    ;bne   LAB_2E05          ; branch if no rollover
+    ;inc   Smemh             ; increment start of mem high byte
 LAB_2E05:
-      .ENDIF
+    ;  .ENDIF
 
     jsr   LAB_CRLF       ; print CR/LF
     jsr   LAB_1463            ; do "NEW" and "CLEAR"
@@ -1212,12 +1212,12 @@ LAB_142A:
     iny                     ; adjust for line copy
 ; *** begin patch for when Ibuffs is $xx00 - Daryl Rictor ***
 ; *** insert
-      .IF   Ibuffs&$FF=0
-    lda   Bpntrl            ; test for $00
-    bne   LAB_142P          ; not $00
-    dec   Bpntrh            ; allow for increment when $xx00
+    ;  .IF   Ibuffs&$FF=0
+    ;lda   Bpntrl            ; test for $00
+    ;bne   LAB_142P          ; not $00
+    ;dec   Bpntrh            ; allow for increment when $xx00
 LAB_142P:
-      .ENDIF
+     ; .ENDIF
 ; *** end   patch for when Ibuffs is $xx00 - Daryl Rictor ***
 ; end of patch
     dec   Bpntrl            ; allow for increment
@@ -8846,24 +8846,24 @@ no_save:                 ; empty save vector
 LAB_load:
     ; This overwrites any existing program
     lda #<Ram_base        ; set start addr low byte
-    sta YMBLPTR           ; Tell XMODEM where to start
+    sta XMDMPTR           ; Tell XMODEM where to start
     sta Smeml             ; And tell EhBasic where we start
     lda #>Ram_base        ; set start addr high byte
-    sta YMBLPTR+1
+    sta XMDMPTR+1
     sta Smemh
     jsr XMODEM_recv
-    lda YMBLPTR           ; Now adjust where the program ends and vars begin
+    lda XMDMPTR           ; Now adjust where the program ends and vars begin
     sta Svarl
-    lda YMBLPTR+1
+    lda XMDMPTR+1
     sta Svarh
     jsr LAB_1477          ; Need to call this EhBasic routine to clear variables and reset the execution pointer
     jmp LAB_1319          ; Jump to appropriate location in EhBasic to finish
 
 LAB_save:
     lda #<Ram_base        ; set start addr low byte
-    sta YMBLPTR           ; Tell XMODEM where to start
+    sta XMDMPTR           ; Tell XMODEM where to start
     lda #>Ram_base        ; set start addr high byte
-    sta YMBLPTR+1
+    sta XMDMPTR+1
     lda Svarl             ; set EOF pointer so XMODEM knows where to stop
     sta YMEOFP
     lda Svarh

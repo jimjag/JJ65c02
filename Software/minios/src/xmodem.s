@@ -23,7 +23,7 @@ CRC:    .res 2      ; CRC lo byte  (two byte variable
 ;   XMODEM_send: Send data via XMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: Start address must be stored in YMBLPTR,YMBLPTR+1 (eg: 00 05 is $0500)
+;   Preparatory Ops: Start address must be stored in XMDMPTR,XMDMPTR+1 (eg: 00 05 is $0500)
 ;                    Stop address at YMEOFP,YMEOFP+1
 ;
 ;   Returned Values:
@@ -52,9 +52,9 @@ XMODEM_send:
     sta YMBUF                   ; into 1st byte
     lda #$FE                    ; load 1's comp of block #
     sta YMBUF+1                 ; into 2nd byte
-    lda YMBLPTR                   ; load low byte of start address
+    lda XMDMPTR                   ; load low byte of start address
     sta YMBUF+2                 ; into 3rd byte
-    lda YMBLPTR+1                 ; load hi byte of start address
+    lda XMDMPTR+1                 ; load hi byte of start address
     sta YMBUF+3                 ; into 4th byte
     bra @LdBuff1                ; jump into buffer load routine
 
@@ -71,15 +71,15 @@ XMODEM_send:
     eor #$FF
     sta YMBUF+1                 ; save 1's comp of BLKNO next
 @LdBuff1:
-    lda (YMBLPTR),y             ; save 128 bytes of data
+    lda (XMDMPTR),y             ; save 128 bytes of data
     sta YMBUF,x
 @LdBuff2:
     sec
     lda YMEOFP
-    sbc YMBLPTR                 ; Are we at the last address?
+    sbc XMDMPTR                 ; Are we at the last address?
     bne @LdBuff4                ; no, INC  pointer and continue
     lda YMEOFP+1
-    sbc YMBLPTR+1
+    sbc XMDMPTR+1
 
     bne @LdBuff4
     inc LASTBLK                 ; Yes, Set last byte flag
@@ -91,9 +91,9 @@ XMODEM_send:
     sta YMBUF,x
     beq @LdBuff3                ; Branch always
 @LdBuff4:
-    inc YMBLPTR                 ; INC address pointer
+    inc XMDMPTR                 ; INC address pointer
     bne @LdBuff5
-    inc YMBLPTR+1
+    inc XMDMPTR+1
 @LdBuff5:
     inx
     cpx #(YMBUF_SIZE-2)         ; last byte in block?
@@ -144,9 +144,9 @@ XMODEM_send:
 ;   XMODEM_recv: Receive data via XMODEM protocol through ACIA
 ;
 ;   ————————————————————————————————————
-;   Preparatory Ops: Load address must be stored in YMBLPTR,YMBLPTR+1
+;   Preparatory Ops: Load address must be stored in XMDMPTR,XMDMPTR+1
 ;
-;   Returned Values: Ending address-1 stored in YMBLPTR,YMBLPTR+1
+;   Returned Values: Ending address-1 stored in XMDMPTR,XMDMPTR+1
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -248,10 +248,10 @@ XMODEM_recv:
     ldy  #$00                   ; set offset to zero
 @CopyBlk3:
     lda YMBUF,x                 ; get data byte from buffer
-    sta (YMBLPTR),y             ; save to target
-    inc YMBLPTR                 ; point to next address
+    sta (XMDMPTR),y             ; save to target
+    inc XMDMPTR                 ; point to next address
     bne @CopyBlk4               ; did it step over page boundary?
-    inc YMBLPTR+1               ; adjust high address for page crossing
+    inc XMDMPTR+1               ; adjust high address for page crossing
 @CopyBlk4:
     inx                         ; point to next data byte
     cpx #(YMBUF_SIZE-2)         ; is it the last byte (all 128)?
