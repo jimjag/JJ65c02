@@ -609,21 +609,17 @@ LAB_2DB6:
     sty   Smeml             ; save start of mem low byte
     stx   Smemh             ; save start of mem high byte
 
-; this line is only needed if Ram_base is not $xx00
-    ;  .IF   Ram_base&$FF>0
-    ;ldy   #$00              ; clear Y
-    ;  .ENDIF
+; this line is only needed if Ram_base is not $xx00, but what the heck!
+    ldy   #$00              ; clear Y
 
     tya                     ; clear A
     sta   (Smeml),Y         ; clear first byte
     inc   Smeml             ; increment start of mem low byte
 
-; these two lines are only needed if Ram_base is $xxFF
-    ;  .IF   Ram_base&$FF=$FF
-    ;bne   LAB_2E05          ; branch if no rollover
-    ;inc   Smemh             ; increment start of mem high byte
+; these two lines are only needed if Ram_base is $xxFF, but what the heck!
+    bne   LAB_2E05          ; branch if no rollover
+    inc   Smemh             ; increment start of mem high byte
 LAB_2E05:
-    ;  .ENDIF
 
     jsr   LAB_CRLF       ; print CR/LF
     jsr   LAB_1463            ; do "NEW" and "CLEAR"
@@ -1129,8 +1125,8 @@ LAB_13D8:
 ; *** replace
 ;   cmp   Ibuffs,X          ; compare with byte from input buffer
 ; *** with
-    EOR     Ibuffs,x        ; check bits against table
-    AND     #$DF            ; DF masks the upper/lower case bit
+    eor     Ibuffs,x        ; check bits against table
+    and     #$DF            ; DF masks the upper/lower case bit
 ; *** end
     beq   LAB_13D6          ; go compare next if match
 
@@ -1210,16 +1206,11 @@ LAB_142A:
     iny                     ; adjust for line copy
     iny                     ; adjust for line copy
     iny                     ; adjust for line copy
-; *** begin patch for when Ibuffs is $xx00 - Daryl Rictor ***
-; *** insert
-    ;  .IF   Ibuffs&$FF=0
-    ;lda   Bpntrl            ; test for $00
-    ;bne   LAB_142P          ; not $00
-    ;dec   Bpntrh            ; allow for increment when $xx00
+
+    lda   Bpntrl            ; test for $00
+    bne   LAB_142P          ; not $00
+    dec   Bpntrh            ; allow for increment when $xx00
 LAB_142P:
-     ; .ENDIF
-; *** end   patch for when Ibuffs is $xx00 - Daryl Rictor ***
-; end of patch
     dec   Bpntrl            ; allow for increment
     rts
 
@@ -8846,28 +8837,28 @@ no_save:                 ; empty save vector
 LAB_load:
     ; This overwrites any existing program
     lda #<Ram_base        ; set start addr low byte
-    sta XMDMPTR           ; Tell XMODEM where to start
+    sta XMODEM_pstart           ; Tell XMODEM where to start
     sta Smeml             ; And tell EhBasic where we start
     lda #>Ram_base        ; set start addr high byte
-    sta XMDMPTR+1
+    sta XMODEM_pstart+1
     sta Smemh
     jsr XMODEM_recv
-    lda XMDMPTR           ; Now adjust where the program ends and vars begin
+    lda XMODEM_pstart     ; Now adjust where the program ends and vars begin
     sta Svarl
-    lda XMDMPTR+1
+    lda XMODEM_pstart+1
     sta Svarh
     jsr LAB_1477          ; Need to call this EhBasic routine to clear variables and reset the execution pointer
     jmp LAB_1319          ; Jump to appropriate location in EhBasic to finish
 
 LAB_save:
     lda #<Ram_base        ; set start addr low byte
-    sta XMDMPTR           ; Tell XMODEM where to start
+    sta XMODEM_pstart     ; Tell XMODEM where to save to
     lda #>Ram_base        ; set start addr high byte
-    sta XMDMPTR+1
+    sta XMODEM_pstart+1
     lda Svarl             ; set EOF pointer so XMODEM knows where to stop
-    sta YMEOFP
+    sta XMODEM_pend
     lda Svarh
-    sta YMEOFP+1
+    sta XMODEM_pend+1
     jsr XMODEM_send
     rts
 

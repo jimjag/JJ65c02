@@ -28,8 +28,8 @@
 .exportzp SERIN_WPTR
 .exportzp PS2IN_RPTR
 .exportzp PS2IN_WPTR
-.exportzp XMDMPTR
-.exportzp YMEOFP
+.exportzp XMODEM_pstart
+.exportzp XMODEM_pend
 .exportzp GX0
 .exportzp GY0
 .exportzp GX1
@@ -90,15 +90,15 @@ GSND =          R0      ; Sound command
 
 ; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
-SERIN_RPTR:     .res 1   ; Read index pointer (0x00->0x7f)
-SERIN_WPTR:     .res 1   ; Write index pointer (0x00->0x7f)
+SERIN_RPTR:     .res 1   ; ACIA Read index pointer (0x00->0x7f)
+SERIN_WPTR:     .res 1   ; ACIA Write index pointer (0x00->0x7f)
 PS2IN_RPTR:     .res 1   ; PS/2 Keyboard Read index pointer (0x80->0xff)
 PS2IN_WPTR:     .res 1   ; PS/2 Keyboard Write index pointer (0x80->0xff)
 ACIA_SPTR:      .res 2   ; String pointer - ACIA/TTY I/O
 CON_SPTR:       .res 2   ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
-XMDMPTR:        .res 2   ; data pointer (two byte variable)
-YMEOFP:         .res 2   ; end of file address pointer (2 bytes)
+XMODEM_pstart:  .res 2   ; data pointer to start of XMODEM Data
+XMODEM_pend:    .res 2   ; end of file address pointer for XMODEM
 
 ;===================================================================
 

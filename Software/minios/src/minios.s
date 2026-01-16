@@ -238,9 +238,9 @@ MINIOS_load_ram:
     rts
 @start_load:
     lda #<PROGRAM_START
-    sta XMDMPTR
+    sta XMODEM_pstart
     lda #>PROGRAM_START
-    sta XMDMPTR+1
+    sta XMODEM_pstart+1
     jmp XMODEM_recv
 
 ;================================================================================
