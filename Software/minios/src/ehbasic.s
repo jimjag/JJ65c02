@@ -365,6 +365,7 @@ Console:         .res 1         ; I/O using Console (0) or Serial (xff)
     token_IRQ
     token_NMI
     token_EXIT
+    token_TTY
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -2133,6 +2134,13 @@ LAB_1754:
     jmp LAB_15FF                ; interpret BASIC code from (Bpntrl)
 ; the code will return to the interpreter loop at the
 ; tail end of the <statement>
+
+; perform TTY, change I/O from Console to TTY and back
+LAB_TTY:
+    lda Console
+    eor #$ff
+    sta Console
+    jmp LAB_WSTART              ; go do warm start
 
 ; perform REM, skip (rest of) line
 
@@ -8047,7 +8055,7 @@ LAB_CTBL:
     .word LAB_CALL-1        ; CALL            new command
     .word LAB_DO-1          ; DO              new command
     .word LAB_LOOP-1        ; LOOP            new command
-    .word print-1       ; PRINT
+    .word print-1           ; PRINT
     .word LAB_CONT-1        ; CONT
     .word LAB_LIST-1        ; LIST
     .word LAB_CLEAR-1       ; CLEAR
@@ -8060,6 +8068,7 @@ LAB_CTBL:
     .word LAB_IRQ-1         ; IRQ             new command
     .word LAB_NMI-1         ; NMI             new command
     .word V_EXIT-1          ; EXIT            new command
+    .word LAB_TTY-1         ; TTY             new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8473,6 +8482,8 @@ LBB_THEN:
       .byte "HEN",token_THEN     ; THEN
 LBB_TO:
       .byte "O",token_TO         ; TO
+LBB_TTY:
+      .byte "TY", token_TTY      ; TTY
 LBB_TWOPI:
       .byte "WOPI",token_TWOPI   ; TWOPI
       .byte $00
@@ -8596,6 +8607,8 @@ LAB_KEYT:
       .word LBB_NMI           ; NMI
       .byte 4,'E'
       .word LBB_EXIT          ; EXIT
+      .byte 3,'T'
+      .word LBB_TTY           ; TTY
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'
@@ -8785,29 +8798,43 @@ LAB_nokey:
 
     and #$DF                    ; mask xx0x xxxx, ensure upper case
     cmp #'W'                    ; compare with [W]arm start
-    beq LAB_dowarm              ; branch if [W]arm start
+    beq @LAB_dowarm              ; branch if [W]arm start
 
     cmp #'C'                    ; compare with [C]old start
     bne LAB_init                ; loop if not [C]old start
 
     jmp LAB_COLD                ; do EhBASIC cold start
 
-LAB_dowarm:
+@LAB_dowarm:
     jmp LAB_WARM                ; do EhBASIC warm start
 
 ; : SYSTEM SPECIFIC VALUE!
 IOout:
+    pha
+    lda Console
+    bne @TTY_o
+    pla
     jsr CON_write_byte
+    rts
+@TTY_o:
+    pla
+    jsr TTY_write_char
     rts
 
 ; : SYSTEM SPECIFIC VALUE!
 IOin:
+    lda Console
+    beq @Conn_i
+    jsr TTY_read_char
+    bra @Check_char
+@Conn_i:
     jsr CON_read_byte
+@Check_char:
     bcc LAB_nobyw               ; No char avail
     cmp #'a'                    ; Is it < 'a'?
-    blt @done           ; Yes, we're done
+    blt @done                   ; Yes, we're done
     cmp #'z'                    ; Is it >= 'z'?
-    bge @done           ; Yes, we're done
+    bge @done                   ; Yes, we're done
     ;and #$5f            ; Otherwise, mask to uppercase
 @done:
     sec                         ; Flag byte received (not really needed)
