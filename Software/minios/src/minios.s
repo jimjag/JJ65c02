@@ -472,15 +472,15 @@ ISR:
 logo:
     .asciiz "     _     _  __  ____   ____ ___ ____\r\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\r\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\r\n| |_| | |_| | (_) |__) | |__| |_| / __/\r\n \\___/ \\___/ \\___/____/ \\____\\___/_____|\r\n"
 message_welcome:
-    .asciiz "      JJ65c02\r\n   miniOS v2.0.0"
+    .asciiz "      JJ65c02\r\n   miniOS v2.0.0\r\n"
 message_welcomeacia:
-    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA"
+    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA\r\n"
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n Press 'B' or 'b' key on console to start: "
 message_readyload:
-    .asciiz "\r\n Getting Ready To LOAD RAM.\r\n Press 'L' or 'l' key on console to start: "
+    .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
@@ -496,7 +496,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image & Run\r\n2. Load RAM Image (via XMODEM)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
+    .asciiz "1. Load RAM Image (via XMODEM) & Run\r\n2. Load RAM Image (via XMODEM)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:

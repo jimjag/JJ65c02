@@ -1,6 +1,9 @@
 LDCFG = jj65c02.cfg
+SIMCFG=jj65c02-sim.cfg
 LDMAP = minios.map
+SIMMAP=sim-minios.map
 LBL = minios.lbl
+SIMLBL=sim-minios.lbl
 TARGET = minios
 
 SRCS =  minios.s \
@@ -22,6 +25,10 @@ $(OBJS): $(SRCS)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
+	#rm -f $(TARGET).bin
+
+sim: $(OBJS)
+	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o sim $(OBJS)
 	#rm -f $(TARGET).bin
 
 .PHONY: clean

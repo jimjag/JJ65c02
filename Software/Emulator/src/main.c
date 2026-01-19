@@ -21,7 +21,7 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
-    int base_addr = 0x8000;
+    int base_addr = 0xb000;
     bool sprint = false;
     bool lcd_8_bit = true;
 

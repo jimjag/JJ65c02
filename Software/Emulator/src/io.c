@@ -19,6 +19,19 @@ void finish_io() {
 
 void handle_io(cpu *m, bool rwb) {
   if (!rwb) {
+    int read;
+    if ((read = getch()) != ERR) {
+      m->interrupt_waiting = 0x01;
+      m->mem[IO_GETCHAR] = read;
+    }
+    if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
+      uint16_t addr = m->dirty_mem_addr;
+      if (addr == IO_PUTCHAR) {
+        addch(m->mem[addr]);
+      }
+    }
+  }
+  if (!rwb) {
     // data potentially written to memory
     if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
       uint16_t addr = m->dirty_mem_addr;

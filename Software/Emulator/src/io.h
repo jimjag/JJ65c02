@@ -5,7 +5,7 @@
 
 #include "cpu.h"
 
-#define IO_PUTCHAR    0xFF00
+#define IO_PUTCHAR    0xA800
 #define IO_GETCHAR    0xFF01
 
 #define IO_PAINT_BLACK     0x00
