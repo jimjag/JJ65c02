@@ -2409,7 +2409,7 @@ LAB_1831:
     beq LAB_18A2                ; go do TAB/SPC
     cmp #','                    ; compare with ","
     beq LAB_188B                ; go do move to next TAB mark
-    cmp #'                      ;'              ; compare with ";"
+    cmp #';'                    ; compare with ";"
     beq LAB_18BD                ; if ";" continue with PRINT processing
     jsr LAB_EVEX                ; evaluate expression
     bit Dtypef                  ; test data type flag, $FF=string, $00=numeric
