@@ -67,160 +67,160 @@
 .segment "ZEROPAGE"
 
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
-LAB_WARM:        .res 1          ; BASIC warm start entry point
-Wrmjpl:          .res 1          ; BASIC warm start vector jump low byte
-Wrmjph:          .res 1          ; BASIC warm start vector jump high byte
+LAB_WARM:        .res 1         ; BASIC warm start entry point
+Wrmjpl:          .res 1         ; BASIC warm start vector jump low byte
+Wrmjph:          .res 1         ; BASIC warm start vector jump high byte
 
-Usrjmp:          .res 1          ; USR function JMP address
-Usrjpl:          .res 1          ; USR function JMP vector low byte
-Usrjph:          .res 1          ; USR function JMP vector high byte
-Nullct:          .res 1          ; nulls output after each line
-TPos:            .res 1          ; BASIC terminal position byte
-TWidth:          .res 1          ; BASIC terminal width byte
-Iclim:           .res 1          ; input column limit
-Itempl:          .res 1          ; temporary integer low byte
-Itemph:          .res 1          ; temporary integer high byte
+Usrjmp:          .res 1         ; USR function JMP address
+Usrjpl:          .res 1         ; USR function JMP vector low byte
+Usrjph:          .res 1         ; USR function JMP vector high byte
+Nullct:          .res 1         ; nulls output after each line
+TPos:            .res 1         ; BASIC terminal position byte
+TWidth:          .res 1         ; BASIC terminal width byte
+Iclim:           .res 1         ; input column limit
+Itempl:          .res 1         ; temporary integer low byte
+Itemph:          .res 1         ; temporary integer high byte
 ; end bulk initialize from StrTab at LAB_GMEM
 
 nums_1          = Itempl        ; number to bin/hex string convert MSB
 nums_2          = Itemph        ; number to bin/hex string convert
-nums_3:          .res 1          ; number to bin/hex string convert LSB
+nums_3:          .res 1         ; number to bin/hex string convert LSB
 
-Srchc:           .res 1          ; search character
+Srchc:           .res 1         ; search character
 Temp3           = Srchc         ; temp byte used in number routines
-Scnquo:          .res 1          ; scan-between-quotes flag
+Scnquo:          .res 1         ; scan-between-quotes flag
 Asrch           = Scnquo        ; alt search character
 
 XOAw_l          = Srchc         ; eXclusive OR, OR and AND word low byte
 XOAw_h          = Scnquo        ; eXclusive OR, OR and AND word high byte
 
-Ibptr:           .res 1          ; input buffer pointer
+Ibptr:           .res 1         ; input buffer pointer
 Dimcnt          = Ibptr         ; # of dimensions
 Tindx           = Ibptr         ; token index
 
-Defdim:          .res 1          ; default DIM flag
-Dtypef:          .res 1          ; data type flag, $FF=string, $00=numeric
-Oquote:          .res 1          ; open quote flag (b7) (Flag: DATA scan; LIST quote; memory)
-Gclctd:          .res 1          ; garbage collected flag
-Sufnxf:          .res 1          ; subscript/FNX flag, 1xxx xxx = FN(0xxx xxx)
-Imode:           .res 1          ; input mode flag, $00=INPUT, $80=READ
+Defdim:          .res 1         ; default DIM flag
+Dtypef:          .res 1         ; data type flag, $FF=string, $00=numeric
+Oquote:          .res 1         ; open quote flag (b7) (Flag: DATA scan; LIST quote; memory)
+Gclctd:          .res 1         ; garbage collected flag
+Sufnxf:          .res 1         ; subscript/FNX flag, 1xxx xxx = FN(0xxx xxx)
+Imode:           .res 1         ; input mode flag, $00=INPUT, $80=READ
 
-Cflag:           .res 1          ; comparison evaluation flag
-TabSiz:          .res 1          ; TAB step size (was input flag)
+Cflag:           .res 1         ; comparison evaluation flag
+TabSiz:          .res 1         ; TAB step size (was input flag)
 
-next_s:          .res 1          ; next descriptor stack address
+next_s:          .res 1         ; next descriptor stack address
                                 ; these two bytes form a word pointer to the item
                                 ; currently on top of the descriptor stack
-last_sl:         .res 1          ; last descriptor stack address low byte
-last_sh:         .res 1          ; last descriptor stack address high byte (always $00)
+last_sl:         .res 1         ; last descriptor stack address low byte
+last_sh:         .res 1         ; last descriptor stack address high byte (always $00)
 
-des_sk:          .res 9          ; descriptor stack start address (temp strings)
+des_sk:          .res 9         ; descriptor stack start address (temp strings)
 
 ;               .res 1          ; End of descriptor stack
 
-ut1_pl:          .res 1          ; utility pointer 1 low byte
-ut1_ph:          .res 1          ; utility pointer 1 high byte
-ut2_pl:          .res 1          ; utility pointer 2 low byte
-ut2_ph:          .res 1          ; utility pointer 2 high byte
+ut1_pl:          .res 1         ; utility pointer 1 low byte
+ut1_ph:          .res 1         ; utility pointer 1 high byte
+ut2_pl:          .res 1         ; utility pointer 2 low byte
+ut2_ph:          .res 1         ; utility pointer 2 high byte
 
 Temp_2          = ut1_pl        ; temp byte for block move
 
-FACt_1:          .res 1          ; FAC temp mantissa1
-FACt_2:          .res 1          ; FAC temp mantissa2
-FACt_3:          .res 1          ; FAC temp mantissa3
+FACt_1:          .res 1         ; FAC temp mantissa1
+FACt_2:          .res 1         ; FAC temp mantissa2
+FACt_3:          .res 1         ; FAC temp mantissa3
 
 dims_l          = FACt_2        ; array dimension size low byte
 dims_h          = FACt_3        ; array dimension size high byte
 
-TempB:           .res 1          ; temp page 0 byte
+TempB:           .res 1         ; temp page 0 byte
 
-Smeml:           .res 1          ; start of mem low byte       (Start-of-Basic)
-Smemh:           .res 1          ; start of mem high byte      (Start-of-Basic)
-Svarl:           .res 1          ; start of vars low byte      (Start-of-Variables)
-Svarh:           .res 1          ; start of vars high byte     (Start-of-Variables)
-Sarryl:          .res 1          ; var mem end low byte        (Start-of-Arrays)
-Sarryh:          .res 1          ; var mem end high byte       (Start-of-Arrays)
-Earryl:          .res 1          ; array mem end low byte      (End-of-Arrays)
-Earryh:          .res 1          ; array mem end high byte     (End-of-Arrays)
-Sstorl:          .res 1          ; string storage low byte     (String storage (moving down))
-Sstorh:          .res 1          ; string storage high byte    (String storage (moving down))
-Sutill:          .res 1          ; string utility ptr low byte
-Sutilh:          .res 1          ; string utility ptr high byte
-Ememl:           .res 1          ; end of mem low byte         (Limit-of-memory)
-Ememh:           .res 1          ; end of mem high byte        (Limit-of-memory)
-Clinel:          .res 1          ; current line low byte       (Basic line number)
-Clineh:          .res 1          ; current line high byte      (Basic line number)
-Blinel:          .res 1          ; break line low byte         (Previous Basic line number)
-Blineh:          .res 1          ; break line high byte        (Previous Basic line number)
+Smeml:           .res 1         ; start of mem low byte       (Start-of-Basic)
+Smemh:           .res 1         ; start of mem high byte      (Start-of-Basic)
+Svarl:           .res 1         ; start of vars low byte      (Start-of-Variables)
+Svarh:           .res 1         ; start of vars high byte     (Start-of-Variables)
+Sarryl:          .res 1         ; var mem end low byte        (Start-of-Arrays)
+Sarryh:          .res 1         ; var mem end high byte       (Start-of-Arrays)
+Earryl:          .res 1         ; array mem end low byte      (End-of-Arrays)
+Earryh:          .res 1         ; array mem end high byte     (End-of-Arrays)
+Sstorl:          .res 1         ; string storage low byte     (String storage (moving down))
+Sstorh:          .res 1         ; string storage high byte    (String storage (moving down))
+Sutill:          .res 1         ; string utility ptr low byte
+Sutilh:          .res 1         ; string utility ptr high byte
+Ememl:           .res 1         ; end of mem low byte         (Limit-of-memory)
+Ememh:           .res 1         ; end of mem high byte        (Limit-of-memory)
+Clinel:          .res 1         ; current line low byte       (Basic line number)
+Clineh:          .res 1         ; current line high byte      (Basic line number)
+Blinel:          .res 1         ; break line low byte         (Previous Basic line number)
+Blineh:          .res 1         ; break line high byte        (Previous Basic line number)
 
-Cpntrl:          .res 1          ; continue pointer low byte
-Cpntrh:          .res 1          ; continue pointer high byte
+Cpntrl:          .res 1         ; continue pointer low byte
+Cpntrh:          .res 1         ; continue pointer high byte
 
-Dlinel:          .res 1          ; current DATA line low byte
-Dlineh:          .res 1          ; current DATA line high byte
+Dlinel:          .res 1         ; current DATA line low byte
+Dlineh:          .res 1         ; current DATA line high byte
 
-Dptrl:           .res 1          ; DATA pointer low byte
-Dptrh:           .res 1          ; DATA pointer high byte
+Dptrl:           .res 1         ; DATA pointer low byte
+Dptrh:           .res 1         ; DATA pointer high byte
 
-Rdptrl:          .res 1          ; read pointer low byte
-Rdptrh:          .res 1          ; read pointer high byte
+Rdptrl:          .res 1         ; read pointer low byte
+Rdptrh:          .res 1         ; read pointer high byte
 
-Varnm1:          .res 1          ; current var name 1st byte
-Varnm2:          .res 1          ; current var name 2nd byte
+Varnm1:          .res 1         ; current var name 1st byte
+Varnm2:          .res 1         ; current var name 2nd byte
 
-Cvaral:          .res 1          ; current var address low byte
-Cvarah:          .res 1          ; current var address high byte
+Cvaral:          .res 1         ; current var address low byte
+Cvarah:          .res 1         ; current var address high byte
 
-Frnxtl:          .res 1          ; var pointer for FOR/NEXT low byte
-Frnxth:          .res 1          ; var pointer for FOR/NEXT high byte
+Frnxtl:          .res 1         ; var pointer for FOR/NEXT low byte
+Frnxth:          .res 1         ; var pointer for FOR/NEXT high byte
 
 Tidx1           = Frnxtl        ; temp line index
 
 Lvarpl          = Frnxtl        ; let var pointer low byte
 Lvarph          = Frnxth        ; let var pointer high byte
 
-prstk:           .res 1          ; precedence stacked flag
+prstk:           .res 1         ; precedence stacked flag
 
-comp_f:          .res 1          ; compare function flag, bits 0,1 and 2 used
+comp_f:          .res 1         ; compare function flag, bits 0,1 and 2 used
                                 ; bit 2 set if >
                                 ; bit 1 set if =
                                 ; bit 0 set if <
 
-func_l:          .res 1          ; function pointer low byte
-func_h:          .res 1          ; function pointer high byte
+func_l:          .res 1         ; function pointer low byte
+func_h:          .res 1         ; function pointer high byte
 
 garb_l          = func_l        ; garbage collection working pointer low byte
 garb_h          = func_h        ; garbage collection working pointer high byte
 
-des_2l:          .res 1          ; string descriptor_2 pointer low byte
-des_2h:          .res 1          ; string descriptor_2 pointer high byte
+des_2l:          .res 1         ; string descriptor_2 pointer low byte
+des_2h:          .res 1         ; string descriptor_2 pointer high byte
 
-g_step:          .res 1          ; garbage collect step size
+g_step:          .res 1         ; garbage collect step size
 
-Fnxjmp:          .res 1          ; jump vector for functions
-Fnxjpl:          .res 1          ; functions jump vector low byte
-Fnxjph:          .res 1          ; functions jump vector high byte
+Fnxjmp:          .res 1         ; jump vector for functions
+Fnxjpl:          .res 1         ; functions jump vector low byte
+Fnxjph:          .res 1         ; functions jump vector high byte
 
 g_indx          = Fnxjpl        ; garbage collect temp index
 
 FAC2_r          = Fnxjph        ; FAC2 rounding byte
 
-Adatal:          .res 1          ; array data pointer low byte
-Adatah:          .res 1          ; array data pointer high  byte
+Adatal:          .res 1         ; array data pointer low byte
+Adatah:          .res 1         ; array data pointer high  byte
 
 Nbendl          = Adatal        ; new block end pointer low byte
 Nbendh          = Adatah        ; new block end pointer high  byte
 
-Obendl:          .res 1          ; old block end pointer low byte
-Obendh:          .res 1          ; old block end pointer high  byte
+Obendl:          .res 1         ; old block end pointer low byte
+Obendh:          .res 1         ; old block end pointer high  byte
 
-numexp:          .res 1          ; string to float number exponent count
-expcnt:          .res 1          ; string to float exponent count
+numexp:          .res 1         ; string to float number exponent count
+expcnt:          .res 1         ; string to float exponent count
 
 numbit          = numexp        ; bit count for array element calculations
 
-numdpf:          .res 1          ; string to float decimal point flag
-expneg:          .res 1          ; string to float eval exponent -ve flag
+numdpf:          .res 1         ; string to float decimal point flag
+expneg:          .res 1         ; string to float eval exponent -ve flag
 
 Astrtl          = numdpf        ; array start pointer low byte
 Astrth          = expneg        ; array start pointer high  byte
@@ -240,11 +240,11 @@ Ostrth          = expneg        ; old block start pointer high  byte
 Vrschl          = numdpf        ; variable search pointer low byte
 Vrschh          = expneg        ; variable search pointer high  byte
 
-FAC1_e:          .res 1          ; FAC1 exponent
-FAC1_1:          .res 1          ; FAC1 mantissa1
-FAC1_2:          .res 1          ; FAC1 mantissa2
-FAC1_3:          .res 1          ; FAC1 mantissa3
-FAC1_s:          .res 1          ; FAC1 sign (b7)
+FAC1_e:          .res 1         ; FAC1 exponent
+FAC1_1:          .res 1         ; FAC1 mantissa1
+FAC1_2:          .res 1         ; FAC1 mantissa2
+FAC1_3:          .res 1         ; FAC1 mantissa3
+FAC1_s:          .res 1         ; FAC1 sign (b7)
 
 str_ln          = FAC1_e        ; string length
 str_pl          = FAC1_1        ; string pointer low byte
@@ -255,28 +255,28 @@ des_ph          = FAC1_3        ; string descriptor pointer high byte
 
 mids_l          = FAC1_3        ; MID$ string temp length byte
 
-negnum:          .res 1          ; string to float eval -ve flag
+negnum:          .res 1         ; string to float eval -ve flag
 numcon          = negnum        ; series evaluation constant count
 
-FAC1_o:          .res 1          ; FAC1 overflow byte
+FAC1_o:          .res 1         ; FAC1 overflow byte
 
-FAC2_e:          .res 1          ; FAC2 exponent
-FAC2_1:          .res 1          ; FAC2 mantissa1
-FAC2_2:          .res 1          ; FAC2 mantissa2
-FAC2_3:          .res 1          ; FAC2 mantissa3
-FAC2_s:          .res 1          ; FAC2 sign (b7)
+FAC2_e:          .res 1         ; FAC2 exponent
+FAC2_1:          .res 1         ; FAC2 mantissa1
+FAC2_2:          .res 1         ; FAC2 mantissa2
+FAC2_3:          .res 1         ; FAC2 mantissa3
+FAC2_s:          .res 1         ; FAC2 sign (b7)
 
-FAC_sc:          .res 1          ; FAC sign comparison, Acc#1 vs #2
-FAC1_r:          .res 1          ; FAC1 rounding byte
+FAC_sc:          .res 1         ; FAC sign comparison, Acc#1 vs #2
+FAC1_r:          .res 1         ; FAC1 rounding byte
 
 ssptr_l         = FAC_sc        ; string start pointer low byte
 ssptr_h         = FAC1_r        ; string start pointer high byte
 
 sdescr          = FAC_sc        ; string descriptor pointer
 
-csidx:           .res 1          ; line crunch save index
+csidx:           .res 1         ; line crunch save index
 Asptl           = csidx         ; array size/pointer low byte
-Aspth:          .res 1           ; array size/pointer high byte
+Aspth:          .res 1          ; array size/pointer high byte
 
 Btmpl           = Asptl         ; BASIC pointer temp low byte
 Btmph           = Aspth         ; BASIC pointer temp low byte
@@ -288,21 +288,21 @@ Sendl           = Asptl         ; BASIC pointer temp low byte
 Sendh           = Aspth         ; BASIC pointer temp low byte
 
 ; the following locations are bulk initialized from LAB_2CEE at LAB_2D4E
-LAB_IGBY:        .res 6          ; get next BASIC byte subroutine
+LAB_IGBY:        .res 6         ; get next BASIC byte subroutine
 
-LAB_GBYT:        .res 1          ; get current BASIC byte subroutine
-Bpntrl:          .res 1          ; BASIC execute (get byte) pointer low byte
-Bpntrh:          .res 20         ; BASIC execute (get byte) pointer high byte
+LAB_GBYT:        .res 1         ; get current BASIC byte subroutine
+Bpntrl:          .res 1         ; BASIC execute (get byte) pointer low byte
+Bpntrh:          .res 20        ; BASIC execute (get byte) pointer high byte
                                 ; plus extra space
 ; end of get BASIC char subroutine
 ; end bulk initialize from LAB_2CEE at LAB_2D4E
 
-Rbyte4:          .res 1          ; extra PRNG byte
-Rbyte1:          .res 1          ; most significant PRNG byte
-Rbyte2:          .res 1          ; middle PRNG byte
-Rbyte3:          .res 1          ; least significant PRNG byte
+Rbyte4:          .res 1         ; extra PRNG byte
+Rbyte1:          .res 1         ; most significant PRNG byte
+Rbyte2:          .res 1         ; middle PRNG byte
+Rbyte3:          .res 1         ; least significant PRNG byte
 
-NmiBase:         .res 3          ; NMI handler enabled/setup/triggered flags
+NmiBase:         .res 3         ; NMI handler enabled/setup/triggered flags
                                 ; bit function
                                 ; === ========
                                 ; 7   interrupt enabled
@@ -310,13 +310,13 @@ NmiBase:         .res 3          ; NMI handler enabled/setup/triggered flags
                                 ; 5   interrupt happened
 ;               .res 1          ; NMI handler addr low byte
 ;               .res 1          ; NMI handler addr high byte
-IrqBase:         .res 3          ; IRQ handler enabled/setup/triggered flags
+IrqBase:         .res 3         ; IRQ handler enabled/setup/triggered flags
 ;               .res 1          ; IRQ handler addr low byte
 ;               .res 1          ; IRQ handler addr high byte
 
-Decss:           .res 1          ; number to decimal string start
-Decssp1:         .res 16         ; number to decimal string start
-Console:         .res 1          ; I/O using Console (0) or Serial (xff)
+Decss:           .res 1         ; number to decimal string start
+Decssp1:         .res 16        ; number to decimal string start
+Console:         .res 1         ; I/O using Console (0) or Serial (xff)
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
@@ -435,32 +435,32 @@ Console:         .res 1          ; I/O using Console (0) or Serial (xff)
 
 ; offsets from a base of X or Y
 
-PLUS_0            = $00       ; X or Y plus 0
-PLUS_1            = $01       ; X or Y plus 1
-PLUS_2            = $02       ; X or Y plus 2
-PLUS_3            = $03       ; X or Y plus 3
+PLUS_0            = $00         ; X or Y plus 0
+PLUS_1            = $01         ; X or Y plus 1
+PLUS_2            = $02         ; X or Y plus 2
+PLUS_3            = $03         ; X or Y plus 3
 
-LAB_STAK          = $0100     ; stack bottom, no offset
+LAB_STAK          = $0100       ; stack bottom, no offset
 
 LAB_SKFE          = LAB_STAK+$FE
-                              ; flushed stack address
+                                ; flushed stack address
 LAB_SKFF          = LAB_STAK+$FF
-                              ; flushed stack address
+                                ; flushed stack address
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
 ; __RAM0_START__
-ccflag     = CC_BASIC             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
-ccbyte     = ccflag+1     ; BASIC CTRL-C byte
-ccnull  = ccbyte+1     ; BASIC CTRL-C byte timeout
-VEC_CC            = ccnull+1  ; ctrl c check vector
+ccflag = CC_BASIC               ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
+ccbyte = ccflag+1               ; BASIC CTRL-C byte
+ccnull = ccbyte+1               ; BASIC CTRL-C byte timeout
+VEC_CC = ccnull+1               ; ctrl c check vector
 ; end bulk initialize from PG2_TABS at LAB_COLD
 
 ; the following locations are bulk initialized from LAB_vec at LAB_stlp
-VEC_IN            = VEC_CC+2 ; input vector
-VEC_OUT           = VEC_IN+2        ; output vector
-VEC_LD            = VEC_OUT+2       ; load vector
-VEC_SV            = VEC_LD+2        ; save vector
-VEC_EXIT          = VEC_SV+2        ; exit vector
+VEC_IN            = VEC_CC+2    ; input vector
+VEC_OUT           = VEC_IN+2    ; output vector
+VEC_LD            = VEC_OUT+2   ; load vector
+VEC_SV            = VEC_LD+2    ; save vector
+VEC_EXIT          = VEC_SV+2    ; exit vector
 ; end bulk initialize by min_mon.asm from LAB_vec at LAB_stlp
 
 ; Ibuffs can now be anywhere in RAM, ensure that the max length is < $80,
@@ -472,10 +472,11 @@ Ibuffs            =  (YMBUF+YMBUF_SIZE)    ; SYSTEM SPECIFIC VALUE!
                               ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
-; __RAM_START__
-Ram_base          = __RAM_START__    ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
-; __IO_START__
-Ram_top           = __IO_START__     ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+Ram_base          = __RAM_START__
+
+; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+Ram_top           = __IO_START__
 
 Stack_floor       = 16        ; bytes left free on stack for background interrupts
 
@@ -541,8 +542,8 @@ TabLoop:
     bne LAB_2DAA                ; branch if not null (user typed something)
 
     ldy #$00                    ; else clear Y
-                              ; character was null so get memory size the hard way
-                              ; we get here with Y=0 and Itempl/h = Ram_base
+; character was null so get memory size the hard way
+; we get here with Y=0 and Itempl/h = Ram_base
 LAB_2D93:
     inc Itempl                  ; increment temporary integer low byte
     bne LAB_2D99                ; branch if no overflow
@@ -572,7 +573,7 @@ LAB_2DAA:
     bcs LAB_GMEM                ; if too large go try again
 
     jsr LAB_F2FU                ; save integer part of FAC1 in temporary integer
-                              ; (no range check)
+; (no range check)
 
 LAB_2DB6:
     lda Itempl                  ; get temporary integer low byte
@@ -594,7 +595,7 @@ LAB_2DB6:
 ;     BCC   MEM_OK            ; branch if < RAM top
 
 ;     BNE   LAB_GMEM          ; if too large go try again
-                              ; else was = so compare low bytes
+; else was = so compare low bytes
 ;     CMP   #<Ram_top         ; compare with top of RAM low byte
 ;     BEQ   MEM_OK            ; branch if = RAM top
 
@@ -655,7 +656,7 @@ LAB_2E05:
 ; Ostrtl,Ostrth - old block start address (unchanged)
 LAB_11CF:
     jsr LAB_121F                ; check available memory, "Out of memory" error if no room
-                              ; addr to check is in AY (low/high)
+; addr to check is in AY (low/high)
     sta Earryl                  ; save new array mem end low byte
     sty Earryh                  ; save new array mem end high byte
 
@@ -674,7 +675,7 @@ LAB_11D6:
     tya                         ; copy block length low byte to A
     beq LAB_120A                ; branch if length low byte=0
 
-                              ; block is (X-1)*256+Y bytes, do the Y bytes first
+; block is (X-1)*256+Y bytes, do the Y bytes first
 
     sec                         ; set carry for add + 1, two's complement
     eor #$FF                    ; invert low byte for subtract
@@ -701,8 +702,7 @@ LAB_11FF:
 LAB_1203:
     dey                         ; decrement index
     bne LAB_11FF                ; loop until Y=0
-
-                              ; now do Y=0 indexed byte
+; now do Y=0 indexed byte
     lda (Obendl),Y              ; get byte from source
     sta (Nbendl),Y              ; save byte to destination
 LAB_120A:
@@ -739,17 +739,17 @@ LAB_121F:
 
     bne LAB_1229                ; skip next test if greater (tested <)
 
-                              ; high byte was =, now do low byte
+ ;high byte was =, now do low byte
     cmp Sstorl                  ; compare with bottom of string mem low byte
     bcc LAB_124B                ; if less then exit (is ok)
 
-                              ; addr is > string storage ptr (oops!)
+; addr is > string storage ptr (oops!)
 LAB_1229:
     pha                         ; push addr low byte
     ldx #$08                    ; set index to save Adatal to expneg inclusive
     tya                         ; copy addr high byte (to push on stack)
 
-                              ; save misc numeric work area
+; save misc numeric work area
 LAB_122D:
     pha                         ; push byte
     lda Adatal-1,X              ; get byte from Adatal to expneg ( ,$00 not pushed)
@@ -758,7 +758,7 @@ LAB_122D:
 
     jsr LAB_GARB                ; garbage collection routine
 
-                              ; restore misc numeric work area
+; restore misc numeric work area
     ldx #$00                    ; clear the index to restore bytes
 LAB_1238:
     pla                         ; pop byte
@@ -775,11 +775,10 @@ LAB_1238:
 
     bne LAB_OMER                ; if greater do "Out of memory" error then warm start
 
-                              ; high byte was =, now do low byte
+; high byte was =, now do low byte
     cmp Sstorl                  ; compare with bottom of string mem low byte
     bcs LAB_OMER                ; if >= do "Out of memory" error then warm start
-
-                              ; ok exit, carry clear
+; ok exit, carry clear
 LAB_124B:
     rts
 
@@ -804,13 +803,13 @@ LAB_1269:
     iny                         ; increment it
     beq LAB_WSTART              ; go do warm start (was immediate mode)
 
-                                ; else print line number
+; else print line number
     jsr LAB_2953                ; print " in line [LINE #]"
 
 ; BASIC warm start entry point
 ; wait for Basic command
 LAB_WSTART:
-                                ; clear ON IRQ/NMI bytes
+; clear ON IRQ/NMI bytes
     lda #$00                    ; clear A
     sta IrqBase                 ; clear enabled byte
     sta NmiBase                 ; clear enabled byte
@@ -832,7 +831,7 @@ LAB_1280:
     stx Clineh                  ; set current line high byte
     bcc LAB_1295                ; branch if numeric character (handle new BASIC line)
 
-                              ; no line number .. immediate mode
+; no line number .. immediate mode
     jsr LAB_13A6                ; crunch keywords into Basic tokens
     jmp LAB_15F6                ; go scan and interpret code
 
@@ -844,7 +843,7 @@ LAB_1295:
     jsr LAB_SSLN                ; search BASIC for temp integer line number
     bcc LAB_12E6                ; branch if not found
 
-                              ; aroooogah! line # already exists! delete it
+; aroooogah! line # already exists! delete it
     ldy #$01                    ; set index to next line pointer high byte
     lda (Baslnl),Y              ; get next line pointer high byte
     sta ut1_ph                  ; save it
@@ -880,7 +879,7 @@ LAB_12D0:
     dec ut1_ph                  ; else decrement source pointer high byte
     clc                         ; clear carry
 
-                              ; close up memory to delete old line
+; close up memory to delete old line
 LAB_12D8:
     lda (ut1_pl),Y              ; get byte from source
     sta (ut2_pl),Y              ; copy to destination
@@ -892,12 +891,12 @@ LAB_12D8:
     dex                         ; decrement block count
     bne LAB_12D8                ; loop until all done
 
-                              ; got new line in buffer and no existing same #
+; got new line in buffer and no existing same #
 LAB_12E6:
     lda Ibuffs                  ; get byte from start of input buffer
     beq LAB_1319                ; if null line just go flush stack/vars and exit
 
-                              ; got new line and it isn't empty line
+; got new line and it isn't empty line
     lda Ememl                   ; get end of mem low byte
     ldy Ememh                   ; get end of mem high byte
     sta Sstorl                  ; set bottom of string space low byte
@@ -914,7 +913,7 @@ LAB_1301:
     sta Nbendl                  ; save new block end low byte (move to, low byte)
     sty Nbendh                  ; save new block end high byte
     jsr LAB_11CF                ; open up space in memory
-                              ; old start pointer Ostrtl,Ostrth set by the find line call
+; old start pointer Ostrtl,Ostrth set by the find line call
     lda Earryl                  ; get array mem end low byte
     ldy Earryh                  ; get array mem end high byte
     sta Svarl                   ; save start of vars low byte
@@ -935,8 +934,8 @@ LAB_1311:
     sta (Baslnl),Y              ; save it to program memory
     dey                         ; decrement count
     lda #$FF                    ; set byte to allow chain rebuild. if you didn't set this
-                              ; byte then a zero already here would stop the chain rebuild
-                              ; as it would think it was the [EOT] marker.
+; byte then a zero already here would stop the chain rebuild
+; as it would think it was the [EOT] marker.
     sta (Baslnl),Y              ; save it to program memory
 
 LAB_1319:
@@ -953,7 +952,7 @@ LAB_1325:
 ; rebuild chaining of Basic lines
 
     ldy #$04                    ; point to first code byte of line
-                              ; there is always 1 byte + [EOL] as null entries are deleted
+; there is always 1 byte + [EOL] as null entries are deleted
 LAB_1330:
     iny                         ; next code byte
     lda (ut1_pl),Y              ; get byte
@@ -982,11 +981,11 @@ LAB_INLN:
     bne LAB_1357                ; call for BASIC input and return
 
 ; receive line from keyboard
-                              ; $08 as delete key (BACKSPACE on standard keyboard)
+; $08 as delete key (BACKSPACE on standard keyboard)
 LAB_134B:
     jsr LAB_PRNA                ; go print the character
     dex                         ; decrement the buffer counter (delete)
-      .byte $2C               ; make LDX into BIT abs
+      .byte $2C                 ; make LDX into BIT abs
 
 ; call for BASIC input (main entry point)
 LAB_1357:
@@ -1031,7 +1030,7 @@ LAB_1384:
 LAB_138E:
     lda #$07                    ; [BELL] character into A
     bne LAB_137F                ; go print the [BELL] but ignore input character
-                              ; branch always
+; branch always
 
 ; crunch keywords into Basic tokens
 ; position independent buffer version ..
@@ -1075,11 +1074,11 @@ PATCH_LC:
     cmp #'*'                    ; compare with "*"
     bcc LAB_13EC                ; if < go save byte then continue crunching
 
-                              ; else crunch now
+; else crunch now
 LAB_13CC:
     bit Oquote                  ; get open quote/DATA token flag
     bvs LAB_13EC                ; branch if b6 of Oquote set (was DATA)
-                              ; go save byte then continue crunching
+; go save byte then continue crunching
 
     stx TempB                   ; save buffer read index
     sty csidx                   ; copy buffer save index
@@ -1095,7 +1094,7 @@ LAB_13D0:
 
 ; *** replace
 ;   bcc   LAB_13EA         ; if < keyword first character table byte go restore
-                              ; Y and save to crunched
+; Y and save to crunched
 ; *** with
     bcc PATCH_LC2               ; if < keyword first character table byte go restore
 ; *** end
@@ -1137,7 +1136,7 @@ LAB_13D8:
 LAB_13EA:
     ldy csidx                   ; restore save index
 
-                              ; save crunched to output
+; save crunched to output
 LAB_13EC:
     inx                         ; increment buffer index (to next input byte)
     iny                         ; increment save index (to next output byte)
@@ -1145,15 +1144,15 @@ LAB_13EC:
     cmp #$00                    ; set the flags, set carry
     beq LAB_142A                ; do exit if was null [EOL]
 
-                              ; A holds token or byte here
+; A holds token or byte here
     sbc   #':'              ; subtract ":" (carry set by CMP #00)
     beq   LAB_13FF          ; branch if it was ":" (is now $00)
 
-                              ; A now holds token-$3A
+; A now holds token-$3A
     cmp #token_DATA-$3A         ; compare with DATA token - $3A
     bne LAB_1401                ; branch if not DATA
 
-                              ; token was : or DATA
+; token was : or DATA
 LAB_13FF:
     sta   Oquote            ; save token-$3A (clear for ":", token_DATA-$3A for DATA)
 LAB_1401:
@@ -1162,7 +1161,7 @@ LAB_1401:
 
     sta Asrch                   ; else was REM so set search for [EOL]
 
-                              ; loop for REM, "..." etc.
+; loop for REM, "..." etc.
 LAB_1408:
     lda Ibuffs,X                ; get byte from input buffer
     beq LAB_13EC                ; branch if null [EOL]
@@ -1170,18 +1169,18 @@ LAB_1408:
     cmp Asrch                   ; compare with stored character
     beq LAB_13EC                ; branch if match (end quote)
 
-                              ; entry for copy string in quotes, don't crunch
+; entry for copy string in quotes, don't crunch
 LAB_1410:
     iny                         ; increment buffer save index
     sta Ibuffs,Y                ; save byte to output
     inx                         ; increment buffer read index
     bne LAB_1408                ; loop while <> 0 (should never be 0!)
 
-                              ; not found keyword this go
+; not found keyword this go
 LAB_1417:
     ldx TempB                   ; compare has failed, restore buffer index (start byte!)
 
-                              ; now find the end of this word in the table
+; now find the end of this word in the table
 LAB_141B:
     lda (ut2_pl),Y              ; get table byte
     php                         ; save status
@@ -1191,16 +1190,16 @@ LAB_141B:
 
     lda (ut2_pl),Y              ; get byte from keyword table
     bne LAB_13D8                ; go test next word if not zero byte (end of table)
-                            ; reached end of table with no match
+; reached end of table with no match
 ; *** add label
 PATCH_LC2:
 ; *** end
 ; *** end   patch: lower case token recognition V2 ***
     lda Ibuffs,X                ; restore byte from input buffer
     bpl LAB_13EA                ; branch always (all bytes in buffer are $00-$7F)
-                              ; go save byte in output and continue crunching
+; go save byte in output and continue crunching
 
-                              ; reached [EOL]
+; reached [EOL]
 LAB_142A:
     iny                         ; increment pointer
     iny                         ; increment pointer (makes it next line pointer high byte)
@@ -1251,7 +1250,7 @@ LAB_1456:
     dey                         ; decrement index to next line ptr low byte
     lda (Baslnl),Y              ; get next line pointer low byte
     bcc LAB_SHLN                ; go search for line # in temp (Itempl/Itemph) from AX
-                              ; (carry always clear)
+; (carry always clear)
 
 LAB_145E:
     beq LAB_1460                ; exit if temp = found line #, carry is set
@@ -1323,7 +1322,7 @@ LAB_14A6:
 ; perform CLEAR
 LAB_CLEAR:
     beq LAB_147A                ; if no following token go do "CLEAR"
-                              ; else there was a following token (go do syntax error)
+; else there was a following token (go do syntax error)
     rts
 
 ; perform LIST [n][-m]
@@ -1337,21 +1336,21 @@ LAB_LIST:
     cmp #token_MINUS            ; compare with token for -
     bne LAB_14A6                ; exit if not - (LIST -m)
 
-                              ; LIST [[n][-m]]
-                              ; this bit sets the n , if present, as the start and end
+; LIST [[n][-m]]
+; this bit sets the n , if present, as the start and end
 LAB_14BD:
     jsr LAB_GFPN                ; get fixed-point number into temp integer
     jsr LAB_SSLN                ; search BASIC for temp integer line number
-                              ; (pointer in Baslnl/Baslnh)
+; (pointer in Baslnl/Baslnh)
     jsr LAB_GBYT                ; scan memory
     beq LAB_14D4                ; branch if no more characters
 
-                              ; this bit checks the - is present
+; this bit checks the - is present
     cmp #token_MINUS            ; compare with token for -
     bne LAB_1460                ; return if not "-" (will be Syntax error)
 
-                              ; LIST [n]-m
-                              ; the - was there so set m as the end value
+; LIST [n]-m
+; the - was there so set m as the end value
     jsr LAB_IGBY                ; increment and scan memory
     jsr LAB_GFPN                ; get fixed-point number into temp integer
     bne LAB_1460                ; exit if not ok
@@ -1369,7 +1368,7 @@ LAB_14E2:
     sty Oquote                  ; clear open quote flag
     jsr LAB_CRLF                ; print CR/LF
     lda (Baslnl),Y              ; get next line pointer high byte
-                              ; pointer initially set by search at LAB_14BD
+; pointer initially set by search at LAB_14BD
     beq LAB_152B                ; if null all done so exit
     jsr LAB_1629                ; do CRTL-C check vector
 
@@ -1399,7 +1398,7 @@ LAB_150C:
     cmp #$22                    ; was it " character
     bne LAB_1519                ; branch if not
 
-                              ; we are either entering or leaving a pair of quotes
+; we are either entering or leaving a pair of quotes
     lda Oquote                  ; get open quote flag
     eor #$FF                    ; toggle it
     sta Oquote                  ; save it back
@@ -1415,14 +1414,14 @@ LAB_1519:
     stx Baslnl                  ; set pointer to line low byte
     sta Baslnh                  ; set pointer to line high byte
     bne LAB_14E2                ; go do next line if not [EOT]
-                              ; else ..
+; else ..
 LAB_152B:
     rts
 
 LAB_152E:
     bpl LAB_150C                ; just go print it if not token byte
 
-                              ; else was token byte so uncrunch it (maybe)
+; else was token byte so uncrunch it (maybe)
     bit Oquote                  ; test the open quote flag
     bmi LAB_150C                ; just go print character if open quote set
 
@@ -1479,7 +1478,7 @@ LAB_FOR:
     pla                         ; pull return address
     lda #$10                    ; we need 16d bytes !
     jsr LAB_1212                ; check room on stack for A bytes
-    jsr   LAB_SNBS          ; scan for next BASIC statement ([:] or [EOL])
+    jsr LAB_SNBS                ; scan for next BASIC statement ([:] or [EOL])
     clc                         ; clear carry for add
     tya                         ; copy index to A
     adc Bpntrl                  ; add BASIC execute pointer low byte
@@ -1495,7 +1494,7 @@ LAB_FOR:
     jsr LAB_SCCA                ; scan for CHR$(A) , else do syntax error then warm start
     jsr LAB_CTNM                ; check if source is numeric, else do type mismatch
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
 ; *** begin patch  2.22p5.1   TO expression may get sign bit flipped
 ; *** add
     jsr LAB_27BA                ; round FAC1
@@ -1518,19 +1517,19 @@ LAB_159F:
     cmp #token_STEP             ; compare with STEP token
     bne LAB_15B3                ; jump if not "STEP"
 
-                              ;.was step so ..
+;.was step so ..
     jsr LAB_IGBY                ; increment and scan memory
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
 LAB_15B3:
     jsr LAB_27CA                ; return A=FF,C=1/-ve A=01,C=0/+ve
     sta FAC1_s                  ; set FAC1 sign (b7)
-                              ; this is +1 for +ve step and -1 for -ve step, in NEXT we
-                              ; compare the FOR value and the TO value and return +1 if
-                              ; FOR > TO, 0 if FOR = TO and -1 if FOR < TO. the value
-                              ; here (+/-1) is then compared to that result and if they
-                              ; are the same (+ve and FOR > TO or -ve and FOR < TO) then
-                              ; the loop is done
+; this is +1 for +ve step and -1 for -ve step, in NEXT we
+; compare the FOR value and the TO value and return +1 if
+; FOR > TO, 0 if FOR = TO and -1 if FOR < TO. the value
+; here (+/-1) is then compared to that result and if they
+; are the same (+ve and FOR > TO or -ve and FOR < TO) then
+; the loop is done
 
 ; *** begin patch  2.22p5.3   potential return address -$100 (page not incremented) ***
 ; *** add
@@ -1554,7 +1553,7 @@ LAB_15C2:
     ldy Bpntrh                  ; get BASIC execute pointer high byte
 
     ldx Clineh                  ; continue line is $FFxx for immediate mode
-                              ; ($00xx for RUN from immediate mode)
+; ($00xx for RUN from immediate mode)
     inx                         ; increment it (now $00 if immediate mode)
 ;*** fix p2: skip no longer necessary as the continue pointer is saved anyway
 ;      BEQ   LAB_15D1          ; branch if null (immediate mode)
@@ -1566,19 +1565,18 @@ LAB_15D1:
     lda (Bpntrl),Y              ; get next byte
     beq LAB_15DC                ; branch if null [EOL]
 
-    cmp   #':'              ; compare with ":"
+    cmp #':'                    ; compare with ":"
     beq LAB_15F6                ; branch if = (statement separator)
 
 LAB_15D9:
     jmp LAB_SNER                ; else syntax error then warm start
 
-                              ; have reached [EOL]
+; have reached [EOL]
 LAB_15DC:
     ldy #$02                    ; set index
     lda (Bpntrl),Y              ; get next line pointer high byte
     clc                         ; clear carry for no "BREAK" message
-    beq LAB_1651                ; if null go to immediate mode (was immediate or [EOT]
-                              ; marker)
+    beq LAB_1651                ; if null go to immediate mode (was immediate or [EOT] marker)
 
     iny                         ; increment index
     lda (Bpntrl),Y              ; get line # low byte
@@ -1615,14 +1613,14 @@ LAB_1602:
 LAB_1609:
     cmp #(token_TAB-$80)*2      ; compare normalised token * 2 with TAB
     bcs LAB_15D9                ; branch if A>=TAB (do syntax error then warm start)
-                              ; only tokens before TAB can start a line
+; only tokens before TAB can start a line
     tay                         ; copy to index
     lda LAB_CTBL+1,Y            ; get vector high byte
     pha                         ; onto stack
     lda LAB_CTBL,Y              ; get vector low byte
     pha                         ; onto stack
     jmp LAB_IGBY                ; jump to increment and scan memory
-                              ; then "return" to vector
+; then "return" to vector
 
 ; CTRL-C check jump. this is called as a subroutine but exits back via a jump if a
 ; key press is detected.
@@ -1639,7 +1637,7 @@ LAB_1636:
 
 LAB_STOP:
     bcs LAB_163B                ; branch if token follows STOP
-                              ; else just END
+; else just END
 ; END
 
 LAB_END:
@@ -1667,8 +1665,7 @@ LAB_164F:
     pla                         ; pull return address high
 LAB_1651:
     bcc LAB_165E                ; if was program end just do warm start
-
-                              ; else ..
+; else ..
     lda #<LAB_BMSG              ; point to "Break" low byte
     ldy #>LAB_BMSG              ; point to "Break" high byte
     jmp LAB_1269                ; print "Break" and do warm start
@@ -1695,8 +1692,7 @@ LAB_1624:
     sty Dptrh                   ; save DATA pointer high byte
 LAB_1628:
     rts
-
-                              ; is RESTORE n
+; is RESTORE n
 LAB_RESTOREn:
     jsr LAB_GFPN                ; get fixed-point number into temp integer
     jsr LAB_SNBL                ; scan for next BASIC line
@@ -1729,14 +1725,14 @@ LAB_go_search:
     jmp LAB_16F7                ; else go do "Undefined statement" error
 
 LAB_line_found:
-                              ; carry already set for subtract
+; carry already set for subtract
     lda Baslnl                  ; get pointer low byte
     sbc #$01                    ; -1
     ldy Baslnh                  ; get pointer high byte
     bcs LAB_1624                ; branch if no underflow (save DATA pointer and return)
 
     bcc LAB_uflow               ; else decrement high byte then save DATA pointer and
-                              ; return (branch always)
+; return (branch always)
 
 ; perform NULL
 
@@ -1757,8 +1753,7 @@ LAB_CONT:
 
     ldx #$1E                    ; error code $1E ("Can't continue" error)
     jmp LAB_XERR                ; do error #X, then warm start
-
-                              ; we can continue so ..
+; we can continue so ..
 LAB_166C:
     lda #token_ON               ; set token for ON
     jsr LAB_IRQ                 ; set IRQ flags
@@ -1779,7 +1774,7 @@ LAB_166C:
 LAB_RUN:
     bne LAB_1696                ; branch if RUN n
     jmp LAB_1477                ; reset execution to start, clear variables, flush stack and
-                              ; return
+; return
 
 ; does RUN n
 
@@ -1824,7 +1819,7 @@ LAB_16B0:
     jsr LAB_GBYT                ; scan memory
     jsr LAB_GOTO                ; perform GOTO n
     jmp LAB_15C2                ; go do interpreter inner loop
-                              ; (can't RTS, we used the stack!)
+; (can't RTS, we used the stack!)
 
 ; perform GOTO
 
@@ -1855,9 +1850,8 @@ LAB_16D0:
 LAB_16D4:
     jsr LAB_SHLN                ; search Basic for temp integer line number from AX
     bcc LAB_16F7                ; if carry clear go do "Undefined statement" error
-                              ; (unspecified statement)
-
-                              ; carry already set for subtract
+; (unspecified statement)
+; carry already set for subtract
     lda Baslnl                  ; get pointer low byte
     sbc #$01                    ; -1
     sta Bpntrl                  ; save BASIC execute pointer low byte
@@ -1885,7 +1879,7 @@ LAB_LOOP:
     txs                         ; correct stack
     tya                         ; get saved following token back
     beq LoopAlways              ; if no following token loop forever
-                              ; (stack pointer in X)
+; (stack pointer in X)
 
     cmp   #':'              ; could be ':'
     beq   LoopAlways        ; if :... loop forever
@@ -1896,7 +1890,7 @@ LAB_LOOP:
 
     dex                         ; decrement result
     bne LAB_16FC                ; if not WHILE go do syntax error and warm start
-                              ; only if the token was WHILE will this fail
+; only if the token was WHILE will this fail
 
     dex                         ; set invert result byte
 DoRest:
@@ -1911,8 +1905,7 @@ DoCmp:
     tsx                         ; copy stack pointer
     eor Frnxth                  ; EOR with invert byte
     bne LoopDone                ; if <> 0 clear stack and back to interpreter loop
-
-                              ; loop condition wasn't met so do it again
+; loop condition wasn't met so do it again
 LoopAlways:
     lda LAB_STAK+2,X            ; get current line low byte
     sta Clinel                  ; save current line low byte
@@ -1924,8 +1917,7 @@ LoopAlways:
     sta Bpntrh                  ; save BASIC execute pointer high byte
     jsr LAB_GBYT                ; scan memory
     jmp LAB_15C2                ; go do interpreter inner loop
-
-                              ; clear stack and back to interpreter loop
+; clear stack and back to interpreter loop
 LoopDone:
     inx                         ; dump DO token
     inx                         ; dump current line low byte
@@ -1966,18 +1958,16 @@ LAB_16FF:
     sta Bpntrl                  ; save BASIC execute pointer low byte
     pla                         ; pull BASIC execute pointer high byte
     sta Bpntrh                  ; save BASIC execute pointer high byte
-
-                              ; now do the DATA statement as we could be returning into
-                              ; the middle of an ON <var> GOSUB n,m,p,q line
-                              ; (the return address used by the DATA statement is the one
-                              ; pushed before the GOSUB was executed!)
+; now do the DATA statement as we could be returning into
+; the middle of an ON <var> GOSUB n,m,p,q line
+; (the return address used by the DATA statement is the one
+; pushed before the GOSUB was executed!)
 
 ; perform DATA
 
 LAB_DATA:
     jsr   LAB_SNBS          ; scan for next BASIC statement ([:] or [EOL])
-
-                              ; set BASIC execute pointer
+; set BASIC execute pointer
 LAB_170F:
     tya                         ; copy index to A
     clc                         ; clear carry for add
@@ -2030,8 +2020,7 @@ LAB_IF:
     jsr LAB_GBYT                ; scan memory
     cmp #token_THEN             ; compare with THEN token
     beq LAB_174B                ; if it was THEN go do IF
-
-                              ; wasn't IF .. THEN so must be IF .. GOTO
+; wasn't IF .. THEN so must be IF .. GOTO
     cmp #token_GOTO             ; compare with GOTO token
     bne LAB_16FC                ; if it wasn't GOTO go do syntax error
 
@@ -2051,8 +2040,7 @@ LAB_174B:
 
 LAB_174C:
     jmp LAB_GOTO                ; else was numeric so do GOTO n
-
-                              ; is var or keyword
+; is var or keyword
 LAB_174D:
 ; *** patch       allow NEXT, LOOP & RETURN to find FOR, DO or GOSUB structure on stack
 ; *** replace
@@ -2139,12 +2127,12 @@ LAB_1753:
 LAB_1754:
     jsr LAB_GBYT                ; scan memory
     bcc LAB_174C                ; if numeric do GOTO n
-                              ; the code will return to the interpreter loop at the
-                              ; tail end of the GOTO <n>
+; the code will return to the interpreter loop at the
+; tail end of the GOTO <n>
 
     jmp LAB_15FF                ; interpret BASIC code from (Bpntrl)
-                              ; the code will return to the interpreter loop at the
-                              ; tail end of the <statement>
+; the code will return to the interpreter loop at the
+; tail end of the <statement>
 
 ; perform REM, skip (rest of) line
 
@@ -2192,15 +2180,15 @@ LAB_176B:
 LAB_1773:
     jsr LAB_IGBY                ; increment and scan memory
     jsr LAB_GFPN                ; get fixed-point number into temp integer (skip this n)
-                              ; (we could LDX #',' and JSR LAB_SNBL+2, then we
-                              ; just BNE LAB_176B for the loop. should be quicker ..
-                              ; no we can't, what if we meet a colon or [EOL]?)
+; (we could LDX #',' and JSR LAB_SNBL+2, then we
+; just BNE LAB_176B for the loop. should be quicker ..
+; no we can't, what if we meet a colon or [EOL]?)
     cmp #$2C                    ; compare next character with ","
     beq LAB_176B                ; loop if ","
 
 LAB_177E:
     pla                         ; else pull keyword token (run out of options)
-                              ; also dump +/-1 pointer low byte and exit
+; also dump +/-1 pointer low byte and exit
 LAB_177F:
     rts
 
@@ -2214,13 +2202,13 @@ LAB_GFPN:
 LAB_1785:
     stx Itemph                  ; save temporary integer high byte
     bcs LAB_177F                ; return if carry set, end of scan, character was
-                              ; not 0-9
+; not 0-9
 
     cpx #$19                    ; compare high byte with $19
     tay                         ; ensure Zb = 0 if the branch is taken
     bcs LAB_1767                ; branch if >=, makes max line # 63999 because next
-                              ; bit does *$0A, = 64000, compare at target will fail
-                              ; and do syntax error
+; bit does *$0A, = 64000, compare at target will fail
+; and do syntax error
 
     sbc #'0'-1                  ; subtract "0", $2F + carry, from byte
     tay                         ; copy binary digit
@@ -2276,7 +2264,7 @@ LAB_17B7:
     cmp #','                    ; compare with ","
     bne LAB_177E                ; exit if not "," (either end or error)
 
-                              ; was "," so another INCR variable to do
+; was "," so another INCR variable to do
     jsr LAB_IGBY                ; increment and scan memory
     jmp LAB_17B7                ; go do next var
 
@@ -2317,13 +2305,13 @@ LAB_17D5:
     bcc LAB_17F4                ; if less assign value and exit (was in program memory)
 
     bne LAB_17E6                ; branch if >
-                              ; else was equal so compare low bytes
+; else was equal so compare low bytes
     dey                         ; decrement index
     lda (des_pl),Y              ; get pointer low byte
     cmp Sstorl                  ; compare bottom of string space low byte
     bcc LAB_17F4                ; if less assign value and exit (was in program memory)
 
-                              ; pointer was >= to bottom of string space pointer
+; pointer was >= to bottom of string space pointer
 LAB_17E6:
     ldy des_ph                  ; get descriptor pointer high byte
     cpy Svarh                   ; compare start of vars high byte
@@ -2331,7 +2319,7 @@ LAB_17E6:
 
     bne LAB_17FB                ; branch if greater (descriptor is not on stack)
 
-                              ; else high bytes were equal so ..
+; else high bytes were equal so ..
     lda des_pl                  ; get descriptor pointer low byte
     cmp Svarl                   ; compare start of vars low byte
     bcs LAB_17FB                ; branch if >= (descriptor is not on stack)
@@ -2341,7 +2329,7 @@ LAB_17F4:
     ldy des_ph                  ; get descriptor pointer high byte
     jmp LAB_1811                ; clean stack, copy descriptor to variable and return
 
-                              ; make space and copy string
+; make space and copy string
 LAB_17FB:
     ldy #$00                    ; index to length
     lda (des_pl),Y              ; get string length
@@ -2354,7 +2342,7 @@ LAB_17FB:
     lda #<FAC1_e                ; set descriptor pointer low byte
     ldy #>FAC1_e                ; get descriptor pointer high byte
 
-                              ; clean stack and assign value to string variable
+; clean stack and assign value to string variable
 LAB_1811:
     sta des_2l                  ; save descriptor_2 pointer low byte
     sty des_2h                  ; save descriptor_2 pointer high byte
@@ -2380,7 +2368,7 @@ LAB_GET:
     ldx Dtypef                  ; get data type flag, $FF=string, $00=numeric
     bmi LAB_GETS                ; go get string character
 
-                              ; was numeric get
+; was numeric get
     tay                         ; copy character to Y
     jsr LAB_1FD0                ; convert Y to byte in FAC1
     jmp LAB_PFAC                ; pack FAC1 into variable (Lvarpl) and return
@@ -2393,7 +2381,7 @@ LAB_GETS:
     pla                         ; string is null
 LAB_IsByte:
     jsr LAB_MSSP                ; make string space A bytes long A=$AC=length,
-                              ; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
+; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
     beq LAB_NoSt                ; skip store if null string
 
     pla                         ; get character back
@@ -2401,7 +2389,7 @@ LAB_IsByte:
     sta (str_pl),Y              ; save byte in string (byte IS string!)
 LAB_NoSt:
     jsr LAB_RTST                ; check for space on descriptor stack then put address
-                              ; and length on descriptor stack and update stack pointers
+; and length on descriptor stack and update stack pointers
 
     jmp LAB_17D5                ; do string LET and return
 
@@ -2477,7 +2465,7 @@ LAB_1898:
     adc #$01                    ; +1 (twos complement)
     bne LAB_18B6                ; always print A spaces (result is never $00)
 
-                              ; do TAB/SPC
+; do TAB/SPC
 LAB_18A2:
     pha                         ; save token
     jsr LAB_SGBY                ; scan and get byte parameter
@@ -2488,25 +2476,25 @@ LAB_18A2:
     cmp #token_TAB              ; was it TAB ?
     bne LAB_18B7                ; if not go do SPC
 
-                              ; calculate TAB offset
+; calculate TAB offset
     txa                         ; copy integer value to A
     sbc TPos                    ; subtract terminal position
     bcc LAB_18BD                ; branch if result was < 0 (can't TAB backwards)
 
-                              ; print A spaces
+; print A spaces
 LAB_18B6:
     tax                         ; copy result to X
 LAB_18B7:
     txa                         ; set flags on size for SPC
     beq LAB_18BD                ; branch if result was = $0, already here
 
-                              ; print X spaces
+; print X spaces
 LAB_18BA:
     jsr LAB_18E0                ; print " "
     dex                         ; decrement count
     bne LAB_18BA                ; loop if not all done
 
-                              ; continue with PRINT processing
+; continue with PRINT processing
 LAB_18BD:
     jsr LAB_IGBY                ; increment and scan memory
     bne LAB_1831                ; if more to print go do it
@@ -2522,8 +2510,8 @@ LAB_18C3:
 
 LAB_18C6:
     jsr LAB_22B6                ; pop string off descriptor stack, or from top of string
-                              ; space returns with A = length, X=$71=pointer low byte,
-                              ; Y=$72=pointer high byte
+; space returns with A = length, X=$71=pointer low byte,
+; Y=$72=pointer high byte
     ldy #$00                    ; reset index
     tax                         ; copy length to X
     beq LAB_188C                ; exit (RTS) if null string
@@ -2537,7 +2525,7 @@ LAB_18CD:
 
     rts
 
-                              ; Print single format character
+; Print single format character
 ; print " "
 LAB_18E0:
     lda #' '
@@ -2555,7 +2543,7 @@ LAB_PRNA:
     cmp #' '                    ; compare with " "
     bcc LAB_18F9                ; branch if less (non printing)
 
-                                ; else printable character
+; else printable character
     pha                         ; save the character
 
 ; don't check fit if terminal width byte is zero
@@ -2585,7 +2573,7 @@ LAB_18F9:
     cmp #$0D                    ; compare with [CR]
     bne LAB_188A                ; branch if not [CR]
 
-                              ; else print nullct nulls after the [CR]
+; else print nullct nulls after the [CR]
     stx TempB                   ; save buffer index
     ldx Nullct                  ; get null count
     beq LAB_1886                ; branch if no nulls
@@ -2618,7 +2606,7 @@ LAB_1904:
 LAB_1910:
     jmp LAB_SNER                ; do syntax error then warm start
 
-                              ; mode was INPUT
+; mode was INPUT
 LAB_1913:
     lda #<LAB_REDO              ; point to redo message (low addr)
     ldy #>LAB_REDO              ; point to redo message (high addr)
@@ -2640,7 +2628,7 @@ LAB_INPUT:
     jsr LAB_SCCA                ; scan for CHR$(A), else do syntax error then warm start
     jsr LAB_18C6                ; print string from Sutill/Sutilh
 
-                              ; done with prompt, now get data
+; done with prompt, now get data
 LAB_1934:
     jsr LAB_CKRN                ; check not Direct, back here if ok
     jsr LAB_INLN                ; print "? " and get BASIC input
@@ -2664,7 +2652,7 @@ LAB_1953:
     stx Rdptrl                  ; save READ pointer low byte
     sty Rdptrh                  ; save READ pointer high byte
 
-                              ; READ or INPUT next variable from list
+; READ or INPUT next variable from list
 LAB_195B:
     jsr LAB_GVAR                ; get (var) address
     sta Lvarpl                  ; save address low byte
@@ -2680,11 +2668,11 @@ LAB_195B:
     jsr LAB_GBYT                ; scan memory
     bne LAB_1988                ; branch if not null
 
-                              ; pointer was to null entry
+; pointer was to null entry
     bit Imode                   ; test input mode flag, $00=INPUT, $80=READ
     bmi LAB_19DD                ; branch if READ
 
-                              ; mode was INPUT
+; mode was INPUT
     jsr LAB_18E3                ; print "?" character (double ? for extended input)
     jsr LAB_INLN                ; print "? " and get BASIC input
     stx Bpntrl                  ; set BASIC execute pointer low byte
@@ -2695,7 +2683,7 @@ LAB_1988:
     bit Dtypef                  ; test data type flag, $FF=string, $00=numeric
     bpl LAB_19B0                ; branch if numeric
 
-                              ; else get string
+; else get string
     sta Srchc                   ; save search character
     cmp #$22                    ; was it " ?
     beq LAB_1999                ; branch if so
@@ -2719,7 +2707,7 @@ LAB_19A4:
     jsr LAB_17D5                ; go do string LET
     jmp LAB_19B6                ; go check string terminator
 
-                              ; get numeric INPUT
+; get numeric INPUT
 LAB_19B0:
     jsr LAB_2887                ; get FAC1 from string
     jsr LAB_PFAC                ; pack FAC1 into (Lvarpl)
@@ -2732,7 +2720,7 @@ LAB_19B6:
 
     jmp LAB_1904                ; else go handle bad input data
 
-                              ; got good input data
+; got good input data
 LAB_19C2:
     jsr LAB_IGBY                ; increment and scan memory
 LAB_19C5:
@@ -2750,7 +2738,7 @@ LAB_19C5:
     jsr LAB_1C01                ; else scan for "," , else do syntax error then warm start
     jmp LAB_195B                ; go INPUT next variable from list
 
-                              ; find next DATA statement or do "Out of DATA" error
+; find next DATA statement or do "Out of DATA" error
 LAB_19DD:
     jsr   LAB_SNBS          ; scan for next BASIC statement ([:] or [EOL])
     iny                         ; increment index
@@ -2789,7 +2777,7 @@ LAB_1A03:
 
     jmp LAB_1624                ; save AY as DATA pointer and return
 
-                              ; we were getting INPUT
+; we were getting INPUT
 LAB_1A0E:
     ldy #$00                    ; clear index
     lda (Rdptrl),Y              ; get next byte
@@ -2797,7 +2785,7 @@ LAB_1A0E:
 
     rts
 
-                              ; user typed too much
+; user typed too much
 LAB_1A1B:
     lda #<LAB_IMSG              ; point to extra ignored message (low addr)
     ldy #>LAB_IMSG              ; point to extra ignored message (high addr)
@@ -2817,7 +2805,7 @@ LAB_11A6:
     cmp #token_FOR              ; is it FOR token
     bne LAB_11CE                ; exit if not FOR token
 
-                              ; was FOR token
+; was FOR token
     lda Frnxth                  ; get var pointer for FOR/NEXT high byte
     bne LAB_11BB                ; branch if not null
 
@@ -2858,7 +2846,7 @@ LAB_1A46:
 LAB_1A49:
     sta Frnxtl                  ; store variable pointer low byte
     sty Frnxth                  ; store variable pointer high byte
-                              ; (both cleared if no variable defined)
+; (both cleared if no variable defined)
     jsr LAB_11A1                ; search the stack for FOR activity
     beq LAB_1A56                ; branch if found
 
@@ -2890,7 +2878,7 @@ LAB_1A56:
     cmp LAB_STAK+8,X            ; compare step sign
     beq LAB_1A9B                ; branch if = (loop complete)
 
-                              ; loop back and do it all again
+; loop back and do it all again
     lda LAB_STAK+$0D,X          ; get FOR line low byte
     sta Clinel                  ; save current line low byte
     lda LAB_STAK+$0E,X          ; get FOR line high byte
@@ -2902,7 +2890,7 @@ LAB_1A56:
 LAB_1A98:
     jmp LAB_15C2                ; go do interpreter inner loop
 
-                              ; loop complete so carry on
+; loop complete so carry on
 LAB_1A9B:
     txa                         ; stack copy to A
     adc #$0F                    ; add $10 ($0F+carry) to dump FOR structure
@@ -2912,7 +2900,7 @@ LAB_1A9B:
     cmp #','                    ; compare with ","
     bne LAB_1A98                ; branch if not "," (go do interpreter inner loop)
 
-                              ; was "," so another NEXT variable to do
+; was "," so another NEXT variable to do
     jsr LAB_IGBY                ; else increment and scan memory
     jsr LAB_1A46                ; do NEXT (var)
 
@@ -2933,14 +2921,14 @@ LAB_CTST:
 LAB_CKTM:
     bit Dtypef                  ; test data type flag, $FF=string, $00=numeric
     bmi LAB_1ABA                ; branch if data type is string
-                              ; else data type was numeric
+; else data type was numeric
     bcs LAB_1ABC                ; if required type is string do type mismatch error
 LAB_1AB9:
     rts
-                              ; data type was string, now check required type
+; data type was string, now check required type
 LAB_1ABA:
     bcs LAB_1AB9                ; exit if required type is string
-                              ; else do type mismatch error
+; else do type mismatch error
 LAB_1ABC:
     ldx #$18                    ; error code $18 ("Type mismatch" error)
 LAB_1ABE:
@@ -2975,41 +2963,41 @@ LAB_1ADE:
     cmp #$03                    ; compare with ">" to "<" tokens
     bcs LAB_1AFA                ; branch if >= token_SGN (highest evaluation function +1)
 
-                              ; was token for > = or < (A = 0, 1 or 2)
+; was token for > = or < (A = 0, 1 or 2)
     cmp #$01                    ; compare with token for =
     rol                         ; *2, b0 = carry (=1 if token was = or <)
-                              ; (A = 0, 3 or 5)
+; (A = 0, 3 or 5)
     eor #$01                    ; toggle b0
-                              ; (A = 1, 2 or 4. 1 if >, 2 if =, 4 if <)
+; (A = 1, 2 or 4. 1 if >, 2 if =, 4 if <)
     eor comp_f                  ; EOR with compare function flag bits
     cmp comp_f                  ; compare with compare function flag
     bcc LAB_1B53                ; if <(comp_f) do syntax error then warm start
-                              ; was more than one <, = or >)
+; was more than one <, = or >)
 
     sta comp_f                  ; save new compare function flag
     jsr LAB_IGBY                ; increment and scan memory
     jmp LAB_1ADE                ; go do next character
 
-                              ; token is < ">" or > "<" tokens
+; token is < ">" or > "<" tokens
 LAB_1AFA:
     ldx comp_f                  ; get compare function flag
     bne LAB_1B2A                ; branch if compare function
 
     bcs LAB_1B78                ; go do functions
 
-                              ; else was <  token_GT so is operator or lower
+; else was <  token_GT so is operator or lower
     adc #token_GT-token_PLUS    ; add # of operators (+, -, *, /, ^, AND, OR or EOR)
     bcc LAB_1B78                ; branch if < + operator
 
-                              ; carry was set so token was +, -, *, /, ^, AND, OR or EOR
+; carry was set so token was +, -, *, /, ^, AND, OR or EOR
     bne LAB_1B0B                ; branch if not + token
 
     bit Dtypef                  ; test data type flag, $FF=string, $00=numeric
     bpl LAB_1B0B                ; branch if not string
 
-                              ; will only be $00 if type is string and token was +
+; will only be $00 if type is string and token was +
     jmp LAB_224D                ; add strings, string 1 is in descriptor des_pl, string 2
-                              ; is in line, and return
+; is in line, and return
 
 LAB_1B0B:
     sta ut1_pl                  ; save it
@@ -3064,15 +3052,14 @@ LAB_1B43:
     pha                         ; onto stack
     lda LAB_OPPT+1,Y            ; get function vector low byte
     pha                         ; onto stack
-                              ; now push sign, round FAC1 and put on stack
+; now push sign, round FAC1 and put on stack
 ; *** begin patch  2.22p5.3   potential return address -$100 (page not incremented) ***
 ; *** add
 ;   .IF [* & $FF] == $FD
 ;      NOP                     ; return address of JSR +1 (on  next page)
 ;   .ENDIF
 ; *** end   patch  2.22p5.3   potential return address -$100 (page not incremented) ***
-    jsr LAB_1B5B                ; function will return here, then the next RTS will call
-                              ; the function
+    jsr LAB_1B5B                ; function will return here, then the next RTS will call the function
     lda comp_f                  ; get compare function flag
     pha                         ; push compare evaluation byte
     lda LAB_OPPT,Y              ; get precedence byte
@@ -3130,7 +3117,7 @@ LAB_1B7D:
 LAB_1B84:
     sty prstk                   ; save precedence stacked flag
 
-                              ; pop FAC2 and return
+; pop FAC2 and return
 LAB_1B86:
     pla                         ; pop byte
     lsr                         ; shift out comparison evaluation lowest bit
@@ -3170,18 +3157,18 @@ LAB_GVAL:
     jsr LAB_IGBY                ; increment and scan memory
     bcs LAB_1BAC                ; branch if not numeric character
 
-                              ; else numeric string found (e.g. 123)
+; else numeric string found (e.g. 123)
 LAB_1BA9:
     jmp LAB_2887                ; get FAC1 from string and return
 
 ; get value from line .. continued
 
-                              ; wasn't a number so ..
+; wasn't a number so ..
 LAB_1BAC:
     tax                         ; set the flags
     bmi LAB_1BD0                ; if -ve go test token values
 
-                              ; else it is either a string, number, variable or (<expr>)
+; else it is either a string, number, variable or (<expr>)
     cmp #'$'                    ; compare with "$"
     beq LAB_1BA9                ; branch if "$", hex number
 
@@ -3191,11 +3178,11 @@ LAB_1BAC:
     cmp #'.'                    ; compare with "."
     beq LAB_1BA9                ; if so get FAC1 from string and return (e.g. was .123)
 
-                              ; it wasn't any sort of number so ..
+; it wasn't any sort of number so ..
     cmp #$22                    ; compare with "
     beq LAB_1BC1                ; branch if open quote
 
-                              ; wasn't any sort of number so ..
+; wasn't any sort of number so ..
 
 ; evaluate expression within parentheses
 
@@ -3226,14 +3213,14 @@ LAB_SCCA:
 LAB_1BFE:
     lda #$28                    ; load A with "("
     bne LAB_SCCA                ; scan for CHR$(A), else do syntax error then warm start
-                              ; (branch always)
+; (branch always)
 
 ; scan for "," , else do syntax error then warm start
 
 LAB_1C01:
     lda #$2C                    ; load A with ","
     bne LAB_SCCA                ; scan for CHR$(A), else do syntax error then warm start
-                              ; (branch always)
+; (branch always)
 
 ; syntax error then warm start
 
@@ -3248,14 +3235,14 @@ LAB_1BD0:
     cmp #token_MINUS            ; compare with token for -
     beq LAB_1C11                ; branch if - token (do set-up for functions)
 
-                              ; wasn't -n so ..
+; wasn't -n so ..
     cmp #token_PLUS             ; compare with token for +
     beq LAB_GVAL                ; branch if + token (+n = n so ignore leading +)
 
     cmp #token_NOT              ; compare with token for NOT
     bne LAB_1BE7                ; branch if not token for NOT
 
-                              ; was NOT token
+; was NOT token
 token_EQUAL_PLUS     = token_EQUAL-token_PLUS
     ldy #token_EQUAL_PLUS*3     ; offset to NOT function
     bne LAB_1C13                ; do set-up for function then execute (branch always)
@@ -3273,7 +3260,7 @@ LAB_EQUAL:
 
 ; get value from line .. continued
 
-                              ; wasn't +, -, or NOT so ..
+; wasn't +, -, or NOT so ..
 LAB_1BE7:
     cmp #token_FN               ; compare with token for FN
     bne LAB_1BEE                ; branch if not token for FN
@@ -3282,7 +3269,7 @@ LAB_1BE7:
 
 ; get value from line .. continued
 
-                              ; wasn't +, -, NOT or FN so ..
+; wasn't +, -, NOT or FN so ..
 LAB_1BEE:
     sbc #token_SGN              ; subtract with token for SGN
     bcs LAB_1C27                ; if a function token go do it
@@ -3371,14 +3358,14 @@ LAB_1C56:
 LAB_PPFS:
     jsr LAB_1BF7                ; process expression in parenthesis
     jmp LAB_CTST                ; check if source is string then do function,
-                              ; else do type mismatch
+; else do type mismatch
 
 ; process numeric expression in parenthesis
 
 LAB_PPFN:
     jsr LAB_1BF7                ; process expression in parenthesis
     jmp LAB_CTNM                ; check if source is numeric then do function,
-                              ; else do type mismatch
+; else do type mismatch
 
 ; set numeric data type and increment BASIC execute pointer
 LAB_PPBI:
@@ -3496,7 +3483,7 @@ LAB_LTHAN:
     jsr LAB_CKTM                ; type match check, set C for string
     bcs LAB_1CAE                ; branch if string
 
-                              ; do numeric < compare
+; do numeric < compare
     lda FAC2_s                  ; get FAC2 sign (b7)
     ora #$7F                    ; set all non sign bits
     and FAC2_1                  ; and FAC2 mantissa1 (AND in sign bit)
@@ -3507,21 +3494,21 @@ LAB_LTHAN:
     tax                         ; copy result
     jmp LAB_1CE1                ; go evaluate result
 
-                              ; do string < compare
+; do string < compare
 LAB_1CAE:
     lsr Dtypef                  ; clear data type flag, $FF=string, $00=numeric
     dec comp_f                  ; clear < bit in compare function flag
     jsr LAB_22B6                ; pop string off descriptor stack, or from top of string
-                              ; space returns with A = length, X=pointer low byte,
-                              ; Y=pointer high byte
+; space returns with A = length, X=pointer low byte,
+; Y=pointer high byte
     sta str_ln                  ; save length
     stx str_pl                  ; save string pointer low byte
     sty str_ph                  ; save string pointer high byte
     lda FAC2_2                  ; get descriptor pointer low byte
     ldy FAC2_3                  ; get descriptor pointer high byte
     jsr LAB_22BA                ; pop (YA) descriptor off stack or from top of string space
-                              ; returns with A = length, X=pointer low byte,
-                              ; Y=pointer high byte
+; returns with A = length, X=pointer low byte,
+; Y=pointer high byte
     stx FAC2_2                  ; save string pointer low byte
     sty FAC2_3                  ; save string pointer high byte
     tax                         ; copy length
@@ -3650,21 +3637,21 @@ LAB_1D12:
 
     jmp LAB_SNER                ; else syntax error then warm start
 
-                              ; was variable name so ..
+; was variable name so ..
 LAB_1D1F:
     ldx #$00                    ; clear 2nd character temp
     stx Dtypef                  ; clear data type flag, $FF=string, $00=numeric
     jsr LAB_IGBY                ; increment and scan memory (2nd character)
     bcc LAB_1D2D                ; branch if character = "0"-"9" (ok)
 
-                              ; 2nd character wasn't "0" to "9" so ..
+; 2nd character wasn't "0" to "9" so ..
     jsr LAB_CASC                ; check byte, return C=0 if<"A" or >"Z"
     bcc LAB_1D38                ; branch if <"A" or >"Z" (go check if string)
 
 LAB_1D2D:
     tax                         ; copy 2nd character
 
-                              ; ignore further (valid) characters in the variable name
+; ignore further (valid) characters in the variable name
 LAB_1D2E:
     jsr LAB_IGBY                ; increment and scan memory (3rd character)
     bcc LAB_1D2E                ; loop if character = "0"-"9" (ignore)
@@ -3672,14 +3659,14 @@ LAB_1D2E:
     jsr LAB_CASC                ; check byte, return C=0 if<"A" or >"Z"
     bcs LAB_1D2E                ; loop if character = "A"-"Z" (ignore)
 
-                              ; check if string variable
+; check if string variable
 LAB_1D38:
     cmp #'$'                    ; compare with "$"
     bne LAB_1D47                ; branch if not string
 
 ; to introduce a new variable type (% suffix for integers say) then this branch
 ; will need to go to that check and then that branch, if it fails, go to LAB_1D47
-                              ; type is string
+; type is string
     lda #$FF                    ; set data type = string
     sta Dtypef                  ; set data type flag, $FF=string, $00=numeric
     txa                         ; get 2nd character back
@@ -3702,7 +3689,7 @@ LAB_1D47:                   ; gets here with character after var name in A
 ; either find or create var
 ; var name (1st two characters only!) is in Varnm1,Varnm2
 
-                              ; variable name wasn't var(... so look for plain var
+; variable name wasn't var(... so look for plain var
 LAB_1D53:
     lda #$00                    ; clear A
     sta Sufnxf                  ; clear subscript/FNX flag
@@ -3716,7 +3703,7 @@ LAB_1D5F:
     cpx Sarryh                  ; compare high address with var space end
     bne LAB_1D69                ; skip next compare if <>
 
-                              ; high addresses were = so compare low addresses
+; high addresses were = so compare low addresses
     cmp Sarryl                  ; compare low address with var space end
     beq LAB_1D8B                ; if not found go make new var
 
@@ -3725,7 +3712,7 @@ LAB_1D69:
     cmp (Vrschl),Y              ; compare with variable name 1st character
     bne LAB_1D77                ; branch if no match
 
-                              ; 1st characters match so compare 2nd characters
+; 1st characters match so compare 2nd characters
     lda Varnm2                  ; get 2nd character of var to find
     iny                         ; index to point to variable name 2nd character
     cmp (Vrschl),Y              ; compare with variable name 2nd character
@@ -3753,11 +3740,11 @@ LAB_1D82:
     cmp #'A'                    ; compare with "A"
     bcc LAB_1D8A                ; exit if less
 
-                              ; carry is set
+; carry is set
     sbc #$5B                    ; subtract "Z"+1
     sec                         ; set carry
     sbc #$A5                    ; subtract $A5 (restore byte)
-                              ; carry clear if byte>$5A
+; carry clear if byte>$5A
 LAB_1D8A:
     rts
 
@@ -3765,11 +3752,11 @@ LAB_1D83:
     sbc #$7B                    ; subtract "z"+1
     sec                         ; set carry
     sbc #$85                    ; subtract $85 (restore byte)
-                              ; carry clear if byte>$7A
+; carry clear if byte>$7A
     rts
 
-                              ; reached end of variable mem without match
-                              ; .. so create new variable
+; reached end of variable mem without match
+; .. so create new variable
 LAB_1D8B:
     pla                         ; pop return address low byte
     pha                         ; push return address low byte
@@ -3795,13 +3782,13 @@ LAB_1C18p2  = LAB_1C18+2
 ; the above code has been tested and works a treat! (it replaces the three code lines
 ; below)
 
-                              ; else return dummy null value
+; else return dummy null value
     lda #<LAB_1D96              ; low byte point to $00,$00
-                              ; (uses part of misc constants table)
+; (uses part of misc constants table)
     ldy #>LAB_1D96              ; high byte point to $00,$00
     rts
 
-                              ; create new numeric variable
+; create new numeric variable
 LAB_1D98:
     lda Sarryl                  ; get var mem end low byte
     ldy Sarryh                  ; get var mem end high byte
@@ -3841,7 +3828,7 @@ LAB_1DAE:
     iny                         ; increment index
     sta (Vrschl),Y              ; initialise var byte
 
-                              ; found a match for var ((Vrschl) = ptr)
+; found a match for var ((Vrschl) = ptr)
 LAB_1DD7:
     lda Vrschl                  ; get var address low byte
     clc                         ; clear carry for add
@@ -3877,7 +3864,7 @@ LAB_1DF2:
 LAB_EVIN:
     jsr LAB_IGBY                ; increment and scan memory
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
 
 ; evaluate integer expression (no check)
 
@@ -3961,7 +3948,7 @@ LAB_1E5C:
     cpx Earryl                  ; else compare with array mem end low byte
     beq LAB_1EA1                ; go build array if not found
 
-                              ; search for array
+; search for array
 LAB_1E68:
     ldy #$00                    ; clear index
     lda (Astrtl),Y              ; get array name first byte
@@ -3973,7 +3960,7 @@ LAB_1E68:
     cmp (Astrtl),Y              ; compare with array name second byte
     beq LAB_1E8D                ; array found so branch
 
-                              ; no match
+; no match
 LAB_1E77:
     iny                         ; increment index
     lda (Astrtl),Y              ; get array size low byte
@@ -3998,35 +3985,35 @@ LAB_FCER:
 LAB_1E8A:
     jmp LAB_XERR                ; do error #X, then warm start
 
-                              ; found array, are we trying to dimension it?
+; found array, are we trying to dimension it?
 LAB_1E8D:
     ldx #$12                    ; set error $12 ("Double dimension" error)
     lda Defdim                  ; get DIM flag
     bne LAB_1E8A                ; if we are trying to dimension it do error #X, then warm
-                              ; start
+; start
 
 ; found the array and we're not dimensioning it so we must find an element in it
 
     jsr LAB_1DE6                ; set-up array pointer (Adatal/h) to first element in array
-                              ; (Astrtl,Astrth points to start of array)
+; (Astrtl,Astrth points to start of array)
     lda Dimcnt                  ; get dimensions count
     ldy #$04                    ; set index to array's # of dimensions
     cmp (Astrtl),Y              ; compare with no of dimensions
     bne LAB_1E85                ; if wrong do array bounds error, could do "Wrong
-                              ; dimensions" error here .. if we want a different
-                              ; error message
+                                ; dimensions" error here .. if we want a different
+                                ; error message
 
     jmp LAB_1F28                ; found array so go get element
-                              ; (could jump to LAB_1F28 as all LAB_1F24 does is take
-                              ; Dimcnt and save it at (Astrtl),Y which is already the
-                              ; same or we would have taken the BNE)
+                                ; (could jump to LAB_1F28 as all LAB_1F24 does is take
+                                ; Dimcnt and save it at (Astrtl),Y which is already the
+                                ; same or we would have taken the BNE)
 
-                              ; array not found, so build it
+; array not found, so build it
 LAB_1EA1:
     jsr LAB_1DE6                ; set-up array pointer (Adatal/h) to first element in array
-                              ; (Astrtl,Astrth points to start of array)
+; (Astrtl,Astrth points to start of array)
     jsr LAB_121F                ; check available memory, "Out of memory" error if no room
-                              ; addr to check is in AY (low/high)
+; addr to check is in AY (low/high)
     ldy #$00                    ; clear Y (don't need to clear A)
     sty Aspth                   ; clear array data size high byte
     lda Varnm1                  ; get variable name 1st byte
@@ -4039,7 +4026,7 @@ LAB_1EA1:
     sty Asptl                   ; set array data size low byte (four bytes per element)
     sta (Astrtl),Y              ; set array's dimensions count
 
-                              ; now calculate the size of the data space for the array
+; now calculate the size of the data space for the array
     clc                         ; clear carry for add (clear on subsequent loops)
 LAB_1EC0:
     ldx #$0B                    ; set default dimension value low byte
@@ -4067,7 +4054,7 @@ LAB_1ED0:
     bne LAB_1EC0                ; loop while not = 0
 
     adc Adatah                  ; add size high byte to first element high byte
-                              ; (carry is always clear here)
+; (carry is always clear here)
     bcs LAB_1F45                ; if overflow go do "Out of memory" error
 
     sta Adatah                  ; save end of array high byte
@@ -4079,10 +4066,10 @@ LAB_1ED0:
     iny                         ; else increment end of array high byte
     beq LAB_1F45                ; if overflow go do "Out of memory" error
 
-                              ; set-up mostly complete, now zero the array
+; set-up mostly complete, now zero the array
 LAB_1EF3:
     jsr LAB_121F                ; check available memory, "Out of memory" error if no room
-                              ; addr to check is in AY (low/high)
+; addr to check is in AY (low/high)
     sta Earryl                  ; save array mem end low byte
     sty Earryh                  ; save array mem end high byte
     lda #$00                    ; clear byte for array clear
@@ -4113,7 +4100,7 @@ LAB_1F07:
     lda Defdim                  ; get default DIM flag
     bne LAB_1F7B                ; exit (RET) if this was a DIM command
 
-                              ; else, find element
+; else, find element
     iny                         ; index to # of dimensions
 
 LAB_1F24:
@@ -4138,7 +4125,7 @@ LAB_1F2C:
 
     bne LAB_1F42                ; if outside bounds do array bounds error
 
-                              ; else high byte was = so test low bytes
+; else high byte was = so test low bytes
     iny                         ; index to array bound low byte
     txa                         ; get array index low byte
     cmp (Astrtl),Y              ; compare with array bound low byte
@@ -4234,10 +4221,10 @@ LAB_FRE:
     bpl LAB_1FB4                ; branch if numeric
 
     jsr LAB_22B6                ; pop string off descriptor stack, or from top of string
-                              ; space returns with A = length, X=$71=pointer low byte,
-                              ; Y=$72=pointer high byte
+; space returns with A = length, X=$71=pointer low byte,
+; Y=$72=pointer high byte
 
-                              ; FRE(n) was numeric so do this
+; FRE(n) was numeric so do this
 LAB_1FB4:
     jsr LAB_GARB                ; go do garbage collection
     sec                         ; set carry for subtract
@@ -4270,7 +4257,7 @@ LAB_CKRN:
     inx                         ; increment it
     bne LAB_1F7B                ; return if can continue not direct mode
 
-                              ; else do illegal direct error
+; else do illegal direct error
 LAB_1FD9:
     ldx #$16                    ; error code $16 ("Illegal direct" error)
 LAB_1FDB:
@@ -4300,21 +4287,21 @@ LAB_DEF:
     pha                         ; push it
     jsr LAB_DATA                ; go perform DATA
     jmp LAB_207A                ; put execute pointer and variable pointer into function
-                              ; and return
+; and return
 
 ; check FNx syntax
 
 LAB_200B:
     lda #token_FN               ; get FN token
     jsr LAB_SCCA                ; scan for CHR$(A) , else do syntax error then warm start
-                              ; return character after A
+; return character after A
     ora #$80                    ; set FN flag bit
     sta Sufnxf                  ; save FN flag so array variable test fails
     jsr LAB_1D12                ; search for FN variable
     jmp LAB_CTNM                ; check if source is numeric and return, else do type
-                              ; mismatch
+; mismatch
 
-                              ; Evaluate FNx
+; Evaluate FNx
 LAB_201E:
     jsr LAB_200B                ; check FNx syntax
     pha                         ; push function pointer low byte
@@ -4339,7 +4326,7 @@ LAB_201E:
     sta Cvaral                  ; save variable address low byte
     tax                         ; copy address low byte
 
-                              ; now stack the function variable value before use
+; now stack the function variable value before use
     iny                         ; index to mantissa_3
 LAB_2043:
     lda (Cvaral),Y              ; get byte from variable
@@ -4349,7 +4336,7 @@ LAB_2043:
 
     ldy Cvarah                  ; get variable address high byte
     jsr LAB_2778                ; pack FAC1 (function expression value) into (XY)
-                              ; (function variable), return Y=0, always
+; (function variable), return Y=0, always
     lda Bpntrh                  ; get BASIC execute pointer high byte
     pha                         ; push it
     lda Bpntrl                  ; get BASIC execute pointer low byte
@@ -4364,7 +4351,7 @@ LAB_2043:
     lda Cvaral                  ; get variable address low byte
     pha                         ; push it
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
     pla                         ; pull variable address low byte
     sta func_l                  ; save variable address low byte
     pla                         ; pull variable address high byte
@@ -4431,7 +4418,7 @@ LAB_209C:
 
 LAB_MSSP:
     jsr LAB_2115                ; make space in string memory for string A long
-                              ; return X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
+; return X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
     stx str_pl                  ; save string pointer low byte
     sty str_ph                  ; save string pointer high byte
     sta str_ln                  ; save length
@@ -4494,10 +4481,10 @@ LAB_20DC:
 LAB_MVST:
 ; *** end   RAM above code / Ibuff above EhBASIC patch V2 ***
 
-                              ; string in utility area, move to string memory
+; string in utility area, move to string memory
     tya                         ; copy length to A
     jsr LAB_209C                ; copy des_pl/h to des_2l/h and make string space A bytes
-                              ; long
+; long
     ldx ssptr_l                 ; get string start low byte
     ldy ssptr_h                 ; get string start high byte
     jsr LAB_2298                ; store string A bytes long from XY to (Sutill)
@@ -4510,7 +4497,7 @@ LAB_RTST:
     cpx #des_sk+$09             ; compare with max+1
     bne LAB_20F8                ; branch if space on string stack
 
-                              ; else do string too complex error
+; else do string too complex error
     ldx #$1C                    ; error code $1C ("String too complex" error)
 LAB_20F5:
     jmp LAB_XERR                ; do error #X, then warm start
@@ -4543,7 +4530,7 @@ LAB_20F8:
 LAB_2115:
     lsr Gclctd                  ; clear garbage collected flag (b7)
 
-                              ; make space for string A long
+; make space for string A long
 LAB_2117:
     pha                         ; save string length
     eor #$FF                    ; complement it
@@ -4613,7 +4600,7 @@ LAB_2161:
     jsr LAB_21D7                ; go garbage collect descriptor stack
     beq LAB_2161                ; loop always
 
-                              ; done stacked strings, now do string vars
+; done stacked strings, now do string vars
 LAB_216A:
     asl g_step                  ; set step size = $06
     lda Svarl                   ; get start of vars low byte
@@ -4631,7 +4618,7 @@ LAB_217E:
     jsr LAB_21D1                ; go garbage collect strings
     beq LAB_2176                ; loop always
 
-                              ; done string vars, now do string arrays
+; done string vars, now do string arrays
 LAB_2183:
     sta Nbendl                  ; save start of arrays low byte as working pointer
     stx Nbendh                  ; save start of arrays high byte as working pointer
@@ -4674,7 +4661,7 @@ LAB_21C4:
     bne LAB_21CC                ; branch if <> (go do this array)
 
     cmp Nbendl                  ; else compare element pointer low byte with next array
-                              ; low byte
+; low byte
     beq LAB_218F                ; if equal then go do next array
 
 LAB_21CC:
@@ -4705,22 +4692,22 @@ LAB_21D7:
 
     bne LAB_2206                ; if greater, step pointer to next string and return
 
-                              ; high bytes were = so compare low bytes
+; high bytes were = so compare low bytes
     cpx Sstorl                  ; compare bottom of string space low byte
     bcs LAB_2206                ; if >=, step pointer to next string and return
 
-                              ; string pointer is < string storage pointer (pos in mem)
+; string pointer is < string storage pointer (pos in mem)
 LAB_21EC:
     cmp Histrh                  ; compare to highest string high byte
     bcc LAB_2207                ; if <, step pointer to next string and return
 
     bne LAB_21F6                ; if > update pointers, step to next and return
 
-                              ; high bytes were = so compare low bytes
+; high bytes were = so compare low bytes
     cpx Histrl                  ; compare to highest string low byte
     bcc LAB_2207                ; if <, step pointer to next string and return
 
-                              ; string is in string memory space
+; string is in string memory space
 LAB_21F6:
     stx Histrl                  ; save as new highest string low byte
     sta Histrh                  ; save as new highest string high byte
@@ -4732,7 +4719,7 @@ LAB_21F6:
     dey                         ; decrement index (should point to descriptor start)
     sty g_indx                  ; save index pointer
 
-                              ; step pointer to next string
+; step pointer to next string
 LAB_2206:
     clc                         ; clear carry for add
 LAB_2207:
@@ -4784,7 +4771,7 @@ LAB_2216:
     iny                         ; point to descriptor high byte
     sta (garb_l),Y              ; save new string pointer high byte
     jmp LAB_214B                ; re-run routine from last ending
-                              ; (but don't collect this string)
+; (but don't collect this string)
 
 ; concatenate
 ; add strings, string 1 is in descriptor des_pl, string 2 is in line
@@ -4815,22 +4802,22 @@ LAB_224Da:
 
 LAB_226D:
     jsr LAB_209C                ; copy des_pl/h to des_2l/h and make string space A bytes
-                              ; long
+; long
     jsr LAB_228A                ; copy string from descriptor (sdescr) to (Sutill)
     lda des_2l                  ; get descriptor pointer low byte
     ldy des_2h                  ; get descriptor pointer high byte
     jsr LAB_22BA                ; pop (YA) descriptor off stack or from top of string space
-                              ; returns with A = length, ut1_pl = pointer low byte,
-                              ; ut1_ph = pointer high byte
+; returns with A = length, ut1_pl = pointer low byte,
+; ut1_ph = pointer high byte
     jsr LAB_229C                ; store string A bytes long from (ut1_pl) to (Sutill)
     lda ssptr_l                 ;.set descriptor pointer low byte
     ldy ssptr_h                 ;.set descriptor pointer high byte
     jsr LAB_22BA                ; pop (YA) descriptor off stack or from top of string space
-                              ; returns with A = length, X=ut1_pl=pointer low byte,
-                              ; Y=ut1_ph=pointer high byte
+; returns with A = length, X=ut1_pl=pointer low byte,
+; Y=ut1_ph=pointer high byte
     jsr LAB_RTST                ; check for space on descriptor stack then put string
-                              ; address and length on descriptor stack and update stack
-                              ; pointers
+                                ; address and length on descriptor stack and update stack
+                                ; pointers
     jmp LAB_1ADB                ;.continue evaluation
 
 ; copy string from descriptor (sdescr) to (Sutill)
@@ -4957,20 +4944,20 @@ LAB_CHRS:
     pha                         ; save character
     lda #$01                    ; string is single byte
     jsr LAB_MSSP                ; make string space A bytes long A=$AC=length,
-                              ; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
+; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
     pla                         ; get character back
     ldy #$00                    ; clear index
     sta (str_pl),Y              ; save byte in string (byte IS string!)
     jmp LAB_RTST                ; check for space on descriptor stack then put string
-                              ; address and length on descriptor stack and update stack
-                              ; pointers
+                                ; address and length on descriptor stack and update stack
+                                ; pointers
 
 ; perform LEFT$()
 
 LAB_LEFT:
     pha                         ; push byte parameter
     jsr LAB_236F                ; pull string data and byte parameter from stack
-                              ; return pointer in des_2l/h, byte in A (and X), Y=0
+; return pointer in des_2l/h, byte in A (and X), Y=0
     cmp (des_2l),Y              ; compare byte parameter with string length
     tya                         ; clear A
     beq LAB_2316                ; go do string copy (branch always)
@@ -4980,7 +4967,7 @@ LAB_LEFT:
 LAB_RIGHT:
     pha                         ; push byte parameter
     jsr LAB_236F                ; pull string data and byte parameter from stack
-                              ; return pointer in des_2l/h, byte in A (and X), Y=0
+; return pointer in des_2l/h, byte in A (and X), Y=0
     clc                         ; clear carry for add-1
     sbc (des_2l),Y              ; subtract string length
     eor #$FF                    ; invert it (A=LEN(expression$)-l)
@@ -4998,12 +4985,12 @@ LAB_231D:
 LAB_231E:
     pha                         ; save string length
     jsr LAB_MSSP                ; make string space A bytes long A=$AC=length,
-                              ; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
+; X=$AD=Sutill=ptr low byte, Y=$AE=Sutilh=ptr high byte
     lda des_2l                  ; get descriptor pointer low byte
     ldy des_2h                  ; get descriptor pointer high byte
     jsr LAB_22BA                ; pop (YA) descriptor off stack or from top of string space
-                              ; returns with A = length, X=ut1_pl=pointer low byte,
-                              ; Y=ut1_ph=pointer high byte
+; returns with A = length, X=ut1_pl=pointer low byte,
+; Y=ut1_ph=pointer high byte
     pla                         ; get string length back
     tay                         ; copy length to Y
     pla                         ; get string start offset back
@@ -5017,8 +5004,8 @@ LAB_2335:
     tya                         ; copy length to A
     jsr LAB_229C                ; store string A bytes long from (ut1_pl) to (Sutill)
     jmp LAB_RTST                ; check for space on descriptor stack then put string
-                              ; address and length on descriptor stack and update stack
-                              ; pointers
+                                ; address and length on descriptor stack and update stack
+                                ; pointers
 
 ; perform MID$()
 
@@ -5034,7 +5021,7 @@ LAB_MIDS:
     jsr LAB_GTBY                ; get byte parameter (use copy in mids_l)
 LAB_2358:
     jsr LAB_236F                ; pull string data and byte parameter from stack
-                              ; return pointer in des_2l/h, byte in A (and X), Y=0
+ ; return pointer in des_2l/h, byte in A (and X), Y=0
     dex                         ; decrement start index
     txa                         ; copy to A
     pha                         ; save string start offset
@@ -5070,9 +5057,9 @@ LAB_236F:
     beq LAB_23A8                ; if null do function call error then warm start
 
     inc Fnxjpl                  ; increment function jump vector low byte
-                              ; (JSR pushes return addr-1. this is all very nice
-                              ; but will go tits up if either call is on a page
-                              ; boundary!)
+; (JSR pushes return addr-1. this is all very nice
+; but will go tits up if either call is on a page
+; boundary!)
     jmp (Fnxjpl)                ; in effect, RTS
 
 ; perform LCASE$()
@@ -5084,7 +5071,7 @@ LAB_LCASE:
     beq NoString                ; branch if null string
 
     jsr LAB_MSSP                ; make string space A bytes long A=length,
-                              ; X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
+; X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
     stx str_pl                  ; save string pointer low byte
     sty str_ph                  ; save string pointer high byte
     tay                         ; get string length back
@@ -5112,7 +5099,7 @@ LAB_UCASE:
     beq NoString                ; branch if null string
 
     jsr LAB_MSSP                ; make string space A bytes long A=length,
-                              ; X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
+; X=Sutill=ptr low byte, Y=Sutilh=ptr high byte
     stx str_pl                  ; save string pointer low byte
     sty str_ph                  ; save string pointer high byte
     tay                         ; get string length back
@@ -5131,8 +5118,8 @@ NoLcase:
 
 NoString:
     jmp LAB_RTST                ; check for space on descriptor stack then put string
-                              ; address and length on descriptor stack and update stack
-                              ; pointers
+                                ; address and length on descriptor stack and update stack
+                                ; pointers
 
 ; perform SADD()
 
@@ -5190,7 +5177,7 @@ LAB_SGBY:
 
 LAB_GTBY:
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
 
 ; evaluate byte expression, result in X
 
@@ -5209,7 +5196,7 @@ LAB_VAL:
     jsr LAB_ESGL                ; evaluate string, get length in A (and Y)
     bne LAB_23C5                ; branch if not null string
 
-                              ; string was null so set result = $00
+; string was null so set result = $00
     jmp LAB_24F1                ; clear FAC1 exponent and sign and return
 
 LAB_23C5:
@@ -5273,7 +5260,7 @@ LAB_23F3:
 
 LAB_GADB:
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
     jsr LAB_F2FX                ; save integer part of FAC1 in temporary integer
 
 ; scan for "," and get byte, else do Syntax error then warm start
@@ -5346,7 +5333,7 @@ Deekh:
 
 LAB_DOKE:
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
     jsr LAB_F2FX                ; convert floating-to-fixed
 
     sty Frnxtl                  ; save pointer low byte (float to fixed returns word in AY)
@@ -5354,7 +5341,7 @@ LAB_DOKE:
 
     jsr LAB_1C01                ; scan for "," , else do syntax error then warm start
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
     jsr LAB_F2FX                ; convert floating-to-fixed
 
     tya                         ; copy value low byte (float to fixed returns word in AY)
@@ -5404,7 +5391,7 @@ SwapErr:
 
 LAB_CALL:
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
     jsr LAB_F2FX                ; convert floating-to-fixed
     lda #>CallExit              ; set return address high byte
     pha                         ; put on stack
@@ -5496,7 +5483,7 @@ LAB_27A1:
     stx FAC1_r                  ; clear FAC1 rounding byte
     rts
 
-                              ; FAC1 is non zero
+; FAC1 is non zero
 LAB_2474:
     ldx FAC1_r                  ; get FAC1 rounding byte
     stx FAC2_r                  ; save as FAC2 rounding byte
@@ -5512,7 +5499,7 @@ LAB_247C:
 
     bcc LAB_2498                ; branch if <
 
-                              ; FAC2>FAC1
+; FAC2>FAC1
     sty FAC1_e                  ; save FAC1 exponent
     ldy FAC2_s                  ; get FAC2 sign (b7)
     sty FAC1_s                  ; save FAC1 sign (b7)
@@ -5535,7 +5522,7 @@ LAB_249C:
     lsr PLUS_1,X                ; shift FAC? mantissa1
     jsr LAB_2592                ; shift FACX Y times right
 
-                              ; exponents are equal now do mantissa subtract
+; exponents are equal now do mantissa subtract
 LAB_24A8:
     bit FAC_sc                  ; test sign compare (FAC1 EOR FAC2)
     bpl LAB_24F8                ; if = add FAC2 mantissa to FAC1 mantissa and return
@@ -5546,7 +5533,7 @@ LAB_24A8:
 
     ldy #FAC2_e                 ; else set index to FAC2 exponent addr
 
-                              ; subtract smaller from bigger (take sign of bigger)
+; subtract smaller from bigger (take sign of bigger)
 LAB_24B4:
     sec                         ; set carry for subtract
     eor #$FF                    ; ones complement A
@@ -5814,7 +5801,7 @@ LAB_2622:
     sec
     jmp LAB_2569                ; shift FACtemp << A+8 times
 
-                              ; else do shift and add
+; else do shift and add
 LAB_2627:
     sec                         ; set top bit (mark for 8 times)
     ror
@@ -5906,7 +5893,7 @@ LAB_2690:
     lda FAC1_s                  ; get FAC1 sign (b7)
     bpl LAB_269B                ; do overflow error
 
-                              ; handle underflow
+; handle underflow
 LAB_2696:
     pla                         ; pop return address low byte
     pla                         ; pop return address high byte
@@ -5947,13 +5934,13 @@ LAB_26C2:
     jsr LAB_UFAC                ; unpack memory (AY) into FAC1
     jmp LAB_DIVIDE              ; do FAC2/FAC1
 
-                              ; Perform divide-by
+; Perform divide-by
 ; convert AY and do (AY)/FAC1
 
 LAB_26CA:
     jsr LAB_264D                ; unpack memory (AY) into FAC2
 
-                              ; Perform divide-into
+; Perform divide-into
 LAB_DIVIDE:
     beq LAB_2737                ; if zero go do /0 error
 
@@ -5990,7 +5977,7 @@ LAB_26F4:
     bmi LAB_2701                ; if not last byte just go save it
 
     bne LAB_272B                ; if all done go save FAC1 rounding byte, normalise and
-                              ; return
+; return
 
     ldy #$40                    ; set bit to flag byte save for the rounding byte
 LAB_2701:
@@ -6012,7 +5999,7 @@ LAB_2702:
     sta FAC2_1                  ; save FAC2 mantissa1
     tya                         ; restore FAC2-FAC1 compare status
 
-                              ; FAC2 = FAC2*2
+; FAC2 = FAC2*2
 LAB_2704:
     asl FAC2_3                  ; shift FAC2 mantissa3
     rol FAC2_2                  ; shift FAC2 mantissa2
@@ -6174,7 +6161,7 @@ LAB_27D7:
 
 LAB_SGN:
     jsr LAB_27CA                ; get FAC1 sign
-                              ; return A=$FF/-ve A=$01/+ve
+; return A=$FF/-ve A=$01/+ve
 ; save A as integer byte
 
 LAB_27DB:
@@ -6218,12 +6205,12 @@ LAB_27FA:
     iny                         ; increment index
     tax                         ; copy (AY) exponent to X
     beq LAB_27CA                ; branch if (AY) exponent=0 and get FAC1 sign
-                              ; A=FF,C=1/-ve A=01,C=0/+ve
+; A=FF,C=1/-ve A=01,C=0/+ve
 
     lda (ut2_pl),Y              ; get (AY) mantissa1 (with sign)
     eor FAC1_s                  ; EOR FAC1 sign (b7)
     bmi LAB_27CE                ; if signs <> do return A=FF,C=1/-ve
-                              ; A=01,C=0/+ve and return
+; A=01,C=0/+ve and return
 
     cpx FAC1_e                  ; compare (AY) exponent with FAC1 exponent
     bne LAB_2828                ; branch if different
@@ -6266,7 +6253,7 @@ LAB_2831:
     bit FAC1_s                  ; test FAC1 sign (b7)
     bpl LAB_2845                ; branch if FAC1 +ve
 
-                              ; FAC1 was -ve
+; FAC1 was -ve
     tax                         ; copy subtracted exponent
     lda #$FF                    ; overflow for -ve number
     sta FAC1_o                  ; set FAC1 overflow byte
@@ -6389,7 +6376,7 @@ LAB_28A3:
     cmp #'E'                    ; else compare with "E"
     bne LAB_28DB                ; branch if not "E"
 
-                              ; was "E" so evaluate exponential part
+; was "E" so evaluate exponential part
     jsr LAB_IGBY                ; increment and scan memory
     bcc LAB_28C7                ; branch if numeric character
 
@@ -6418,7 +6405,7 @@ LAB_28C9:
     bit expneg                  ; test exponent -ve flag
     bpl LAB_28DB                ; if +ve go evaluate exponent
 
-                              ; else do exponent = -exponent
+; else do exponent = -exponent
     lda #$00                    ; clear result
     sec                         ; set carry for subtract
     sbc expcnt                  ; subtract exponent byte
@@ -6429,7 +6416,7 @@ LAB_28D5:
     bit numdpf                  ; test decimal point flag
     bvc LAB_289E                ; branch if only one decimal point so far
 
-                              ; evaluate exponent
+; evaluate exponent
 LAB_28DB:
     lda expcnt                  ; get exponent count byte
 LAB_28DD:
@@ -6440,7 +6427,7 @@ LAB_28DD:
 
     bpl LAB_28EF                ; else if +ve go do FAC1*10^expcnt
 
-                              ; else go do FAC1/10^(0-expcnt)
+; else go do FAC1/10^(0-expcnt)
 LAB_28E6:
     jsr LAB_26B9                ; divide by 10
     inc expcnt                  ; increment exponent count byte
@@ -6524,7 +6511,7 @@ LAB_2953:
     ldy #>LAB_LMSG              ; point to " in line " message high byte
     jsr LAB_18C3                ; print null terminated string from memory
 
-                              ; print Basic line #
+; print Basic line #
     lda Clineh                  ; get current line high byte
     ldx Clinel                  ; get current line low byte
 
@@ -6569,18 +6556,18 @@ LAB_297B:
     ldx FAC1_e                  ; get FAC1 exponent
     bne LAB_2989                ; branch if FAC1<>0
 
-                              ; exponent was $00 so FAC1 is 0
+; exponent was $00 so FAC1 is 0
     lda #'0'                    ; set character = "0"
     jmp LAB_2A89                ; save last character, [EOT] and exit
 
-                              ; FAC1 is some non zero value
+; FAC1 is some non zero value
 LAB_2989:
     lda #$00                    ; clear (number exponent count)
     cpx #$81                    ; compare FAC1 exponent with $81 (>1.00000)
 
     bcs LAB_299A                ; branch if FAC1=>1
 
-                              ; FAC1<1
+; FAC1<1
     lda #<LAB_294F              ; set pointer low byte to 1,000,000
     ldy #>LAB_294F              ; set pointer high byte to 1,000,000
     jsr LAB_25FB                ; do convert AY, FCA1*(AY)
@@ -6595,7 +6582,7 @@ LAB_299C:
 
     bpl LAB_29B9                ; go do /10 if FAC1 > (AY)
 
-                              ; FAC1 < (AY)
+; FAC1 < (AY)
 LAB_29A7:
     lda #<LAB_2947              ; set pointer low byte to 99999.9375
     ldy #>LAB_2947              ; set pointer high byte to 99999.9375
@@ -6604,7 +6591,7 @@ LAB_29A7:
 
     bpl LAB_29C0                ; branch if FAC1 > (AY) (no decimal places)
 
-                              ; FAC1 <= (AY)
+; FAC1 <= (AY)
 LAB_29B2:
     jsr LAB_269E                ; multiply by 10
     dec numexp                  ; decrement number exponent count
@@ -6630,7 +6617,7 @@ LAB_29C3:
     cmp #$08                    ; A>=8 if n>=1E6
     bcs LAB_29D9                ; branch if >= $08
 
-                              ; carry is clear
+; carry is clear
     adc #$FF                    ; take 1 from digit count
     tax                         ; copy to A
     lda #$02                    ;.set exponent adjust
@@ -6702,7 +6689,7 @@ LAB_2A21:
     dec numexp                  ; decrement # of characters before the dp
     bne LAB_2A3B                ; branch if still characters to do
 
-                              ; else output the point
+; else output the point
     lda #$2E                    ; character "."
     iny                         ; increment output string index
     sta Decss,Y                 ; save to output string
@@ -6716,7 +6703,7 @@ LAB_2A3B:
     cpy #$12                    ; compare index with max
     bne LAB_29FB                ; loop if not max
 
-                              ; now remove trailing zeroes
+; now remove trailing zeroes
     ldy Sendl                   ; get output string index
 LAB_2A4B:
     lda Decss,Y                 ; get character from output string
@@ -6727,14 +6714,14 @@ LAB_2A4B:
     cmp #'.'                    ; compare with "."
     beq LAB_2A58                ; branch if was dp
 
-                              ; restore last character
+; restore last character
     iny                         ; increment output string index
 LAB_2A58:
     lda #$2B                    ; character "+"
     ldx expcnt                  ; get exponent count
     beq LAB_2A8C                ; if zero go set null terminator and exit
 
-                              ; exponent isn't zero so write exponent
+; exponent isn't zero so write exponent
     bpl LAB_2A68                ; branch if exponent count +ve
 
     lda #$00                    ; clear A
@@ -6762,16 +6749,16 @@ LAB_2A74:
     sta Decss+5,Y               ; save to output string
     beq LAB_2A91                ; go set string pointer (AY) and exit (branch always)
 
-                              ; save last character, [EOT] and exit
+; save last character, [EOT] and exit
 LAB_2A89:
     sta Decss,Y                 ; save last character to output string
 
-                              ; set null terminator and exit
+; set null terminator and exit
 LAB_2A8C:
     lda #$00                    ; set null terminator
     sta Decss+1,Y               ; save after last character
 
-                              ; set string pointer (AY) and exit
+; set string pointer (AY) and exit
 LAB_2A91:
     lda #<Decssp1               ; set result string low pointer
     ldy #>Decssp1               ; set result string high pointer
@@ -6794,19 +6781,19 @@ LAB_2ABF:
     lda FAC2_s                  ; get FAC2 sign (b7)
     bpl LAB_2AD9                ; branch if FAC2>0
 
-                              ; else FAC2 is -ve and can only be raised to an
-                              ; integer power which gives an x +j0 result
+; else FAC2 is -ve and can only be raised to an
+; integer power which gives an x +j0 result
     jsr LAB_INT                 ; perform INT
     lda #<func_l                ; set source pointer low byte
     ldy #>func_l                ; set source pointer high byte
     jsr LAB_27F8                ; compare FAC1 with (AY)
     bne LAB_2AD9                ; branch if FAC1 <> (AY) to allow Function Call error
-                              ; this will leave FAC1 -ve and cause a Function Call
-                              ; error when LOG() is called
+; this will leave FAC1 -ve and cause a Function Call
+; error when LOG() is called
 
     tya                         ; clear sign b7
     ldy Temp3                   ; save mantissa 3 from INT() function as sign in Y
-                              ; for possible later negation, b0
+; for possible later negation, b0
 LAB_2AD9:
     jsr LAB_279D                ; save FAC1 sign and copy ABS(FAC2) to FAC1
     tya                         ; copy sign back ..
@@ -6820,7 +6807,7 @@ LAB_2AD9:
     lsr                         ; b0 is to be tested, shift to Cb
     bcc LAB_2AF9                ; if no bit then exit
 
-                              ; Perform negation
+; Perform negation
 ; do - FAC1
 
 LAB_GTHAN:
@@ -6864,7 +6851,7 @@ LAB_2B39:
     sbc #$01                    ; now correct for exponent
     pha                         ; save FAC2 exponent
 
-                              ; swap FAC1 and FAC2
+; swap FAC1 and FAC2
     ldx #$04                    ; 4 bytes to do
 LAB_2B49:
     lda FAC2_e,X                ; get FAC2,X
@@ -6956,7 +6943,7 @@ LAB_RND:
     lda FAC1_e                  ; get FAC1 exponent
     beq NextPRN                 ; do next random # if zero
 
-                              ; else get seed into random number store
+; else get seed into random number store
     ldx #Rbyte4                 ; set PRNG pointer low byte
     ldy #$00                    ; set PRNG pointer high byte
     jsr LAB_2778                ; pack FAC1 into (XY)
@@ -7017,7 +7004,7 @@ LAB_SIN:
     pha                         ; save FAC1 sign
     bpl LAB_2C35                ; branch if +ve
 
-                              ; FAC1 sign was -ve
+; FAC1 sign was -ve
     jsr LAB_244E                ; add 0.5 to FAC1
     lda FAC1_s                  ; get FAC1 sign (b7)
     bmi LAB_2C38                ; branch if -ve
@@ -7034,7 +7021,7 @@ LAB_2C38:
     pla                         ; restore FAC1 sign
     bpl LAB_2C45                ; branch if was +ve
 
-                              ; else correct FAC1
+; else correct FAC1
     jsr LAB_GTHAN               ; do - FAC1
 LAB_2C45:
     lda #<LAB_2C84              ; set pointer low byte to counter
@@ -7235,7 +7222,7 @@ GoPr2:
     stx str_ln                  ; X holds string length
     jsr LAB_IGBY                ; update BASIC execute pointer (to character past ")")
     jmp LAB_RTST                ; check for space on descriptor stack then put address
-                              ; and length on descriptor stack and update stack pointers
+                                ; and length on descriptor stack and update stack pointers
 
 BinFErr:
     jmp LAB_FCER                ; do function call error then warm start
@@ -7421,9 +7408,9 @@ LAB_CKIN:
     sta Bpntrh                  ; save as BASIC execute pointer high byte
 
     jmp LAB_15C2                ; go do interpreter inner loop
-                              ; can't RTS, we used the stack! the RTS from the ctrl-c
-                              ; check will be taken when the RETIRQ/RETNMI/RETURN is
-                              ; executed at the end of the subroutine
+; can't RTS, we used the stack! the RTS from the ctrl-c
+; check will be taken when the RETIRQ/RETNMI/RETURN is
+; executed at the end of the subroutine
 
 ; get byte from input device, no waiting
 ; returns with carry set if byte in A
@@ -7547,7 +7534,7 @@ LAB_MMPP:
 ; perform MAX()
 LAB_MAX:
     jsr LAB_PHFA                ; push FAC1, evaluate expression,
-                              ; pull FAC2 and compare with FAC1
+; pull FAC2 and compare with FAC1
     bpl LAB_MAX                 ; branch if no swap to do
 
     lda FAC2_1                  ; get FAC2 mantissa1
@@ -7559,7 +7546,7 @@ LAB_MAX:
 ; perform MIN()
 LAB_MIN:
     jsr LAB_PHFA                ; push FAC1, evaluate expression,
-                              ; pull FAC2 and compare with FAC1
+; pull FAC2 and compare with FAC1
     bmi LAB_MIN                 ; branch if no swap to do
 
     beq LAB_MIN                 ; branch if no swap to do
@@ -7590,7 +7577,7 @@ LAB_PHFA:
     cmp #','                    ; is there more ?
     bne LAB_MMEC                ; if not go do end check
 
-                              ; push FAC1
+; push FAC1
     jsr LAB_27BA                ; round FAC1
     lda FAC1_s                  ; get FAC1 sign
     ora #$7F                    ; set all non sign bits
@@ -7605,9 +7592,9 @@ LAB_PHFA:
 
     jsr LAB_IGBY                ; scan and get next BASIC byte (after ",")
     jsr LAB_EVNM                ; evaluate expression and check is numeric,
-                              ; else do type mismatch
+; else do type mismatch
 
-                              ; pop FAC2 (MAX/MIN expression so far)
+; pop FAC2 (MAX/MIN expression so far)
     pla                         ; pop exponent
     sta FAC2_e                  ; save FAC2 exponent
     pla                         ; pop mantissa3
@@ -7618,13 +7605,13 @@ LAB_PHFA:
     sta FAC2_1                  ; save FAC2 sign/mantissa1
     sta FAC2_s                  ; save FAC2 sign
 
-                              ; compare FAC1 with (packed) FAC2
+; compare FAC1 with (packed) FAC2
     lda #<FAC2_e                ; set pointer low byte to FAC2
     ldy #>FAC2_e                ; set pointer high byte to FAC2
     jmp LAB_27F8                ; compare FAC1 with FAC2 (AY) and return
-                              ; returns A=$00 if FAC1 = (AY)
-                              ; returns A=$01 if FAC1 > (AY)
-                              ; returns A=$FF if FAC1 < (AY)
+; returns A=$00 if FAC1 = (AY)
+; returns A=$01 if FAC1 > (AY)
+; returns A=$FF if FAC1 < (AY)
 
 ; perform WIDTH
 LAB_WDTH:
@@ -7711,7 +7698,7 @@ LAB_SQR:
     lda FAC1_e                  ; get exponent
     beq LAB_NOSQ                ; if zero just return
 
-                              ; else do root
+; else do root
     jsr LAB_27AB                ; round and copy FAC1 to FAC2
     lda #$00                    ; clear A
 
@@ -7763,7 +7750,7 @@ LAB_SQE2:
     rol                         ; *2
     sta Temp3+3                 ; save partial high byte
 
-                              ; carry clear for subtract +1
+; carry clear for subtract +1
     lda FACt_3                  ; get remainder low byte
     sbc Temp3                   ; subtract partial low byte
     sta Temp3                   ; save partial low byte
@@ -7873,7 +7860,7 @@ PG2_TABE:
 LAB_2CEE:
     inc Bpntrl                  ; increment BASIC execute pointer low byte
     bne LAB_2CF4                ; branch if no carry
-                              ; else
+; else
     inc Bpntrh                  ; increment BASIC execute pointer high byte
 
 ; page 0 initialisation table from $C2
@@ -7894,7 +7881,7 @@ LAB_2CF4:
     sbc #'0'                    ; subtract "0"
     sec                         ; set carry for SBC
     sbc #$D0                    ; subtract -"0"
-                              ; clear carry if byte = "0"-"9"
+; clear carry if byte = "0"-"9"
 LAB_2D05:
     rts
 
@@ -7915,7 +7902,7 @@ EndTab:
 
 ; numeric constants and series
 
-                              ; constants and series for LOG(n)
+; constants and series for LOG(n)
 LAB_25A0:
       .byte $02               ; counter
       .byte $80,$19,$56,$62   ; 0.59898
@@ -7933,7 +7920,7 @@ LAB_25B5:
 LAB_25B9:
       .byte $80,$31,$72,$18   ; 0.69315   LOG(2)
 
-                              ; numeric PRINT constants
+; numeric PRINT constants
 LAB_2947:
       .byte $91,$43,$4F,$F8   ; 99999.9375 (max value with at least one decimal)
 LAB_294B:
@@ -7941,7 +7928,7 @@ LAB_294B:
 LAB_294F:
       .byte $94,$74,$24,$00   ; 1000000
 
-                              ; EXP(n) constants and series
+; EXP(n) constants and series
 LAB_2AFA:
       .byte $81,$38,$AA,$3B   ; 1.4427    (1/LOG base 2 e)
 LAB_2AFE:
@@ -8007,7 +7994,7 @@ LAB_259C:
 LAB_2AFD:
       .byte $81,$80,$00,$00   ; -1.00000, used for DEC. must be on the same page as +1.00
 
-                              ; misc constants
+; misc constants
 LAB_1DF7:
       .byte $90               ;-32768 (uses first three bytes from 0.5)
 LAB_2A96:
@@ -8298,7 +8285,7 @@ LBB_BITSET:
       .byte "ITSET",token_BITSET ; BITSET
 LBB_BITTST:
       .byte "ITTST(",token_BITTST
-                              ; BITTST(
+; BITTST(
       .byte $00
 TAB_ASCC:
 LBB_CALL:
@@ -8377,7 +8364,7 @@ LBB_IRQ:
 TAB_ASCL:
 LBB_LCASES:
       .byte "CASE$(",token_LCASES
-                              ; LCASE$(
+; LCASE$(
 LBB_LEFTS:
       .byte "EFT$(",token_LEFTS  ; LEFT$(
 LBB_LEN:
@@ -8440,7 +8427,7 @@ LBB_REM:
       .byte "EM",token_REM       ; REM
 LBB_RESTORE:
       .byte "ESTORE",token_RESTORE
-                              ; RESTORE
+; RESTORE
 LBB_RETIRQ:
       .byte "ETIRQ",token_RETIRQ ; RETIRQ
 LBB_RETNMI:
@@ -8449,7 +8436,7 @@ LBB_RETURN:
       .byte "ETURN",token_RETURN ; RETURN
 LBB_RIGHTS:
       .byte "IGHT$(",token_RIGHTS
-                              ; RIGHT$(
+; RIGHT$(
 LBB_RND:
       .byte "ND(",token_RND      ; RND(
 LBB_RUN:
@@ -8492,7 +8479,7 @@ LBB_TWOPI:
 TAB_ASCU:
 LBB_UCASES:
       .byte "CASE$(",token_UCASES
-                              ; UCASE$(
+; UCASE$(
 LBB_UNTIL:
       .byte "NTIL",token_UNTIL   ; UNTIL
 LBB_USR:
@@ -8832,7 +8819,7 @@ no_save:                 ; empty save vector
     rts
 
 LAB_load:
-    ; This overwrites any existing program
+; This overwrites any existing program
     lda #<Ram_base              ; set start addr low byte
     sta XMODEM_pstart           ; Tell XMODEM where to start
     sta Smeml                   ; And tell EhBasic where we start
