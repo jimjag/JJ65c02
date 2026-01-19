@@ -70,7 +70,7 @@ ACIA_init:
 ACIA_read_byte:
     jsr LIB_have_serialdata
     bcs @read_it
-    clc                 ; just in case
+    clc                         ; just in case
     rts
 @read_it:
     phx
@@ -81,16 +81,16 @@ ACIA_read_byte:
     stz SERIN_RPTR
 @nowrap:
 .ifdef __HW_FLOW_CONTROL__
-    pha                             ; Store the byte
-    lda #(MINIOS_RTS_HIGH_FLAG)     ; Are we currently in RTS high/buffer full?
+    pha                         ; Store the byte
+    lda #(MINIOS_RTS_HIGH_FLAG) ; Are we currently in RTS high/buffer full?
     bit MINIOS_STATUS
-    beq @done                       ; No, so don't bother checking if we are ready
+    beq @done                   ; No, so don't bother checking if we are ready
                                     ; to drive RTS low, and allow rec'ing data again
     lda SERIN_WPTR
     sec
     sbc SERIN_RPTR
-    bcs @ok                         ; SERIN_WPTR >= SERIN_RPTR
-    adc #128                        ; .A == amount available in buffer
+    bcs @ok                     ; SERIN_WPTR >= SERIN_RPTR
+    adc #128                    ; .A == amount available in buffer
 @ok:
     cmp #96
     blt @done                       ; Re-enable if we have 3/4 available
@@ -133,7 +133,7 @@ ACIA_write_byte:
     and #(ACIA_STATUS_TX_EMPTY)
     beq @wait_txd_empty_char
     stx ACIA_DATA
-    lda #$01                            ; wait 1ms (more than 520us for 19200 baud)
+    lda #$01                    ; wait 1ms (more than 520us for 19200 baud)
     jsr LIB_delay1ms
 @done:
     pla
@@ -198,19 +198,19 @@ ACIA_ihandler:
     phx
     lda ACIA_STATUS
     and #(ACIA_STATUS_RX_FULL)
-    beq @done                                ; Receive buffer full?
+    beq @done                   ; Receive buffer full?
     lda ACIA_DATA
     ldx SERIN_WPTR
-    sta INPUT_BUFFER,x                       ; Store in rx buffer
-    inc SERIN_WPTR                           ; Increase write buffer pointer
-    bpl @nowrap                              ; maintain $00->$7f
+    sta INPUT_BUFFER,x          ; Store in rx buffer
+    inc SERIN_WPTR              ; Increase write buffer pointer
+    bpl @nowrap                 ; maintain $00->$7f
     stz SERIN_WPTR
 @nowrap:
 .ifdef __HW_FLOW_CONTROL__
     lda SERIN_WPTR
-    cmp SERIN_RPTR                           ; are we buffer full?
+    cmp SERIN_RPTR              ; are we buffer full?
     bne @done
-    lda ACIA_COMMAND                         ; bring RTS high
+    lda ACIA_COMMAND            ; bring RTS high
     and #%11110011
     sta ACIA_COMMAND
     lda #(MINIOS_RTS_HIGH_FLAG)

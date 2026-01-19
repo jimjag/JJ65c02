@@ -27,19 +27,19 @@
 
 VIA_init:
     ; Basic I/O
-    lda #%00000111                              ; set lower 3 pins on port B to output
-    sta VIA1_DDRB                               ; configure data direction for port B from A reg.
-    stz VIA1_DDRA                               ; Port A are all input
-    stz VIA1_SR                                 ; clear all others
+    lda #%00000111              ; set lower 3 pins on port B to output
+    sta VIA1_DDRB               ; configure data direction for port B from A reg.
+    stz VIA1_DDRA               ; Port A are all input
+    stz VIA1_SR                 ; clear all others
     stz VIA1_ACR
     stz VIA1_PCR
     stz VIA1_T2CL
     stz VIA1_T2CH
-    lda VIA1_PCR                                  ; Clear Flags
+    lda VIA1_PCR                ; Clear Flags
     and #$0f
     ora #(VIA_PCR_CA1_INTERRUPT_POSITIVE)
     sta VIA1_PCR
-    lda #(VIA_IER_SET_FLAGS | VIA_IER_CA1_FLAG)   ; Enable interrupt on CA1
+    lda #(VIA_IER_SET_FLAGS | VIA_IER_CA1_FLAG) ; Enable interrupt on CA1
     sta VIA1_IER
     rts
 
@@ -62,8 +62,8 @@ VIA_ihandler:
     phx
     lda VIA1_PORTA
     ldx PS2IN_WPTR
-    sta INPUT_BUFFER,x                          ; Store in rx buffer
-    inc PS2IN_WPTR                              ; Increase write buffer pointer
+    sta INPUT_BUFFER,x          ; Store in rx buffer
+    inc PS2IN_WPTR              ; Increase write buffer pointer
     bmi @done
     lda #$80
     sta PS2IN_WPTR

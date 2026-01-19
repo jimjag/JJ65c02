@@ -59,9 +59,9 @@
 ;
 ;================================================================================
 
-main:                                           ; boot routine, first thing loaded
-    sei                                         ; disable all interupts as we boot
-    ldx #$ff                                    ; initialize the stackpointer with 0xff
+main:                           ; boot routine, first thing loaded
+    sei                         ; disable all interupts as we boot
+    ldx #$ff                    ; initialize the stackpointer with 0xff
     txs
     cld
     ; Check RAM - since this is at boot time, we can also check the
@@ -78,7 +78,7 @@ main:                                           ; boot routine, first thing load
 
 @continue:
     lda #8
-    sta CLK_SPD                                 ; Assume a 8Mhz clock to start
+    sta CLK_SPD                 ; Assume a 8Mhz clock to start
 
     ;lda #<ISR_HANDLER
     ;sta ISR_VECTOR
@@ -114,7 +114,7 @@ main:                                           ; boot routine, first thing load
     jsr CON_write_byte
     CON_writeln new_line
     ; Rest of boot up
-    cli                                         ; interupts are back on
+    cli                         ; interupts are back on
     CON_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
@@ -124,9 +124,9 @@ main:                                           ; boot routine, first thing load
 @ram_failed:
     CON_writeln message_fail
 @cont2:
-    jsr CON_read_byte                       ; in case there is junk in the buffer
-    jsr MINIOS_main_menu                    ; start the menu routine
-    jmp main                                ; should the menu ever return ...
+    jsr CON_read_byte           ; in case there is junk in the buffer
+    jsr MINIOS_main_menu        ; start the menu routine
+    jmp main                    ; should the menu ever return ...
 
 
 ;================================================================================
@@ -154,7 +154,7 @@ MINIOS_main_menu:
     sbc #'0'
 @select_option:
     clc
-    cmp #1                                      ; branch trough all options
+    cmp #1                      ; branch trough all options
     beq @load_and_run
     cmp #2
     beq @load
@@ -170,25 +170,25 @@ MINIOS_main_menu:
     beq @start_basic
     cmp #8
     beq @about
-    jmp @start                                  ; should we have an invalid option, restart
+    jmp @start                  ; should we have an invalid option, restart
 
-@load_and_run:                                  ; load and directly run
-    jsr @do_load                                ; load first
-    jsr @do_run                                 ; run immediately after
-    jmp @start                                  ; should a program ever return ...
-@load:                                          ; load program and go back into menu
+@load_and_run:                  ; load and directly run
+    jsr @do_load                ; load first
+    jsr @do_run                 ; run immediately after
+    jmp @start                  ; should a program ever return ...
+@load:                          ; load program and go back into menu
     jsr @do_load
     jmp @start
-@run:                                           ; run a program already loaded
+@run:                           ; run a program already loaded
     jsr @do_run
     jmp @start
-@go_wozmon:                                     ; start up WOZMON
+@go_wozmon:                     ; start up WOZMON
     jsr WOZMON
     jmp @start
-@clear_ram:                                     ; start the clear ram routine
+@clear_ram:                     ; start the clear ram routine
     jsr MINIOS_clear_ram
     jmp @start
-@test_ram:                                      ; start the test ram routine
+@test_ram:                      ; start the test ram routine
     jsr MINIOS_test_ram
     jmp @start
 @start_basic:
@@ -202,15 +202,15 @@ MINIOS_main_menu:
 @go_basic:
     jsr BASIC_init
     jmp @start
-@about:                                         ; start the about routine
+@about:                         ; start the about routine
     CON_writeln about
     jmp @start
-@do_load:                                       ; orchestration of program loading
-    lda #10                                     ; wait a bit, say 1s
+@do_load:                       ; orchestration of program loading
+    lda #10                     ; wait a bit, say 1s
     jsr LIB_delay100ms
-    jsr MINIOS_load_ram                         ; call the bootloaders programming routine
+    jsr MINIOS_load_ram         ; call the bootloaders programming routine
     jmp @start
-@do_run:                                        ; orchestration of running a program
+@do_run:                        ; orchestration of running a program
     jsr MINIOS_execute
     jmp @start
 
@@ -259,9 +259,9 @@ MINIOS_load_ram:
 
 MINIOS_execute:
     CON_writeln message_runprog
-    lda #10                                     ; wait a bit, say 1s
+    lda #10                     ; wait a bit, say 1s
     jsr LIB_delay100ms
-    jmp PROGRAM_START                           ; and jump to program location
+    jmp PROGRAM_START           ; and jump to program location
 
 ;================================================================================
 ;
@@ -315,10 +315,10 @@ MINIOS_ram_check:
 MINIOS_ram_set:
     ldy #0
 @loop:
-    sta (Z0),y                                  ; store it in current location
+    sta (Z0),y                  ; store it in current location
     inc Z0
-    bne @check_end                              ; rollover?
-    inc Z1                                      ; Yes, so increment upper address byte
+    bne @check_end              ; rollover?
+    inc Z1                      ; Yes, so increment upper address byte
 @check_end:
     ldx #<PROGRAM_END
     cpx Z0
@@ -347,11 +347,11 @@ MINIOS_ram_set:
 MINIOS_clear_ram:
     CON_writeln message_ramclean
 
-    ldy #<PROGRAM_START                         ; load start location into zero page
+    ldy #<PROGRAM_START         ; load start location into zero page
     sty Z0
     lda #>PROGRAM_START
     sta Z1
-    lda #$00                                    ;  load 0x00 cleaner byte
+    lda #$00                    ;  load 0x00 cleaner byte
     jmp MINIOS_ram_set
 
 ;================================================================================
@@ -370,7 +370,7 @@ MINIOS_clear_ram:
 
 MINIOS_test_ram:
     CON_writeln message_ramtest
-    ldy #<PROGRAM_START                         ; load start location into zero page
+    ldy #<PROGRAM_START         ; load start location into zero page
     sty Z0
     lda #>PROGRAM_START
     sta Z1
@@ -382,7 +382,7 @@ MINIOS_test_ram:
     CON_writeln message_fail
 @done:
     lda #10
-    jsr LIB_delay100ms                          ; let them see know it
+    jsr LIB_delay100ms          ; let them see know it
     rts
 
 ;================================================================================
@@ -451,7 +451,7 @@ ISR:
     phx
     ; First see if this was an ACIA IRQ (for rs232/tty)
     bit ACIA_STATUS
-    bpl @not_acia       ; Nope
+    bpl @not_acia               ; Nope
     jsr ACIA_ihandler
 @not_acia:
     ; Check if CA1 interrupt (ps/2 keyboard - Pi Pico)
@@ -503,7 +503,6 @@ clock_spd:
     .asciiz " Clock Mhz: "
 
 .segment "VECTORS"
-
     .word $0000
     .word main                                  ; entry vector main routine
     .word ISR                                   ; entry vector interrupt service routine
