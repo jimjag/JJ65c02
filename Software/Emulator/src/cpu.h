@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <ncurses.h>
 #include "via.h"
 #include "lcd.h"
 #include "keys.h"
@@ -58,15 +59,9 @@ typedef struct {
     // cycle counter
     uint32_t cycle;
     //
-    bool lcd_8_bit;
-    //
     bool shutdown;
-    // VIA1 subsystem
-    via* v1;
-    // LCD
-    lcd* l;
-    // keys
-    keys* k;
+    //
+    WINDOW* terminal;
 } cpu;
 
 cpu * new_cpu();

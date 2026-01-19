@@ -66,6 +66,7 @@ main:                           ; boot routine, first thing loaded
     cld
     ; Check RAM - since this is at boot time, we can also check the
     ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)
+.if SIM <> 1
     ldy #<__RAM0_START__
     sty Z0
     lda #>__RAM0_START__
@@ -75,6 +76,7 @@ main:                           ; boot routine, first thing loaded
     bcs @continue
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     tsb MINIOS_STATUS
+.endif
 
 @continue:
     lda #8
@@ -86,9 +88,11 @@ main:                           ; boot routine, first thing loaded
     ;sta ISR_VECTOR + 1
 
     ; Init the ACIA and VIA chips
+.if SIM <> 1
     jsr ACIA_init
     jsr TTY_setup_term
     jsr VIA_init
+.endif
     lda #0
     jsr LIB_setrambank
     jsr CON_init

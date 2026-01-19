@@ -25,15 +25,13 @@ void main_loop(cpu *m) {
     // after we move to the next instruction
     int8_t branch_offset = 0;
 
-    init_gui();
+    init_gui(m);
     init_io();
 
     for (;;) {
         reset_emu_flags(m);
 
         // read IO data
-        handle_io(m, true);
-
         pc_offset = 0;
         branch_offset = 0;
         m->pc_actual = m->pc;
@@ -60,7 +58,7 @@ void main_loop(cpu *m) {
             default:
                 // Unknown opcodes are a NOP in the 65C02 processor family
                 break;
-            
+
             case STP:
                 goto end;
         }
@@ -73,8 +71,8 @@ void main_loop(cpu *m) {
         m->cycle+=translate_opcode_cycles(opcode);
 
         do {
-            // update IO data            
-            handle_io(m, false);
+            // update IO data
+            handle_io(m);
             update_gui(m);
             // clear dirty memory flag immediately so that subsequent runs don't
             // redo whatever I/O operation is associated with the dirty memaddr

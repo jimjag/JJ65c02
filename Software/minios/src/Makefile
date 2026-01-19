@@ -18,18 +18,22 @@ SRCS =  minios.s \
 	wozmon.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
+SOBJS=$(SRCS:%.s=objs/%.o)
 all: $(TARGET)
 
 $(OBJS): $(SRCS)
 	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
+
+$(SOBJS): $(SRCS)
+	ca65 -t none -D SIM=1 --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
 	#rm -f $(TARGET).bin
 
 sim: $(OBJS)
-	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o sim $(OBJS)
-	#rm -f $(TARGET).bin
+	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o sim $(SOBJS)
+	#rm -f sim.bin
 
 .PHONY: clean
 clean:

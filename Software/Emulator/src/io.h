@@ -26,6 +26,6 @@
 
 void init_io();
 void finish_io();
-void handle_io(cpu *m, bool rwb);
+void handle_io(cpu *m);
 
 #endif

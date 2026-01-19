@@ -7,28 +7,15 @@
 
 #include "gui.h"
 #include "io.h"
-#include "lcd.h"
 
 #include "functions.h"
 #include "opcodes.h"
-
-#define LCD_HEIGHT (LCD_ROWS) + 2
-#define LCD_WIDTH (LCD_COLS) + 2
-
-#define LCD_ORIGINX 0
-#define LCD_ORIGINY 0
 
 #define MONITOR_ROWS 4
 #define MONITOR_COLS 36
 
 #define MONITOR_HEIGHT (MONITOR_ROWS) + 2
 #define MONITOR_WIDTH (MONITOR_COLS) + 2
-
-#define PORTMON_ROWS 4
-#define PORTMON_COLS 36
-
-#define PORTMON_HEIGHT (MONITOR_ROWS) + 2
-#define PORTMON_WIDTH (MONITOR_COLS) + 2
 
 #define TRACE_ROWS 20
 #define TRACE_COLS 36
@@ -37,13 +24,10 @@
 #define TRACE_WIDTH (TRACE_COLS) + 2
 
 #define MONITOR_ORIGINX 0
-#define MONITOR_ORIGINY (LCD_ORIGINY) + (LCD_HEIGHT)
+#define MONITOR_ORIGINY 0
 
-#define PORTMON_ORIGINX (MONITOR_ORIGINX)
-#define PORTMON_ORIGINY (MONITOR_ORIGINY) + (MONITOR_HEIGHT)
-
-#define TRACE_ORIGINX (PORTMON_ORIGINX)
-#define TRACE_ORIGINY (PORTMON_ORIGINY) + (PORTMON_HEIGHT)
+#define TRACE_ORIGINX 0
+#define TRACE_ORIGINY (MONITOR_HEIGHT) + 2
 
 /* IBM 2260 like */
 #define TERMINAL_ROWS 24
@@ -73,20 +57,16 @@ uint8_t memory_start = 0x00;
 int input_cycle_skip = 0;
 
 WINDOW *window = NULL;
-WINDOW *wnd_lcd = NULL;
-WINDOW *wnd_lcd_content = NULL;
 WINDOW *wnd_terminal = NULL;
 WINDOW *wnd_terminal_content = NULL;
 WINDOW *wnd_monitor = NULL;
 WINDOW *wnd_monitor_content = NULL;
-WINDOW *wnd_portmon = NULL;
-WINDOW *wnd_portmon_content = NULL;
 WINDOW *wnd_trace = NULL;
 WINDOW *wnd_trace_content = NULL;
 WINDOW *wnd_memory = NULL;
 WINDOW *wnd_memory_content = NULL;
 
-void init_gui() {
+void init_gui(cpu *m) {
     initscr();
     cbreak();
     noecho();
@@ -103,44 +83,33 @@ void init_gui() {
         }
     }
 
-    wnd_lcd = newwin(LCD_HEIGHT, LCD_WIDTH, LCD_ORIGINY, LCD_ORIGINX);
-    wnd_lcd_content = newwin(LCD_ROWS, LCD_COLS, LCD_ORIGINY+1, LCD_ORIGINX+1);
     wnd_terminal = newwin(TERMINAL_HEIGHT, TERMINAL_WIDTH, TERMINAL_ORIGINY, TERMINAL_ORIGINX);
     wnd_terminal_content = newwin(TERMINAL_ROWS, TERMINAL_COLS, TERMINAL_ORIGINY+1, TERMINAL_ORIGINX+1);
     wnd_monitor = newwin(MONITOR_HEIGHT, MONITOR_WIDTH, MONITOR_ORIGINY, MONITOR_ORIGINX);
     wnd_monitor_content = newwin(MONITOR_ROWS, MONITOR_COLS, MONITOR_ORIGINY+1, MONITOR_ORIGINX+1);
-    wnd_portmon = newwin(PORTMON_HEIGHT, PORTMON_WIDTH, PORTMON_ORIGINY, PORTMON_ORIGINX);
-    wnd_portmon_content = newwin(PORTMON_ROWS, PORTMON_COLS, PORTMON_ORIGINY+1, PORTMON_ORIGINX+1);
     wnd_trace = newwin(TRACE_HEIGHT, TRACE_WIDTH, TRACE_ORIGINY, TRACE_ORIGINX);
     wnd_trace_content = newwin(TRACE_ROWS, TRACE_COLS, TRACE_ORIGINY+1, TRACE_ORIGINX+1);
     wnd_memory = newwin(MEMORY_HEIGHT, MEMORY_WIDTH, MEMORY_ORIGINY, MEMORY_ORIGINX);
     wnd_memory_content = newwin(MEMORY_ROWS, MEMORY_COLS, MEMORY_ORIGINY+1, MEMORY_ORIGINX+1);
     scrollok(wnd_trace_content, TRUE);
     refresh();
-    box(wnd_lcd, 0, 0);
-    wcolor_set(wnd_lcd, 8, NULL);
-    mvwprintw(wnd_lcd, 0, 1, " LCD ");
     box(wnd_terminal, 0, 0);
     wcolor_set(wnd_terminal, 8, NULL);
     mvwprintw(wnd_terminal, 0, 1, " Terminal ");
     box(wnd_monitor, 0, 0);
     wcolor_set(wnd_monitor, 8, NULL);
     mvwprintw(wnd_monitor, 0, 1, " CPU Monitor ");
-    box(wnd_portmon, 0, 0);
-    wcolor_set(wnd_portmon, 8, NULL);
-    mvwprintw(wnd_portmon, 0, 1, " Ports Monitor ");
     box(wnd_trace, 0, 0);
     wcolor_set(wnd_trace, 8, NULL);
     mvwprintw(wnd_trace, 0, 1, " Bus Trace ");
     box(wnd_memory, 0, 0);
     wcolor_set(wnd_memory, 8, NULL);
     mvwprintw(wnd_memory, 0, 1, " Memory  ");
-    wrefresh(wnd_lcd);
     wrefresh(wnd_terminal);
     wrefresh(wnd_monitor);
-    wrefresh(wnd_portmon);
     wrefresh(wnd_trace);
     wrefresh(wnd_memory);
+    m->terminal = wnd_terminal_content;
 }
 
 void finish_gui() {
@@ -156,29 +125,6 @@ void trace_emu(char *msg) {
     wrefresh(wnd_trace_content);
 }
 
-void update_lcd_cell(cpu *m, int x, int y) {
-  int offset;
-  switch (y) {
-    case 0:
-      offset = 0;
-      break;
-    case 1:
-      offset = LCD_MEM_SIZE/2;
-      break;
-    case 2:
-      offset = LCD_COLS;
-      break;
-    case 3:
-      offset = LCD_COLS + (LCD_MEM_SIZE/2);
-      break;
-  }
-  if (isprint(m->l->ddram[x+offset])) {
-    mvwprintw(wnd_lcd_content, y, x, "%c", m->l->ddram[x+offset]);
-  } else {
-    mvwprintw(wnd_lcd_content, y, x, " ");
-  }
-}
-
 void update_gui(cpu *m) {
   int read;
   bool keep_going = false;
@@ -187,26 +133,6 @@ void update_gui(cpu *m) {
   }
 
   do {
-    // update LCD contents
-    if (!(m->l->initialized)) {
-      for (int y=0; y<LCD_ROWS; y+=2) {
-        for (int x=0; x<LCD_COLS; x++) {
-          wcolor_set(wnd_lcd_content, 8, NULL);
-          mvwprintw(wnd_lcd_content, y, x, " ");
-          wcolor_set(wnd_lcd_content, 7, NULL);
-          mvwprintw(wnd_lcd_content, y+1, x, " ");
-        }
-      }
-      m->l->initialized = true;
-    } else {
-      for (int y=0; y<LCD_ROWS; y++) {
-        for (int x=0; x<LCD_COLS; x++) {
-          update_lcd_cell(m, x, y);
-        }
-      }
-    }
-    wrefresh(wnd_lcd_content);
-
     // start by populating the monitor
     mvwprintw(wnd_monitor_content, 0, 0, "PC: %04x, OP: %02x (%s)", m->pc_actual, m->opcode, translate_opcode(m->opcode));
     mvwprintw(wnd_monitor_content, 1, 0, "ACC: %02x, X: %02x, Y: %02x, SP: %02x", m->ac, m->x, m->y, m->sp);
@@ -236,30 +162,14 @@ void update_gui(cpu *m) {
       }
     }
     wrefresh(wnd_memory_content);
+    wrefresh(wnd_terminal_content);
 
-    // populate ports monitor
-    mvwprintw(wnd_portmon_content, 0, 0, "0-V1PA-7 0-V1PB-7 0-V2PA-7 0-V2PB-7");
-    uint8_t bitmask = 0x01;
-    for (int bit=0; bit<8; bit++) {
-      mvwprintw(wnd_portmon_content, 1, bit, "%c", m->v1->ddra & bitmask ? 'O' : 'i');
-      mvwprintw(wnd_portmon_content, 2, bit, "%c", m->v1->porta & bitmask ? '1' : '0');
-      mvwprintw(wnd_portmon_content, 1, bit+9, "%c", m->v1->ddrb & bitmask ? 'O' : 'i');
-      mvwprintw(wnd_portmon_content, 2, bit+9, "%c", m->v1->portb & bitmask ? '1' : '0');
-      bitmask = bitmask << 1;
-    }
-    wrefresh(wnd_portmon_content);
 
     if (m->clock_mode == CLOCK_SPRINT && input_cycle_skip < CYCLES_SKIP)
     {
       input_cycle_skip++;
     } else {
       input_cycle_skip=0;
-
-      m->k->key_up=false;
-      m->k->key_down=false;
-      m->k->key_left=false;
-      m->k->key_right=false;
-      m->k->key_enter=false;
 
       switch (m->clock_mode) {
         case CLOCK_SPRINT:
@@ -293,28 +203,8 @@ void update_gui(cpu *m) {
         case KEY_F(8): // F8
           m->clock_mode = CLOCK_SPRINT;
           break;
-        case 10:
-          m->k->key_enter = true;
-          keep_going = true;
-          break;
         case 27:
           m->shutdown = true;
-          break;
-        case KEY_UP:
-          m->k->key_up = true;
-          keep_going = true;
-          break;
-        case KEY_DOWN:
-          m->k->key_down = true;
-          keep_going = true;
-          break;
-        case KEY_LEFT:
-          m->k->key_left = true;
-          keep_going = true;
-          break;
-        case KEY_RIGHT:
-          m->k->key_right = true;
-          keep_going = true;
           break;
         case '[':
           if (memory_start > 0x00) {

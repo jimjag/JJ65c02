@@ -5,7 +5,7 @@
 
 #include "cpu.h"
 
-void init_gui();
+void init_gui(cpu *m);
 void finish_gui();
 void update_gui(cpu *m);
 
