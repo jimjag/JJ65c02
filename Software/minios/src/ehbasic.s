@@ -1216,12 +1216,12 @@ LAB_142A:
     iny                         ; adjust for line copy
 ; *** begin patch for when Ibuffs is $xx00 - Daryl Rictor ***
 ; *** insert
-      .IF   Ibuffs&$FF=0
+.IF   Ibuffs&$FF=0
     lda Bpntrl                  ; test for $00
     bne LAB_142P                ; not $00
     dec Bpntrh                  ; allow for increment when $xx00
 LAB_142P:
-      .ENDIF
+.ENDIF
 ; *** end   patch for when Ibuffs is $xx00 - Daryl Rictor ***
 ; end of patch
     dec Bpntrl                  ; allow for increment
