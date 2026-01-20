@@ -54,7 +54,7 @@ case STA_INZP:
 
 case STX_ZP:
     r1 = ZP(NEXT_BYTE(m));
-    write_byte(m, r1, m->ac); //m->mem[r1] = m->x;
+    write_byte(m, r1, m->x); //m->mem[r1] = m->x;
     mark_dirty(m, r1);
     break;
 

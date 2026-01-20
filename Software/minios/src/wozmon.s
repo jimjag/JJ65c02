@@ -9,16 +9,16 @@
 
 .segment "ZEROPAGE"
 ; WOZMON vars
-XAML = R0   ; Last "opened" location Low
+XAML = R0     ; Last "opened" location Low
 XAMH = R0+1   ; Last "opened" location High
-STL = R1    ; Store address Low
+STL = R1      ; Store address Low
 STH = R1+1    ; Store address High
-L = R2      ; Hex value parsing Low
+L = R2        ; Hex value parsing Low
 H = R2+1      ; Hex value parsing High
-YSAV = Z0   ; Used to see if hex value is given
-MODE = Z1   ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+YSAV = Z0     ; Used to see if hex value is given
+MODE = Z1     ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
 
-IN    = YMBUF                          ; Input buffer
+IN = YMBUF    ; Input buffer
 
 .segment "CODE"
 
@@ -35,19 +35,21 @@ WOZMON:
     beq @ESCAPE        ; Yes.
     cmp #'Q'           ; Quit?
     bne @NOQUIT
-    jmp @ECHO
+    jmp @WEDONE
 @NOQUIT:
     iny                ; Advance text index.
     bpl @NEXTCHAR      ; Auto ESC if line longer than 127.
 
 @ESCAPE:
-    lda #'\\'          ; "\".
+    lda #']'           ; Different prompt, was "\".
     jsr @ECHO          ; Output it.
+    bra @SETUP
 
 @GETLINE:
     lda #TTY_char_CR   ; Send CR
     jsr @ECHO
 
+@SETUP:
     ldy #$01           ; Initialize text index.
 @BACKSPACE:
     dey                ; Back up text index.
@@ -204,4 +206,4 @@ WOZMON:
     rts                ; Return.
 
 .segment "RODATA"
-WOZM_welcome:     .asciiz "\r\nWelcome to EWOZMON 1.0."
+WOZM_welcome:     .asciiz "\r\nWelcome to EWOZMON 1.0.\r\n"

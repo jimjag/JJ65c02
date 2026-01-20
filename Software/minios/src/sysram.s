@@ -107,7 +107,7 @@ XMODEM_pend:    .res 2   ; end of file address pointer for XMODEM
 
 .segment "SYSRAM"
 
-INPUT_BUFFER:   .res $FF    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
+INPUT_BUFFER:   .res 256    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector

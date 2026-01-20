@@ -65,6 +65,7 @@
 
 #define BIT_AB   0x2C
 #define BIT_ZP   0x24
+#define BIT_ZPX  0x34
 
 #define BMI_REL  0x30
 #define BNE_REL  0xD0

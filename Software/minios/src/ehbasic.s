@@ -117,9 +117,7 @@ next_s:          .res 1         ; next descriptor stack address
 last_sl:         .res 1         ; last descriptor stack address low byte
 last_sh:         .res 1         ; last descriptor stack address high byte (always $00)
 
-des_sk:          .res 9         ; descriptor stack start address (temp strings)
-
-;               .res 1          ; End of descriptor stack
+des_sk:          .res 9         ; descriptor stack start address (temp strings) - 9 bytes
 
 ut1_pl:          .res 1         ; utility pointer 1 low byte
 ut1_ph:          .res 1         ; utility pointer 1 high byte
@@ -182,7 +180,7 @@ Tidx1           = Frnxtl        ; temp line index
 Lvarpl          = Frnxtl        ; let var pointer low byte
 Lvarph          = Frnxth        ; let var pointer high byte
 
-prstk:           .res 1         ; precedence stacked flag
+prstk:           .res 1         ; precedence stacked flag (2 bytes??)
 
 comp_f:          .res 1         ; compare function flag, bits 0,1 and 2 used
                                 ; bit 2 set if >
@@ -259,7 +257,7 @@ des_ph          = FAC1_3        ; string descriptor pointer high byte
 mids_l          = FAC1_3        ; MID$ string temp length byte
 
 negnum:          .res 1         ; string to float eval -ve flag
-numcon:          .res 1         ; series evaluation constant count
+numcon          = negnum        ; series evaluation constant count (was .res 1)
 
 FAC1_o:          .res 1         ; FAC1 overflow byte
 

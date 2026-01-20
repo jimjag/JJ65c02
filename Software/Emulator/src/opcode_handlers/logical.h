@@ -167,6 +167,13 @@ case BIT_ZP:
     set_flag(m, FLAG_NEGATIVE, t1 & 0x80);
     break;
 
+case BIT_ZPX:
+    t1 = read_byte(m, ZP(NEXT_BYTE(m) + m->x)); //m->mem[ZP(NEXT_BYTE(m) + m->x)];
+    set_flag(m, FLAG_ZERO, !(t1 & m->ac));
+    set_flag(m, FLAG_OVERFLOW, t1 & 0x40);
+    set_flag(m, FLAG_NEGATIVE, t1 & 0x80);
+    break;
+
 case RMB0:
     r1 = ZP(NEXT_BYTE(m));
     //m->mem[r1] &= ~0x01;
