@@ -1,6 +1,7 @@
-.setcpu "65c02"
+.setcpu "w65c02"
 
 .export BASIC_init
+.export UseTTY
 ;.export LAB_WARM
 ;.export LAB_IGBY
 ;.export LAB_GBYT
@@ -66,10 +67,12 @@
 
 .segment "ZEROPAGE"
 
+UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
+
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
 LAB_WARM:        .res 1         ; BASIC warm start entry point
 Wrmjpl:          .res 1         ; BASIC warm start vector jump low byte
-Wrmjph:          .res 8          ; BASIC warm start vector jump high byte
+Wrmjph:          .res 1         ; BASIC warm start vector jump high byte
 
 Usrjmp:          .res 1         ; USR function JMP address
 Usrjpl:          .res 1         ; USR function JMP vector low byte
@@ -83,7 +86,7 @@ Itemph:          .res 1         ; temporary integer high byte
 ; end bulk initialize from StrTab at LAB_GMEM
 
 nums_1          = Itempl        ; number to bin/hex string convert MSB
-nums_2          = Itemph        ; number to bin/hex string convert
+nums_2:          .res 1         ; number to bin/hex string convert
 nums_3:          .res 1         ; number to bin/hex string convert LSB
 
 Srchc:           .res 1         ; search character
@@ -203,7 +206,7 @@ Fnxjph:          .res 1         ; functions jump vector high byte
 
 g_indx          = Fnxjpl        ; garbage collect temp index
 
-FAC2_r          = Fnxjph        ; FAC2 rounding byte
+FAC2_r:          .res 1         ; FAC2 rounding byte
 
 Adatal:          .res 1         ; array data pointer low byte
 Adatah:          .res 1         ; array data pointer high  byte
@@ -256,7 +259,7 @@ des_ph          = FAC1_3        ; string descriptor pointer high byte
 mids_l          = FAC1_3        ; MID$ string temp length byte
 
 negnum:          .res 1         ; string to float eval -ve flag
-numcon          = negnum        ; series evaluation constant count
+numcon:          .res 1         ; series evaluation constant count
 
 FAC1_o:          .res 1         ; FAC1 overflow byte
 
@@ -302,8 +305,6 @@ Rbyte1:          .res 1         ; most significant PRNG byte
 Rbyte2:          .res 1         ; middle PRNG byte
 Rbyte3:          .res 1         ; least significant PRNG byte
 
-UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
-
 NmiBase:         .res 3         ; NMI handler enabled/setup/triggered flags
                                 ; bit function
                                 ; === ========
@@ -317,7 +318,7 @@ IrqBase:         .res 3         ; IRQ handler enabled/setup/triggered flags
 ;               .res 1          ; IRQ handler addr high byte
 
 Decss:           .res 1         ; number to decimal string start
-Decssp1:         .res 16        ; number to decimal string start
+Decssp1:         .res 1         ; number to decimal string start - Was 16?!
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
@@ -7908,11 +7909,6 @@ LAB_2D05:
 StrTab:
       .byte $4C               ; JMP opcode
       .word LAB_COLD          ; initial warm start vector (cold start)
-
-      .byte $00               ; these bytes are not used by BASIC
-      .word $0000             ;
-      .word $0000             ;
-      .word $0000             ;
 
       .byte $4C               ; JMP opcode
       .word LAB_FCER          ; initial user function vector ("Function call" error)

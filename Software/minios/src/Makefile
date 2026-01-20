@@ -22,10 +22,10 @@ SOBJS=$(SRCS:%.s=sobjs/%.o)
 all: $(TARGET)
 
 $(OBJS): $(SRCS)
-	ca65 -t none --cpu 65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
+	ca65 -t none --cpu w65c02 -U -I ./include -o $@ $(@:objs/%.o=%.s)
 
 $(SOBJS): $(SRCS)
-	ca65 -t none -D SIM=1 --cpu 65c02 -U -I ./include -o $@ $(@:sobjs/%.o=%.s)
+	ca65 -t none -D SIM=1 --cpu w65c02 -U -I ./include -o $@ $(@:sobjs/%.o=%.s)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)

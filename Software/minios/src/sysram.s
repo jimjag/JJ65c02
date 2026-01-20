@@ -1,3 +1,5 @@
+.setcpu "w65c02"
+
 .include "sysram.h"
 .include "tty.h"
 

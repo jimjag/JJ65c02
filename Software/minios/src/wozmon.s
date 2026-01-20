@@ -1,5 +1,4 @@
-
-.setcpu "65c02"
+.setcpu "w65c02"
 
 .export WOZMON
 
@@ -206,4 +205,3 @@ WOZMON:
 
 .segment "RODATA"
 WOZM_welcome:     .asciiz "\r\nWelcome to EWOZMON 1.0."
-
