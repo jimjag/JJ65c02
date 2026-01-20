@@ -18,7 +18,7 @@
 ; that need to be updated for *your* system
 ;=====================================================================
 
-; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.11j
+; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.12j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
@@ -64,6 +64,8 @@
 ;      5.10j   Added CSTR$(): CSTR$(19) returns "19" not " 19" ala STR$()
 ;      5.11j   Tokenizer mixed case keyword recognition
 ;              http://forum.6502.org/viewtopic.php?f=5&t=4383
+;      5.12j   Added TTY command, to switch I/O between Console
+;              and rs-232 TTY
 
 .segment "ZEROPAGE"
 
@@ -365,6 +367,7 @@ Decssp1:         .res 1         ; number to decimal string start - Was 16?!
     token_IRQ
     token_NMI
     token_EXIT
+    token_TTY
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -2145,10 +2148,34 @@ LAB_1754:
 ; tail end of the <statement>
 
 ; perform TTY, change I/O from Console to TTY and back
+; TODO: Ugly - Change to looping thru IO_TAB_Start<>IO_TAB_End
 LAB_TTY:
+    pha
     lda UseTTY
     eor #$ff
     sta UseTTY
+    lda UseTTY
+    bne @SwitchTTY
+    lda #<IOin_console
+    sta VEC_IN
+    lda #>IOin_console
+    sta VEC_IN+1
+    lda #<IOout_console
+    sta VEC_OUT
+    lda #>IOout_console
+    sta VEC_OUT+1
+    pla
+    jmp LAB_WSTART
+@SwitchTTY:
+    lda #<IOin_tty
+    sta VEC_IN
+    lda #>IOin_tty
+    sta VEC_IN+1
+    lda #<IOout_tty
+    sta VEC_OUT
+    lda #>IOout_tty
+    sta VEC_OUT+1
+    pla
     jmp LAB_WSTART              ; go do warm start
 
 ; perform REM, skip (rest of) line
@@ -8077,6 +8104,7 @@ LAB_CTBL:
     .word LAB_IRQ-1         ; IRQ             new command
     .word LAB_NMI-1         ; NMI             new command
     .word V_EXIT-1          ; EXIT            new command
+    .word LAB_TTY-1         ; TTY             new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8490,6 +8518,8 @@ LBB_THEN:
       .byte "HEN",token_THEN     ; THEN
 LBB_TO:
       .byte "O",token_TO         ; TO
+LBB_TTY:
+      .byte "TY",token_TTY       ; TTY
 LBB_TWOPI:
       .byte "WOPI",token_TWOPI   ; TWOPI
       .byte $00
@@ -8813,28 +8843,23 @@ LAB_nokey:
     jmp LAB_WARM                ; do EhBASIC warm start
 
 ; : SYSTEM SPECIFIC VALUE!
-IOout:
-    ;pha
-    ;lda UseTTY
-    ;bne @TTY_o
-    ;pla
+IOout_console:
     jsr CON_write_byte
     rts
-@TTY_o:
-    ;pla
-    ;jsr TTY_write_char
-    ;rts
 
+IOout_tty:
+    jsr TTY_write_char
+    rts
 ; : SYSTEM SPECIFIC VALUE!
-IOin:
-    ;lda UseTTY
-    ;beq @Conn_i
-    ;jsr TTY_read_char
-    ;bra @Check_char
-@Conn_i:
+
+IOin_tty:
+    jsr TTY_read_char
+    bra Check_char
+
+IOin_console:
     jsr CON_read_byte
-@Check_char:
-    bcc LAB_nobyw               ; No char avail
+Check_char:
+    bcc @LAB_nobyw               ; No char avail
     cmp #'a'                    ; Is it < 'a'?
     blt @done                   ; Yes, we're done
     cmp #'z'                    ; Is it >= 'z'?
@@ -8843,11 +8868,16 @@ IOin:
 @done:
     sec                         ; Flag byte received (not really needed)
     rts
-LAB_nobyw:
+@LAB_nobyw:
     clc                         ; Just in case
-no_load:                 ; empty load vector
-no_save:                 ; empty save vector
     rts
+
+IO_TAB_Start:
+    .word IOin_console
+    .word IOout_console
+    .word IOin_tty
+    .word IOout_tty
+IO_TAB_End:
 
 LAB_load:
 ; This overwrites any existing program
@@ -8879,8 +8909,8 @@ LAB_save:
 
 ; vector tables
 LAB_vec:
-    .word IOin              ; byte in from user
-    .word IOout             ; byte out
+    .word IOin_console      ; byte in from user
+    .word IOout_console     ; byte out
     .word LAB_load          ; load vector for EhBASIC
     .word LAB_save          ; save vector for EhBASIC
     .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!
@@ -8911,11 +8941,11 @@ NMI_CODE:
 .segment "RODATA"
 
 LAB_mess:
-    .asciiz "\r\n6502 EhBASIC ver 2.22p5.11j [C]old/[W]arm ?" ; sign on string
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.12j [C]old/[W]arm ?" ; sign on string
 LAB_MSZM:
     .asciiz "\r\nMemory size "
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.11j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.12j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"
