@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/select.h>
 #include <sys/time.h>
 
@@ -129,7 +130,6 @@ void trace_emu(char *msg) {
 
 void update_gui(cpu *m) {
   int read;
-  bool keep_going = false;
   bool do_step = false;
 
   if (m->shutdown) {
@@ -176,24 +176,19 @@ void update_gui(cpu *m) {
       input_cycle_skip=0;
       switch (m->clock_mode) {
         case CLOCK_SPRINT:
-          halfdelay(0);
           read = getch();
-          keep_going = true;
           break;
         case CLOCK_FAST:
-          halfdelay(1);
+          usleep(5000);
           read = getch();
-          keep_going = true;
           break;
         case CLOCK_SLOW:
-          halfdelay(10);
+          usleep(50000);
           read = getch();
-          keep_going = true;
           break;
         case CLOCK_STEP:
           while ((read = getch()) == ERR);
           do_step = true;
-          keep_going = true;
           break;
       }
 
@@ -245,5 +240,5 @@ void update_gui(cpu *m) {
           }
       }
     }
-  } while (!m->shutdown && !keep_going && m->clock_mode != CLOCK_SPRINT);
+  } while (false);
 }
