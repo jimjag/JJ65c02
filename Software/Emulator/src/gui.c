@@ -48,7 +48,7 @@
 #define MEMORY_ORIGINX (TRACE_ORIGINX) + (TRACE_WIDTH)
 #define MEMORY_ORIGINY (TERMINAL_ORIGINY) + (TERMINAL_HEIGHT)
 
-#define CYCLES_SKIP 50
+#define CYCLES_SKIP 100
 
 uint8_t io_supports_paint;
 
@@ -130,6 +130,8 @@ void trace_emu(char *msg) {
 void update_gui(cpu *m) {
   int read;
   bool keep_going = false;
+  bool do_step = false;
+
   if (m->shutdown) {
     return;   // nothing to do
   }
@@ -174,6 +176,7 @@ void update_gui(cpu *m) {
       input_cycle_skip=0;
       switch (m->clock_mode) {
         case CLOCK_SPRINT:
+          halfdelay(0);
           read = getch();
           keep_going = true;
           break;
@@ -189,6 +192,8 @@ void update_gui(cpu *m) {
           break;
         case CLOCK_STEP:
           while ((read = getch()) == ERR);
+          do_step = true;
+          keep_going = true;
           break;
       }
 
@@ -235,7 +240,9 @@ void update_gui(cpu *m) {
           }
           break;
         default:
-          ungetch(read);
+          if (!do_step) {
+            ungetch(read);
+          }
       }
     }
   } while (!m->shutdown && !keep_going && m->clock_mode != CLOCK_SPRINT);

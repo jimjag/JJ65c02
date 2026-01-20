@@ -31,7 +31,7 @@ static inline void set_pc(cpu *m, uint16_t address) {
 
 #define ZP(x) ((uint8_t) (x))
 //#define STACK_PUSH(m) (m)->mem[(m)->sp-- + STACK_START]
-#define STACK_PUSH(m, v) (write_byte(m, m->sp-- + STACK_START, v)) 
+#define STACK_PUSH(m, v) (write_byte(m, m->sp-- + STACK_START, v))
 //#define STACK_POP(m) (m)->mem[++(m)->sp + STACK_START]
 #define STACK_POP(m) (read_byte(m, ++(m)->sp + STACK_START))
 
@@ -111,7 +111,7 @@ static inline void sub(cpu *m, uint16_t r1) {
         r1 = m->ac - r1 - !get_flag(m, FLAG_CARRY);
         set_flag(m, FLAG_OVERFLOW, 0xFF00 & r1);
     }
-    set_flag(m, FLAG_CARRY, !(r1 & 0xB000));
+    set_flag(m, FLAG_CARRY, !(r1 & 0x8000));
     set_flag(m, FLAG_NEGATIVE, r1 & 0x80);
     set_flag(m, FLAG_ZERO, r1 == 0);
     m->ac = r1;

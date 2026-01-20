@@ -15,8 +15,8 @@ void usage() {
     printf("x65c02: a simple 65C02/65C22 emulator\n");
     printf("usage: x65c02 [OPTION]... FILE\n");
     printf("options:\n");
-    printf("  -b ADDR the base address at which code will be loaded (in hex, default 8000)\n");
-    printf("  -r run as fast as possible\n");
+    printf("  -b ADDR the base address at which code will be loaded (in hex, default B000)\n");
+    printf("  -s run as fast as possible (sprint)\n");
     printf("  -f run fast\n");
 }
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     bool fast = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:raf")) != -1) {
+    while ((c = getopt(argc, argv, "hb:sf")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
             usage();
             return 0;
 
-        case 'r':
+        case 's':
             sprint=true;
             break;
 

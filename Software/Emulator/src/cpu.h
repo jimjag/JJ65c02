@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <ncurses.h>
 #include "via.h"
-#include "lcd.h"
-#include "keys.h"
 
 #define MEMORY_SIZE (64*1024)
 #define STACK_START 0x0100
