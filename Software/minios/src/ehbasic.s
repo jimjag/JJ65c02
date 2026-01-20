@@ -1,7 +1,6 @@
 .setcpu "w65c02"
 
 .export BASIC_init
-.export UseTTY
 ;.export LAB_WARM
 ;.export LAB_IGBY
 ;.export LAB_GBYT
@@ -84,12 +83,12 @@ TPos:            .res 1         ; BASIC terminal position byte
 TWidth:          .res 1         ; BASIC terminal width byte
 Iclim:           .res 1         ; input column limit
 Itempl:          .res 1         ; temporary integer low byte
-Itemph:          .res 1         ; temporary integer high byte
+Itemph:          .res 2         ; temporary integer high byte (was .res 1) - needed for nums_3
 ; end bulk initialize from StrTab at LAB_GMEM
 
 nums_1          = Itempl        ; number to bin/hex string convert MSB
-nums_2:          .res 1         ; number to bin/hex string convert
-nums_3:          .res 1         ; number to bin/hex string convert LSB
+nums_2          = nums_1+1      ; number to bin/hex string convert
+nums_3          = nums_1+2      ; number to bin/hex string convert LSB
 
 Srchc:           .res 1         ; search character
 Temp3           = Srchc         ; temp byte used in number routines
@@ -296,7 +295,7 @@ LAB_IGBY:        .res 6         ; get next BASIC byte subroutine
 LAB_GBYT:        .res 1         ; get current BASIC byte subroutine
 Bpntrl:          .res 1         ; BASIC execute (get byte) pointer low byte
 Bpntrh:          .res 20        ; BASIC execute (get byte) pointer high byte
-                                ; plus extra space
+                                ; plus extra space - should be just .res 1 ???
 ; end of get BASIC char subroutine
 ; end bulk initialize from LAB_2CEE at LAB_2D4E
 
