@@ -66,7 +66,7 @@ main:                           ; boot routine, first thing loaded
     cld
     ; Check RAM - since this is at boot time, we can also check the
     ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)
-.if SIM <> 1
+.IFNDEF SIM
     ldy #<__RAM0_START__
     sty Z0
     lda #>__RAM0_START__
@@ -74,9 +74,9 @@ main:                           ; boot routine, first thing loaded
     jsr MINIOS_test_ram_core
     stz MINIOS_STATUS
     bcs @continue
+.ENDIF
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     tsb MINIOS_STATUS
-.endif
 
 @continue:
     lda #8
@@ -88,11 +88,9 @@ main:                           ; boot routine, first thing loaded
     ;sta ISR_VECTOR + 1
 
     ; Init the ACIA and VIA chips
-.if SIM <> 1
     jsr ACIA_init
     jsr TTY_setup_term
     jsr VIA_init
-.endif
     lda #0
     jsr LIB_setrambank
     jsr CON_init
@@ -197,13 +195,6 @@ MINIOS_main_menu:
     jmp @start
 @start_basic:
     CON_writeln message_readybasic
-    jsr CON_read_byte_blk
-    cmp #'B'
-    beq @go_basic
-    cmp #'b'
-    beq @go_basic
-    jmp @start
-@go_basic:
     jsr BASIC_init
     jmp @start
 @about:                         ; start the about routine
@@ -454,14 +445,17 @@ ISR:
     pha
     phx
     ; First see if this was an ACIA IRQ (for rs232/tty)
+.IFNDEF SIM
     bit ACIA_STATUS
     bpl @not_acia               ; Nope
     jsr ACIA_ihandler
+    ; bra @done ??
 @not_acia:
     ; Check if CA1 interrupt (ps/2 keyboard - Pi Pico)
     lda VIA1_IFR
     and #%00000010
     beq @done
+.ENDIF
     jsr VIA_ihandler
 @done:
     plx
@@ -482,7 +476,7 @@ message_welcomeacia:
 message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
-    .asciiz "\r\n Starting EhBASIC\r\n Press 'B' or 'b' key on console to start: "
+    .asciiz "\r\n Starting EhBASIC\r\n"
 message_readyload:
     .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: "
 message_waitdata:

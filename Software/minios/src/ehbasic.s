@@ -69,7 +69,7 @@
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
 LAB_WARM:        .res 1         ; BASIC warm start entry point
 Wrmjpl:          .res 1         ; BASIC warm start vector jump low byte
-Wrmjph:          .res 1         ; BASIC warm start vector jump high byte
+Wrmjph:          .res 8          ; BASIC warm start vector jump high byte
 
 Usrjmp:          .res 1         ; USR function JMP address
 Usrjpl:          .res 1         ; USR function JMP vector low byte
@@ -302,6 +302,8 @@ Rbyte1:          .res 1         ; most significant PRNG byte
 Rbyte2:          .res 1         ; middle PRNG byte
 Rbyte3:          .res 1         ; least significant PRNG byte
 
+UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
+
 NmiBase:         .res 3         ; NMI handler enabled/setup/triggered flags
                                 ; bit function
                                 ; === ========
@@ -316,7 +318,6 @@ IrqBase:         .res 3         ; IRQ handler enabled/setup/triggered flags
 
 Decss:           .res 1         ; number to decimal string start
 Decssp1:         .res 16        ; number to decimal string start
-Console:         .res 1         ; I/O using Console (0) or Serial (xff)
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
@@ -365,7 +366,6 @@ Console:         .res 1         ; I/O using Console (0) or Serial (xff)
     token_IRQ
     token_NMI
     token_EXIT
-    token_TTY
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -450,10 +450,10 @@ LAB_SKFF          = LAB_STAK+$FF
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
 ; __RAM0_START__
-ccflag = CC_BASIC               ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
+ccflag = SCRATCH_32             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte = ccflag+1               ; BASIC CTRL-C byte
 ccnull = ccbyte+1               ; BASIC CTRL-C byte timeout
-VEC_CC = ccnull+1               ; ctrl c check vector
+VEC_CC = ccnull+1               ; ctrl c check vector - NOTE: 2 bytes are used!
 ; end bulk initialize from PG2_TABS at LAB_COLD
 
 ; the following locations are bulk initialized from LAB_vec at LAB_stlp
@@ -468,13 +468,14 @@ VEC_EXIT          = VEC_SV+2    ; exit vector
 ; the input buffer must not cross a page boundary and must not overlap with
 ; program RAM pages!
 
-;Ibuffs            = IRQ_vec+$14
-Ibuffs            =  (YMBUF+YMBUF_SIZE)    ; SYSTEM SPECIFIC VALUE!
-                              ; start of input buffer after IRQ/NMI code
+; SYSTEM SPECIFIC VALUE!
+; NOTE: Yeah, we need hard coded values here :(
+Ibuffs = $0400
+; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47; end of input buffer
 
 ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
-Ram_base          = __RAM_START__
+Ram_base = $0500
 
 ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 Ram_top           = __IO_START__
@@ -486,7 +487,7 @@ Stack_floor       = 16        ; bytes left free on stack for background interrup
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ccflag on
 LAB_COLD:
-    stz Console
+    stz UseTTY
     ldy #PG2_TABE-PG2_TABS-1    ; byte count-1
 LAB_2D13:
     lda PG2_TABS,Y              ; get byte
@@ -613,17 +614,21 @@ LAB_2DB6:
     sty Smeml                   ; save start of mem low byte
     stx Smemh                   ; save start of mem high byte
 
-; this line is only needed if Ram_base is not $xx00, but what the heck!
+; this line is only needed if Ram_base is not $xx00
+.IF   Ram_base&$FF>0
     ldy #$00                    ; clear Y
+.ENDIF
 
     tya                         ; clear A
     sta (Smeml),Y               ; clear first byte
     inc Smeml                   ; increment start of mem low byte
 
-; these two lines are only needed if Ram_base is $xxFF, but what the heck!
+; these two lines are only needed if Ram_base is $xxFF
+.IF   Ram_base&$FF=$FF
     bne LAB_2E05                ; branch if no rollover
     inc Smemh                   ; increment start of mem high byte
 LAB_2E05:
+.ENDIF
 
     jsr LAB_CRLF                ; print CR/LF
     jsr LAB_1463                ; do "NEW" and "CLEAR"
@@ -720,10 +725,10 @@ LAB_120A:
 LAB_1212:
 ; *** patch - additional stack floor protection for background interrupts
 ; *** add
-      .IF   Stack_floor
+.IF   Stack_floor
     clc                         ; prep ADC
     adc #Stack_floor            ; stack pointer lower limit before interrupts
-      .ENDIF
+.ENDIF
 ; *** end patch
     sta TempB                   ; save result in temp byte
     tsx                         ; copy stack
@@ -1208,11 +1213,16 @@ LAB_142A:
     iny                         ; adjust for line copy
     iny                         ; adjust for line copy
     iny                         ; adjust for line copy
-
+; *** begin patch for when Ibuffs is $xx00 - Daryl Rictor ***
+; *** insert
+      .IF   Ibuffs&$FF=0
     lda Bpntrl                  ; test for $00
     bne LAB_142P                ; not $00
     dec Bpntrh                  ; allow for increment when $xx00
 LAB_142P:
+      .ENDIF
+; *** end   patch for when Ibuffs is $xx00 - Daryl Rictor ***
+; end of patch
     dec Bpntrl                  ; allow for increment
     rts
 
@@ -2137,9 +2147,9 @@ LAB_1754:
 
 ; perform TTY, change I/O from Console to TTY and back
 LAB_TTY:
-    lda Console
+    lda UseTTY
     eor #$ff
-    sta Console
+    sta UseTTY
     jmp LAB_WSTART              ; go do warm start
 
 ; perform REM, skip (rest of) line
@@ -7899,6 +7909,11 @@ StrTab:
       .byte $4C               ; JMP opcode
       .word LAB_COLD          ; initial warm start vector (cold start)
 
+      .byte $00               ; these bytes are not used by BASIC
+      .word $0000             ;
+      .word $0000             ;
+      .word $0000             ;
+
       .byte $4C               ; JMP opcode
       .word LAB_FCER          ; initial user function vector ("Function call" error)
       .byte $00               ; default NULL count
@@ -8068,7 +8083,6 @@ LAB_CTBL:
     .word LAB_IRQ-1         ; IRQ             new command
     .word LAB_NMI-1         ; NMI             new command
     .word V_EXIT-1          ; EXIT            new command
-    .word LAB_TTY-1         ; TTY             new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8482,8 +8496,6 @@ LBB_THEN:
       .byte "HEN",token_THEN     ; THEN
 LBB_TO:
       .byte "O",token_TO         ; TO
-LBB_TTY:
-      .byte "TY", token_TTY      ; TTY
 LBB_TWOPI:
       .byte "WOPI",token_TWOPI   ; TWOPI
       .byte $00
@@ -8607,8 +8619,6 @@ LAB_KEYT:
       .word LBB_NMI           ; NMI
       .byte 4,'E'
       .word LBB_EXIT          ; EXIT
-      .byte 3,'T'
-      .word LBB_TTY           ; TTY
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'
@@ -8810,23 +8820,23 @@ LAB_nokey:
 
 ; : SYSTEM SPECIFIC VALUE!
 IOout:
-    pha
-    lda Console
-    bne @TTY_o
-    pla
+    ;pha
+    ;lda UseTTY
+    ;bne @TTY_o
+    ;pla
     jsr CON_write_byte
     rts
 @TTY_o:
-    pla
-    jsr TTY_write_char
-    rts
+    ;pla
+    ;jsr TTY_write_char
+    ;rts
 
 ; : SYSTEM SPECIFIC VALUE!
 IOin:
-    lda Console
-    beq @Conn_i
-    jsr TTY_read_char
-    bra @Check_char
+    ;lda UseTTY
+    ;beq @Conn_i
+    ;jsr TTY_read_char
+    ;bra @Check_char
 @Conn_i:
     jsr CON_read_byte
 @Check_char:
@@ -8880,6 +8890,7 @@ LAB_vec:
     .word LAB_load          ; load vector for EhBASIC
     .word LAB_save          ; save vector for EhBASIC
     .word MINIOS_main_menu  ; Exit vector  : SYSTEM SPECIFIC VALUE!
+END_CODE:
 
 ; EhBASIC IRQ support
 
@@ -8902,8 +8913,6 @@ NMI_CODE:
     sta NmiBase                 ; save the new NMI flag byte
     pla                         ; restore A
     rti
-
-END_CODE:
 
 .segment "RODATA"
 

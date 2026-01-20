@@ -32,6 +32,7 @@
 ;================================================================================
 
 ACIA_init:
+.IFNDEF SIM
     pha
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS
@@ -49,6 +50,7 @@ ACIA_init:
 @done:
     jsr LIB_flush_serbuf
     pla
+.ENDIF
     rts
 
 ;================================================================================

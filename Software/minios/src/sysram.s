@@ -47,7 +47,7 @@
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
-.export CC_BASIC
+.export SCRATCH_32
 .export YMBUF
 
 .export INPUT_BUFFER
@@ -110,8 +110,8 @@ CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
-CC_BASIC:       .res 4      ; BASIC command/response code storage
 YMBUF:          .res YMBUF_SIZE    ; storage for XMODEM. 128bytes buffer + overhead
+SCRATCH_32:     .res 32     ; 32 Bytes of scratch or temp storage
 
 ;===================================================================
 

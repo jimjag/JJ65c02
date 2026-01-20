@@ -92,6 +92,8 @@ void init_gui(cpu *m) {
     wnd_memory = newwin(MEMORY_HEIGHT, MEMORY_WIDTH, MEMORY_ORIGINY, MEMORY_ORIGINX);
     wnd_memory_content = newwin(MEMORY_ROWS, MEMORY_COLS, MEMORY_ORIGINY+1, MEMORY_ORIGINX+1);
     scrollok(wnd_trace_content, TRUE);
+    scrollok(wnd_terminal_content, TRUE);
+    clearok(wnd_terminal_content, TRUE);
     refresh();
     box(wnd_terminal, 0, 0);
     wcolor_set(wnd_terminal, 8, NULL);
@@ -170,9 +172,11 @@ void update_gui(cpu *m) {
       input_cycle_skip++;
     } else {
       input_cycle_skip=0;
-
       switch (m->clock_mode) {
         case CLOCK_SPRINT:
+          read = getch();
+          keep_going = true;
+          break;
         case CLOCK_FAST:
           halfdelay(1);
           read = getch();
@@ -206,30 +210,32 @@ void update_gui(cpu *m) {
         case 27:
           m->shutdown = true;
           break;
-        case '[':
+        case KEY_UP:
           if (memory_start > 0x00) {
             memory_start--;
           }
           break;
-        case '{':
+        case KEY_LEFT:
           if (memory_start > 0x10) {
             memory_start-=0x10;
           } else {
             memory_start = 0;
           }
           break;
-        case ']':
+        case KEY_DOWN:
           if (memory_start < (0xff-0x01)) {
             memory_start++;
           }
           break;
-        case '}':
+        case KEY_RIGHT:
           if (memory_start < (0xff-0x10)) {
             memory_start+=0x10;
           } else {
             memory_start = 0xfe;
           }
           break;
+        default:
+          ungetch(read);
       }
     }
   } while (!m->shutdown && !keep_going && m->clock_mode != CLOCK_SPRINT);

@@ -17,14 +17,16 @@ void usage() {
     printf("options:\n");
     printf("  -b ADDR the base address at which code will be loaded (in hex, default 8000)\n");
     printf("  -r run as fast as possible\n");
+    printf("  -f run fast\n");
 }
 
 int main(int argc, char *argv[]) {
     int base_addr = 0xb000;
     bool sprint = false;
+    bool fast = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:r4")) != -1) {
+    while ((c = getopt(argc, argv, "hb:raf")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -36,6 +38,10 @@ int main(int argc, char *argv[]) {
 
         case 'r':
             sprint=true;
+            break;
+
+        case 'f':
+            fast=true;
             break;
 
         case '?':
@@ -64,6 +70,9 @@ int main(int argc, char *argv[]) {
     cpu *m = new_cpu();
     if (sprint) {
       m->clock_mode = CLOCK_SPRINT;
+    }
+    if (fast) {
+      m->clock_mode = CLOCK_FAST;
     }
     while ((b = fgetc(in_f)) != EOF) {
         m->mem[i++] = (uint8_t) b;

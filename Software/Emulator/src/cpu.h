@@ -62,6 +62,7 @@ typedef struct {
     bool shutdown;
     //
     WINDOW* terminal;
+    //
 } cpu;
 
 cpu * new_cpu();
