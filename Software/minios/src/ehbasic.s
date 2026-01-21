@@ -1,11 +1,9 @@
 .setcpu "w65c02"
 
 .export BASIC_init
-;.export LAB_WARM
-;.export LAB_IGBY
-;.export LAB_GBYT
-;.export Bpntrl
-;.export Bpntrh
+.export UseTTY
+.export LAB_COLD
+.export LAB_WSTART
 
 .include "minios.inc"
 .include "sysram.inc"
@@ -471,17 +469,17 @@ VEC_EXIT          = VEC_SV+2    ; exit vector
 
 ; SYSTEM SPECIFIC VALUE!
 ; NOTE: Yeah, we need hard coded values here :(
-Ibuffs = $0400
+Ibuffs = $0400                  ; __RAM_START__
 ; start of input buffer after IRQ/NMI code
-Ibuffe            = Ibuffs+$47; end of input buffer
+Ibuffe            = Ibuffs+$47  ; end of input buffer
 
 ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
-Ram_base = $0500
+Ram_base          = $0500
 
 ; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 Ram_top           = __IO_START__
 
-Stack_floor       = 16        ; bytes left free on stack for background interrupts
+Stack_floor       = 16          ; bytes left free on stack for background interrupts
 
 .segment "CODE"
 
@@ -8642,6 +8640,8 @@ LAB_KEYT:
       .word LBB_NMI           ; NMI
       .byte 4,'E'
       .word LBB_EXIT          ; EXIT
+      .byte 3,'T'
+      .word LBB_TTY           ; TTY
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'

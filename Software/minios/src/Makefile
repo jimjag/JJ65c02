@@ -37,4 +37,4 @@ sim: $(SOBJS)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(LDMAP) $(OBJS)  $(SOBJS) $(TARGET).rom
+	rm -f $(TARGET) $(LDMAP) $(OBJS)  $(SOBJS) $(TARGET).rom *.lbl *.map

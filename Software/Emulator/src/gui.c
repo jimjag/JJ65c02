@@ -74,6 +74,7 @@ void init_gui(cpu *m) {
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
     curs_set(0);
+    nonl();
 
     io_supports_paint = (has_colors() != FALSE);
     if (io_supports_paint) {
