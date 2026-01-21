@@ -24,10 +24,11 @@ IN    = YMBUF                          ; Input buffer
 LOADINTEL:
     TTY_writeln IHEX_tstart
     ldy #$00
-    sty CRCCHECK       ; If CRCCHECK=0, all is good
+    ldx #$00           ; Zero in X for use in Indexed Indirect addressing
+    stz CRCCHECK       ; If CRCCHECK=0, all is good
 @INTELLINE:
     jsr TTY_read_char  ; Get char
-    sta IN,Y           ; Store it
+    sta IN,y           ; Store it
     iny                ; Next
     cmp #TTY_char_ESC  ; Escape ?
     beq @INTELDONE     ; Yes, abort
@@ -48,12 +49,11 @@ LOADINTEL:
     iny
     cpy EOL            ; Have we reached the end of the line?
     bge @INTELLINE     ; Ignore this line then
-    lda IN,Y
+    lda IN,y
     cmp #':'           ; Is it Colon ?
     bne @FINDCOL       ; Nope, try next
     iny                ; Skip colon
-    ldx #$00           ; Zero in X
-    stx CRC            ; Zero Check sum
+    stz CRC            ; Zero Check sum
     jsr @GETHEX        ; Get Number of bytes
     sta COUNTER        ; Number of bytes in Counter
     clc                ; Clear carry
@@ -73,6 +73,7 @@ LOADINTEL:
     jsr TTY_write_char ; Print it to indicate activity
 @NODOT:
     jsr @GETHEX        ; Get Control byte
+; We assume either anything other than x01 is data - Not quite right, but so what
     cmp #$01           ; Is it a Termination record ?
     beq @INTELDONE     ; Yes, we are done
     clc                ; Clear carry
@@ -80,7 +81,7 @@ LOADINTEL:
     sta CRC            ; Store it
 @INTELSTORE:
     jsr @GETHEX        ; Get Data Byte
-    sta (STL,X)        ; Store it
+    sta (STL,x)        ; Store it - x is always 0
     clc                ; Clear carry
     adc CRC            ; Add CRC
     sta CRC            ; Store it
@@ -114,7 +115,7 @@ LOADINTEL:
     rts
 
 @GETHEX:
-    lda IN,Y           ; Get first char
+    lda IN,y           ; Get first char
     eor #$30
     cmp #$0A
     bcc @DONEFIRST
@@ -126,7 +127,7 @@ LOADINTEL:
     asl
     sta L
     iny
-    lda IN,Y           ; Get next char
+    lda IN,y           ; Get next char
     eor #$30
     cmp #$0A
     bcc @DONESECOND
@@ -134,7 +135,7 @@ LOADINTEL:
 @DONESECOND:
     and #$0F
     ora L
-    iny
+    iny                ; and setup for next
     rts
 
 .segment "RODATA"

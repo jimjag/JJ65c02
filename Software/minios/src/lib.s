@@ -41,6 +41,7 @@
 ;================================================================================
 
 LIB_bin_to_hex:
+    phy
     ldy #$ff                                    ; state for output switching #TODO
     pha                                         ; save A for LSD
     lsr
@@ -60,6 +61,7 @@ LIB_bin_to_hex:
     bne @return                                 ; did we process second nibble already? yes
     tax                                         ; no
 @return:
+    ply
     rts
 
 ;================================================================================
