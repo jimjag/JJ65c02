@@ -13,6 +13,7 @@
 
 .import BASIC_init
 .import WOZMON
+.import LOADINTEL
 .export MINIOS_main_menu
 
 ;================================================================================
@@ -159,9 +160,9 @@ MINIOS_main_menu:
 @select_option:
     clc
     cmp #1                      ; branch trough all options
-    beq @load_and_run
+    beq @xmodem_load
     cmp #2
-    beq @load
+    beq @ihex_load
     cmp #3
     beq @run
     cmp #4
@@ -176,12 +177,11 @@ MINIOS_main_menu:
     beq @about
     jmp @start                  ; should we have an invalid option, restart
 
-@load_and_run:                  ; load and directly run
-    jsr @do_load                ; load first
-    jsr @do_run                 ; run immediately after
+@xmodem_load:                   ; load program and go back into menu
+    jsr @do_xmodem_load
     jmp @start                  ; should a program ever return ...
-@load:                          ; load program and go back into menu
-    jsr @do_load
+@ihex_load:                     ; load program and go back into menu
+    jsr @do_ihex_load
     jmp @start
 @run:                           ; run a program already loaded
     jsr @do_run
@@ -202,10 +202,15 @@ MINIOS_main_menu:
 @about:                         ; start the about routine
     CON_writeln about
     jmp @start
-@do_load:                       ; orchestration of program loading
+@do_xmodem_load:                ; orchestration of program loading
     lda #10                     ; wait a bit, say 1s
     jsr LIB_delay100ms
-    jsr MINIOS_load_ram         ; call the bootloaders programming routine
+    jsr MINIOS_xmodem_load      ; call the bootloaders programming routine
+    jmp @start
+@do_ihex_load:                  ; orchestration of program loading
+    lda #10                     ; wait a bit, say 1s
+    jsr LIB_delay100ms
+    jsr MINIOS_ihex_load        ; call the bootloaders programming routine
     jmp @start
 @do_run:                        ; orchestration of running a program
     jsr MINIOS_execute
@@ -213,7 +218,7 @@ MINIOS_main_menu:
 
 ;================================================================================
 ;
-;   MINIOS_load_ram - Load program into RAM space
+;   MINIOS_xmodem_load - Load program into RAM space via XMODEM
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -225,8 +230,8 @@ MINIOS_main_menu:
 ;
 ;================================================================================
 
-MINIOS_load_ram:
-    CON_writeln message_readyload
+MINIOS_xmodem_load:
+    CON_writeln xmodem_readyload
     jsr CON_read_byte_blk
     cmp #'L'
     beq @start_load
@@ -239,6 +244,32 @@ MINIOS_load_ram:
     lda #>PROGRAM_START
     sta XMODEM_pstart+1
     jmp XMODEM_recv
+
+
+;================================================================================
+;
+;   MINIOS_ihex_load - Load program into RAM space via Intel HEX
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: none
+;
+;   Returned Values: none
+;
+;   Destroys:        none
+;   ————————————————————————————————————
+;
+;================================================================================
+
+MINIOS_ihex_load:
+    CON_writeln ihex_readyload
+    jsr CON_read_byte_blk
+    cmp #'L'
+    beq @start_load
+    cmp #'l'
+    beq @start_load
+    rts
+@start_load:
+    jmp LOADINTEL
 
 ;================================================================================
 ;
@@ -479,8 +510,10 @@ message_cmd:
     .asciiz "Enter Command..."
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n"
-message_readyload:
+xmodem_readyload:
     .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: "
+ihex_readyload:
+    .asciiz "\r\n Getting Ready To LOAD RAM (via Intel HEX).\r\n Press 'L' or 'l' key on console to start: "
 message_waitdata:
     .asciiz "Awaiting data..."
 message_loaddone:
@@ -496,7 +529,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image (via XMODEM) & Run\r\n2. Load RAM Image (via XMODEM)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
+    .asciiz "1. Load RAM Image (via XMODEM) @0400\r\n2. Load RAM Image (via Intel HEX) @0400\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:

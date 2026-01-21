@@ -1,0 +1,138 @@
+.setcpu "w65c02"
+
+.export LOADINTEL
+
+.include "minios.inc"
+.include "sysram.inc"
+.include "lib.inc"
+.include "acia.inc"
+.include "tty.inc"
+
+STL = R1    ; Store address Low
+STH = R1+1    ; Store address High
+COUNTER = Z2
+CRC = Z3
+CRCCHECK = Z4
+L = Z5
+
+IN    = YMBUF                          ; Input buffer
+;-------------------------------------------------------------------------
+; Load an program in Intel Hex Format.
+;-------------------------------------------------------------------------
+
+LOADINTEL:
+    TTY_writeln IHEX_tstart
+    ldy #$00
+    sty CRCCHECK       ; If CRCCHECK=0, all is good
+@INTELLINE:
+    jsr TTY_read_char  ; Get char
+    sta IN,Y           ; Store it
+    iny                ; Next
+    cmp #TTY_char_ESC  ; Escape ?
+    beq @INTELDONE     ; Yes, abort
+    cmp #TTY_char_LF   ; Did we find a new line ?
+    beq @SCAN          ; Yes, scan line
+    cpy #YMBUF_SIZE    ; Check that we still have space
+    blt @INTELLINE     ; We have space, get next char
+    lda #50            ; wait a bit, say 5s
+    jsr LIB_delay100ms
+    TTY_writeln IHEX_overflow
+    rts
+@SCAN:
+    ldy #$FF           ; Start at beginning of line
+@FINDCOL:
+    iny
+    lda IN,Y
+    cmp #':'           ; Is it Colon ?
+    bne @FINDCOL       ; Nope, try next
+    iny                ; Skip colon
+    ldx #$00           ; Zero in X
+    stx CRC            ; Zero Check sum
+    jsr @GETHEX        ; Get Number of bytes
+    sta COUNTER        ; Number of bytes in Counter
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    sta CRC            ; Store it
+    jsr @GETHEX        ; Get Hi byte
+    sta STH            ; Store it
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    sta CRC            ; Store it
+    jsr @GETHEX        ; Get Lo byte
+    sta STL            ; Store it
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    sta CRC            ; Store it
+    lda #'.'           ; Load "."
+    jsr TTY_write_char ; Print it to indicate activity
+@NODOT:
+    jsr @GETHEX        ; Get Control byte
+    cmp #$01           ; Is it a Termination record ?
+    beq @INTELDONE     ; Yes, we are done
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    sta CRC            ; Store it
+@INTELSTORE:
+    jsr @GETHEX        ; Get Data Byte
+    sta (STL,X)        ; Store it
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    sta CRC            ; Store it
+    inc STL            ; Next Address
+    bne @TESTCOUNT     ; Test to see if Hi byte needs INC
+    inc STH            ; If so, INC it
+@TESTCOUNT:
+    dec COUNTER        ; Count down
+    bne @INTELSTORE    ; Next byte
+    jsr @GETHEX        ; Get Checksum
+    ldy #$00           ; Zero Y
+    clc                ; Clear carry
+    adc CRC            ; Add CRC
+    beq @INTELLINE     ; Checksum OK
+    lda #$01           ; Flag CRC error
+    sta CRCCHECK       ; Store it
+    jmp @INTELLINE     ; Process next line
+
+@INTELDONE:
+    lda CRCCHECK       ; Test if everything is OK
+    beq @OKMESS        ; Show OK message
+    lda #50            ; wait a bit, say 5s
+    jsr LIB_delay100ms
+    TTY_writeln IHEX_importnok
+    rts
+
+@OKMESS:
+    lda #50            ; wait a bit, say 5s
+    jsr LIB_delay100ms
+    TTY_writeln IHEX_importok
+    rts
+
+@GETHEX:
+    lda IN,Y           ; Get first char
+    eor #$30
+    cmp #$0A
+    bcc @DONEFIRST
+    adc #$08
+@DONEFIRST:
+    asl
+    asl
+    asl
+    asl
+    sta L
+    iny
+    lda IN,Y           ; Get next char
+    eor #$30
+    cmp #$0A
+    bcc @DONESECOND
+    adc #$08
+@DONESECOND:
+    and #$0F
+    ora L
+    iny
+    rts
+
+.segment "RODATA"
+IHEX_tstart:      .asciiz "Start Intel Hex code Transfer."
+IHEX_importok:    .asciiz "Intel Hex Imported OK."
+IHEX_importnok:   .asciiz "Intel Hex Imported with checksum error."
+IHEX_overflow:    .asciiz "Intel Hex Import aborted with overflow error."

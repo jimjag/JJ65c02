@@ -15,7 +15,8 @@ SRCS =  minios.s \
 	console.s \
 	xmodem.s \
 	ehbasic.s \
-	wozmon.s
+	wozmon.s \
+	intel-hex.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
 SOBJS=$(SRCS:%.s=sobjs/%.o)
