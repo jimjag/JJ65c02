@@ -14,6 +14,7 @@ COUNTER = Z2
 CRC = Z3
 CRCCHECK = Z4
 L = Z5
+EOL = Z6
 
 IN    = YMBUF                          ; Input buffer
 ;-------------------------------------------------------------------------
@@ -32,16 +33,21 @@ LOADINTEL:
     beq @INTELDONE     ; Yes, abort
     cmp #TTY_char_LF   ; Did we find a new line ?
     beq @SCAN          ; Yes, scan line
-    cpy #YMBUF_SIZE    ; Check that we still have space
+    cmp #TTY_char_CR   ; Did we find a CR ?
+    beq @SCAN          ; Yes, scan line
+    cpy #(YMBUF_SIZE-1); Check that we still have space
     blt @INTELLINE     ; We have space, get next char
     lda #50            ; wait a bit, say 5s
     jsr LIB_delay100ms
     TTY_writeln IHEX_overflow
     rts
 @SCAN:
+    sty EOL
     ldy #$FF           ; Start at beginning of line
 @FINDCOL:
     iny
+    cpy EOL            ; Have we reached the end of the line?
+    bge @INTELLINE     ; Ignore this line then
     lda IN,Y
     cmp #':'           ; Is it Colon ?
     bne @FINDCOL       ; Nope, try next
