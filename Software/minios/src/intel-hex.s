@@ -31,7 +31,9 @@ LOADINTEL:
     sta IN,y           ; Store it
     iny                ; Next
     cmp #TTY_char_ESC  ; Escape ?
-    beq @INTELDONE     ; Yes, abort
+    bne @KEEPGOING
+    jmp @INTELDONE     ; Yes, abort
+@KEEPGOING:
     cmp #TTY_char_LF   ; Did we find a new line ?
     beq @SCAN          ; Yes, scan line
     cmp #TTY_char_CR   ; Did we find a CR ?
@@ -95,7 +97,9 @@ LOADINTEL:
     ldy #$00           ; Zero Y
     clc                ; Clear carry
     adc CRC            ; Add CRC
-    beq @INTELLINE     ; Checksum OK
+    bne @CHECKSUMERR   ; Checksum NOK
+    jmp @INTELLINE     ; Checksum OK
+@CHECKSUMERR:
     lda #$01           ; Flag CRC error
     sta CRCCHECK       ; Store it
     jmp @INTELLINE     ; Process next line
