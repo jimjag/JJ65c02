@@ -203,13 +203,9 @@ MINIOS_main_menu:
     CON_writeln about
     jmp @start
 @do_xmodem_load:                ; orchestration of program loading
-    lda #10                     ; wait a bit, say 1s
-    jsr LIB_delay100ms
     jsr MINIOS_xmodem_load      ; call the bootloaders programming routine
     jmp @start
 @do_ihex_load:                  ; orchestration of program loading
-    lda #10                     ; wait a bit, say 1s
-    jsr LIB_delay100ms
     jsr MINIOS_ihex_load        ; call the bootloaders programming routine
     jmp @start
 @do_run:                        ; orchestration of running a program
@@ -529,7 +525,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image (via XMODEM) @0400\r\n2. Load RAM Image (via Intel HEX) @0400\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
+    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
