@@ -28,6 +28,7 @@ _SYSRAM_INC_ = 1
 .importzp PS2IN_WPTR
 .importzp XMODEM_pstart
 .importzp XMODEM_pend
+.importzp ZEROPAGE_system_end
 
 .import CLK_SPD
 .import ISR_VECTOR

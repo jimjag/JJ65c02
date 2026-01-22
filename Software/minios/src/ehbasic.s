@@ -10,6 +10,9 @@
 .include "tty.inc"
 .include "console.inc"
 
+;
+; EHBASIC has been reported to be released into the Public Domain
+;
 ;=====================================================================
 ; look for "SYSTEM SPECIFIC VALUE!" for values/settings/functions
 ; that need to be updated for *your* system
@@ -65,6 +68,11 @@
 ;              and rs-232 TTY
 
 .segment "ZEROPAGE"
+;
+; We use a LOT of ZeroPage here. Right now this isn't a concern
+; but we may be forced to, at some time, make these LABELS relative
+; to ZEROPAGE_end instead of actual reserved storage variables
+;
 
 UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
 

@@ -2,7 +2,7 @@
 _MINIOS_INC_ = 1
 
 ;.FEATURE leading_dot_in_identifiers
-.setcpu "65C02"
+.setcpu "w65c02"
 .MACPACK generic
 
 ;================================================================================

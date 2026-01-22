@@ -5,10 +5,9 @@
 
 1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
 2. __Run__ programs that were previously loaded into RAM
-3. __Load & Run__ programs in one go
-4. __Debug__ the full address space via an integrated __WOZMON__
-5. __Clean RAM__ for use with non-volatile RAM or during development
-6. __EhBasic__ BASIC interpreter
+3__Debug__ the full address space via an integrated __WOZMON__
+4__Clean RAM__ for use with non-volatile RAM or during development
+5__EhBasic__ BASIC interpreter
 
 
 ## Build and Install the miniOS

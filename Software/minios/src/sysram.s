@@ -42,6 +42,7 @@
 .exportzp GCOLOR
 .exportzp GCHAR
 .exportzp GSND
+.exportzp ZEROPAGE_system_end
 
 
 .export CLK_SPD
@@ -80,16 +81,16 @@ R7:     .res 2
 
 ; The below are for the interface to the Pi Pico graphics. We re-use
 ; space for those commands that don't share variables
-GX0 =           R0      ; X0 coordinate
-GY0 =           R1      ; Y0 coordinate
-GX1 =           R2
-GY1 =           R3
-GW0 =           GX1     ; Width0 value
-GH0 =           GY1     ; Height0 value
-GR0 =           R4      ; Radius0 value
-GCOLOR =        R0      ; Color value
-GCHAR =         R0      ; Graphics character byte to "draw"
-GSND =          R0      ; Sound command
+GX0 :=          R0      ; X0 coordinate
+GY0 :=          R1      ; Y0 coordinate
+GX1 :=          R2
+GY1 :=          R3
+GW0 :=          GX1     ; Width0 value
+GH0 :=          GY1     ; Height0 value
+GR0 :=          R4      ; Radius0 value
+GCOLOR :=       R0      ; Color value
+GCHAR :=        R0      ; Graphics character byte to "draw"
+GSND :=         R0      ; Sound command
 
 ; General
 MINIOS_STATUS:  .res 1   ; miniOS Status Register
@@ -102,6 +103,8 @@ CON_SPTR:       .res 2   ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
 XMODEM_pstart:  .res 2   ; data pointer to start of XMODEM Data
 XMODEM_pend:    .res 2   ; end of file address pointer for XMODEM
+ZEROPAGE_system_end := XMODEM_pend +2   ; Everything from here is allocated
+                                        ; by other "modules"
 
 ;===================================================================
 
