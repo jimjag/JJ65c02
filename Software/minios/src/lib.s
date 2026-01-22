@@ -510,9 +510,8 @@ LIB_MSTK_PUSH:
 
 LIB_MSTK_PULL:
     phy
-    ldy MSTKP
-    dey
-    tya
+    lda MSTKP
+    dec
     and #$0f
     tay
     sty MSTKP

@@ -120,6 +120,8 @@ main:                           ; boot routine, first thing loaded
     CON_writeln new_line
     ; Rest of boot up
     cli                         ; interupts are back on
+    lda #$60                    ; RTS opcode
+    sta PROGRAM_START           ; Just in case we try to run with nothing in RAM
     CON_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
