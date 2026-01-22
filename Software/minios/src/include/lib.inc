@@ -12,6 +12,8 @@ _LIB_INC_ = 1
 .import LIB_short2str
 .import LIB_setrambank
 .import LIB_getrambank
+.import LIB_PUSH
+.import LIB_PULL
 
 .import GRA_print_char
 .import GRA_set_fgcolor

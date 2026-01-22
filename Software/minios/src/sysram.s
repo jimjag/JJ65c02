@@ -18,10 +18,8 @@
 .exportzp R1
 .exportzp R2
 .exportzp R3
-.exportzp R4
-.exportzp R5
-.exportzp R6
-.exportzp R7
+.exportzp MES
+.exportzp MESP
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
 .exportzp CON_SPTR
@@ -70,15 +68,15 @@ Z5:     .res 1
 Z6:     .res 1
 Z7:     .res 1
 
-; 16bit "registers" - Argument/parameter storage (use instead of stack)
+; 16bit "registers" - Argument/parameter storage
 R0:     .res 2
 R1:     .res 2
 R2:     .res 2
 R3:     .res 2
-R4:     .res 2
-R5:     .res 2
-R6:     .res 2
-R7:     .res 2
+
+; Mini Extra Stack - In ZP for speed but it doesn't matter
+MES:    .res 16
+MESP:   .res 1
 
 ; The below are for the interface to the Pi Pico graphics. We re-use
 ; space for those commands that don't share variables
@@ -86,9 +84,9 @@ GX0 :=          R0      ; X0 coordinate
 GY0 :=          R1      ; Y0 coordinate
 GX1 :=          R2
 GY1 :=          R3
-GW0 :=          GX1     ; Width0 value
-GH0 :=          GY1     ; Height0 value
-GR0 :=          R4      ; Radius0 value
+GW0 :=          R1      ; Width0 value
+GH0 :=          R2      ; Height0 value
+GR0 :=          R3      ; Radius0 value
 GCOLOR :=       R0      ; Color value
 GCHAR :=        R0      ; Graphics character byte to "draw"
 GSND :=         R0      ; Sound command

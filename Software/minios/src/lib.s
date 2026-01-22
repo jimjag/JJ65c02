@@ -16,6 +16,8 @@
 .export LIB_short2str
 .export LIB_setrambank
 .export LIB_getrambank
+.export LIB_PUSH
+.export LIB_PULL
 
 .export GRA_print_char
 .export GRA_set_fgcolor
@@ -489,3 +491,31 @@ GRA_set_bgcolor:
     lda #'Z'
     jmp CON_write_byte
     ;rts
+
+;================================================================================
+; Our Mini Extra Stack
+;   Push or Pull A to the mini stack
+LIB_PUSH:
+    phy
+    pha
+    ldy MESP
+    sta MES,y
+    iny
+    tya
+    and #$0f
+    sta MESP
+    pla
+    ply
+    rts
+
+LIB_PULL:
+    phy
+    ldy MESP
+    dey
+    tya
+    and #$0f
+    tay
+    sty MESP
+    lda MES,y
+    ply
+    rts
