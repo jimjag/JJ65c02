@@ -18,8 +18,8 @@
 .exportzp R1
 .exportzp R2
 .exportzp R3
-.exportzp MES
-.exportzp MESP
+.exportzp MSTK
+.exportzp MSTKP
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
 .exportzp CON_SPTR
@@ -75,8 +75,8 @@ R2:     .res 2
 R3:     .res 2
 
 ; Mini Extra Stack - In ZP for speed but it doesn't matter
-MES:    .res 16
-MESP:   .res 1
+MSTK:    .res 16
+MSTKP:   .res 1
 
 ; The below are for the interface to the Pi Pico graphics. We re-use
 ; space for those commands that don't share variables

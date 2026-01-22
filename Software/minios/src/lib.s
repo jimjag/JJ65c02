@@ -16,8 +16,8 @@
 .export LIB_short2str
 .export LIB_setrambank
 .export LIB_getrambank
-.export LIB_PUSH
-.export LIB_PULL
+.export LIB_MSTK_PUSH
+.export LIB_MSTK_PULL
 
 .export GRA_print_char
 .export GRA_set_fgcolor
@@ -495,27 +495,27 @@ GRA_set_bgcolor:
 ;================================================================================
 ; Our Mini Extra Stack
 ;   Push or Pull A to the mini stack
-LIB_PUSH:
+LIB_MSTK_PUSH:
     phy
     pha
-    ldy MESP
-    sta MES,y
+    ldy MSTKP
+    sta MSTK,y
     iny
     tya
     and #$0f
-    sta MESP
+    sta MSTKP
     pla
     ply
     rts
 
-LIB_PULL:
+LIB_MSTK_PULL:
     phy
-    ldy MESP
+    ldy MSTKP
     dey
     tya
     and #$0f
     tay
-    sty MESP
-    lda MES,y
+    sty MSTKP
+    lda MSTK,y
     ply
     rts

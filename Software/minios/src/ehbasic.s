@@ -2,8 +2,8 @@
 
 .export BASIC_init
 .export UseTTY
-.export LAB_COLD
-.export LAB_WSTART
+.export BASIC_COLD
+.export BASIC_WARM
 
 .include "minios.inc"
 .include "sysram.inc"
@@ -455,13 +455,13 @@ LAB_SKFE          = LAB_STAK+$FE
 LAB_SKFF          = LAB_STAK+$FF
                                 ; flushed stack address
 
-; the following locations are bulk initialized from PG2_TABS at LAB_COLD
+; the following locations are bulk initialized from PG2_TABS at BASIC_COLD
 ; __RAM0_START__
 ccflag = SCRATCH_32a            ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte = ccflag+1               ; BASIC CTRL-C byte
 ccnull = ccbyte+1               ; BASIC CTRL-C byte timeout
 VEC_CC = ccnull+1               ; ctrl c check vector - NOTE: 2 bytes are used!
-; end bulk initialize from PG2_TABS at LAB_COLD
+; end bulk initialize from PG2_TABS at BASIC_COLD
 
 ; the following locations are bulk initialized from LAB_vec at LAB_stlp
 VEC_IN            = VEC_CC+2    ; input vector
@@ -493,7 +493,7 @@ Stack_floor       = 16          ; bytes left free on stack for background interr
 
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ccflag on
-LAB_COLD:
+BASIC_COLD:
     stz UseTTY
     ldy #PG2_TABE-PG2_TABS-1    ; byte count-1
 LAB_2D13:
@@ -649,8 +649,8 @@ LAB_2E05:
     lda #<LAB_SMSG              ; point to sign-on message (low addr)
     ldy #>LAB_SMSG              ; point to sign-on message (high addr)
     jsr LAB_18C3                ; print null terminated string from memory
-    lda #<LAB_WSTART            ; warm start vector low byte
-    ldy #>LAB_WSTART            ; warm start vector high byte
+    lda #<BASIC_WARM            ; warm start vector low byte
+    ldy #>BASIC_WARM            ; warm start vector high byte
     sta Wrmjpl                  ; save warm start vector low byte
     sty Wrmjph                  ; save warm start vector high byte
     jmp (Wrmjpl)                ; go do warm start
@@ -814,14 +814,14 @@ LAB_1269:
     jsr LAB_18C3                ; print null terminated string from memory
     ldy Clineh                  ; get current line high byte
     iny                         ; increment it
-    beq LAB_WSTART              ; go do warm start (was immediate mode)
+    beq BASIC_WARM              ; go do warm start (was immediate mode)
 
 ; else print line number
     jsr LAB_2953                ; print " in line [LINE #]"
 
 ; BASIC warm start entry point
 ; wait for Basic command
-LAB_WSTART:
+BASIC_WARM:
 ; clear ON IRQ/NMI bytes
     lda #$00                    ; clear A
     sta IrqBase                 ; clear enabled byte
@@ -1689,7 +1689,7 @@ LAB_1651:
     jmp LAB_1269                ; print "Break" and do warm start
 
 LAB_165E:
-    jmp LAB_WSTART              ; go do warm start
+    jmp BASIC_WARM              ; go do warm start
 
 ; perform RESTORE
 
@@ -2170,7 +2170,7 @@ LAB_TTY:
     lda #>IOout_console
     sta VEC_OUT+1
     pla
-    jmp LAB_WSTART
+    jmp BASIC_WARM
 @SwitchTTY:
     lda #<IOin_tty
     sta VEC_IN
@@ -2181,7 +2181,7 @@ LAB_TTY:
     lda #>IOout_tty
     sta VEC_OUT+1
     pla
-    jmp LAB_WSTART              ; go do warm start
+    jmp BASIC_WARM              ; go do warm start
 
 ; perform REM, skip (rest of) line
 
@@ -7938,7 +7938,7 @@ LAB_2D05:
 
 StrTab:
       .byte $4C               ; JMP opcode
-      .word LAB_COLD          ; initial warm start vector (cold start)
+      .word BASIC_COLD          ; initial warm start vector (cold start)
 
       .byte $4C               ; JMP opcode
       .word LAB_FCER          ; initial user function vector ("Function call" error)
@@ -8844,7 +8844,7 @@ LAB_nokey:
     cmp #'C'                    ; compare with [C]old start
     bne LAB_init                ; loop if not [C]old start
 
-    jmp LAB_COLD                ; do EhBASIC cold start
+    jmp BASIC_COLD                ; do EhBASIC cold start
 
 @LAB_dowarm:
     jmp LAB_WARM                ; do EhBASIC warm start
