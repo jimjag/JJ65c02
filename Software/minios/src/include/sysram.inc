@@ -34,7 +34,8 @@ _SYSRAM_INC_ = 1
 .import ISR_VECTOR
 
 .import USER_BUFFLEN
-.import SCRATCH_32
+.import SCRATCH_32a
+.import SCRATCH_32b
 .import YMBUF
 
 .importzp GX0

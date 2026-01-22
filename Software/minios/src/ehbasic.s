@@ -69,9 +69,9 @@
 
 .segment "ZEROPAGE"
 ;
-; We use a LOT of ZeroPage here. Right now this isn't a concern
-; but we may be forced to, at some time, make these LABELS relative
-; to ZEROPAGE_end instead of actual reserved storage variables
+; We use and allocate a LOT of ZeroPage here. Right now this isn't a concern
+; but we may be forced to, at some time, make these LABELS relative to
+; ZEROPAGE_system_end instead of actual reserved storage variables
 ;
 
 UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
@@ -457,7 +457,7 @@ LAB_SKFF          = LAB_STAK+$FF
 
 ; the following locations are bulk initialized from PG2_TABS at LAB_COLD
 ; __RAM0_START__
-ccflag = SCRATCH_32             ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
+ccflag = SCRATCH_32a            ; BASIC CTRL-C flag, 00 = enabled, 01 = dis : SYSTEM SPECIFIC VALUE!
 ccbyte = ccflag+1               ; BASIC CTRL-C byte
 ccnull = ccbyte+1               ; BASIC CTRL-C byte timeout
 VEC_CC = ccnull+1               ; ctrl c check vector - NOTE: 2 bytes are used!

@@ -50,7 +50,8 @@
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
-.export SCRATCH_32
+.export SCRATCH_32a
+.export SCRATCH_32b
 .export YMBUF
 
 .export INPUT_BUFFER
@@ -116,7 +117,8 @@ BANK_NUM:       .res 1      ; Current RAM bank number in use
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
 YMBUF:          .res YMBUF_SIZE    ; storage for XMODEM. 128bytes buffer + overhead
-SCRATCH_32:     .res 32     ; 32 Bytes of scratch or temp storage
+SCRATCH_32a:    .res 32     ; 32 Bytes of scratch or temp storage
+SCRATCH_32b:    .res 32     ; Another bank of 32 Bytes of scratch or temp storage
 
 ;===================================================================
 
