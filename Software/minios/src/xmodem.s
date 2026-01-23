@@ -9,6 +9,8 @@
 
 .export XMODEM_send
 .export XMODEM_recv
+.exportzp XMODEM_ZP_start
+.exportzp XMODEM_ZP_end
 
 LASTBLK = Z0        ; flag for last block
 BLKNO = Z1          ; block number
@@ -16,8 +18,9 @@ ERRCNT = Z2         ; error counter 10 is the limit
 DELAY = Z3
 
 .segment "ZEROPAGE"
+XMODEM_ZP_start := CRC
 CRC:    .res 2      ; CRC lo byte  (two byte variable
-
+XMODEM_ZP_end   := CRC+1
 .segment "CODE"
 
 ;================================================================================

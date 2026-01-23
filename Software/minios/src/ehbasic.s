@@ -4,6 +4,8 @@
 .export UseTTY
 .export BASIC_COLD
 .export BASIC_WARM
+.exportzp BASIC_ZP_start
+.exportzp BASIC_ZP_end
 
 .include "minios.inc"
 .include "sysram.inc"
@@ -74,6 +76,7 @@
 ; ZEROPAGE_system_end instead of actual reserved storage variables
 ;
 
+BASIC_ZP_start   := UseTTY
 UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)
 
 ; the following locations are bulk initialized from StrTab at LAB_GMEM
@@ -324,6 +327,7 @@ IrqBase:         .res 3         ; IRQ handler enabled/setup/triggered flags
 
 Decss:           .res 1         ; number to decimal string start
 Decssp1:         .res 1         ; number to decimal string start - Was 16?!
+BASIC_ZP_end     := Decssp1
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)

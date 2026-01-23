@@ -7,7 +7,7 @@
 .include "console.inc"
 .include "tty.h"
 
-.segment "ZEROPAGE"
+;.segment "ZEROPAGE"
 ; WOZMON vars
 XAML = R0     ; Last "opened" location Low
 XAMH = R0+1   ; Last "opened" location High

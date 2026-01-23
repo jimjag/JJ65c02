@@ -6,6 +6,7 @@
 ;
 ; System variables intended to be global
 ;
+.exportzp SYSMEM_ZP_start
 .exportzp Z0
 .exportzp Z1
 .exportzp Z2
@@ -40,7 +41,7 @@
 .exportzp GCOLOR
 .exportzp GCHAR
 .exportzp GSND
-.exportzp ZEROPAGE_system_end
+.exportzp SYSMEM_ZP_end
 
 
 .export CLK_SPD
@@ -59,6 +60,7 @@
 .segment "ZEROPAGE"
 
 ; Scratch space: 8bit vars
+SYSMEM_ZP_start := Z0
 Z0:     .res 1
 Z1:     .res 1
 Z2:     .res 1
@@ -102,8 +104,8 @@ CON_SPTR:       .res 2   ; String pointer - Console I/O
 USER_INPUT_PTR: .res 2   ; buffer pointer
 XMODEM_pstart:  .res 2   ; data pointer to start of XMODEM Data
 XMODEM_pend:    .res 2   ; end of file address pointer for XMODEM
-ZEROPAGE_system_end := XMODEM_pend +2   ; Everything from here is allocated
-                                        ; by other "modules"
+SYSMEM_ZP_end := XMODEM_pend + 1   ; Everything after here is allocated
+                                   ; by other "modules"
 
 ;===================================================================
 
