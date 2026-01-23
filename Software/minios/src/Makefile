@@ -5,6 +5,7 @@ SIMMAP=sim-minios.map
 LBL = minios.lbl
 SIMLBL=sim-minios.lbl
 TARGET = minios
+TARGET2 = sim
 
 SRCS =  minios.s \
 	sysram.s \
@@ -30,12 +31,13 @@ $(SOBJS): $(SRCS)
 
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
+	touch $(TARGET)
 	#rm -f $(TARGET).bin
 
-sim: $(SOBJS)
-	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o sim $(SOBJS)
+$(TARGET2): $(SOBJS)
+	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o $(TARGET2) $(SOBJS)
 	#rm -f sim.bin
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(LDMAP) $(OBJS)  $(SOBJS) $(TARGET).rom *.lbl *.map
+	rm -f $(TARGET) $(TARGET2) $(LDMAP) $(OBJS) $(SOBJS) $(TARGET).rom $(TARGET2).rom *.lbl *.map
