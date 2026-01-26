@@ -75,6 +75,12 @@
 ; but we may be forced to, at some time, make these LABELS relative to
 ; ZEROPAGE_system_end instead of actual reserved storage variables
 ;
+; One reason for _dedicating_ this to EhBASIC is so that COLD and
+; WARM starts work as they should. If we allowed re-use, someone else
+; could mangle EhBasic's memory and WARM would crash in weird and
+; random ways. So until we can detect EhBasic ZP re-use and corruption,
+; just keep it ours
+;
 
 BASIC_ZP_start   := UseTTY
 UseTTY:          .res 1         ; I/O using Console (0) or Serial (xff)

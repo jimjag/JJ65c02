@@ -26,9 +26,6 @@ To exit the emulator, hit the ***ESC*** key.
 
 ### Limitations
 * The emulator assumes the layout and memory map of the JJ65c02 platform.
-* Hardware shifting and scrolling of the LCD display is not yet implemented
-* 4-bit LCD display mode is not fully tested
-* the "mini keypad" is not yet implemented
 
 ## Thanks
 Thanks to haldean and all other contributors for the original x6502 project!

@@ -74,8 +74,8 @@ main:                           ; boot routine, first thing loaded
     sty Z0
     lda #>__RAM0_START__
     sta Z1
-    jsr MINIOS_test_ram_core
     stz MINIOS_STATUS
+    jsr MINIOS_test_ram_core
     bcs @continue
 .ENDIF
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
@@ -504,18 +504,12 @@ message_welcome:
     .asciiz "      JJ65c02\r\n   miniOS v2.0.0\r\n"
 message_welcomeacia:
     .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA\r\n"
-message_cmd:
-    .asciiz "Enter Command..."
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n"
 xmodem_readyload:
     .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: "
 ihex_readyload:
     .asciiz "\r\n Getting Ready To LOAD RAM (via Intel HEX).\r\n Press 'L' or 'l' key on console to start: "
-message_waitdata:
-    .asciiz "Awaiting data..."
-message_loaddone:
-    .asciiz "Loading done!"
 message_runprog:
     .asciiz "\r\n Running RAM@$0400"
 message_ramclean:

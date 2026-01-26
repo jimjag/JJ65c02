@@ -4,10 +4,10 @@
 `miniOS` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
 
 1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
-2. __Run__ programs that were previously loaded into RAM
-3__Debug__ the full address space via an integrated __WOZMON__
-4__Clean RAM__ for use with non-volatile RAM or during development
-5__EhBasic__ BASIC interpreter
+2. __Run__ programs that were previously loaded into RAM.
+3. __Debug__ the full address space via an integrated __WOZMON__
+4. __Clean RAM__ for use with non-volatile RAM or during development
+5. __EhBasic__ BASIC interpreter
 
 
 ## Build and Install the miniOS
@@ -18,21 +18,22 @@ in the JJ65c02/minios directory. From there simply type `make`:
 
 ```
 $ make
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/minios.o minios.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/sysram.o sysram.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/via.o via.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/lib.o lib.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/acia.o acia.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/tty.o tty.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/console.o console.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/xmodem.o xmodem.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/ehbasic.o ehbasic.s
-ca65 -t none --cpu 65c02 -U -I ./include -o objs/wozmon.o wozmon.s
-ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o
-Opened 'minios.bin'...
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/minios.o minios.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/sysram.o sysram.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/via.o via.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/lib.o lib.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/acia.o acia.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/tty.o tty.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/console.o console.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/xmodem.o xmodem.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/ehbasic.o ehbasic.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/wozmon.o wozmon.s
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/intel-hex.o intel-hex.s
+ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o
+Opened `minios.bin'...
   Dumping 'RAM'
     Writing 'BSS'
-Opened 'minios.rom'...
+Opened `minios.rom'...
   Dumping 'ROM_FILL'
   Dumping 'IO'
   Dumping 'ROM'
@@ -40,8 +41,9 @@ Opened 'minios.rom'...
     Writing 'RODATA'
     Writing 'RODATA_PA'
     Writing 'VECTORS'
-#rm -f minios.bin
-```
+  Dumping 'ROM_FILL2'
+touch minios
+#rm -f minios.bin```
 
 Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
@@ -98,6 +100,8 @@ current implementation does not support any flow control, so make sure
 that whatever serial/terminal connection program you use also has that
 configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
 Avoid `MacWise` because it lacks the transfer capability we need.
+
+To transfer binary code to the board, we offer 2 options: The XMODEM protocol or the Intel HEX format. Both are selected via the Main Menu.
 
 To initiate the transfer, connect your "tty" machine (the serial/terminal
 program) to the `JJ65c02` and power up the board. You should see a Welcome

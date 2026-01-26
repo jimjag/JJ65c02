@@ -8,13 +8,15 @@ This project contains 3 main sections:
 * The actual JJ65c02 breadboard computer ([Schematics](./Schematics))
 * [Software](./Software)
   * The miniOS OS menu and ROM bootloader
-  * pico-code : The RP2040 A/V chip (VGA driver and PS/2 keyboard interface)
-  * x65c02 Emulator (stale)
+  * pico-code : The RP2040/RP2350 A/V chip (VGA driver and PS/2 keyboard interface)
+  * x65c02 Emulator
 * [Datasheets](./Datasheets)
 
 Each section has its own Readme.md and Folder under this repo.
 
-# Keep up to date by following the project on [Hackaday](https://hackaday.io/project/193153-jj65c02). Older notes can be found by reading the [History](./HISTORY.md) file, which served as a running log of additions and improvements.
+# Updates
+
+Keep up to date by following the project on [Hackaday](https://hackaday.io/project/193153-jj65c02) and our [YouTube channel](https://www.youtube.com/playlist?list=PLI32OMXu1rudGl28vJc05QFXHkXWn0A19). Older notes can be found by reading the [History](./HISTORY.md) file, which served as a running log of additions and improvements.
 
 # Pull Requests
 
@@ -28,4 +30,3 @@ You can, of course, contact me via the normal Github development methods, such a
 
 * Specific content noted in their respective sections
 * All the helpful peeps on reddit r/beneater/
-
