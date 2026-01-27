@@ -1,12 +1,15 @@
+.setcpu "w65c02"
+
 .include "minios.inc"
 .include "sysram.inc"
-.include "lcd.inc"
+.include "tty.inc"
+.include "console.inc"
 
 ; Actual start of RAM code
 .segment "PROG"
 
 main:
-    LCD_writetxt scroll         ; function import done above
+    CON_writeln c1         ; function import done above
     rts
 
 .segment "RWDATA"

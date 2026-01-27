@@ -33,6 +33,7 @@ $(SOBJS): $(SRCS)
 $(TARGET): $(OBJS)
 	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
 	touch $(TARGET)
+	ar65 r $(TARGET).lib $(OBJS)
 	#rm -f $(TARGET).bin
 
 $(TARGET2): $(SOBJS)
@@ -41,4 +42,4 @@ $(TARGET2): $(SOBJS)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(TARGET2) $(LDMAP) $(OBJS) $(SOBJS) $(TARGET).rom $(TARGET2).rom *.lbl *.map
+	rm -f $(TARGET) $(TARGET2) $(LDMAP) $(OBJS) $(SOBJS) $(TARGET).rom $(TARGET2).rom *.lbl *.map $(TARGET).lib
