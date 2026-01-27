@@ -31,13 +31,13 @@ $(SOBJS): $(SRCS)
 	ca65 -t none -D SIM=1 --cpu w65c02 -U -I ./include -o $@ $(@:sobjs/%.o=%.s)
 
 $(TARGET): $(OBJS)
-	ld65 -C ../$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
+	ld65 -C ./$(LDCFG) -v -Ln $(LBL) -vm -m $(LDMAP) -o $(TARGET) $(OBJS)
 	touch $(TARGET)
 	ar65 r $(TARGET).lib $(OBJS)
 	#rm -f $(TARGET).bin
 
 $(TARGET2): $(SOBJS)
-	ld65 -C ../$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o $(TARGET2) $(SOBJS)
+	ld65 -C ./$(SIMCFG) -v -Ln $(SIMLBL) -vm -m $(SIMMAP) -o $(TARGET2) $(SOBJS)
 	#rm -f sim.bin
 
 .PHONY: clean
