@@ -271,6 +271,8 @@ tail := head+2 ; heap backward
 
 ;----------------------------------------------------------------------
 FORTH_main:
+    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
+    tsb MINIOS_STATUS
     CON_writeln FORTH_welcome
 ; link list of headers
     lda #>h_exit
@@ -1138,7 +1140,7 @@ def_word "key", "key", 0
     jsr getchar
     sta fst + 0
     ; jmp this  ; uncomment if char could be \0
-    bne this    ; always taken
+    bra this    ; always taken (was bne)
 
 ;---------------------------------------------------------------------
 ; ( u -- ) ; tos + 1 unchanged
@@ -1147,7 +1149,7 @@ def_word "emit", "emit", 0
     lda fst + 0
     jsr putchar
     ; jmp next  ; uncomment if carry could be set
-    bcc jmpnext ; always taken
+    bra jmpnext ; always taken (was bcc)
 
 ;---------------------------------------------------------------------
 ; ( a w -- ) ; [a] = w
@@ -1158,7 +1160,7 @@ storew:
     ldy #(fst)
     jsr copyinto
     ; jmp next  ; uncomment if carry could be set
-    bcc jmpnext ; always taken
+    bra jmpnext ; always taken (was bcc)
 
 ;---------------------------------------------------------------------
 ; ( w1 w2 -- NOT(w1 AND w2) )
@@ -1172,7 +1174,7 @@ def_word "nand", "nand", 0
     and fst + 1
     eor #$FF
     ; jmp keeps  ; uncomment if carry could be set
-    bcc keeps ; always taken
+    bra keeps ; always taken (was bcc)
 
 ;---------------------------------------------------------------------
 ; ( w1 w2 -- w1+w2 )
@@ -1231,7 +1233,7 @@ def_word "s@", "state", 0
     sta fst + 0
     lda #>stat
     ;  jmp keeps ; uncomment if stats not in page $0
-    beq keeps   ; always taken
+    bra keeps   ; always taken (was beq)
 
 ;---------------------------------------------------------------------
 def_word ";", "semis",  FLAG_IMM
@@ -1254,7 +1256,7 @@ finish:
     jsr wcomma
 
     ; jmp next
-    bcc next    ; always taken
+    bra next    ; always taken (was bcc)
 
 ;---------------------------------------------------------------------
 def_word ":", "colon", 0
@@ -1317,7 +1319,7 @@ magic = $20EA
 
 ; done
     ; jmp next
-    bcc next    ; always taken
+    bra next    ; always taken (was bcc)
 
 ;---------------------------------------------------------------------
 ; Thread Code Engine
@@ -1406,5 +1408,3 @@ FORTH_welcome:
     .asciiz "\r\nMilliForth for JJ65c02" ; sign on string
 FORTH_prompt:
     .asciiz "\r\nok> "
-FORTH_newline:
-    .asciiz "\r\n"

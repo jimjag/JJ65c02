@@ -504,6 +504,8 @@ Stack_floor       = 16          ; bytes left free on stack for background interr
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ccflag on
 BASIC_COLD:
+    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
+    trb MINIOS_STATUS
     stz UseTTY
     ldy #PG2_TABE-PG2_TABS-1    ; byte count-1
 LAB_2D13:
@@ -7948,7 +7950,7 @@ LAB_2D05:
 
 StrTab:
       .byte $4C               ; JMP opcode
-      .word BASIC_COLD          ; initial warm start vector (cold start)
+      .word BASIC_COLD        ; initial warm start vector (cold start)
 
       .byte $4C               ; JMP opcode
       .word LAB_FCER          ; initial user function vector ("Function call" error)
@@ -8836,25 +8838,29 @@ LAB_stlp:
 ; now do the signon message, Y = $00 here
 
 LAB_signon:
+    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
+    bit MINIOS_STATUS
+    bne @do_cold
+@loop:
     lda LAB_mess,Y              ; get byte from sign on message
-    beq LAB_nokey               ; exit loop if done
+    beq @LAB_nokey              ; exit loop if done
 
     jsr V_OUTP                  ; output character
     iny                         ; increment index
-    bne LAB_signon              ; loop, branch always
+    bne @loop                   ; loop, branch always
 
-LAB_nokey:
+@LAB_nokey:
     jsr V_INPT                  ; call scan input device
-    bcc LAB_nokey               ; loop if no key
+    bcc @LAB_nokey              ; loop if no key
 
     and #$DF                    ; mask xx0x xxxx, ensure upper case
     cmp #'W'                    ; compare with [W]arm start
-    beq @LAB_dowarm              ; branch if [W]arm start
+    beq @LAB_dowarm             ; branch if [W]arm start
 
     cmp #'C'                    ; compare with [C]old start
     bne LAB_init                ; loop if not [C]old start
-
-    jmp BASIC_COLD                ; do EhBASIC cold start
+@do_cold:
+    jmp BASIC_COLD              ; do EhBASIC cold start
 
 @LAB_dowarm:
     jmp LAB_WARM                ; do EhBASIC warm start
