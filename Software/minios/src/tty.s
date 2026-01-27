@@ -58,7 +58,7 @@ TTY_readln:
     dec USER_BUFFLEN
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
-    jsr ACIA_read_byte
+    jsr ACIA_read_byte_blk
 @enter_pressed:
     cmp #TTY_char_CR             ; User pressed enter?
     beq @read_done               ; Yes, don't save the CR

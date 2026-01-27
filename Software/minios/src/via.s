@@ -67,7 +67,7 @@ VIA_ihandler:
     sta INPUT_BUFFER,x          ; Store in rx buffer
     inc PS2IN_WPTR              ; Increase write buffer pointer
     bmi @done
-    lda #$80
+    lda #$80                    ; We use $80 -> $ff of INPUT_BUFFER
     sta PS2IN_WPTR
 @done:
     plx

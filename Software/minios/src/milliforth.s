@@ -562,7 +562,7 @@ getchar:
     jsr CON_write_byte
     bra @done
 @tty:
-    jsr TTY_read_char
+    jsr TTY_read_char_blk
     jsr TTY_write_char
 @done:
     clc

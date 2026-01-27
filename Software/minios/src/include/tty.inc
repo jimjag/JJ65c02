@@ -14,6 +14,7 @@ _TTY_INC_ = 1
 
 .define TTY_write_char ACIA_write_byte
 .define TTY_read_char ACIA_read_byte
+.define TTY_read_char_blk ACIA_read_byte_blk
 .define TTY_writeln ACIA_writeln
 
 .macro TTY_read_line buffer, buffer_size

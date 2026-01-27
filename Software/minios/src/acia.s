@@ -12,6 +12,7 @@
 
 .export ACIA_init
 .export ACIA_read_byte
+.export ACIA_read_byte_blk
 .export ACIA_write_byte
 .export ACIA_write_string
 .export ACIA_ihandler
@@ -109,6 +110,13 @@ ACIA_read_byte:
 .endif
     plx
     sec
+    rts
+
+
+ACIA_read_byte_blk:
+@loop:
+    jsr ACIA_read_byte
+    bcc @loop
     rts
 
 ;================================================================================
