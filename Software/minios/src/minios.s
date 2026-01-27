@@ -14,6 +14,7 @@
 .import BASIC_init
 .import WOZMON
 .import LOADINTEL
+.import FORTH_main
 .export MINIOS_main_menu
 
 ;================================================================================
@@ -120,8 +121,6 @@ main:                           ; boot routine, first thing loaded
     CON_writeln new_line
     ; Rest of boot up
     cli                         ; interupts are back on
-    lda #$60                    ; RTS opcode
-    sta PROGRAM_START           ; Just in case we try to run with nothing in RAM
     CON_writeln message_ramtest
     lda #(MINIOS_RAM_TEST_PASS_FLAG)
     bit MINIOS_STATUS
@@ -176,6 +175,8 @@ MINIOS_main_menu:
     cmp #7
     beq @start_basic
     cmp #8
+    beq @start_forth
+    cmp #9
     beq @about
     jmp @start                  ; should we have an invalid option, restart
 
@@ -200,6 +201,9 @@ MINIOS_main_menu:
 @start_basic:
     CON_writeln message_readybasic
     jsr BASIC_init
+    jmp @start
+@start_forth:
+    jsr FORTH_main
     jmp @start
 @about:                         ; start the about routine
     CON_writeln about
@@ -521,7 +525,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. About"
+    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
