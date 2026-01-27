@@ -1,7 +1,6 @@
 .setcpu "w65c02"
 
 .export BASIC_init
-.export UseTTY
 .export BASIC_COLD
 .export BASIC_WARM
 .exportzp BASIC_ZP_start
@@ -8863,7 +8862,7 @@ LAB_signon:
     jmp BASIC_COLD              ; do EhBASIC cold start
 
 @LAB_dowarm:
-    jmp LAB_WARM                ; do EhBASIC warm start
+    jmp BASIC_WARM              ; do EhBASIC warm start
 
 ; : SYSTEM SPECIFIC VALUE!
 IOout_console:

@@ -233,10 +233,11 @@ pic = rp0
 
 ; internal Forth
 
-stat := BASIC_ZP_start ; state at lsb, last size+flag at msb
-toin := stat+2 ; toin next free byte in TIB
-last := toin+2 ; last link cell
-here := last+2 ; next free cell in heap dictionary, aka dpt
+UseTTY := BASIC_ZP_start
+stat := UseTTY+1 ; state at lsb, last size+flag at msb
+toin := stat+2   ; toin next free byte in TIB
+last := toin+2   ; last link cell
+here := last+2   ; next free cell in heap dictionary, aka dpt
 
 ; pointers registers
 
@@ -289,6 +290,7 @@ FORTH_main:
     sta rpt
     sta toin
     sta tout
+    sta UseTTY
 
 ;---------------------------------------------------------------------
 ; supose never change
@@ -326,17 +328,18 @@ resolvept:
 
 ;---------------------------------------------------------------------
 okey:
-    CON_writeln FORTH_prompt
-
-;;   uncomment for feedback
-;    lda stat + 0
-;    bne resolve
-;    lda #'O'
-;    jsr putchar
-;    lda #'K'
-;    jsr putchar
-;    lda #10
-;    jsr putchar
+    lda #'\r'
+    jsr putchar
+    lda #'\n'
+    jsr putchar
+    lda #'o'
+    jsr putchar
+    lda #'k'
+    jsr putchar
+    lda #'>'
+    jsr putchar
+    lda #' '
+    jsr putchar
 
 resolve:
 ; get a token
@@ -553,9 +556,29 @@ token:
 ; I/O
 
 getchar:
+    lda UseTTY
+    bne @tty
     jsr CON_read_byte_blk
-putchar:
     jsr CON_write_byte
+    bra @done
+@tty:
+    jsr TTY_read_char
+    jsr TTY_write_char
+@done:
+    clc
+    rts
+
+putchar:
+    pha
+    lda UseTTY
+    bne @tty
+    pla
+    jsr CON_write_byte
+    bra @done
+@tty:
+    pla
+    jsr TTY_write_char
+@done:
     clc
     rts
 
@@ -702,6 +725,14 @@ addwx:
 
 ;----------------------------------------------------------------------
 ; extras
+;----------------------------------------------------------------------
+; ( -- ) ae exit forth
+def_word "tty", "tty", 0
+    lda UseTTY
+    eor #$ff
+    sta UseTTY
+    jmp next
+
 ;----------------------------------------------------------------------
 ; ( -- ) ae exit forth
 def_word "bye", "bye", 0
@@ -1406,5 +1437,3 @@ jump:
 
 FORTH_welcome:
     .asciiz "\r\nMilliForth for JJ65c02" ; sign on string
-FORTH_prompt:
-    .asciiz "\r\nok> "
