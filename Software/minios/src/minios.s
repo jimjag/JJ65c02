@@ -77,12 +77,7 @@ main:                           ; boot routine, first thing loaded
     sta Z1
     stz MINIOS_STATUS
     jsr MINIOS_test_ram_core
-    bcs @continue
 .ENDIF
-    lda #(MINIOS_RAM_TEST_PASS_FLAG)
-    tsb MINIOS_STATUS
-
-@continue:
     lda #8
     sta CLK_SPD                 ; Assume a 8Mhz clock to start
 
@@ -127,7 +122,7 @@ main:                           ; boot routine, first thing loaded
     CON_writeln message_pass
     bra @cont2
 @ram_failed:
-    CON_writeln message_fail
+    CON_writeln message_fail    ; Should we continue on or should we STP?
 @cont2:
     jsr CON_read_byte           ; in case there is junk in the buffer
     jsr MINIOS_main_menu        ; start the menu routine
@@ -435,7 +430,6 @@ MINIOS_test_ram_core:
     sta Z2
     lda Z1
     sta Z3
-
     lda #$5A
     jsr MINIOS_ram_set
     lda Z2
@@ -457,6 +451,17 @@ MINIOS_test_ram_core:
     sta Z1
     lda #$A5
     jsr MINIOS_ram_check
+    bcs @skip
+    ; All good - null out all memory
+    lda Z2
+    sta Z0
+    lda Z3
+    sta Z1
+    lda #0
+    jsr MINIOS_ram_set
+    ; And set mem test as passing
+    lda #(MINIOS_RAM_TEST_PASS_FLAG)
+    tsb MINIOS_STATUS
 @skip:
     rts
 
