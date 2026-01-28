@@ -10,9 +10,9 @@ Back? Good! Just jump in.
 
 # What's different?
 
-So starting from Ben's design (as of Sept. 2021), here's a list of modifications I've made:
+So starting from Ben's design (as of Sept. 2021), here's a partial list of modifications I've made:
 
-* Different memory map
+* Different memory map, including bankable RAM
 * Console terminal
 * Dependent on 65c02 chip (not "generic" 6502)
 * Added W65c51 ACIA chip and TTL-serial converter.
@@ -37,7 +37,7 @@ The design I came up with requires the use of the ATF22V10C PLD for decoding. Wi
  $a000 - $afff      IO: 4k
    $a010 - $a01f      ACIA
    $a020 - $a02f      VIA
-   $a100 - $a1ff      RP2040/RP2350
+   $a800              Pi Pico
  $b000 - $ffff      ROM: 20k
 ```
 
@@ -52,3 +52,6 @@ Ben's design, of course, also uses the 65C02, in fact, the WDC65C02. However his
 Adding the `W65c51` ACIA chip and the `Max232` TTL-Serial
 converter board allows for true RS232 terminal support,
 vital for bootloader support.
+
+# Schematics
+All schematics are in the `JJ65c02` folder and use `KiCad`.

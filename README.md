@@ -1,7 +1,7 @@
 ![6502 Rulz](./Images/6502-rulz.png)
 # Introduction
 
-**JJ65c02** is my own personal interpretation of the noteworthy [Ben Eaters 6502 Computer](https://eater.net/6502) setup. In addition to Ben's work, I've used code, concepts and inspiration from a number of people, all acknowledged below in the **Credits** section. The ultimate inspirations are the venerable Apple II and the Atari 800 personal computers
+**JJ65c02** is my own personal interpretation of the noteworthy [Ben Eater 6502 Computer](https://eater.net/6502) setup. In addition to Ben's work, I've used code, concepts and inspiration from a number of people, all acknowledged below in the **Credits** section. The ultimate inspirations are the venerable Apple II and the Atari 800 personal computers
 
 This project contains 3 main sections:
 

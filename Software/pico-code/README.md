@@ -1,8 +1,7 @@
 
-# JJ65c02: The RP2040 Console Chip
+# JJ65c02: The RP2040/RP2350 Console Chip
 
-`rp2040_core` serves as the core code for the rp2040 support chip for
-the JJ65c02 SBC. It performs 4 main functions:
+`pico_core` serves as the core code for the rp2040/rp2350 Pi Pico support chip for the JJ65c02 SBC. It performs 4 main functions:
 
 * Interfaces with a PS/2 keyboard for console input
 * Outputs VGA at 640x480, 4-bit color
@@ -11,7 +10,7 @@ the JJ65c02 SBC. It performs 4 main functions:
 
 ## PS/2 Keyboard
 
-2 __GPIO__ pins are used on the rp2040 for the PS/2 data and clock signals. Data is
+2 __GPIO__ pins are used on the Pi Pico for the PS/2 data and clock signals. Data is
 read and serialized using a __PIO__ state machine. This data is then fed into the
 VGA/terminal subsystem (if desired) as well as sent to the JJ65c02 system using 7 pins on
 the VIA chip and one pin for the data handshake. In general, we expect the 6502 to echo back
@@ -23,17 +22,17 @@ to ASCII `0x11` through `0x14`.
 
 ## VGA Output
 
-The rp2040 supports a resolution of 640x480 pixels at 60Khz, with a 4 bit
+The Pi Pico supports a resolution of 640x480 pixels at 60Khz, with a 4 bit
 color palette. The `HSYNC`, `VSYNC` and `RGBI` signals are generated using
 3 __PIO__ state machines with 6 output pins. Higher resolutions are possible
 but are limited by the onboard memory available on the __RP2040__.
 
 The display itself is fully bitmapped, allowing for each individual pixel
 to be directly addressed.  Changes to the bitmap are automatically reflected
-in the output using the __RP2040__ DMA capability.
+in the output using the __Pico__ DMA capability.
 
-Character bytes can be written to the __RP2040__ from the 65C02 by simply writing
-to the rp2040's mapped direct address. This uses 8 pins on the rp2040 for the
+Character bytes can be written to the __Pico__ from the 65C02 by simply writing
+to the Pico's mapped direct address. This uses 8 pins on the Pico for the
 data and 1 pin to serve as a `write/data-ready/chip-select` signal.
 
 ## Terminal, Graphics and Text

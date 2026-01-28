@@ -547,6 +547,8 @@ clock_spd:
 IOVRB_c:    .word CON_read_byte_blk
 IOVR_c:     .word CON_read_byte
 IOVW_c:     .word CON_write_byte
+    .word $0000
+    .word $0000
 IOVRB_t:    .word TTY_read_char_blk
 IOVR_t:     .word TTY_read_char
 IOVW_t:     .word TTY_write_char

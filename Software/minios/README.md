@@ -8,6 +8,7 @@
 3. __Debug__ the full address space via an integrated __WOZMON__
 4. __Clean RAM__ for use with non-volatile RAM or during development
 5. __EhBasic__ BASIC interpreter
+6. __MilliForth__ interpreter
 
 
 ## Build and Install the miniOS
@@ -29,7 +30,8 @@ ca65 -t none --cpu w65c02 -U -I ./include -o objs/xmodem.o xmodem.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/ehbasic.o ehbasic.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/wozmon.o wozmon.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/intel-hex.o intel-hex.s
-ld65 -C ../jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o
+ca65 -t none --cpu w65c02 -U -I ./include -o objs/milliforth.o milliforth.s
+ld65 -C ./jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o objs/milliforth.o
 Opened `minios.bin'...
   Dumping 'RAM'
     Writing 'BSS'
@@ -40,10 +42,13 @@ Opened `minios.rom'...
     Writing 'CODE'
     Writing 'RODATA'
     Writing 'RODATA_PA'
+    Writing 'IOVECTORS'
     Writing 'VECTORS'
   Dumping 'ROM_FILL2'
 touch minios
-#rm -f minios.bin```
+ar65 r minios.lib objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o objs/milliforth.o
+#rm -f minios.bin
+```
 
 Burn the ROM image (`minios.rom`)onto the EEPROM using your TL866 programmer in conjunction with minipro (Linux, Mac) or the respective Windows GUI tool provided by XG.
 
@@ -71,7 +76,7 @@ building and loading RAM-based programs.
 The miniOS needs to use some Zero Page locations, so expect trouble if you
 overwrite / use them from within your own programs. Currently, we use
 locations `$00-$DC`, which can be confirmed via looking at the
-`__ZEROPAGE_LAST__` variable in the `minios.map` file. Now if you
+`__ZP_LAST__` variable in the `minios.map` file. Now if you
 follow the below instuctions for assembling and building your own
 RAM programs, you don't need to worry about this, because during the
 build process `cc65` will handle the allocations and reservations of
@@ -79,27 +84,35 @@ zeropage itself, and avoid any collisions. However, if you use some
 other method to compile your software, like `vasm`, then you'll need
 to take more direct action in both avoiding these zeropage collisions
 as well as hardcoding the minios library function addresses into your
-code (for now)
+code (for now).
+
+To help with this, we also provide a set of `start` and `end` variables for each module that allocates zeropage memory:
+```
+SYSMEM_ZP_start
+SYSMEM_ZP_end
+XMODEM_ZP_start
+XMODEM_ZP_end
+BASIC_ZP_start
+BASIC_ZP_end
+```
+Without a doubt, EhBASIC is the largest consumer of zeropage memory. However, you can re-use this space by starting your zeropage allocations at `BASIC_ZP_start` and setting the `EHBASIC_ZP_CORRUPTED_FLAG` in the `MINIOS_STATUS` register. This will force the EhBASIC interpreter to clean-up the corrupted memory block via a COLD start.
 
 ### 2. Allocated RAM
 
 The miniOS also occupies some RAM. In the `jj65c02.cfg`
 file this is set-aside as `RAM0` and is typically refered to as `SYSRAM`.
-Your programs are free to use `BSS`, `HEAP` and `RWDATA` as needed.
+Your programs are free to use `PROG`, `BSS`, `HEAP` and `RWDATA` as needed. (_*NOTE*_: `CODE` is ROM space)
 
 ## Bootloader, aka Getting Programs into RAM
 
 As mentioned, one of the main functions of miniOS is as a bootloader,
-which allows your to download/transfer your own pre-assembled code to
+which allows you to download/transfer your own pre-assembled code to
 RAM and run it from there. This uses the `W65c51` ACIA chip and the
 `MAX232` TTL-Serial converter card on the `JJ65c02` board.
 
 The serial connection is hardcoded as 19200 baud, 8 data bits, 1 stop
-bit and no parity. This is commonly refered to as `19200-8N1`. The
-current implementation does not support any flow control, so make sure
-that whatever serial/terminal connection program you use also has that
-configured as such. Good choices for such programs are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
-Avoid `MacWise` because it lacks the transfer capability we need.
+bit, no parity with H/W flow control. This is commonly refered to as `19200-8N1`. Good choices for rs232/vt100 terminals  are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
+`MacWise` is a good choice, but it lacks the XMODEM transfer capability.
 
 To transfer binary code to the board, we offer 2 options: The XMODEM protocol or the Intel HEX format. Both are selected via the Main Menu.
 
@@ -127,13 +140,15 @@ NOTE: We use *XMODEM CRC*.
 ## Assembling your own RAM based programs
 
 Included in the `examples` directory is a simple guide to how
-to build and assemble your own programs. You'll notice that you
-need to link against the minios object files so that when your
+to build and assemble your own programs. You'll notice that if your program uses any of the miniOS features, you'll
+need to link against the miniOS object library so that when your
 program is assembled and links, it is automatically aware of the
 addresses and location of set-aside memory as well as the exported
 functions. In the example, you'll also notice that the resultant
 file has the `.bin` suffix. That is the file/image to be transfered
 to RAM.
+
+To make it easier, since most of the time 3rd party programs just need to know how to read and write a character, we have an IO Vector jump table, which assures non-variable access to those functions via a `jmp ($fff0)` (for example) instruction. Check out the values for the various IOV* labels in the `minios.lbl` file.
 
 ## Build and Install the PLD Image
 
@@ -149,4 +164,4 @@ or
 ```
 minipro -p ATF22V10CQZ -w ./JJ65C02.jed
 ```
-A pre-built version of the JED file is available in the repo.
+A pre-built version of the `JED` file is available in the repo. We've also provided a copy of `WinCUPL` as well.
