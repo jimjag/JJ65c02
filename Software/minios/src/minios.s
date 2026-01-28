@@ -16,6 +16,12 @@
 .import LOADINTEL
 .import FORTH_main
 .export MINIOS_main_menu
+.export IOVRB_c
+.export IOVR_c
+.export IOVW_c
+.export IOVRB_t
+.export IOVR_t
+.export IOVW_t
 
 ;================================================================================
 ;
@@ -538,12 +544,12 @@ clock_spd:
     .asciiz "    Clock Mhz: "
 
 .segment "IOVECTORS"
-    .word CON_read_byte_blk
-    .word CON_read_byte
-    .word CON_write_byte
-    .word TTY_read_char_blk
-    .word TTY_read_char
-    .word TTY_write_char
+IOVRB_c:    .word CON_read_byte_blk
+IOVR_c:     .word CON_read_byte
+IOVW_c:     .word CON_write_byte
+IOVRB_t:    .word TTY_read_char_blk
+IOVR_t:     .word TTY_read_char
+IOVW_t:     .word TTY_write_char
 
 .segment "VECTORS"
     .word $0000
