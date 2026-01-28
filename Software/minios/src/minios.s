@@ -99,18 +99,17 @@ main:                           ; boot routine, first thing loaded
     jsr LIB_setrambank
     jsr CON_init
     CON_writeln logo
-    TTY_writeln logo
 
     ; Are we serial enabled?
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
     beq @no_acia
+    TTY_writeln logo
     TTY_writeln message_welcomeacia
     CON_writeln message_welcomeacia
     bra @welcome
 @no_acia:
     CON_writeln message_welcome                 ; render the boot screen
-    TTY_writeln message_welcome
 @welcome:
     ; Show clock speed (compile-time constant)
     CON_writeln clock_spd

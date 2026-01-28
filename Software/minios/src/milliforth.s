@@ -726,11 +726,20 @@ addwx:
 ;----------------------------------------------------------------------
 ; extras
 ;----------------------------------------------------------------------
-; ( -- ) ae exit forth
+; ( -- ) ae tty forth
+; ** This is JJ65C02 specific **
 def_word "tty", "tty", 0
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
+    bit MINIOS_STATUS
+    beq @done           ; If we don't have ACIA, we don't have serial.
+    lda #'\r'
+    jsr putchar
+    lda #'\n'
+    jsr putchar
     lda UseTTY
     eor #$ff
     sta UseTTY
+@done:
     jmp next
 
 ;----------------------------------------------------------------------

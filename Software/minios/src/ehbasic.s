@@ -2167,6 +2167,9 @@ LAB_1754:
 ; TODO: Ugly - Change to looping thru IO_TAB_Start<>IO_TAB_End
 LAB_TTY:
     pha
+    lda #(MINIOS_ACIA_ENABLED_FLAG)
+    bit MINIOS_STATUS
+    beq @done           ; If we don't have ACIA, we don't have serial for TTY
     lda UseTTY
     eor #$ff
     sta UseTTY
@@ -2191,6 +2194,7 @@ LAB_TTY:
     sta VEC_OUT
     lda #>IOout_tty
     sta VEC_OUT+1
+@done:
     pla
     jmp BASIC_WARM              ; go do warm start
 
