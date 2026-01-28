@@ -77,8 +77,9 @@
 ; One reason for _dedicating_ this to EhBASIC is so that COLD and
 ; WARM starts work as they should. If we allowed re-use, someone else
 ; could mangle EhBasic's memory and WARM would crash in weird and
-; random ways. So until we can detect EhBasic ZP re-use and corruption,
-; just keep it ours
+; random ways. So we keep track of whether or not this has happened
+; and require those apps that do re-use to set the EHBASIC_ZP_CORRUPTED_FLAG
+; bit in MINIOS_STATUS
 ;
 
 BASIC_ZP_start   := UseTTY

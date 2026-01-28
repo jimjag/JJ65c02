@@ -411,7 +411,7 @@ MINIOS_test_ram:
     CON_writeln message_fail
 @done:
     lda #10
-    jsr LIB_delay100ms          ; let them see know it
+    jsr LIB_delay100ms          ; let them see and know it
     rts
 
 ;================================================================================
@@ -528,7 +528,7 @@ menu_items:
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
-    .asciiz " Clock Mhz: "
+    .asciiz "    Clock Mhz: "
 
 .segment "VECTORS"
     .word $0000
