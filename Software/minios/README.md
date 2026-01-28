@@ -116,6 +116,8 @@ bit, no parity with H/W flow control. This is commonly refered to as `19200-8N1`
 
 To transfer binary code to the board, we offer 2 options: The XMODEM protocol or the Intel HEX format. Both are selected via the Main Menu.
 
+### XMODEM
+
 To initiate the transfer, connect your "tty" machine (the serial/terminal
 program) to the `JJ65c02` and power up the board. You should see a Welcome
 message on the tty's terminal window. If you don't, check your serial
@@ -123,19 +125,22 @@ settings. You do ***not*** need a null modem connection.
 
 If all looks good, using the miniOS menu on the Console, select *Load*.
 Confirm that you are ready to
-initiate the transfer and hit anykey. At this
+initiate the transfer and hit the `l` or `L` key. At this
 point you'll see on the Host terminal the message to *Begin XMODEM transfer.*
 
 From the tty machine chose to **upload** the program and select *XMODEM* as
 the transfer protocol. The transfer should take just a few seconds. The
 screen will display any errors as well as the number of the blocks being
-currently transfered. This may happen so fast that you don't even see
+currently transferred. This may happen so fast that you don't even see
 the numbers change; all you may see is the last block number.
 
-Once complete, you will returned to miniOS, at which point you can
+Once complete, you will be returned to miniOS, at which point you can
 chose to *Run* the just downloaded program. Have fun!
 
 NOTE: We use *XMODEM CRC*.
+
+### Intel HEX
+For the Intel HEX format, you will need to use the capabilities of your host terminal program to transfer the file. Even though we use hardware flow control, it is still possible that the transfer may be too fast for the 6502 to keep up. A common fix is to add some delay at the end of each line of the file; this is done via a setting in the host terminal program.
 
 ## Assembling your own RAM based programs
 
@@ -165,3 +170,34 @@ or
 minipro -p ATF22V10CQZ -w ./JJ65C02.jed
 ```
 A pre-built version of the `JED` file is available in the repo. We've also provided a copy of `WinCUPL` as well.
+
+## RAM Banking
+Memory space between 0x8000 and 0x9FFF is reserved for RAM Banking.
+This area is used for dynamic memory allocation and can be banked
+between two banks, allowing more actual RAM to be used than is directly addressable. There are 7 banks actually available, and they are set and selected by using the `LIB_setrambank` function, where the value of the `A` register is used to select the bank number to be active. Using this function changes the bit pattern on `Port B` of the VIA chip which itself is then used to modify the address lines to the RAM chip. Increasing the number and size of the RAM banks is a possible future enhancement.
+
+## EhBASIC
+EhBASIC is a fast and powerful BASIC interpreter for the 6502 microprocessor. EhBASIC is a great way to learn about computer programming but is also sophisticated enough to be used for serious projects. EhBASIC takes full advantage of the capabilities of the Pi Pico support chip (see [README.md](pico-code/README.md)) allowing for retro graphics and sound.
+
+A manual for EhBASIC is available in the `Documents` directory.
+
+Our version of EhBASIC has been as follows:
+- Support for lower and upper case characters (BASIC commands are automatically converted to upper case)
+- Added `CSTR$()`: `CSTR$(19)` returns "19" not " 19" ala `STR$()` (not the space character in the 2nd string)
+- Added the `EXIT` command to exit the program and return to the miniOS menu
+- Added the `LOAD` and `SAVE` commands to load and save programs between a host computer via the serial connection. The transfer protocol is XMODEM.
+- Added the `TTY` command to switch user I/O between the console (PS2 keyboard and VGA monitor) and the serial connection.
+
+#### Loading and Saving BASIC Programs
+As noted above, the `LOAD` and `SAVE` commands allow you to load and save programs to a host computer via the serial connection. However, these are the _binary_ versions of the BASIC programs, and not the typical source text format.
+
+For the most part, people will want to load and save the actual text itself, and the mentioned `TTY` command is there to make it easier. To Save a program in its text format, switch to TTY mode and then, from the host terminal, type `LIST`. Capture this text to a file on the host computer. To "load" a BASIC program, again switch to TTY mode and paste or "send" the file containing the BASIC program directly to EhBASIC; it will appear to BASIC as if you were typing it in directly (think of it as a "paste" command). You may need to add some delays or some send-throttling by the host terminal program to avoid overloading the serial connection.
+
+## WOZMON
+Wozmon (or Woz Monitor) is a tiny but powerful ~256-byte monitor program written by the legendary Steve Wozniak for the original Apple-1 computer in 1976.
+It provides a command-line interface for debugging programs running on the miniOS system. WOZMON allows you to set breakpoints, step through code, and inspect variables, making it a valuable tool for debugging and testing your programs. A small manual is included in the `Documents` directory.
+
+Our version of WOZMON has been updated to support both UPPER and lower case characters, and the command `Q` to quit the program and return to the miniOS menu.
+
+## Milliforth
+Milliforth is a simple Forth interpreter written in assembly language for the 6502 microprocessor.
