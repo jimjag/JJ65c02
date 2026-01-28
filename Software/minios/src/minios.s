@@ -34,13 +34,13 @@
 ;    $0000 - $7fff      RAM: 40k
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
-;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2-4
-;      . $0400 - $9fff      RAM: Runnable code area (also see PROGRAM_START/PROGRAM_END)
-;      . $8000 - $9fff      RAM Bank (8K)
+;      . $0200 - $04ff      RAM: miniOS set-aside / Page 2-4 (SYSRAM / RAM0)
+;      . $0400 - $9fff      RAM: Runnable code area (PROG / RAM | PROGRAM_START->PROGRAM_END
+;      . $8000 - $9fff      RAM Bank (8K) (RAM_BANK)
 ;    $A010 - $Afff      IO Blk: 4k
-;      . $A010 - $A01f      ACIA:
-;      . $A020 - $A02f      VIA1:
-;      . $A800              PICO:
+;      . $A010 - $A01f      ACIA address space:
+;      . $A020 - $A02f      VIA1 address space:
+;      . $A800              PICO address space:
 ;    $B000 - $ffff      ROM: 20K
 ;--------
 
@@ -68,6 +68,9 @@ main:                           ; boot routine, first thing loaded
     ldx #$ff                    ; initialize the stackpointer with 0xff
     txs
     cld
+    ; null out our status "register"
+    stz MINIOS_STATUS
+
     ; Check RAM - since this is at boot time, we can also check the
     ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)
 .IFNDEF SIM
@@ -75,7 +78,6 @@ main:                           ; boot routine, first thing loaded
     sty Z0
     lda #>__RAM0_START__
     sta Z1
-    stz MINIOS_STATUS
     jsr MINIOS_test_ram_core
 .ENDIF
     lda #8
@@ -511,7 +513,7 @@ logo:
 message_welcome:
     .asciiz "      JJ65c02\r\n   miniOS v2.0.0\r\n"
 message_welcomeacia:
-    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA\r\n"
+    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA-enabled\r\n"
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n"
 xmodem_readyload:
@@ -534,6 +536,14 @@ about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
     .asciiz "    Clock Mhz: "
+
+.segment "IOVECTORS"
+    .word CON_read_byte_blk
+    .word CON_read_byte
+    .word CON_write_byte
+    .word TTY_read_char_blk
+    .word TTY_read_char
+    .word TTY_write_char
 
 .segment "VECTORS"
     .word $0000
