@@ -67,7 +67,7 @@ As noted, a Pi Pico (actually the Pico 2 at this time), is used to drive the VGA
 
 Some of the complexity of the design is due to the level mismatch between the 6502 (et.al.) and the Pico, since the Pico itself runs on 3.3Vdc. We could run the 6502 also at 3.3, but that still would not solve all issues. To address this problem, we use line level converters as needed between the 2 voltages. When talking to the Pico, we actually latch the WRITE data, to ensure that the Pico has the time to read and process the data before the DATA bus goes unstable. All communication from the Pico is, as noted, driven by the VIA chip and interupts.
 
-Running at 8Mhz, the standard EEPROM is simply too slow. There are a few ways of handling this, including clock stretching. I opted for using a `SST39SF010` 128K NOR Flash, which behaves like a super fast EEPROM and is programmed the exact same way. The current design however wastes a lot of that memory, since we only use 20K of its 128K capability. ROM banking is a possible future enhancement.
+Running at 8Mhz, a standard EEPROM is simply too slow. There are a few ways of handling this, including clock stretching. I opted for using a `SST39SF010` 128K NOR Flash, which behaves like a super fast EEPROM and is programmed the exact same way. The current design however wastes a lot of that memory, since we only use 20K of its 128K capability. ROM banking is a possible future enhancement.
 
 For the RAM, I selected the `AS6C1008` 128K SRAM chip. It is fast enough to easily handling the 8Mhz system clock speed, and provides for extra RAM via banking. The RAM banking itself is determine via the value on `Port B` of the VIA chip, and is user selectable. There are a total of 7 8K banks currently.
 

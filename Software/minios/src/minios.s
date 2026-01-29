@@ -169,11 +169,11 @@ MINIOS_main_menu:
     cmp #3
     beq @run
     cmp #4
-    beq @go_wozmon
-    cmp #5
     beq @clear_ram
-    cmp #6
+    cmp #5
     beq @test_ram
+    cmp #6
+    beq @go_wozmon
     cmp #7
     beq @start_basic
     cmp #8
@@ -537,7 +537,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. WOZMON\r\n5. Clear RAM\r\n6. Test RAM\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. About"
+    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. Clear RAM\r\n5. Test RAM\r\n6. WOZMON\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
