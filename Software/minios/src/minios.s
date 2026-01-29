@@ -158,27 +158,24 @@ MINIOS_main_menu:
     CON_writeln new_line
     CON_writeln prompt
     jsr CON_read_byte_blk
-    sec
-    sbc #'0'
 @select_option:
-    clc
-    cmp #1                      ; branch trough all options
+    cmp #'1'                    ; branch trough all options
     beq @xmodem_load
-    cmp #2
+    cmp #'2'
     beq @ihex_load
-    cmp #3
+    cmp #'3'
     beq @run
-    cmp #4
+    cmp #'4'
     beq @clear_ram
-    cmp #5
+    cmp #'5'
     beq @test_ram
-    cmp #6
+    cmp #'6'
     beq @go_wozmon
-    cmp #7
+    cmp #'7'
     beq @start_basic
-    cmp #8
+    cmp #'8'
     beq @start_forth
-    cmp #9
+    cmp #'9'
     beq @about
     jmp @start                  ; should we have an invalid option, restart
 
