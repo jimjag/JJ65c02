@@ -67,6 +67,8 @@
 ;              http://forum.6502.org/viewtopic.php?f=5&t=4383
 ;      5.12j   Added TTY command, to switch I/O between Console
 ;              and rs-232 TTY
+;      5.13j   Removed the "Memory size" query. We know the start and
+;              end of RAM, so just use that.
 
 .segment "ZEROPAGE"
 ;
@@ -487,14 +489,14 @@ VEC_EXIT          = VEC_SV+2    ; exit vector
 
 ; SYSTEM SPECIFIC VALUE!
 ; NOTE: Yeah, we need hard coded values here :(
-Ibuffs = $0400                  ; __RAM_START__
+Ibuffs = __RAM_START__
 ; start of input buffer after IRQ/NMI code
 Ibuffe            = Ibuffs+$47  ; end of input buffer
 
 ; start of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
-Ram_base          = $0500
+Ram_base          = __RAM_START__ + $0100
 
-; end of user RAM+1 (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
+; end of user RAM (set as needed, should be page aligned)  : SYSTEM SPECIFIC VALUE!
 Ram_top           = __IO_START__
 
 Stack_floor       = 16          ; bytes left free on stack for background interrupts
@@ -551,103 +553,32 @@ TabLoop:
     sta g_step                  ; save it
     ldx #des_sk                 ; descriptor stack start
     stx next_s                  ; set descriptor stack pointer
-    jsr LAB_CRLF                ; print CR/LF
-    lda #<LAB_MSZM              ; point to memory size message (low addr)
-    ldy #>LAB_MSZM              ; point to memory size message (high addr)
-    jsr LAB_18C3                ; print null terminated string from memory
-    jsr LAB_INLN                ; print "? " and get BASIC input
-    stx Bpntrl                  ; set BASIC execute pointer low byte
-    sty Bpntrh                  ; set BASIC execute pointer high byte
-    jsr LAB_GBYT                ; get last byte back
 
-    bne LAB_2DAA                ; branch if not null (user typed something)
-
-    ldy #$00                    ; else clear Y
-; character was null so get memory size the hard way
-; we get here with Y=0 and Itempl/h = Ram_base
-LAB_2D93:
-    inc Itempl                  ; increment temporary integer low byte
-    bne LAB_2D99                ; branch if no overflow
-
-    inc Itemph                  ; increment temporary integer high byte
-    lda Itemph                  ; get high byte
-    cmp #>Ram_top               ; compare with top of RAM+1
-    beq LAB_2DB6                ; branch if match (end of user RAM)
-
-LAB_2D99:
-    lda #$55                    ; set test byte
-    sta (Itempl),Y              ; save via temporary integer
-    cmp (Itempl),Y              ; compare via temporary integer
-    bne LAB_2DB6                ; branch if fail
-
-    asl                         ; shift test byte left (now $AA)
-    sta (Itempl),Y              ; save via temporary integer
-    cmp (Itempl),Y              ; compare via temporary integer
-    beq LAB_2D93                ; if ok go do next byte
-
-    bne LAB_2DB6                ; branch if fail
-
-LAB_2DAA:
-    jsr LAB_2887                ; get FAC1 from string
-    lda FAC1_e                  ; get FAC1 exponent
-    cmp #$98                    ; compare with exponent = 2^24
-    bcs LAB_GMEM                ; if too large go try again
-
-    jsr LAB_F2FU                ; save integer part of FAC1 in temporary integer
-; (no range check)
-
-LAB_2DB6:
-    lda Itempl                  ; get temporary integer low byte
-    ldy Itemph                  ; get temporary integer high byte
-; *** begin patch  2.22p5.0 RAM top sanity check ***
-; *** replace
-;      CPY   #<Ram_base+1      ; compare with start of RAM+$100 high byte
-; +++ with
-    cpy #>Ram_base+1            ; compare with start of RAM+$100 high byte
-; *** end patch    2.22p5.0 ***
-    bcc LAB_GMEM                ; if too small go try again
-
-
-; uncomment these lines if you want to check on the high limit of memory. Note if
-; Ram_top is set too low then this will fail. default is ignore it and assume the
-; users know what they're doing!
-
-;     CPY   #>Ram_top         ; compare with top of RAM high byte
-;     BCC   MEM_OK            ; branch if < RAM top
-
-;     BNE   LAB_GMEM          ; if too large go try again
-; else was = so compare low bytes
-;     CMP   #<Ram_top         ; compare with top of RAM low byte
-;     BEQ   MEM_OK            ; branch if = RAM top
-
-;     BCS   LAB_GMEM          ; if too large go try again
-
-;MEM_OK
-    sta Ememl                   ; set end of mem low byte
-    sty Ememh                   ; set end of mem high byte
-    sta Sstorl                  ; set bottom of string space low byte
+    lda #>Ram_top
+    sta Ememh
     sty Sstorh                  ; set bottom of string space high byte
 
+    lda #<Ram_top
+    sta Ememl
+    sta Sstorl                  ; set bottom of string space low byte
+
+;MEM_OK
     ldy #<Ram_base              ; set start addr low byte
     ldx #>Ram_base              ; set start addr high byte
     sty Smeml                   ; save start of mem low byte
     stx Smemh                   ; save start of mem high byte
 
 ; this line is only needed if Ram_base is not $xx00
-.IF   Ram_base&$FF>0
     ldy #$00                    ; clear Y
-.ENDIF
 
     tya                         ; clear A
     sta (Smeml),Y               ; clear first byte
     inc Smeml                   ; increment start of mem low byte
 
 ; these two lines are only needed if Ram_base is $xxFF
-.IF   Ram_base&$FF=$FF
     bne LAB_2E05                ; branch if no rollover
     inc Smemh                   ; increment start of mem high byte
 LAB_2E05:
-.ENDIF
 
     jsr LAB_CRLF                ; print CR/LF
     jsr LAB_1463                ; do "NEW" and "CLEAR"
@@ -1232,16 +1163,10 @@ LAB_142A:
     iny                         ; adjust for line copy
     iny                         ; adjust for line copy
     iny                         ; adjust for line copy
-; *** begin patch for when Ibuffs is $xx00 - Daryl Rictor ***
-; *** insert
-.IF   Ibuffs&$FF=0
     lda Bpntrl                  ; test for $00
     bne LAB_142P                ; not $00
     dec Bpntrh                  ; allow for increment when $xx00
 LAB_142P:
-.ENDIF
-; *** end   patch for when Ibuffs is $xx00 - Daryl Rictor ***
-; end of patch
     dec Bpntrl                  ; allow for increment
     rts
 
@@ -8968,9 +8893,7 @@ NMI_CODE:
 .segment "RODATA"
 
 LAB_mess:
-    .asciiz "\r\n6502 EhBASIC ver 2.22p5.12j [C]old/[W]arm ?" ; sign on string
-LAB_MSZM:
-    .asciiz "\r\nMemory size "
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.13j [C]old/[W]arm ?" ; sign on string
 LAB_SMSG:
     .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.12j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
