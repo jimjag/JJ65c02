@@ -8895,7 +8895,7 @@ NMI_CODE:
 LAB_mess:
     .asciiz "\r\n6502 EhBASIC ver 2.22p5.13j [C]old/[W]arm ?" ; sign on string
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.12j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.13j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"

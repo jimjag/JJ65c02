@@ -16,6 +16,7 @@
 .export ACIA_write_byte
 .export ACIA_write_string
 .export ACIA_ihandler
+.export ACIA_read_blk_write_byte
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -150,6 +151,13 @@ ACIA_write_byte:
 @done:
     pla
     plx
+    rts
+
+;
+ACIA_read_blk_write_byte:
+    jsr ACIA_read_byte_blk
+    jsr ACIA_write_byte
+    sec
     rts
 
 ;================================================================================

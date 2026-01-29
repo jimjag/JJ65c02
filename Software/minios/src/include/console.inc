@@ -7,6 +7,7 @@ _CONSOLE_INC_ = 1
 .import CON_write_byte
 .import CON_write_string
 .import CON_reset_user_input
+.import CON_read_blk_write_byte
 
 .include "console.h"
 

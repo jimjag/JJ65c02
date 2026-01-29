@@ -12,6 +12,7 @@
 .export CON_write_byte
 .export CON_write_string
 .export CON_reset_user_input
+.export CON_read_blk_write_byte
 
 
 ; Actual start of ROM code
@@ -221,4 +222,12 @@ CON_write_string:
     ply
     plx
     pla
+    rts
+
+;================================================================================
+
+CON_read_blk_write_byte:
+    jsr CON_read_byte_blk
+    jsr CON_write_byte
+    sec
     rts

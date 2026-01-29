@@ -7,6 +7,7 @@ _ACIA_INC_ = 1
 .import ACIA_write_byte
 .import ACIA_write_string
 .import ACIA_ihandler
+.import ACIA_read_blk_write_byte
 
 .macro ACIA_writeln str_addr
     lda #<str_addr

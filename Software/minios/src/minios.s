@@ -15,13 +15,16 @@
 .import WOZMON
 .import LOADINTEL
 .import FORTH_main
+.import SUPER_main
 .export MINIOS_main_menu
-.export IOVRB_c
-.export IOVR_c
-.export IOVW_c
-.export IOVRB_t
-.export IOVR_t
-.export IOVW_t
+.export MN_IOVRB_c
+.export MN_IOVR_c
+.export MN_IOVW_c
+.export MN_IOVRB_t
+.export MN_IOVR_t
+.export MN_IOVW_t
+.export MN_IOVRBW_c
+.export MN_IOVRBW_t
 
 ;================================================================================
 ;
@@ -133,23 +136,6 @@ main:                           ; boot routine, first thing loaded
     CON_writeln message_fail    ; Should we continue on or should we STP?
 @cont2:
     jsr CON_read_byte           ; in case there is junk in the buffer
-    jsr MINIOS_main_menu        ; start the menu routine
-    jmp main                    ; should the menu ever return ...
-
-
-;================================================================================
-;
-;   MINIOS_main_menu - renders a scrollable menu w/ dynamic number of entries
-;
-;   ————————————————————————————————————
-;   Preparatory Ops: none
-;
-;   Returned Values: none
-;
-;   Destroys:        .A, .X, .Y
-;   ————————————————————————————————————
-;
-;================================================================================
 
 MINIOS_main_menu:
 @start:
@@ -177,7 +163,7 @@ MINIOS_main_menu:
     beq @start_forth
     cmp #'9'
     beq @about
-    jmp @start                  ; should we have an invalid option, restart
+    bra @start                  ; should we have an invalid option, restart
 
 @xmodem_load:                   ; load program and go back into menu
     jsr @do_xmodem_load
@@ -199,11 +185,11 @@ MINIOS_main_menu:
     jmp @start
 @start_basic:
     CON_writeln message_readybasic
-    jsr BASIC_init
-    jmp @start
+    jmp BASIC_init
+    ;jmp @start
 @start_forth:
-    jsr FORTH_main
-    jmp @start
+    jmp FORTH_main
+    ;jmp @start
 @about:                         ; start the about routine
     CON_writeln about
     jmp @start
@@ -541,14 +527,14 @@ clock_spd:
     .asciiz "    Clock Mhz: "
 
 .segment "IOVECTORS"
-IOVRB_c:    .word CON_read_byte_blk
-IOVR_c:     .word CON_read_byte
-IOVW_c:     .word CON_write_byte
-    .word $0000
-    .word $0000
-IOVRB_t:    .word TTY_read_char_blk
-IOVR_t:     .word TTY_read_char
-IOVW_t:     .word TTY_write_char
+MN_IOVRB_c:    .word CON_read_byte_blk
+MN_IOVR_c:     .word CON_read_byte
+MN_IOVW_c:     .word CON_write_byte
+MN_IOVRBW_c:   .word CON_read_blk_write_byte
+MN_IOVRB_t:    .word TTY_read_char_blk
+MN_IOVR_t:     .word TTY_read_char
+MN_IOVW_t:     .word TTY_write_char
+MN_IOVRBW_t:   .word TTY_read_write_char
 
 .segment "VECTORS"
     .word $0000

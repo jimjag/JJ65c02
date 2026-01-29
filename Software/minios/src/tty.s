@@ -29,7 +29,7 @@
 ;================================================================================
 
 TTY_setup_term:
-    jmp TTY_clear_screen
+    jsr TTY_clear_screen
     rts
 
 ; Code below has been cribbed from
