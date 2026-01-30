@@ -7,7 +7,7 @@
 
 .importzp BASIC_ZP_start
 .export SUPER_main
-;ENABLE_ASSEMBLER = 1
+ENABLE_ASSEMBLER = 1
 ; ********************************************************
 ; * SUPERMON based on JIM BUTTERFIELD's SUPERMON+ 64 *
 ; ********************************************************
@@ -574,6 +574,8 @@ ATRYOP:
     ldx ACMD                    ; save addressing command for later
     stx STORE+1
     tax                         ; use current opcode as index
+    lda IDX_NAME, x
+    tax
     lda MNEMR,X                 ; check right byte of compressed mnemonic
     jsr CHEKOP
     lda MNEML,X                 ; check left byte of compressed mnemonic
@@ -853,61 +855,22 @@ RELC3:
 
 INSTXX:
     tay                         ; stash opcode in accumulator in Y for later
-    lsr A                       ; is opcode even or odd?
-    bcc IEVEN
-    lsr A
-    bcs ERR                     ; invalid opcodes XXXXXX11
-    cmp #$22
-    beq ERR                     ; invalid opcode 10001001
-    and #$07                    ; mask bits to 10000XXX
-    ora #$80
-IEVEN:
-    lsr A                       ; LSB determines whether to use left/right nybble
-    tax                         ; get format index using remaining high bytes
-    lda MODE,X
-    bcs RTMODE                  ; look at left or right nybble based on carry bit
-    lsr A                       ; if carry = 0, use left nybble
-    lsr A
-    lsr A
-    lsr A
-RTMODE:
-    and #$0F                    ; if carry = 1, use right nybble
-    bne GETFMT
-ERR:
-    ldy #$80                    ; substitute 10000000 for invalid opcodes
-    lda #0
+    tax                         ; and use it as index
+    lda IDX_MODE2, X
 GETFMT:
     tax
-    lda MODE2,X                 ; lookup operand format using selected nybble
+    lda MODE2, X                 ; lookup operand format using selected nybble
     sta ACMD                    ; save for later use
     and #$03                    ; lower 2 bits indicate number of bytes in operand
     sta LENGTH
-    tya                         ; restore original opcode
-    and #$8F                    ; mask bits to X000XXXX
-    tax                         ; save it
-    tya                         ; restore original opcode
-    ldy #3
-    cpx #$8A                    ; check if opcode = 1XXX1010
-    beq GTFM4
-GTFM2:
-    lsr A                       ; transform opcode into index for mnemonic table
-    bcc GTFM4
-    lsr A                       ; opcodes transformed as follows:
-GTFM3:
-    lsr A                       ; 1XXX1010->00101XXX
-    ora #$20                    ; XXXYYY01->00111XXX
-    dey                         ; XXXYYY10->00111XXX
-    bne GTFM3                   ; XXXYY100->00110XXX
-    iny                         ; XXXXX000->000XXXXX
-GTFM4:
-    dey
-    bne GTFM2
+    lda IDX_NAME, y
+    ldy #0
     rts
 
 ; -----------------------------------------------------------------------------
 ; extract and print packed mnemonics
 PROPXX:
-    tay                         ; use index in accumulator to look up mnemonic
+    tay
     lda MNEML,Y                 ;   and place a temporary copy in STORE
     sta STORE
     lda MNEMR,Y
@@ -1511,7 +1474,7 @@ IDX_NAME:
 
 ;
 ; for each opcode, index to the MODE2 addressing mode table
-IDX_MODE:
+IDX_MODE2:
     .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$8
     .byte $d,$7,$e,$0,$2,$8,$8,$2,$4,$a,$5,$0,$3,$9,$9,$8
     .byte $3,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$8
