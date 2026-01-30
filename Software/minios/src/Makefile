@@ -18,7 +18,8 @@ SRCS =  minios.s \
 	ehbasic.s \
 	wozmon.s \
 	intel-hex.s \
-	milliforth.s
+	milliforth.s \
+	supermon.s
 
 OBJS=$(SRCS:%.s=objs/%.o)
 SOBJS=$(SRCS:%.s=sobjs/%.o)

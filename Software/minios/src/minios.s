@@ -162,6 +162,8 @@ MINIOS_main_menu:
     cmp #'8'
     beq @start_forth
     cmp #'9'
+    beq @start_supermon
+    cmp #'A'
     beq @about
     bra @start                  ; should we have an invalid option, restart
 
@@ -189,6 +191,8 @@ MINIOS_main_menu:
     ;jmp @start
 @start_forth:
     jmp FORTH_main
+@start_supermon:
+    jmp SUPER_main
     ;jmp @start
 @about:                         ; start the about routine
     CON_writeln about
@@ -520,7 +524,7 @@ message_pass:
 message_fail:
     .asciiz "FAIL"
 menu_items:
-    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. Clear RAM\r\n5. Test RAM\r\n6. WOZMON\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. About"
+    .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. Clear RAM\r\n5. Test RAM\r\n6. WOZMON\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. Run Supermon+\r\nA. About"
 about:
     .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
 clock_spd:
