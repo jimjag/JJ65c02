@@ -88,9 +88,9 @@ SUPER_main:
     ldx SUPAD+1
     jsr WRADDR                  ; print it in 4 hex digits
     jsr CRLF
-    lda #8
+    lda #16
     sta DISPMEM_BPL
-    lda #3
+    lda #4
     sta DISPMEM_BPL_LOG2
 
 ; -----------------------------------------------------------------------------
@@ -859,7 +859,7 @@ INSTXX:
     lda IDX_MODE2, X
 GETFMT:
     tax
-    lda MODE2, X                 ; lookup operand format using selected nybble
+    lda MODE2, X                ; lookup operand format using selected nybble
     sta ACMD                    ; save for later use
     and #$03                    ; lower 2 bits indicate number of bytes in operand
     sta LENGTH
@@ -1368,30 +1368,8 @@ MSG8:   .byte "  "              ; pad non-existent byte: skip 3 spaces
 
 .segment "RODATA"
 ; -----------------------------------------------------------------------------
-; addressing mode table - nybbles provide index into MODE2 table
-; for opcodes XXXXXXY0, use XXXXXX as index into table
-; for opcodes WWWXXY01  use $40 + XX as index into table
-; use right nybble if Y=0; use left nybble if Y=1
 
-MODE:   .byte $40,$02,$45,$03   ; even opcodes
-        .byte $D0,$08,$40,$09
-        .byte $30,$22,$45,$33
-        .byte $D0,$08,$40,$09
-        .byte $40,$02,$45,$33
-        .byte $D0,$08,$40,$09
-        .byte $40,$02,$45,$B3
-        .byte $D0,$08,$40,$09
-        .byte $00,$22,$44,$33
-        .byte $D0,$8C,$44,$00
-        .byte $11,$22,$44,$33
-        .byte $D0,$8C,$44,$9A
-        .byte $10,$22,$44,$33
-        .byte $D0,$08,$40,$09
-        .byte $10,$22,$44,$33
-        .byte $D0,$08,$40,$09
-        .byte $62,$13,$78,$A9   ; opcodes ending in 01
-
-; addressing mode format definitions indexed by nybbles from MODE table
+; addressing mode format definitions indexed by opcode from IDX_MODE2 table
 
 ; left 6 bits define which characters appear in the assembly operand
 ; left 3 bits are before the address; next 3 bits are after
