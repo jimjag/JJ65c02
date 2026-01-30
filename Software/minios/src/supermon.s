@@ -1402,6 +1402,8 @@ MSG7:   .byte $41,$20+$80       ; assemble next instruction: "A " + addr
 MSG8:   .byte "  "              ; pad non-existent byte: skip 3 spaces
         .byte $20+$80
 
+
+.segment "RODATA"
 ; -----------------------------------------------------------------------------
 ; addressing mode table - nybbles provide index into MODE2 table
 ; for opcodes XXXXXXY0, use XXXXXX as index into table
@@ -1464,53 +1466,69 @@ CHAR2:  .byte $59,$00,$58       ; 'Y'   0   'X'
 
 ; -----------------------------------------------------------------------------
 ; 3-letter mnemonics packed into two bytes (5 bits per letter)
+MNEML:
+    .byte $1c,$84,$00,$ad,$15,$9b,$8a,$18    ; BRK ORA ??? TSB ASL RMB PHP BBR
+    .byte $1c,$ac,$23,$53,$5d,$13,$1a,$9c    ; BPL TRB CLC INC JSR AND BIT ROL
+    .byte $8b,$1b,$a1,$29,$9d,$34,$6d,$8a    ; PLP BMI SEC DEC RTI EOR LSR PHA
+    .byte $5b,$1d,$23,$8a,$9d,$11,$a5,$9c    ; JMP BVC CLI PHY RTS ADC STZ ROR
+    .byte $8b,$1d,$a1,$8b,$1c,$a5,$a5,$a5    ; PLA BVS SEI PLY BRA STA STY STX
+    .byte $a3,$29,$ae,$18,$19,$ae,$ae,$69    ; SMB DEY TXA BBS BCC TYA TXS LDY
+    .byte $69,$69,$a8,$a8,$19,$23,$ad,$24    ; LDA LDX TAY TAX BCS CLV TSX CPY
+    .byte $23,$53,$29,$c0,$1b,$23,$8a,$a5    ; CMP INY DEX WAI BNE CLD PHX STP
+    .byte $24,$a0,$53,$7c,$19,$a1,$8b        ; CPX SBC INX NOP BEQ SED PLX
 
-        ; left 8 bits
-        ; XXXXX000 opcodes
-MNEML:  .byte $1C,$8A,$1C,$23   ; BRK PHP BPL CLC
-        .byte $5D,$8B,$1B,$A1   ; JSR PLP BMI SEC
-        .byte $9D,$8A,$1D,$23   ; RTI PHA BVC CLI
-        .byte $9D,$8B,$1D,$A1   ; RTS PLA BVS SEI
-        .byte $00,$29,$19,$AE   ; ??? DEY BCC TYA
-        .byte $69,$A8,$19,$23   ; LDY TAY BCS CLV
-        .byte $24,$53,$1B,$23   ; CPY INY BNE CLD
-        .byte $24,$53,$19,$A1   ; CPX INX BEQ SED
-        ; XXXYY100 opcodes
-        .byte $00,$1A,$5B,$5B   ; ??? BIT JMP JMP
-        .byte $A5,$69,$24,$24   ; STY LDY CPY CPX
-        ; 1XXX1010 opcodes
-        .byte $AE,$AE,$A8,$AD   ; TXA TXS TAX TSX
-        .byte $29,$00,$7C,$00   ; DEX ??? NOP ???
-        ; XXXYYY10 opcodes
-        .byte $15,$9C,$6D,$9C   ; ASL ROL LSR ROR
-        .byte $A5,$69,$29,$53   ; STX LDX DEC INC
-        ; XXXYYY01 opcodes
-        .byte $84,$13,$34,$11   ; ORA AND EOR ADC
-        .byte $A5,$69,$23,$A0   ; STA LDA CMP SBC
+;
+MNEMR:
+    .byte $d8,$c4,$00,$06,$1a,$86,$62,$e6    ; BRK ORA ??? TSB ASL RMB PHP BBR
+    .byte $5a,$c6,$48,$c8,$26,$ca,$aa,$1a    ; BPL TRB CLC INC JSR AND BIT ROL
+    .byte $62,$94,$88,$88,$54,$26,$26,$44    ; PLP BMI SEC DEC RTI EOR LSR PHA
+    .byte $a2,$c8,$54,$74,$68,$48,$76,$26    ; JMP BVC CLI PHY RTS ADC STZ ROR
+    .byte $44,$e8,$94,$74,$c4,$44,$74,$72    ; PLA BVS SEI PLY BRA STA STY STX
+    .byte $86,$b4,$44,$e8,$08,$84,$68,$74    ; SMB DEY TXA BBS BCC TYA TXS LDY
+    .byte $44,$72,$b4,$b2,$28,$6e,$32,$74    ; LDA LDX TAY TAX BCS CLV TSX CPY
+    .byte $a2,$f4,$b2,$94,$cc,$4a,$72,$62    ; CMP INY DEX WAI BNE CLD PHX STP
+    .byte $72,$c8,$f2,$22,$a4,$8a,$72        ; CPX SBC INX NOP BEQ SED PLX
 
-        ; right 7 bits, left justified
-        ; XXXXX000 opcodes
-MNEMR:  .byte $D8,$62,$5A,$48   ; BRK PHP BPL CLC
-        .byte $26,$62,$94,$88   ; JSR PLP BMI SEC
-        .byte $54,$44,$C8,$54   ; RTI PHA BVC CLI
-        .byte $68,$44,$E8,$94   ; RTS PLA BVS SEI
-        .byte $00,$B4,$08,$84   ; ??? DEY BCC TYA
-        .byte $74,$B4,$28,$6E   ; LDY TAY BCS CLV
-        .byte $74,$F4,$CC,$4A   ; CPY INY BNE CLD
-        .byte $72,$F2,$A4,$8A   ; CPX INX BEQ SED
-        ; XXXYY100 opcodes
-        .byte $00,$AA,$A2,$A2   ; ??? BIT JMP JMP
-        .byte $74,$74,$74,$72   ; STY LDY CPY CPX
-        ; 1XXX1010 opcodes
-        .byte $44,$68,$B2,$32   ; TXA TXS TAX TSX
-        .byte $B2,$00,$22,$00   ; DEX ??? NOP ???
-        ; XXXYYY10 opcodes
-        .byte $1A,$1A,$26,$26   ; ASL ROL LSR ROR
-        .byte $72,$72,$88,$C8   ; STX LDX DEC INC
-        ; XXXYYY01 opcodes
-        .byte $C4,$CA,$26,$48   ; ORA AND EOR ADC
-        .byte $44,$44,$A2,$C8   ; STA LDA CMP SBC
-        .byte $0D,$20,$20,$20
+;
+; for each opcode, index to the MNEML and MNEMR tables
+IDX_NAME:
+    .byte $00,$01,$02,$02,$03,$01,$04,$05,$06,$01,$04,$02,$03,$01,$04,$07
+    .byte $08,$01,$01,$02,$09,$01,$04,$05,$0a,$01,$0b,$02,$09,$01,$04,$07
+    .byte $0c,$0d,$02,$02,$0e,$0d,$0f,$05,$10,$0d,$0f,$02,$0e,$0d,$0f,$07
+    .byte $11,$0d,$0d,$02,$0e,$0d,$0f,$05,$12,$0d,$13,$02,$02,$0d,$0f,$07
+    .byte $14,$15,$02,$02,$02,$15,$16,$05,$17,$15,$16,$02,$18,$15,$16,$07
+    .byte $19,$15,$15,$02,$02,$15,$16,$05,$1a,$15,$1b,$02,$02,$15,$16,$07
+    .byte $1c,$1d,$02,$02,$1e,$1d,$1f,$05,$20,$1d,$1f,$02,$18,$1d,$1f,$07
+    .byte $21,$1d,$1d,$02,$1e,$1d,$1f,$05,$22,$1d,$23,$02,$18,$1d,$1f,$07
+    .byte $24,$25,$02,$02,$26,$25,$27,$28,$29,$02,$2a,$02,$26,$25,$27,$2b
+    .byte $2c,$25,$25,$02,$26,$25,$27,$28,$2d,$25,$2e,$02,$1e,$25,$1e,$2b
+    .byte $2f,$30,$31,$02,$2f,$30,$31,$28,$32,$30,$33,$02,$2f,$30,$31,$2b
+    .byte $34,$30,$30,$02,$2f,$30,$31,$28,$35,$30,$36,$02,$2f,$30,$31,$2b
+    .byte $37,$38,$02,$02,$37,$38,$13,$28,$39,$38,$3a,$3b,$37,$38,$13,$2b
+    .byte $3c,$38,$38,$02,$02,$38,$13,$28,$3d,$38,$3e,$3f,$02,$38,$13,$2b
+    .byte $40,$41,$02,$02,$40,$41,$0b,$28,$42,$41,$43,$02,$40,$41,$0b,$2b
+    .byte $44,$41,$41,$02,$02,$41,$0b,$28,$45,$41,$46,$02,$02,$41,$0b,$2b
+
+;
+; for each opcode, index to the MODE2 addressing mode table
+IDX_MODE:
+    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$2,$8,$8,$2,$4,$a,$5,$0,$3,$9,$9,$8
+    .byte $3,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$5,$0,$0,$9,$9,$8
+    .byte $4,$6,$0,$0,$0,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$8
+    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$0,$3,$3,$8
+    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$4,$0,$9,$9,$9,$8
+    .byte $d,$6,$0,$0,$2,$2,$2,$2,$4,$0,$4,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$3,$9,$9,$8
+    .byte $1,$6,$1,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$9,$9,$a,$8
+    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$4,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$4,$0,$9,$9,$8
+    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$8
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$8
+
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
