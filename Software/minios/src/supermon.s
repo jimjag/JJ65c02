@@ -19,12 +19,14 @@ ENABLE_ASSEMBLER = 1
 ; * The e'X'it command returns to the miniOS main menu
 ; * The input routine handles ^h as backspace and lower case letters
 ;   are converted to upper case
+; * 65c02 opcodes added
 
 ; -----------------------------------------------------------------------------
 ; variables
 .segment "ZEROPAGE"
 
-UseTTY  := BASIC_ZP_start
+UseTTY  := BASIC_ZP_start   ; If and when we add TTY command to allow I/O
+                            ; from Console to/from TTY/serial.
 ACMD    := UseTTY+1         ; addressing command
 LENGTH  := ACMD+1           ; length of operand
 MNEMW   := LENGTH+1         ; 3 letter mnemonic buffer
