@@ -1408,47 +1408,55 @@ CHAR2:  .byte $59,$00,$58       ; 'Y'   0   'X'
 ; -----------------------------------------------------------------------------
 ; 3-letter mnemonics packed into two bytes (5 bits per letter)
 MNEML:
-    .byte $1c,$84,$00,$ad,$15,$9b,$8a,$18    ; BRK ORA ??? TSB ASL RMB PHP BBR
-    .byte $1c,$ac,$23,$53,$5d,$13,$1a,$9c    ; BPL TRB CLC INC JSR AND BIT ROL
-    .byte $8b,$1b,$a1,$29,$9d,$34,$6d,$8a    ; PLP BMI SEC DEC RTI EOR LSR PHA
-    .byte $5b,$1d,$23,$8a,$9d,$11,$a5,$9c    ; JMP BVC CLI PHY RTS ADC STZ ROR
-    .byte $8b,$1d,$a1,$8b,$1c,$a5,$a5,$a5    ; PLA BVS SEI PLY BRA STA STY STX
-    .byte $a3,$29,$ae,$18,$19,$ae,$ae,$69    ; SMB DEY TXA BBS BCC TYA TXS LDY
-    .byte $69,$69,$a8,$a8,$19,$23,$ad,$24    ; LDA LDX TAY TAX BCS CLV TSX CPY
-    .byte $23,$53,$29,$c0,$1b,$23,$8a,$a5    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $24,$a0,$53,$7c,$19,$a1,$8b        ; CPX SBC INX NOP BEQ SED PLX
+    .byte $1c,$84,$00,$ad,$15,$13,$8a,$39    ; BRK ORA ??? TSB ASL RBa PHP BRa
+    .byte $1c,$ac,$13,$23,$53,$39,$5d,$13    ; BPL TRB RBb CLC INC BRb JSR AND
+    .byte $1a,$9c,$13,$8b,$39,$1b,$13,$a1    ; BIT ROL RBc PLP BRc BMI RBd SEC
+    .byte $29,$39,$9d,$34,$6d,$13,$8a,$5b    ; DEC BRd RTI EOR LSR RBe PHA JMP
+    .byte $39,$1d,$13,$23,$8a,$39,$9d,$11    ; BRe BVC RBf CLI PHY BRf RTS ADC
+    .byte $a5,$9c,$13,$8b,$39,$1d,$13,$a1    ; STZ ROR RBg PLA BRg BVS RBh SEI
+    .byte $8b,$39,$1c,$a5,$a5,$a5,$14,$29    ; PLY BRh BRA STA STY STX SBa DEY
+    .byte $ae,$3a,$19,$14,$ae,$ae,$3a,$69    ; TXA BSa BCC SBb TYA TXS BSb LDY
+    .byte $69,$69,$14,$a8,$a8,$3a,$19,$14    ; LDA LDX SBc TAY TAX BSc BCS SBd
+    .byte $23,$ad,$3a,$24,$23,$14,$53,$29    ; CLV TSX BSd CPY CMP SBe INY DEX
+    .byte $c0,$3a,$1b,$14,$23,$8a,$a5,$3a    ; WAI BSe BNE SBf CLD PHX STP BSf
+    .byte $24,$a0,$14,$53,$7c,$3a,$19,$14    ; CPX SBC SBg INX NOP BSg BEQ SBh
+    .byte $a1,$8b,$3a                        ; SED PLX BSh
 
 ;
 MNEMR:
-    .byte $d8,$c4,$00,$06,$1a,$86,$62,$e6    ; BRK ORA ??? TSB ASL RMB PHP BBR
-    .byte $5a,$c6,$48,$c8,$26,$ca,$aa,$1a    ; BPL TRB CLC INC JSR AND BIT ROL
-    .byte $62,$94,$88,$88,$54,$26,$26,$44    ; PLP BMI SEC DEC RTI EOR LSR PHA
-    .byte $a2,$c8,$54,$74,$68,$48,$76,$26    ; JMP BVC CLI PHY RTS ADC STZ ROR
-    .byte $44,$e8,$94,$74,$c4,$44,$74,$72    ; PLA BVS SEI PLY BRA STA STY STX
-    .byte $86,$b4,$44,$e8,$08,$84,$68,$74    ; SMB DEY TXA BBS BCC TYA TXS LDY
-    .byte $44,$72,$b4,$b2,$28,$6e,$32,$74    ; LDA LDX TAY TAX BCS CLV TSX CPY
-    .byte $a2,$f4,$b2,$94,$cc,$4a,$72,$62    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $72,$c8,$f2,$22,$a4,$8a,$72        ; CPX SBC INX NOP BEQ SED PLX
+    .byte $d8,$c4,$00,$06,$1a,$1c,$62,$c4    ; BRK ORA ??? TSB ASL RBa PHP BRa
+    .byte $5a,$c6,$1c,$48,$c8,$c6,$26,$ca    ; BPL TRB RBb CLC INC BRb JSR AND
+    .byte $aa,$1a,$1c,$62,$c8,$94,$1c,$88    ; BIT ROL RBc PLP BRc BMI RBd SEC
+    .byte $88,$ca,$54,$26,$26,$1c,$44,$a2    ; DEC BRd RTI EOR LSR RBe PHA JMP
+    .byte $cc,$c8,$1c,$54,$74,$ce,$68,$48    ; BRe BVC RBf CLI PHY BRf RTS ADC
+    .byte $76,$26,$1d,$44,$d0,$e8,$1d,$94    ; STZ ROR RBg PLA BRg BVS RBh SEI
+    .byte $74,$d2,$c4,$44,$74,$72,$1c,$b4    ; PLY BRh BRA STA STY STX SBa DEY
+    .byte $44,$44,$08,$1c,$84,$68,$46,$74    ; TXA BSa BCC SBb TYA TXS BSb LDY
+    .byte $44,$72,$1c,$b4,$b2,$48,$28,$1c    ; LDA LDX SBc TAY TAX BSc BCS SBd
+    .byte $6e,$32,$4a,$74,$a2,$1c,$f4,$b2    ; CLV TSX BSd CPY CMP SBe INY DEX
+    .byte $94,$4c,$cc,$1c,$4a,$72,$62,$4e    ; WAI BSe BNE SBf CLD PHX STP BSf
+    .byte $72,$c8,$1d,$f2,$22,$50,$a4,$1d    ; CPX SBC SBg INX NOP BSg BEQ SBh
+    .byte $8a,$72,$52                        ; SED PLX BSh
 
 ;
 ; for each opcode, index to the MNEML and MNEMR tables
 IDX_NAME:
     .byte $00,$01,$02,$02,$03,$01,$04,$05,$06,$01,$04,$02,$03,$01,$04,$07
-    .byte $08,$01,$01,$02,$09,$01,$04,$05,$0a,$01,$0b,$02,$09,$01,$04,$07
-    .byte $0c,$0d,$02,$02,$0e,$0d,$0f,$05,$10,$0d,$0f,$02,$0e,$0d,$0f,$07
-    .byte $11,$0d,$0d,$02,$0e,$0d,$0f,$05,$12,$0d,$13,$02,$02,$0d,$0f,$07
-    .byte $14,$15,$02,$02,$02,$15,$16,$05,$17,$15,$16,$02,$18,$15,$16,$07
-    .byte $19,$15,$15,$02,$02,$15,$16,$05,$1a,$15,$1b,$02,$02,$15,$16,$07
-    .byte $1c,$1d,$02,$02,$1e,$1d,$1f,$05,$20,$1d,$1f,$02,$18,$1d,$1f,$07
-    .byte $21,$1d,$1d,$02,$1e,$1d,$1f,$05,$22,$1d,$23,$02,$18,$1d,$1f,$07
-    .byte $24,$25,$02,$02,$26,$25,$27,$28,$29,$02,$2a,$02,$26,$25,$27,$2b
-    .byte $2c,$25,$25,$02,$26,$25,$27,$28,$2d,$25,$2e,$02,$1e,$25,$1e,$2b
-    .byte $2f,$30,$31,$02,$2f,$30,$31,$28,$32,$30,$33,$02,$2f,$30,$31,$2b
-    .byte $34,$30,$30,$02,$2f,$30,$31,$28,$35,$30,$36,$02,$2f,$30,$31,$2b
-    .byte $37,$38,$02,$02,$37,$38,$13,$28,$39,$38,$3a,$3b,$37,$38,$13,$2b
-    .byte $3c,$38,$38,$02,$02,$38,$13,$28,$3d,$38,$3e,$3f,$02,$38,$13,$2b
-    .byte $40,$41,$02,$02,$40,$41,$0b,$28,$42,$41,$43,$02,$40,$41,$0b,$2b
-    .byte $44,$41,$41,$02,$02,$41,$0b,$28,$45,$41,$46,$02,$02,$41,$0b,$2b
+    .byte $08,$01,$01,$02,$09,$01,$04,$0a,$0b,$01,$0c,$02,$09,$01,$04,$0d
+    .byte $0e,$0f,$02,$02,$10,$0f,$11,$12,$13,$0f,$11,$02,$10,$0f,$11,$14
+    .byte $15,$0f,$0f,$02,$10,$0f,$11,$16,$17,$0f,$18,$02,$02,$0f,$11,$19
+    .byte $1a,$1b,$02,$02,$02,$1b,$1c,$1d,$1e,$1b,$1c,$02,$1f,$1b,$1c,$20
+    .byte $21,$1b,$1b,$02,$02,$1b,$1c,$22,$23,$1b,$24,$02,$02,$1b,$1c,$25
+    .byte $26,$27,$02,$02,$28,$27,$29,$2a,$2b,$27,$29,$02,$1f,$27,$29,$2c
+    .byte $2d,$27,$27,$02,$28,$27,$29,$2e,$2f,$27,$30,$02,$1f,$27,$29,$31
+    .byte $32,$33,$02,$02,$34,$33,$35,$36,$37,$02,$38,$02,$34,$33,$35,$39
+    .byte $3a,$33,$33,$02,$34,$33,$35,$3b,$3c,$33,$3d,$02,$28,$33,$28,$3e
+    .byte $3f,$40,$41,$02,$3f,$40,$41,$42,$43,$40,$44,$02,$3f,$40,$41,$45
+    .byte $46,$40,$40,$02,$3f,$40,$41,$47,$48,$40,$49,$02,$3f,$40,$41,$4a
+    .byte $4b,$4c,$02,$02,$4b,$4c,$18,$4d,$4e,$4c,$4f,$50,$4b,$4c,$18,$51
+    .byte $52,$4c,$4c,$02,$02,$4c,$18,$53,$54,$4c,$55,$56,$02,$4c,$18,$57
+    .byte $58,$59,$02,$02,$58,$59,$0c,$5a,$5b,$59,$5c,$02,$58,$59,$0c,$5d
+    .byte $5e,$59,$59,$02,$02,$59,$0c,$5f,$60,$59,$61,$02,$02,$59,$0c,$62
 
 ;
 ; for each opcode, index to the MODE2 addressing mode table
