@@ -31,7 +31,7 @@
 ;                                    "JJ65c02"
 ;                                    _________
 ;
-;   miniOS: RAM bootloader and viewer (r/o) w/ TTY and serial connection support
+;   miniOS: RAM bootloader and viewer (r/o) w/ Console and serial/tty connection support
 ;
 ;   Jim Jagielski for the JJ65c02 Hobby Breadboard Project
 ;      ==> https://github.com/jimjag/JJ65c02
@@ -39,7 +39,7 @@
 ;================================================================================
 
 ;--------
-; Assumed memory map (based on the JJ65c02):
+; Assumed memory map (based on the JJ65c02): (see jj65c02.cfg)
 ;    $0000 - $7fff      RAM: 40k
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
@@ -117,7 +117,7 @@ main:                           ; boot routine, first thing loaded
 @no_acia:
     CON_writeln message_welcome                 ; render the boot screen
 @welcome:
-    ; Show clock speed (compile-time constant)
+    ; Show clock speed (compile-time constant - for now)
     CON_writeln clock_spd
     lda CLK_SPD
     clc
@@ -145,7 +145,7 @@ MINIOS_main_menu:
     CON_writeln prompt
     jsr CON_read_byte_blk
 @select_option:
-    cmp #'1'                    ; branch trough all options
+    cmp #'1'                    ; branch through all options
     beq @xmodem_load
     cmp #'2'
     beq @ihex_load
@@ -169,7 +169,7 @@ MINIOS_main_menu:
 
 @xmodem_load:                   ; load program and go back into menu
     jsr @do_xmodem_load
-    jmp @start                  ; should a program ever return ...
+    jmp @start
 @ihex_load:                     ; load program and go back into menu
     jsr @do_ihex_load
     jmp @start
@@ -500,7 +500,6 @@ ISR:
 ;----------------------------------------------------
 
 .segment "RODATA"
-
 logo:
     .asciiz "     _     _  __  ____   ____ ___ ____\r\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\r\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\r\n| |_| | |_| | (_) |__) | |__| |_| / __/\r\n \\___/ \\___/ \\___/____/ \\____\\___/_____|\r\n"
 message_welcome:
@@ -531,16 +530,21 @@ clock_spd:
     .asciiz "    Clock Mhz: "
 
 .segment "IOVECTORS"
-MN_IOVRB_c:    .word CON_read_byte_blk
-MN_IOVR_c:     .word CON_read_byte
-MN_IOVW_c:     .word CON_write_byte
-MN_IOVRBW_c:   .word CON_read_blk_write_byte
-MN_IOVRB_t:    .word TTY_read_char_blk
-MN_IOVR_t:     .word TTY_read_char
-MN_IOVW_t:     .word TTY_write_char
-MN_IOVRBW_t:   .word TTY_read_write_char
+MN_IOVRB_c:   .word CON_read_byte_blk
+MN_IOVR_c:    .word CON_read_byte
+MN_IOVW_c:    .word CON_write_byte
+MN_IOVRBW_c:  .word CON_read_blk_write_byte
+MN_IOVRB_t:   .word TTY_read_char_blk
+MN_IOVR_t:    .word TTY_read_char
+MN_IOVW_t:    .word TTY_write_char
+MN_IOVRBW_t:  .word TTY_read_write_char
 
 .segment "VECTORS"
+    .word MINIOS_main_menu                      ; Lets use FFF0 as a miniOS entry vector
+    .word $0000
+    .word $0000
+    .word $0000
+    .word $0000
     .word $0000
     .word main                                  ; entry vector main routine
     .word ISR                                   ; entry vector interrupt service routine

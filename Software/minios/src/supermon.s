@@ -1328,7 +1328,7 @@ CLINE:
 SNDCLR:
     jsr SNDMSG
 SNCLR:
-    rts                 ; KIM CHANGE: no screen editor, don't worry about clearing to eol
+    rts                 ; CHANGE: no screen editor, don't worry about clearing to eol
 
 ; -----------------------------------------------------------------------------
 ; display message from table
@@ -1361,9 +1361,9 @@ MSG2:   .byte $0D               ; header for registers
         .byte "   PC  SR AC XR YR SP   V1.2"
         .byte $0D+$80
 MSG3:   .byte '?',$0D+$80       ; syntax error: ? on its own line
-MSG4:   .byte $0D, $0D, "SUPERMON+ " ; SUPERMON KIM banner
+MSG4:   .byte $0D, $0D, "SUPERMON+ " ; SUPERMON banner
         .byte "@ ", '$'+$80
-MSG5:   .byte $3A+$80           ; KIM CHANGE: just a ':'
+MSG5:   .byte $3A+$80           ; CHANGE: just a ':'
 MSG6:   .byte " ERRO"           ; I/O error: display " ERROR"
         .byte 'R'+$80
 MSG7:   .byte $41,$20+$80       ; assemble next instruction: "A " + addr

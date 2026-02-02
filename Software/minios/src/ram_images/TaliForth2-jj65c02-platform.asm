@@ -1,4 +1,4 @@
-; Skeleton configuration
+; JJ65c02 configuration
 ; This version: 26. Jun 2025
 
         ; 65C02 processor (Tali will not compile on older 6502)
@@ -6,7 +6,7 @@
         ; No special text encoding (eg. ASCII)
         .enc "none"
 ; Use upper half of zero page for Tali's use
-user0     = $80
+zpage     = $80
 zpage_end = $ff
 
 ram_end   = $7fff
@@ -71,8 +71,8 @@ TALI_OPTION_HISTORY := 0
 ; TALI_OPTION_TERSE strips or shortens various strings to reduce the memory
 ; footprint when set to 1 (~0.5K)
 
-; TALI_OPTION_TERSE := 0
-TALI_OPTION_TERSE := 1
+TALI_OPTION_TERSE := 0
+; TALI_OPTION_TERSE := 1
 
 ; =====================================================================
 ; Kernel routines (adapt these to your hardware)
@@ -105,7 +105,7 @@ kernel_bye:
         ; """Forth shutdown called from BYE
         ; If you have a monitor or OS to go back to, put the code
         ; to do that here."""
-        jmp $B0B9
+        jmp $B0B3
 
 
 kernel_putc:
