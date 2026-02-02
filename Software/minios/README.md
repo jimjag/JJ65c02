@@ -179,7 +179,7 @@ between two banks, allowing more actual RAM to be used than is directly addressa
 ## EhBASIC
 EhBASIC is a fast and powerful BASIC interpreter for the 6502 microprocessor. EhBASIC is a great way to learn about computer programming but is also sophisticated enough to be used for serious projects. EhBASIC takes full advantage of the capabilities of the Pi Pico support chip (see [README.md](pico-code/README.md)) allowing for retro graphics and sound.
 
-A manual for EhBASIC is available in the `Documents` directory.
+A manual for EhBASIC is available in the `Documents` directory ([here](./Documents/EhBASIC-manual.pdf)).
 
 Our version of EhBASIC has been as follows:
 - Support for lower and upper case characters (BASIC commands are automatically converted to upper case)
@@ -201,3 +201,8 @@ Our version of WOZMON has been updated to support both UPPER and lower case char
 
 ## Milliforth
 Milliforth is a simple Forth interpreter written in assembly language for the 6502 microprocessor.
+
+## Supermon+
+Port of the famous Supermon monitor, originally written for the Commodore PET and then the C64.
+
+A simple user guide for supermon+ is available in the Documents directory ([here](./Documents/supermon.md)).

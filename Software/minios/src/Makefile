@@ -1,10 +1,10 @@
-LDCFG = jj65c02.cfg
-SIMCFG=jj65c02-sim.cfg
-LDMAP = minios.map
-SIMMAP=sim-minios.map
-LBL = minios.lbl
-SIMLBL=sim-minios.lbl
-TARGET = minios
+LDCFG   = jj65c02.cfg
+SIMCFG  = jj65c02-sim.cfg
+LDMAP   = minios.map
+SIMMAP  = sim-minios.map
+LBL     = minios.lbl
+SIMLBL  = sim-minios.lbl
+TARGET  = minios
 TARGET2 = sim
 
 SRCS =  minios.s \
