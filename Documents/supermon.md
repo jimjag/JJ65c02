@@ -19,7 +19,7 @@ contained the following credits:
 
 ## Usage Instructions
 
-SUPERMON+ is a new version of 'SUPERMON'. The reason for the new
+SUPERMON+ was a new version of 'SUPERMON'. The reason for the new
 version is to provide identical commands to those of the built-in
 monitor of the Commodore 128.
 
@@ -28,6 +28,12 @@ The most visible changes from earlier versions of SUPERMON are:
   - decimal or binary input allowed;
   - disk status and commands (@);
   - looser (easier) syntax.
+
+This version is a port of that port to the JJ65C02 system. This involved:
+
+- removing the disk status and other related commands
+- port to the ca65 assembler syntax
+- added support for the complete WDC65C02 opcode set
 
 ### Number Conversion 
 
@@ -62,7 +68,7 @@ display, the hex address ($1000) will be shown. Similarly,
 +2048 lda#%10000000
 ```
 
-Will be converted to assemble: "a $0400 lda #$80"
+Will be converted to assemble: `a $0400 lda #$80`
 
 If you don't give a prefix, the monitor will assume hexadecimal.
 
