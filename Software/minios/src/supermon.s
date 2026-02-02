@@ -25,6 +25,9 @@ ENABLE_ASSEMBLER = 1
 ; variables
 .segment "ZEROPAGE"
 
+; for JJ65c02, we re-use ZP memory allocated by EhBASIC. You can
+; use whatever ZP memory you have available.
+
 UseTTY  := BASIC_ZP_start   ; If and when we add TTY command to allow I/O
                             ; from Console to/from TTY/serial.
 ACMD    := UseTTY+1         ; addressing command
@@ -68,7 +71,7 @@ TMP0    := R0; DISPMEM_BPL_LOG2+1  ; used to return input, often holds end addre
 TMP2    := R1; TMP0+2              ; usually holds start address - 2 bytes
 
 ; -----------------------------------------------------------------------------
-; kernal entry points (KIM)
+; kernal entry points - SYSTEM SPECIFIC VALUES !!
 GETCH   = MN_IOVRBW_c          ; blocking input a character (like CHRIN) and echo it
 OUTCH   = MN_IOVW_c            ; output a character (like CHROUT)
 
@@ -82,8 +85,8 @@ OUTCH   = MN_IOVW_c            ; output a character (like CHROUT)
 ; initial entry point
 
 SUPER_main:
-    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
-    tsb MINIOS_STATUS
+    lda #(EHBASIC_ZP_CORRUPTED_FLAG)    ; comment out if not JJ65c02
+    tsb MINIOS_STATUS                   ; same here
     ldy #MSG4-MSGBAS            ; display banner
     jsr SNDMSG
     lda SUPAD
