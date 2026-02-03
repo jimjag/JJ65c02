@@ -223,6 +223,7 @@ MINIOS_main_menu:
 
 MINIOS_xmodem_load:
     CON_writeln xmodem_readyload
+    CON_writeln message_pressL
     jsr CON_read_byte_blk
     cmp #'L'
     beq @start_load
@@ -253,6 +254,7 @@ MINIOS_xmodem_load:
 
 MINIOS_ihex_load:
     CON_writeln ihex_readyload
+    CON_writeln message_pressL
     jsr CON_read_byte_blk
     cmp #'L'
     beq @start_load
@@ -509,11 +511,13 @@ message_welcomeacia:
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n"
 xmodem_readyload:
-    .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: "
+    .asciiz "\r\n Getting Ready To LOAD RAM (via XMODEM)."
 ihex_readyload:
-    .asciiz "\r\n Getting Ready To LOAD RAM (via Intel HEX).\r\n Press 'L' or 'l' key on console to start: "
+    .asciiz "\r\n Getting Ready To LOAD RAM (via Intel HEX)."
+message_pressL:
+    .asciiz "\r\n Press 'L' or 'l' key on console to start: "
 message_runprog:
-    .asciiz "\r\n Running RAM@$0400"
+    .asciiz "\r\n Running RAM@$0400\r\n"
 message_ramclean:
     .asciiz "\r\n Cleaning RAM... "
 message_ramtest:

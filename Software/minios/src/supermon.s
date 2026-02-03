@@ -67,7 +67,7 @@ DISPMEM_BPL      := U9F+1   ; number of bytes per line to display in DISPMEM
 DISPMEM_BPL_LOG2 := DISPMEM_BPL+1    ; log 2 of DISPMEM_BPL
 
 ; temporary pointers
-TMP0    := R0; DISPMEM_BPL_LOG2+1  ; used to return input, often holds end address
+TMP0    := R0; DISPMEM_BPL_LOG2+1  ; used to return input, often holds end address - 2 bytes
 TMP2    := R1; TMP0+2              ; usually holds start address - 2 bytes
 
 ; -----------------------------------------------------------------------------
@@ -1358,7 +1358,7 @@ INPUT:
 ; message table; last character has high bit set
 MSGBAS =*
 MSG2:   .byte $0D               ; header for registers
-        .byte "   PC  SR AC XR YR SP   V1.2"
+        .byte "   PC  SR AC XR YR SP   V1.2+"
         .byte $0D+$80
 MSG3:   .byte '?',$0D+$80       ; syntax error: ? on its own line
 MSG4:   .byte $0D, $0D, "SUPERMON+ " ; SUPERMON banner

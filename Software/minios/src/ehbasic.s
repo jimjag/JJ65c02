@@ -61,7 +61,7 @@
 ;      5.6     floating point multiply rounding bug
 ;      5.7     VAL() may cause string variables to be trashed
 ;      5.8j    Fix LAB_1B5B if we hit page edge
-;      5.9j    Add EXIT command to return to bootloader/ROM
+;      5.9j    Added EXIT command to return to bootloader/ROM
 ;      5.10j   Added CSTR$(): CSTR$(19) returns "19" not " 19" ala STR$()
 ;      5.11j   Tokenizer mixed case keyword recognition
 ;              http://forum.6502.org/viewtopic.php?f=5&t=4383
@@ -81,7 +81,7 @@
 ; could mangle EhBasic's memory and WARM would crash in weird and
 ; random ways. So we keep track of whether or not this has happened
 ; and require those apps that do re-use to set the EHBASIC_ZP_CORRUPTED_FLAG
-; bit in MINIOS_STATUS
+; bit in MINIOS_STATUS. If so, then we force a cold start.
 ;
 
 BASIC_ZP_start   := UseTTY
