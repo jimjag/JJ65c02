@@ -18,7 +18,7 @@ EOL = Z6
 
 IN    = YMBUF                          ; Input buffer
 ;-------------------------------------------------------------------------
-; Load an program in Intel Hex Format.
+; Load a program in Intel Hex Format.
 ;-------------------------------------------------------------------------
 
 LOADINTEL:
