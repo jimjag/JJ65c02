@@ -19,7 +19,7 @@
 ; that need to be updated for *your* system
 ;=====================================================================
 
-; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.12j
+; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.13j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
