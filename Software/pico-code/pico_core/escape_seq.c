@@ -38,10 +38,10 @@ static void not_implemented(void) {}
     static int escP[MAX_ESC_PARAMS];
     static int esc_parameter_count;
     static unsigned char esc_c1;
-    static unsigned char esc_final_byte;       
+    static unsigned char esc_final_byte;
 */
 static void esc_sequence_received(void) {
-    int n,m; 
+    int n,m;
 
     if (esc_c1 == '[') {
         // CSI
@@ -95,8 +95,8 @@ static void esc_sequence_received(void) {
                 checkCursor();
                 break;
             case 'K':
-            // Erases part of the line. If n is 0 (or missing), clear from cursor to the end of the line. 
-            // If n is 1, clear from cursor to beginning of the line. If n is 2, clear entire line. 
+            // Erases part of the line. If n is 0 (or missing), clear from cursor to the end of the line.
+            // If n is 1, clear from cursor to beginning of the line. If n is 2, clear entire line.
             // Cursor position does not change.
                 switch(escP[0]){
                     case 0:
@@ -203,39 +203,43 @@ static void esc_sequence_received(void) {
                     case 0: // Write a raw character: Esc[Z;<char>Z
                         writeChar(escP[1]);
                         break;
-                    case 1: // Draw a line: Esc[Z1;x1;y1;x2;y2Z
-                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
-                        break;
-                    case 2: // Draw an empty rect: Esc[Z2;x;y;w;hZ
-                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
-                        break;
-                    case 3: // Draw a filled rect: Esc[Z3;x;y;w;hZ
-                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
-                        break;
-                    case 4: // Draw an empty circle: Esc[Z4;x;y;rZ
-                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
-                        break;
-                    case 5: // Draw an filled circle: Esc[Z5;x;y;rZ
-                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
-                        break;
-                    case 6: // Draw an empty rounded rect: Esc[Z6;x;y;w;h;rZ
-                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
-                        break;
-                    case 7: // Draw a filled rounded rect: Esc[Z7;x;y;w;h;rZ
-                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
-                        break;
-                    case 8: // Set fg color: Esc[Z8;<color>Z
-                        textfgcolor = convertRGB332(escP[1]);
-                        break;
-                    case 9: // Set bg color: Esc[Z9;<color>Z
-                        textbgcolor = convertRGB332(escP[1]);
-                        break;
-                    case 10: // Draw character <char> at x,y: Esc[Z10;x;y;<char>;Z
-                        drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
-                        break;
-                    case 11: // Sound function - send <val> to sound routine (see soundTask() for codes)
+                    case 1: // Sound function - send <val> to sound routine (see soundTask() for codes) Esc[Z1;<val>Z
                         multicore_fifo_push_blocking((uint32_t)escP[1]);
                         break;
+                    case 2: // Set fg color: Esc[Z2;<color>Z
+                        textfgcolor = convertRGB332(escP[1]);
+                        break;
+                    case 3: // Set bg color: Esc[Z3;<color>Z
+                        textbgcolor = convertRGB332(escP[1]);
+                        break;
+                    case 4: // Draw Pixel at x,y: Esc[Z4;x;yZ
+                        drawPixel(escP[1], escP[2], textfgcolor, false);
+                        break;
+                    case 5: // Draw character <char> at x,y: Esc[Z5;x;y;<char>Z
+                        drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
+                        break;
+                    case 6: // Draw a line: Esc[Z6;x1;y1;x2;y2Z
+                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 7: // Draw an empty rect: Esc[Z7;x;y;w;hZ
+                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 8: // Draw a filled rect: Esc[Z8;x;y;w;hZ
+                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 9: // Draw an empty circle: Esc[Z9;x;y;rZ
+                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
+                        break;
+                    case 10: // Draw an filled circle: Esc[Z10;x;y;rZ
+                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
+                        break;
+                    case 11: // Draw an empty rounded rect: Esc[Z11;x;y;w;h;rZ
+                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
+                        break;
+                    case 12: // Draw a filled rounded rect: Esc[Z12;x;y;w;h;rZ
+                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
+                        break;
+
                 }
                 break;
             default:

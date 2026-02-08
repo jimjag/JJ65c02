@@ -87,17 +87,21 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 #### Extensions
 
 * `ESC[Z;<c>Z` Write character `<c>` at current text cursor position
-* `ESC[Z1;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
-* `ESC[Z2;<x>;<y>;<w>;<h>Z`Draw rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
-* `ESC[Z3;<x>;<y>;<w>;<h>Z`Draw filled rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
-* `ESC[Z4;<x>;<y>;<r>Z`Draw circle with center at `(x,y)` radius `r`
-* `ESC[Z5;<x>;<y>;<r>Z`Draw filled circle with center at `(x,y)` radius `r`
-* `ESC[Z6;<x>;<y>;<w>;<h>;<r>Z`Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
-* `ESC[Z7;<x>;<y>;<w>;<h>;<r>Z`Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
-* `ESC[Z8;<color>Z` Set FG color to `<color>`
-* `ESC[Z9;<color>Z` Set BG color to `<color>`
-* `ESC[Z10;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
-* `ESC[Z11;<code>Z` Send ascii char decimal code`<code>` to the rp2040 Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z11;101Z` will send `e` to `soundTask()` to play a single `Mi` note
+* `ESC[Z1;<code>Z` Send ascii char decimal code`<code>` to the rp2040 Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z1;101Z` will send `e` to `soundTask()` to play a single `Mi` note
+* `ESC[Z2;<color>Z` Set FG color to `<color>`
+* `ESC[Z3;<color>Z` Set BG color to `<color>`
+* `ESC[Z4;<x>,<y>Z` Draw pixel at `(x,y)` with current FG color
+* `ESC[Z5;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
+* `ESC[Z6;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
+* `ESC[Z7;<x>;<y>;<w>;<h>Z`Draw rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
+* `ESC[Z8;<x>;<y>;<w>;<h>Z`Draw filled rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
+* `ESC[Z9;<x>;<y>;<r>Z`Draw circle with center at `(x,y)` radius `r`
+* `ESC[Z10;<x>;<y>;<r>Z`Draw filled circle with center at `(x,y)` radius `r`
+* `ESC[Z11;<x>;<y>;<w>;<h>;<r>Z`Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
+* `ESC[Z12;<x>;<y>;<w>;<h>;<r>Z`Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
+
+
+
 
 Pixel locations are 0-based: (0,0) to (639, 479).
 
@@ -105,7 +109,7 @@ Graphics (lines, circles, ...) use FG color for their color.
 
 Our color set uses:
 ```
-RGB:          332:      Us:
+RGB:         RGB332:      Us:
 --------      ----      ------------
 0x000000  ->  0x00  ->  Black
 0xc00000  ->  0xc0  ->  Red
@@ -137,8 +141,8 @@ enum colors { BLACK=0x00, RED=0xc0; GREEN=0x18, YELLOW=0xd8,
 When creating graphics, including Sprites and Tiles, use the above RGB colors
 for the master copies and then use software such as
 `./lv_img_conv.js -c CF_TRUE_COLOR -f` to create an RGB332 bitmap from
-the RGB image itself. You can also create the bimap directly, using the
+the RGB image itself (see https://github.com/lvgl/lv_img_conv). You can also create the bimap directly, using the
 RGB332 values as well. When Sprites and Tiles are loaded, the RGB332 colors,
 including transparency, are converted to our internal colors. When specifying
-colors for graphic primitives (eg: `ESC[Z8;<color>Z`), the color must
+colors for graphic primitives (eg: `ESC[Z2;<color>Z`), the color must
 be in the corresponding RGB332 value noted above.

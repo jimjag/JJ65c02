@@ -15,7 +15,7 @@
  *  - GPIO 16 ---> PS2 Clock pin
  *  - RP2040 GND ---> VGA GND
  *  - GPIO 0-6 ---> 7 bit PS/2 Data to VIA
- *  - GPIO 7-14 ---> 8 Bit Data In from VIA
+ *  - GPIO 7-14 ---> 8 Bit Data In from 6502
  *  - GPIO 26 ---> Data Ready
  *  - GPIO 27 ---> IRQ/Handshake to VIA for PS/2
  *  - GPIO 28 ---> audio/sound
@@ -294,15 +294,15 @@ int main() {
     }
     vgaFillScreen(BLACK);
     setTextColor(RED);
-    printString("\x1b[Z1;10;10;500;5Z");
+    printString("\x1b[Z4;10;10;500;5Z");
     setTextColor(BLUE);
-    printString("\x1b[Z2;30;30;40;45Z");
+    printString("\x1b[Z5;30;30;40;45Z");
     setTextColor(GREEN);
-    printString("\x1b[Z3;50;50;75;155Z");
+    printString("\x1b[Z6;50;50;75;155Z");
     setTextColor(CYAN);
-    printString("\x1b[Z4;100;100;55Z");
+    printString("\x1b[Z7;100;100;55Z");
     setTextColor(YELLOW);
-    printString("\x1b[Z5;200;200;55Z");
+    printString("\x1b[Z8;200;200;55Z");
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
     writeChar('a');
