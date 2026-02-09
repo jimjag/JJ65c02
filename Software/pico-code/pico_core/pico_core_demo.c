@@ -266,16 +266,16 @@ int main() {
     drawString("White");
     setFont(1);
     setCursor(0, 460);
-    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("ACM|     1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
     setFont(2);
     setCursor(0, 440);
-    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("Toshiba| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
     setFont(3);
     setCursor(0, 420);
-    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("Sperry|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
     setFont(0);
     setCursor(0, 400);
-    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
+    drawString("Sweet16| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
     sleep_ms(1000);
 
     char hex[40];
@@ -367,7 +367,7 @@ int main() {
     loadTile(0, SPRITE32_WIDTH, 11, tile);
     for (int i = 0; i<640; i+=32) {
         for (int j = 0; j<480; j +=11) {
-            drawTile(i, j, 0);
+            drawTile(0, i, j);
         }
     }
     setCursor(65, 0);
@@ -392,12 +392,12 @@ int main() {
     int y0 = 1;
     for (int i = 10; i < 400; i++) {
         bool changed = false;
-        drawSprite(i, y, 0, true);
+        drawSprite(0, i, y, true);
         for (int j = 1; j < 15; j++) {
-            drawSprite((x0 - (j*20)), (y0 + (j*15)), j, true);
+            drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), true);
         }
         for (int j = 15; j < 31; j++) {
-            drawSprite((x0 - (j*10)), (y0 + (j*15)), j, true);
+            drawSprite(j, (x0 - (j*10)), (y0 + (j*15)), true);
         }
         y++;
         x0--;
@@ -411,12 +411,12 @@ int main() {
     }
     y = 5;
     for (int i = 0; i > -32; i--) {
-        drawSprite(i, y, 2, false);
+        drawSprite(2, i, y, false);
         y += 17;
     }
     y = 5;
     for (int i = 608; i < 641; i++) {
-        drawSprite(i, y, 2, false);
+        drawSprite(2, i, y, false);
         y += 17;
     }
 

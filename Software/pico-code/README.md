@@ -35,9 +35,9 @@ Character bytes can be written to the __Pico__ from the 65C02 by simply writing
 to the Pico's mapped direct address. This uses 8 pins on the Pico for the
 data and 1 pin to serve as a `write/data-ready/chip-select` signal.
 
-## Terminal, Graphics and Text
+## Terminal: Graphics and Text
 
-Included in the VGA subsystem is a set of text and graphics primitives. These include:
+Included in the VGA subsystem is a set of text and graphics primitives. Note that these are only guaranteed to work on the VGA console (although the generic escape sequences should work via the serial connection to any vt100 compliant emulator). These include:
 
 ### Graphics
 
@@ -52,10 +52,10 @@ Included in the VGA subsystem is a set of text and graphics primitives. These in
 
 * 80x30 screen size (8x16 fonts)
 * Multiple font glyphs
-* * ACM font ([preview](./font_previews/acm-preview-8x16.png))
-* * Sperry font ([preview](./font_previews/sperry-preview-8x16.png))
-* * Sweet 16 font ([preview](./font_previews/sweet16-preview-8x16.png))
-* * Toshiba font ([preview](./font_previews/toshiba-preview-8x16.png))
+* * Sweet 16 font ([preview](./font_previews/sweet16-preview-8x16.png)) | Font #0
+* * ACM font ([preview](./font_previews/acm-preview-8x16.png)) | Font #1
+* * Toshiba font ([preview](./font_previews/toshiba-preview-8x16.png)) | Font #2
+* * Sperry font ([preview](./font_previews/sperry-preview-8x16.png)) | Font #3
 * Fully addressable cursor
 * Blinking cursor
 * Smooth and Jump scrolling
@@ -150,3 +150,18 @@ RGB332 values as well. When Sprites and Tiles are loaded, the RGB332 colors,
 including transparency, are converted to our internal colors. When specifying
 colors for graphic primitives (eg: `ESC[Z2;<color>Z`), the color must
 be in the corresponding RGB332 value noted above.
+
+## Sprites and Tiles
+We support 2 sizes for Sprites and Tiles: 16pixel widths and 32pixel widths. Heights are variable and can be any size. The difference between the 2 is that Sprites can be moved around the screen, whereas Tiles are assumed to be fixed in place. Their creation is the exact same process, so I will use the term Sprite for both.
+
+### Overview
+Basically, one designs a Sprite in a graphics editor (such as GIMP or Aseprite) and exports it as a bitmap (*.bmp) file. Be sure to use the color values noted above for the RGB332 values. Then `lv_img_conv.js` is used to create the C array of RGB332 values for the Sprite (look for the `#if LV_COLOR_DEPTH == 1 || LV_COLOR_DEPTH == 8` section in the generated *.c file).
+
+To use the Sprite, one must first load it into the VGA subsystem using the `loadSprite()` function. This will allocate memory for the Sprite and copy the RGB332 values into it. It will also create additional memory for use when the Sprite is moved around the screen. The Sprite can then be drawn to the screen using the `drawSprite()` function.
+
+### Background and Transparency
+Due to the way the VGA subsystem works, and especially the fact that all graphics are drawn to a single bitmapped display, Sprites and Tiles need to have the concept of a "transparent" pixel. This is achieved by using a special color value which is reserved for transparency. This color value is `0xfb` and is used to indicate that the pixel should be transparent.
+
+When a Sprite is drawn to the screen, the VGA subsystem will first place a copy of the background that will be covered up by the Sprite into temporary storage. Then, using a combination of XOR and masking, the Sprite is drawn to the display. When the Sprite is moved, if the `erase` flag is set, the original background will be restored, and the Sprite will be drawn at the new location. This prevents having to redraw the entire screen when moving a Sprite around.
+
+NOTE: Care must be taken in situations where a Sprite is drawn over another Sprite. The ordering of drawing Sprites is important due to the storage of the backgrounds. In such cases, the last moved Sprite should be the first moved in the next round.

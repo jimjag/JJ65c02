@@ -186,11 +186,11 @@ bool enableCurs(bool flag);
 void enableSmoothScroll(bool flag);
 // void enableRaw(bool flag);
 
-void drawSprite(short x, short y, uint sn, bool erase);
+void drawSprite(uint sn, short x, short y, bool erase);
 void loadSprite(uint sn, short width, short height, unsigned char *sdata);
 void eraseSprite(uint sn);
 
-void drawTile(short x, short y, uint sn);
+void drawTile(uint sn, short x, short y);
 void loadTile(uint sn, short width, short height, unsigned char *sdata);
 
 #endif // VGA_CORE_H_

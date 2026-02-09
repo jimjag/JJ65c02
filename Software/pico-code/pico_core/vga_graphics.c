@@ -820,7 +820,7 @@ void eraseSprite(uint sn) {
     sprites[sn]->bgValid = false;
 }
 
-void drawSprite(short x, short y, uint sn, bool erase) {
+void drawSprite(uint sn, short x, short y, bool erase) {
     if (erase) eraseSprite(sn);
     if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) return;
     uint64_t maskedScreen, newScreen;
@@ -939,7 +939,7 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
 }
 
 // Tiles must align on a modulo of their width
-void drawTile(short x, short y, uint sn) {
+void drawTile(uint sn, short x, short y) {
     if (x < 0 || x >= (SCREENWIDTH - tiles[sn]->width) || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
     if (x % tiles[sn]->width) return;  // TODO: Maybe force to a multiple of width ??
     int yend = y + tiles[sn]->height;
