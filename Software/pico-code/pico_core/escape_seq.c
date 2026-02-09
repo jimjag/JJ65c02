@@ -9,6 +9,7 @@ enum escape_state{ESC_READY, MAYBE_ESC_SEQ, ESC_COLLECT};
 enum escape_state esc_state = ESC_READY;
 static int escP[MAX_ESC_PARAMS];
 static bool parameter_q;
+static bool hex_entry;
 static int esc_parameter_count = 0;
 static unsigned char esc_c1;
 static unsigned char esc_final_byte;
@@ -28,6 +29,7 @@ static void reset_escape_sequence(void) {
     esc_c1 = 0;
     esc_final_byte = 0;
     parameter_q = false;
+    hex_entry = false;
 }
 
 static void not_implemented(void) {}
@@ -258,6 +260,15 @@ static bool collect_sequence(unsigned char chrx) {
     // waiting on parameter character, semicolon or final byte
     if (chrx=='Z' && esc_parameter_count==0) {
         ;  // nop
+    } else if (chrx=='z' && esc_parameter_count==0) {
+        hex_entry = true;  // nop
+    } else if (hex_entry && isxdigit(chrx)) {
+        escP[esc_parameter_count] <<= 4;
+        if (isdigit(chrx)) {
+            escP[esc_parameter_count] |= chrx - '0';
+        } else {
+            escP[esc_parameter_count] |= toupper(chrx) - 'A' + 10;
+        }
     } else if (isdigit(chrx)) {
         // parameter value
         if(esc_parameter_count < MAX_ESC_PARAMS) {

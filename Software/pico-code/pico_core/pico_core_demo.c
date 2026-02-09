@@ -274,6 +274,8 @@ int main() {
     setCursor(0, 420);
     drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     setFont(0);
+    setCursor(0, 400);
+    drawString("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@0123456789");
     sleep_ms(1000);
 
     char hex[40];
@@ -294,15 +296,15 @@ int main() {
     }
     vgaFillScreen(BLACK);
     setTextColor(RED);
-    printString("\x1b[Z4;10;10;500;5Z");
+    printString("\x1b[Z6;10;10;500;5Z");
     setTextColor(BLUE);
-    printString("\x1b[Z5;30;30;40;45Z");
+    printString("\x1b[Z7;30;30;40;45Z");
     setTextColor(GREEN);
-    printString("\x1b[Z6;50;50;75;155Z");
+    printString("\x1b[Z8;50;50;75;155Z");
     setTextColor(CYAN);
-    printString("\x1b[Z7;100;100;55Z");
+    printString("\x1b[Z9;100;100;55Z");
     setTextColor(YELLOW);
-    printString("\x1b[Z8;200;200;55Z");
+    printString("\x1b[Z10;200;200;55Z");
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
     writeChar('a');
