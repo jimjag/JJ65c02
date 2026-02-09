@@ -108,6 +108,16 @@ alarm_pool_t *apool = NULL;
 volatile bool cursorEnabled = false;
 volatile bool cursorOn = false;
 
+// DMA sets this when it the last pixel has been drawn
+int vga_done_flag = 0 ;
+int vga_done_flag_array[4] __attribute__ ((aligned (16)));
+
+bool vga_done_signal(void){
+  bool temp = (vga_done_flag) ;
+  vga_done_flag = 0 ;
+  return temp ;
+}
+
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
     if (!cursorOn) {
@@ -209,49 +219,71 @@ void initVGA(void) {
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
+    // start draw is valid on every video frame
+    vga_done_flag_array[0] = 1 ;
+    vga_done_flag_array[1] = 1 ;
+    vga_done_flag_array[2] = 1 ;
+    vga_done_flag_array[3] = 1 ;
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // ============================== PIO DMA Channels
     // =================================================
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // DMA channels - 0 sends color data, 1 reconfigures and restarts 0
-    int scanline_chan_0 = dma_claim_unused_channel(true);
-    int scanline_chan_1 = dma_claim_unused_channel(true);
+    int vga_chan = dma_claim_unused_channel(true);
+    int recon_chan = dma_claim_unused_channel(true);
+    int rgb_done_chan = dma_claim_unused_channel(true);
 
     // DMA channel for dma_memcpy and dma_memset
     memcpy_dma_chan = dma_claim_unused_channel(true);
 
     // Channel Zero (sends color data to PIO VGA machine)
-    dma_channel_config c0 = dma_channel_get_default_config(scanline_chan_0);    // default configs
+    dma_channel_config c0 = dma_channel_get_default_config(vga_chan);    // default configs
     channel_config_set_transfer_data_size(&c0, DMA_SIZE_8); // 8-bit txfers
     channel_config_set_read_increment(&c0, true);           // yes read incrementing
     channel_config_set_write_increment(&c0, false);         // no write incrementing
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
-    channel_config_set_chain_to(&c0, scanline_chan_1);      // chain to other channel
+    channel_config_set_chain_to(&c0, recon_chan);           // chain to other channel
 
-    dma_channel_configure(scanline_chan_0,        // Channel to be configured
-        &c0,                    // The configuration we just created
-        &pio->txf[scanline_sm], // write address (SCANLINE PIO TX FIFO)
-        &vga_data_array, // The initial read address (pixel color array)
-        txcount, // Number of transfers; in this case each is 1 byte.
-        false    // Don't start immediately.
+    dma_channel_configure(vga_chan,     // Channel to be configured
+        &c0,                            // The configuration we just created
+        &pio->txf[scanline_sm],         // write address (SCANLINE PIO TX FIFO)
+        &vga_data_array,                // The initial read address (pixel color array)
+        txcount,                        // Number of transfers; in this case each is 1 byte.
+        false                           // Don't start immediately.
     );
 
     // Channel One (reconfigures the first channel)
-    dma_channel_config c1 = dma_channel_get_default_config(scanline_chan_1);     // default configs
+    dma_channel_config c1 = dma_channel_get_default_config(recon_chan);     // default configs
     channel_config_set_transfer_data_size(&c1, DMA_SIZE_32); // 32-bit txfers
     channel_config_set_read_increment(&c1, false);           // no read incrementing
     channel_config_set_write_increment(&c1, false);          // no write incrementing
-    channel_config_set_chain_to(&c1, scanline_chan_0);       // chain to other channel
+    channel_config_set_chain_to(&c1, rgb_done_chan);         // chain to other channel
 
-    dma_channel_configure(scanline_chan_1,                        // Channel to be configured
-        &c1,                                    // The configuration we just created
-        &dma_hw->ch[scanline_chan_0].read_addr, // Write address (channel 0 read address)
-        &address_pointer,                       // Read address (POINTER TO AN ADDRESS)
-        1,    // Number of transfers, in this case each is 4 byte
-        false // Don't start immediately.
+    dma_channel_configure(recon_chan,       // Channel to be configured
+        &c1,                                // The configuration we just created
+        &dma_hw->ch[vga_chan].read_addr,    // Write address (channel 0 read address)
+        &address_pointer,                   // Read address (POINTER TO AN ADDRESS)
+        1,                                  // Number of transfers, in this case each is 4 byte
+        false
     );
 
+    dma_channel_config c2 = dma_channel_get_default_config(rgb_done_chan);   // default configs
+    channel_config_set_transfer_data_size(&c2, DMA_SIZE_32);        // 32-bit txfers
+    channel_config_set_read_increment(&c2, true);                   // read incrementing
+    channel_config_set_write_increment(&c2, false);                 // no write incrementing
+    channel_config_set_chain_to(&c2, vga_chan);                     // chain to other channel
+    channel_config_set_ring (&c2, false, 4); // 16 byte table
+
+    dma_channel_configure(
+        rgb_done_chan,                      // Channel to be configured
+        &c2,                                // The configuration we just created
+        &vga_done_flag,                     // Write address (variable)
+        vga_done_flag_array,                // Read address
+        1,
+        false
+    );
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -273,7 +305,7 @@ void initVGA(void) {
     // will be constantly DMAed to the PIO machines that are driving the screen.
     // To change the contents of the screen, we need only change the contents
     // of that array.
-    dma_start_channel_mask((1u << scanline_chan_0));
+    dma_start_channel_mask((1u << vga_chan));
 
     // Now setup terminal
     terminal = malloc(terminal_size);

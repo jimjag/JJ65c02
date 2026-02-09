@@ -62,6 +62,8 @@ void core1_main() {
 }
 
 int main() {
+    // rp2350 will run at 300 Mhz at 1.3 volt
+    // vreg_set_voltage (VREG_VOLTAGE_1_30);
     set_sys_clock_khz(250000, true);
     // Initialize stdio
     //stdio_init_all();
