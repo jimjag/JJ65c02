@@ -222,7 +222,7 @@ int main() {
     setTextSize(1);
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            drawFilledRect(i * 110 + 20, 100 + j * 70, 60, 60, i + 4 * j, false);
+            drawFilledRoundRect(i * 110 + 20, 100 + j * 70, 60, 60, 3, i + 4 * j, false);
             setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
             drawString(video_buffer);
