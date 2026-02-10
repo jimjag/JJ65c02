@@ -366,7 +366,7 @@ int main() {
     for (int i = 0; i < 31; i++) {
         loadSprite(i, SPRITE32_WIDTH, 11, foo2);
     }
-    loadTile(0, SPRITE32_WIDTH, 11, tile);
+    loadTile(0, TILE32_WIDTH, 11, tile);
     for (int i = 0; i<640; i+=32) {
         for (int j = 0; j<480; j +=11) {
             drawTile(0, i, j);

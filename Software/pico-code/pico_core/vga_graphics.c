@@ -917,20 +917,35 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
         needFree = true;
     }
 
-    int chunks = width / SPRITE16_WIDTH;
-    n->bitmap = malloc(sizeof(uint64_t) * height * chunks);
+    n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
+    n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
+    if (width == SPRITE32_WIDTH) {
+        // 2nd 64bit int
+        n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
+        n->bitmap[1][1] = malloc(sizeof(uint64_t) * height);
+    }
+    int chunks = width / TILE16_WIDTH;
     for (int i = 0; i < height; i++) {
         for (int k = 0; k < chunks; k++) {
             uint64_t bitmap = 0;
             unsigned char cx;
-            for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
+            for (int j = TILE16_WIDTH - 1; j >= 0; j--) {
                 bitmap <<= 4;
-                cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];
-                cx = convertRGB332(cx);
+                cx = sdata[j + (i * width) + (k * TILE16_WIDTH)];  // Read in the RGB332 value
+                cx = convertRGB332(cx);                           // And convert it
                 bitmap |= (TOPMASK & cx);
             }
-            n->bitmap[i+k] = bitmap;
+            n->bitmap[k][0][i] = bitmap;
         }
+        // We now generate, and store, the image shifted right by 1 pixel, for
+        // when the image starts at an odd X-coord. Why? We store 2 pixels
+        // per byte, so we need to straddle odd x-coords.
+        if (width == TILE32_WIDTH) {
+            uint64_t carry;
+            carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
+            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
+        }
+        n->bitmap[0][1][i] = (n->bitmap[0][0][i] << 4) | LSN64;
     }
     n->height = height;
     n->width = width;
@@ -940,16 +955,51 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
 
 // Tiles must align on a modulo of their width
 void drawTile(uint sn, short x, short y) {
-    if (x < 0 || x >= (SCREENWIDTH - tiles[sn]->width) || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
-    if (x % tiles[sn]->width) return;  // TODO: Maybe force to a multiple of width ??
+    if (x <= -tiles[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
+    uint64_t bitmap[2];
+    int shifts = 0;
+    bool shift_right = true;
+    int maxx = SCREENWIDTH - tiles[sn]->width;
+    // Handle moving off screen left or right
+    if (x > maxx) {
+        shifts = x - maxx;
+        x = maxx;
+    } else if (x < 0) {
+        shifts = -x;
+        x = 0;
+        shift_right = false;
+    }
+    int oddeven = x & 0x1;
     int yend = y + tiles[sn]->height;
-    int chunks = tiles[sn]->width / SPRITE16_WIDTH;
+    int chunks = tiles[sn]->width / TILE16_WIDTH;
     int j = 0;
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
+        bitmap[0] = tiles[sn]->bitmap[0][oddeven][j];
+        if (tiles[sn]->width == TILE32_WIDTH) {
+            bitmap[1] = tiles[sn]->bitmap[1][oddeven][j];
+        }
+        uint64_t carry[2];
+        for (int i = 0; i < shifts; i++) {
+            if (shift_right) {
+                if (tiles[sn]->width == TILE32_WIDTH) {
+                    carry[0] = (bitmap[0] & MSN64) >> 60;
+                    bitmap[1] = (bitmap[1] << 4) | carry[0];
+                }
+                bitmap[0] = (bitmap[0] << 4) | LSN64;
+            } else {
+                carry[0] = carry[1] = MSN64;
+                if (tiles[sn]->width == TILE32_WIDTH) {
+                    carry[0] = (bitmap[1] & LSN64) << 60;
+                    bitmap[1] = (bitmap[1] >> 4) | MSN64;
+                }
+                bitmap[0] = (bitmap[0] >> 4) | carry[0];
+            }
+        }
+
         for (int k = 0; k < chunks; k++) {
-            int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
-            dma_memcpy(&vga_data_array[pixel >> 1], &tiles[sn]->bitmap[j + k], 8);
+            int pixel = ((SCREENWIDTH * y1) + x + (k * TILE16_WIDTH));
+            dma_memcpy(&vga_data_array[pixel >> 1], &bitmap[k], 8);
         }
     }
     tiles[sn]->x = x;

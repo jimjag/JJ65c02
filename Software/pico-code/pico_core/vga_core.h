@@ -124,7 +124,7 @@ typedef struct {
 #define TILE32_WIDTH 32  // "" ""
 #define MAXTILES 32
 typedef struct {
-    uint64_t *bitmap;  // [# of 64bit values][odd/even]
+    uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
     short x;
     short y;
     unsigned char height;
