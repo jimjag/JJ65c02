@@ -172,8 +172,8 @@ void drawString(unsigned char* str);
 
 void vgaFillScreen(unsigned char color);
 
-void dma_memset(void *dest, uint8_t val, size_t num);
-void dma_memcpy(void *dest, void *src, size_t num);
+void dma_memset(void *dest, uint8_t val, size_t num, bool block);
+void dma_memcpy(void *dest, void *src, size_t num, bool block);
 
 void writeChar(unsigned char chrx); // write the interpreted character
 void handleByte(unsigned char c);     // auto-decide based on graphics/text mode

@@ -8,7 +8,7 @@
 void vgaFillScreen(unsigned char color) {
     color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    dma_memset(vga_data_array, (color) | (color << 4), txcount);
+    dma_memset(vga_data_array, (color) | (color << 4), txcount, true);
 }
 
 // A function for drawing a pixel with a specified color.
@@ -501,12 +501,12 @@ void vgaScroll (int scanlines) {
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
     if (!smooth_scroll) {
         scanlines *= scanline_size;
-        dma_memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines);
-        dma_memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines);
+        dma_memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines, true);
+        dma_memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines, true);
     }  else {
         for (int i = 0; i < scanlines; i++) {
-            dma_memcpy(vga_data_array, vga_data_array + scanline_size, txcount - scanline_size);
-            dma_memset(vga_data_array + txcount - scanline_size, (textbgcolor) | (textbgcolor << 4), scanline_size);
+            dma_memcpy(vga_data_array, vga_data_array + scanline_size, txcount - scanline_size, true);
+            dma_memset(vga_data_array + txcount - scanline_size, (textbgcolor) | (textbgcolor << 4), scanline_size, true);
         }
     }
 }
@@ -517,8 +517,8 @@ void termScroll (int rows) {
     if (rows <= 0) rows = 1;
     if (rows > maxTcurs.y) rows = maxTcurs.y;
     rows *= textrow_size;
-    dma_memcpy(terminal, terminal + rows, terminal_size - rows);
-    dma_memset(terminal + terminal_size - rows, ' ', rows);
+    dma_memcpy(terminal, terminal + rows, terminal_size - rows, true);
+    dma_memset(terminal + terminal_size - rows, ' ', rows, true);
     vgaScroll(orows * FONTHEIGHT);
     enableCurs(was);
 }
@@ -635,8 +635,8 @@ static void printChar(unsigned char chrx) {
 
 void clearScreen(void) {
     vgaFillScreen(textbgcolor);
-    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), txcount);
-    dma_memset(terminal, ' ', terminal_size);
+    dma_memset(vga_data_array, (textbgcolor) | (textbgcolor << 4), txcount, true);
+    dma_memset(terminal, ' ', terminal_size, true);
 }
 
 
@@ -814,7 +814,7 @@ void eraseSprite(uint sn) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * SPRITE16_WIDTH));
-            dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
+            dma_memcpy(&vga_data_array[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8, true);
         }
     }
     sprites[sn]->bgValid = false;
@@ -883,11 +883,11 @@ void drawSprite(uint sn, short x, short y, bool erase) {
         }
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
-            dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8);
+            dma_memcpy(&bgrnd, &vga_data_array[pixel >> 1], 8, true);
             sprites[sn]->bgrnd[k][j] = bgrnd;
             maskedScreen = mask[k] & bgrnd;
             newScreen = maskedScreen | (~mask[k] & bitmap[k]);
-            dma_memcpy(&vga_data_array[pixel >> 1], &newScreen, 8);
+            dma_memcpy(&vga_data_array[pixel >> 1], &newScreen, 8, true);
         }
     }
     sprites[sn]->x = x;
@@ -999,7 +999,7 @@ void drawTile(uint sn, short x, short y) {
 
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * TILE16_WIDTH));
-            dma_memcpy(&vga_data_array[pixel >> 1], &bitmap[k], 8);
+            dma_memcpy(&vga_data_array[pixel >> 1], &bitmap[k], 8, true);
         }
     }
     tiles[sn]->x = x;

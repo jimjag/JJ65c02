@@ -319,7 +319,7 @@ void initVGA(void) {
 
     // Now setup terminal
     terminal = malloc(terminal_size);
-    dma_memset(terminal, ' ', terminal_size);
+    dma_memset(terminal, ' ', terminal_size, true);
 
     // GPIO pin setup for data sent from 6502 to us (Console Output)
     rptr = wptr = inbuf;
@@ -345,7 +345,7 @@ void initVGA(void) {
     alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
-void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num) {
+void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool block) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
     channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, false);
@@ -363,10 +363,12 @@ void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num) {
     // We could choose to go and do something else whilst the DMA is doing its
     // thing. In this case the processor has nothing else to do, so we just
     // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+    if (block) {
+        dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+    }
 }
 
-void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num) {
+void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num, bool block) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
     channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, true);
@@ -384,7 +386,9 @@ void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num) {
     // We could choose to go and do something else whilst the DMA is doing its
     // thing. In this case the processor has nothing else to do, so we just
     // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+    if (block) {
+        dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+    }
 }
 
 #include "vga_graphics.c"
