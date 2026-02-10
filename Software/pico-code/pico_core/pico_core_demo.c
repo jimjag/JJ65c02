@@ -396,6 +396,7 @@ int main() {
         bool changed = false;
         drawSprite(0, i, y, true);
         for (int j = 1; j < 15; j++) {
+            while (in_frame()) {}
             drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), true);
         }
         for (int j = 15; j < 31; j++) {

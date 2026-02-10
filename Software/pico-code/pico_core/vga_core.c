@@ -109,14 +109,19 @@ volatile bool cursorEnabled = false;
 volatile bool cursorOn = false;
 
 // DMA sets this when it the last pixel has been drawn
-int vga_done_flag = 0 ;
+volatile static int is_in_frame = 0 ;
 int vga_done_flag_array[4] __attribute__ ((aligned (16)));
 
-bool vga_done_signal(void){
-  bool temp = (vga_done_flag) ;
-  vga_done_flag = 0 ;
-  return temp ;
+bool in_frame(void) {
+    return is_in_frame;
 }
+
+// ISR
+static void __time_critical_func(enterframe)(void) {
+    is_in_frame = 1;
+    pio_interrupt_clear(pio0, 1);
+}
+static uint vsync_pio_irq;
 
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
@@ -219,11 +224,16 @@ void initVGA(void) {
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
-    // start draw is valid on every video frame
-    vga_done_flag_array[0] = 1 ;
-    vga_done_flag_array[1] = 1 ;
-    vga_done_flag_array[2] = 1 ;
-    vga_done_flag_array[3] = 1 ;
+    vsync_pio_irq = PIO0_IRQ_1;
+    pio_set_irq1_source_enabled(pio, pis_interrupt1, true);
+    irq_set_exclusive_handler(vsync_pio_irq, enterframe);
+    //irq_add_shared_handler(vsync_pio_irq, enterframe, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+    irq_set_enabled(vsync_pio_irq, true);
+
+    vga_done_flag_array[0] = 0 ;
+    vga_done_flag_array[1] = 0 ;
+    vga_done_flag_array[2] = 0 ;
+    vga_done_flag_array[3] = 0 ;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // ============================== PIO DMA Channels
@@ -279,7 +289,7 @@ void initVGA(void) {
     dma_channel_configure(
         rgb_done_chan,                      // Channel to be configured
         &c2,                                // The configuration we just created
-        &vga_done_flag,                     // Write address (variable)
+        &is_in_frame,                       // Write address (variable)
         vga_done_flag_array,                // Read address
         1,
         false
