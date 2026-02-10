@@ -786,6 +786,13 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         // We now generate, and store, the image shifted right by 1 pixel, for
         // when the image starts at an odd X-coord. Why? We store 2 pixels
         // per byte, so we need to straddle odd x-coords.
+        //
+        // NOTE: We could remove all this complication if we are OK with
+        //       restricting Sprites and Tiles to even X-coords.
+        //       Alternatively, we could go with 1 pixel per byte
+        //       which would balloon the size of the bitmap display
+        //       memory allocation. Trade-offs.
+        //
         if (width == SPRITE32_WIDTH) {
             uint64_t carry;
             carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
