@@ -173,4 +173,4 @@ However, what we do is create a shifted version of the Sprite and Tile bitmap so
 
 The takeaway from all this is that when creating your Sprites, they should be bounded on the left and right hand sides by a column of transparent pixels. Tiles should be bounded on the left and right by whatever color the background is.
 
-![Sprite Bitmap mapping and shifting](../Images/sprite-bitmap.png)
+![Sprite Bitmap mapping and shifting](../../Images/sprite-bitmap.png)
