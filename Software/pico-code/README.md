@@ -172,3 +172,5 @@ There is one important consideration in the handling of Sprites (and Tiles) when
 However, what we do is create a shifted version of the Sprite and Tile bitmap so that _internally_ we can simulate pixel by pixel movement by using the shifted bitmap data. Basically, we have 2 versions of the Sprite bitmap: one for even and one for odd x coordinates. We built the latter one on the fly.
 
 The takeaway from all this is that when creating your Sprites, they should be bounded on the left and right hand sides by a column of transparent pixels. Tiles should be bounded on the left and right by whatever color the background is.
+
+![Sprite Bitmap mapping and shifting](../Images/sprite-bitmap.png)
