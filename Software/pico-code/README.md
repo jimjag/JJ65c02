@@ -29,7 +29,7 @@ but are limited by the onboard memory available on the __RP2040__.
 
 The display itself is fully bitmapped, allowing for each individual pixel
 to be directly addressed.  Changes to the bitmap are automatically reflected
-in the output using the __Pico__ DMA capability.
+in the output using the __Pico__ DMA capability. Internally, each pixel is stored in 4bits of 1/2 of byte (ie: 2 pixels per byte), substantially reducing the memory footprint of the bitmapped display.
 
 Character bytes can be written to the __Pico__ from the 65C02 by simply writing
 to the Pico's mapped direct address. This uses 8 pins on the Pico for the
@@ -165,3 +165,10 @@ Due to the way the VGA subsystem works, and especially the fact that all graphic
 When a Sprite is drawn to the screen, the VGA subsystem will first place a copy of the background that will be covered up by the Sprite into temporary storage. Then, using a combination of XOR and masking, the Sprite is drawn to the display. When the Sprite is moved, if the `erase` flag is set, the original background will be restored, and the Sprite will be drawn at the new location. This prevents having to redraw the entire screen when moving a Sprite around.
 
 NOTE: Care must be taken in situations where a Sprite is drawn over another Sprite. The ordering of drawing Sprites is important due to the storage of the backgrounds. In such cases, the last moved Sprite should be the first moved in the next round.
+
+### Pixel by Pixel Movement
+There is one important consideration in the handling of Sprites (and Tiles) when placing them on the screen. Recall that in design of the VGA system, we have 2 pixels per byte of screen memory. So when we write to an even x coordinate, we are actually also writing the Sprite or Tile data for the pixel in the next column as well. The result would be that even if we called the drawing routine to move the Sprite left or right by 1 pixel, it would remain at the same location on the screen. Basically, all Sprites and Tiles would only be placed on even x coordinates and the smallest movement possible for Sprites would be 2 pixels. Admittedly, at 640x480 resolution, and being a retro implementation, this would be fine.
+
+However, what we do is create a shifted version of the Sprite and Tile bitmap so that _internally_ we can simulate pixel by pixel movement by using the shifted bitmap data. Basically, we have 2 versions of the Sprite bitmap: one for even and one for odd x coordinates. We built the latter one on the fly.
+
+The takeaway from all this is that when creating your Sprites, they should be bounded on the left and right hand sides by a column of transparent pixels. Tiles should be bounded on the left and right by whatever color the background is.
