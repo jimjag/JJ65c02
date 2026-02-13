@@ -504,7 +504,7 @@ void vgaScrollLeft (int pixels) {
     for (int y = 0; y < scanlines; y++) {
         int pixel = (y * SCREENWIDTH + pixels) >> 1;
         int col0 = (y * SCREENWIDTH) >> 1;
-        if (!smooth_scroll) {
+        if (!smooth_scroll) { // At standard speeds, the difference is hardly noticeable
             dma_memcpy(&vga_data_array[col0], &vga_data_array[pixel], xfer, true);
         } else {
             int counter = pixel - col0;
@@ -518,7 +518,7 @@ void vgaScrollLeft (int pixels) {
 void vgaScrollUp (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
-    if (!smooth_scroll) {
+    if (!smooth_scroll) {  // At standard speeds, the difference is hardly noticeable
         scanlines *= scanline_size;
         dma_memcpy(vga_data_array, vga_data_array + scanlines, txcount - scanlines, true);
         dma_memset(vga_data_array + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines, true);

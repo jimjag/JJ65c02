@@ -12,6 +12,7 @@
 #include "hardware/gpio.h"
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
+#include "hardware/clocks.h"
 #include "pico/multicore.h"
 #include "pico_synth_ex_presets.h"
 #include "pico_synth_ex_tables.h"
@@ -175,10 +176,12 @@ static volatile uint16_t Voice_lifetime[4]; // How long the voice lasts
 static uint8_t PWMA_L_SLICE;
 static uint8_t PWMA_L_CHAN;
 
-#define PWMA_CYCLE (FCLKSYS / FS) // PWM cycle
+int PWMA_CYCLE; // PWM cycle
+
 
 void initSOUND(void) {
     reset_presets();
+    PWMA_CYCLE = (clock_get_hz(clk_sys) / FS);
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
     PWMA_L_CHAN = pwm_gpio_to_channel(PWMA_L_GPIO);
     gpio_set_function(PWMA_L_GPIO, GPIO_FUNC_PWM);

@@ -215,7 +215,17 @@ int main() {
     sleep_ms(1000);
     enableSmoothScroll(true);
     vgaScrollUp(64);
+    sleep_ms(2000);
+    enableSmoothScroll(false);
+    vgaScrollLeft(20);
     sleep_ms(1000);
+    vgaScrollLeft(20);
+    sleep_ms(5000);
+    enableSmoothScroll(true);
+    vgaScrollLeft(20);
+    sleep_ms(1000);
+    vgaScrollLeft(20);
+    sleep_ms(5000);
     vgaFillScreen(BLUE);
     sleep_ms(1000);
     vgaFillScreen(BLACK);
@@ -424,21 +434,6 @@ int main() {
         drawSprite(2, i, y, false);
         y += 17;
     }
-
-    sleep_ms(5000);
-    enableSmoothScroll(false);
-    vgaScrollLeft(20);
-    sleep_ms(5000);
-    vgaScrollLeft(20);
-    sleep_ms(5000);
-    vgaScrollLeft(20);
-    sleep_ms(5000);
-    enableSmoothScroll(true);
-    vgaScrollLeft(20);
-    sleep_ms(5000);
-    vgaScrollLeft(20);
-    sleep_ms(5000);
-    vgaScrollLeft(20);
 
     while (true) {
         unsigned char c = ps2GetChar(false);
