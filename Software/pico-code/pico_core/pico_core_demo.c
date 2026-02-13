@@ -107,7 +107,7 @@ int main() {
     //vreg_set_voltage(VREG_VOLTAGE_1_15);
     // rp2350 will run at 300 Mhz at 1.3 volt
     // vreg_set_voltage (VREG_VOLTAGE_1_30);
-    set_sys_clock_khz(250000, true);
+    set_sys_clock_khz(300000, true);
     // Initialize stdio
     stdio_init_all();
 
@@ -225,7 +225,7 @@ int main() {
     vgaScrollLeft(20);
     sleep_ms(1000);
     vgaScrollLeft(20);
-    sleep_ms(5000);
+    sleep_ms(1000);
     vgaFillScreen(BLUE);
     sleep_ms(1000);
     vgaFillScreen(BLACK);
