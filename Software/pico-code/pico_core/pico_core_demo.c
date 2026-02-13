@@ -207,14 +207,14 @@ int main() {
     }
     setTextColor2(WHITE, BLACK);
     sleep_ms(1000);
-    vgaScroll(0);
+    vgaScrollUp(0);
     sleep_ms(1000);
-    termScroll(1);
+    termScrollUp(1);
     sleep_ms(1000);
-    vgaScroll(64);
+    vgaScrollUp(64);
     sleep_ms(1000);
     enableSmoothScroll(true);
-    vgaScroll(64);
+    vgaScrollUp(64);
     sleep_ms(1000);
     vgaFillScreen(BLUE);
     sleep_ms(1000);
@@ -424,6 +424,21 @@ int main() {
         drawSprite(2, i, y, false);
         y += 17;
     }
+
+    sleep_ms(5000);
+    enableSmoothScroll(false);
+    vgaScrollLeft(10);
+    sleep_ms(5000);
+    vgaScrollLeft(10);
+    sleep_ms(5000);
+    vgaScrollLeft(10);
+    sleep_ms(5000);
+    enableSmoothScroll(true);
+    vgaScrollLeft(10);
+    sleep_ms(5000);
+    vgaScrollLeft(10);
+    sleep_ms(5000);
+    vgaScrollLeft(10);
 
     while (true) {
         unsigned char c = ps2GetChar(false);

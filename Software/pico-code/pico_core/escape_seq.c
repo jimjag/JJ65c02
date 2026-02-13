@@ -142,7 +142,7 @@ static void esc_sequence_received(void) {
                 if (n >= (maxTcurs.y + 1)) {
                     clearScreen();
                 } else {
-                    termScroll(n);
+                    termScrollUp(n);
                 }
                 break;
             case 'h': // SM - Set Mode

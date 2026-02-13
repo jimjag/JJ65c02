@@ -49,7 +49,7 @@
 #include "pico_synth_ex.h"
 #include "pico/platform.h"
 
-// TODO: Eventually support resolutions > 640x480
+// TODO: Consider double buffering or, *gasp* racing the beam!
 
 #define VERSION_6502 "PICO Console: v2.0.0"
 
@@ -177,8 +177,9 @@ void dma_memcpy(void *dest, void *src, size_t num, bool block);
 
 void writeChar(unsigned char chrx); // write the interpreted character
 void handleByte(unsigned char c);     // auto-decide based on graphics/text mode
-void vgaScroll (int scanlines);
-void termScroll (int rows);
+void vgaScrollUp (int scanlines);
+void termScrollUp (int rows);
+void vgaScrollLeft(int pixels);
 unsigned char convertRGB332(unsigned char c);
 void setTxtCursor(int x, int y);
 void printString(char* str);

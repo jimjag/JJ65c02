@@ -496,7 +496,27 @@ void setLf2Crlf(bool w) { lf2crlf = w; }
 
 void enableSmoothScroll(bool flag) { smooth_scroll = flag; }
 
-void vgaScroll (int scanlines) {
+void vgaScrollLeft (int pixels) {
+    if (pixels <= 0 || pixels >= SCREENWIDTH - 1) return;
+    int scanlines = SCREENHEIGHT - 1;
+    int xfer = (SCREENWIDTH - pixels) >> 1;
+    int maxxfer = (SCREENWIDTH - 1) >> 1;
+    for (int y = 0; y < scanlines; y++) {
+        int pixel = (y * SCREENWIDTH + pixels) >> 1;
+        int col0 = (y * SCREENWIDTH) >> 1;
+        if (!smooth_scroll) {
+            dma_memcpy(&vga_data_array[col0], &vga_data_array[pixel], xfer, true);
+        } else {
+            // Not Working yet
+            int counter = pixel - col0;
+            for (int i = counter; i < 0; i--) {
+                dma_memcpy(&vga_data_array[col0], &vga_data_array[col0+1], maxxfer, true);
+            }
+        }
+    }
+}
+
+void vgaScrollUp (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
     if (!smooth_scroll) {
@@ -511,7 +531,7 @@ void vgaScroll (int scanlines) {
     }
 }
 
-void termScroll (int rows) {
+void termScrollUp (int rows) {
     bool was = enableCurs(false);
     int orows = rows;
     if (rows <= 0) rows = 1;
@@ -519,7 +539,7 @@ void termScroll (int rows) {
     rows *= textrow_size;
     dma_memcpy(terminal, terminal + rows, terminal_size - rows, true);
     dma_memset(terminal + terminal_size - rows, ' ', rows, true);
-    vgaScroll(orows * FONTHEIGHT);
+    vgaScrollUp(orows * FONTHEIGHT);
     enableCurs(was);
 }
 
@@ -555,7 +575,7 @@ void writeChar(unsigned char chrx) {
         tcurs.y++;
         if (tcurs.y > maxTcurs.y) {
             tcurs.y = maxTcurs.y;
-            termScroll(1);
+            termScrollUp(1);
         }
     }
     enableCurs(was);
@@ -570,7 +590,7 @@ static void printChar(unsigned char chrx) {
             tcurs.y++;
             if (tcurs.y > maxTcurs.y) {
                 tcurs.y = maxTcurs.y;
-                termScroll(1);
+                termScrollUp(1);
             }
             if (cr2crlf) {
                 tcurs.x = 0;
@@ -582,7 +602,7 @@ static void printChar(unsigned char chrx) {
                 tcurs.y++;
                 if (tcurs.y > maxTcurs.y) {
                     tcurs.y = maxTcurs.y;
-                    termScroll(1);
+                    termScrollUp(1);
                 }
             }
             break;
