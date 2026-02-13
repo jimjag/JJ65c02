@@ -108,20 +108,19 @@ alarm_pool_t *apool = NULL;
 volatile bool cursorEnabled = false;
 volatile bool cursorOn = false;
 
-// DMA sets this when it the last pixel has been drawn
-volatile static int is_in_frame = 0 ;
+volatile static int scanline_number = -1 ;
 int vga_done_flag_array[4] __attribute__ ((aligned (16)));
 
-bool in_frame(void) {
-    return is_in_frame;
+int get_scanline(void) {
+    return scanline_number;
 }
 
 // ISR
-static void __time_critical_func(enterframe)(void) {
-    is_in_frame = 1;
-    pio_interrupt_clear(pio0, 1);
+static void __time_critical_func(bump_scanline)(void) {
+    scanline_number++;;
+    pio_interrupt_clear(pio0, 0);
 }
-static uint vsync_pio_irq;
+static uint hsync_pio_irq;
 
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
@@ -224,16 +223,16 @@ void initVGA(void) {
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
-    vsync_pio_irq = PIO0_IRQ_1;
-    pio_set_irq1_source_enabled(pio, pis_interrupt1, true);
-    irq_set_exclusive_handler(vsync_pio_irq, enterframe);
+    hsync_pio_irq = PIO0_IRQ_0;
+    pio_set_irq0_source_enabled(pio, pis_interrupt0, true);
+    irq_set_exclusive_handler(hsync_pio_irq, bump_scanline);
     //irq_add_shared_handler(vsync_pio_irq, enterframe, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
-    irq_set_enabled(vsync_pio_irq, true);
+    irq_set_enabled(hsync_pio_irq, true);
 
-    vga_done_flag_array[0] = 0 ;
-    vga_done_flag_array[1] = 0 ;
-    vga_done_flag_array[2] = 0 ;
-    vga_done_flag_array[3] = 0 ;
+    vga_done_flag_array[0] = -1 ;
+    vga_done_flag_array[1] = -1 ;
+    vga_done_flag_array[2] = -1 ;
+    vga_done_flag_array[3] = -1 ;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // ============================== PIO DMA Channels
@@ -254,7 +253,7 @@ void initVGA(void) {
     channel_config_set_read_increment(&c0, true);           // yes read incrementing
     channel_config_set_write_increment(&c0, false);         // no write incrementing
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
-    channel_config_set_chain_to(&c0, recon_chan);           // chain to other channel
+    channel_config_set_chain_to(&c0, rgb_done_chan);        // chain to other channel
 
     dma_channel_configure(vga_chan,     // Channel to be configured
         &c0,                            // The configuration we just created
@@ -269,7 +268,7 @@ void initVGA(void) {
     channel_config_set_transfer_data_size(&c1, DMA_SIZE_32); // 32-bit txfers
     channel_config_set_read_increment(&c1, false);           // no read incrementing
     channel_config_set_write_increment(&c1, false);          // no write incrementing
-    channel_config_set_chain_to(&c1, rgb_done_chan);         // chain to other channel
+    channel_config_set_chain_to(&c1, vga_chan);         // chain to other channel
 
     dma_channel_configure(recon_chan,       // Channel to be configured
         &c1,                                // The configuration we just created
@@ -283,13 +282,13 @@ void initVGA(void) {
     channel_config_set_transfer_data_size(&c2, DMA_SIZE_32);        // 32-bit txfers
     channel_config_set_read_increment(&c2, true);                   // read incrementing
     channel_config_set_write_increment(&c2, false);                 // no write incrementing
-    channel_config_set_chain_to(&c2, vga_chan);                     // chain to other channel
+    channel_config_set_chain_to(&c2, recon_chan);                     // chain to other channel
     channel_config_set_ring (&c2, false, 4); // 16 byte table
 
     dma_channel_configure(
         rgb_done_chan,                      // Channel to be configured
         &c2,                                // The configuration we just created
-        &is_in_frame,                       // Write address (variable)
+        &scanline_number,                   // Write address (variable)
         vga_done_flag_array,                // Read address
         1,
         false

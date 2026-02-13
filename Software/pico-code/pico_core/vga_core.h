@@ -143,7 +143,7 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
-bool in_frame(void);
+int get_scanline(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);

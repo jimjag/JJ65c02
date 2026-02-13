@@ -399,16 +399,19 @@ int main() {
     setCursor(65, 64);
     sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
     drawString(mem);
+    setCursor(65, 80);
+    sprintf(mem, "Scanline: %d", get_scanline());
+    drawString(mem);
     int y = 2;
     int x0 = 605;
     int y0 = 1;
     for (int i = 10; i < 400; i++) {
+        setCursor(65, 80);
+        sprintf(mem, "Scanline: %d", get_scanline());
+        drawString(mem);
         bool changed = false;
         drawSprite(0, i, y, true);
         for (int j = 1; j < 15; j++) {
-            // These _should_ be smoother, since we are drawing these
-            // when we know we aren't updating the screen.
-            while (in_frame()) { }
             drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), true);
         }
         for (int j = 15; j < 31; j++) {
