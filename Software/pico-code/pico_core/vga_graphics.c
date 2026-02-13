@@ -507,9 +507,8 @@ void vgaScrollLeft (int pixels) {
         if (!smooth_scroll) {
             dma_memcpy(&vga_data_array[col0], &vga_data_array[pixel], xfer, true);
         } else {
-            // Not Working yet
             int counter = pixel - col0;
-            for (int i = counter; i < 0; i--) {
+            for (int i = 0; i < counter; i++) {
                 dma_memcpy(&vga_data_array[col0], &vga_data_array[col0+1], maxxfer, true);
             }
         }

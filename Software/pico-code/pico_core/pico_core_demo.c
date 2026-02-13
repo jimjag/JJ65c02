@@ -427,18 +427,18 @@ int main() {
 
     sleep_ms(5000);
     enableSmoothScroll(false);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
     sleep_ms(5000);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
     sleep_ms(5000);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
     sleep_ms(5000);
     enableSmoothScroll(true);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
     sleep_ms(5000);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
     sleep_ms(5000);
-    vgaScrollLeft(10);
+    vgaScrollLeft(20);
 
     while (true) {
         unsigned char c = ps2GetChar(false);
