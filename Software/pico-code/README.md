@@ -29,7 +29,7 @@ but are limited by the onboard memory available on the __RP2040__.
 
 The display itself is fully bitmapped, allowing for each individual pixel
 to be directly addressed.  Changes to the bitmap are automatically reflected
-in the output using the __Pico__ DMA capability. Internally, each pixel is stored in 4bits of 1/2 of byte (ie: 2 pixels per byte), substantially reducing the memory footprint of the bitmapped display.
+in the output using the __Pico__ DMA capability. Internally, each pixel is stored in 4bits of 1/2 of byte (ie: 2 pixels per byte), substantially reducing the memory footprint of the bitmapped display. Double buffering can be used to minimize flickering if using the Pi Pico2 (RP2350). See below for more details.
 
 Character bytes can be written to the __Pico__ from the 65C02 by simply writing
 to the Pico's mapped direct address. This uses 8 pins on the Pico for the
@@ -175,3 +175,13 @@ However, what we do is create a shifted version of the Sprite and Tile bitmap so
 The takeaway from all this is that when creating your Sprites, they should be bounded on the left and right hand sides by a column of transparent pixels. Tiles should be bounded on the left and right by whatever color the background is.
 
 ![Sprite Bitmap mapping and shifting](../../Images/sprite-bitmap.png)
+
+## Double Buffering
+Double buffering can be used to minimize flickering if using the Pi Pico2 (RP2350). By using double buffering, the display can be updated in the background while the foreground is being displayed, reducing the visible flickering. This is particularly useful when performing complex operations or animations that would otherwise cause noticeable screen updates.
+
+Using double buffering is normally not needed, as the VGA system is extremely fast. However, if you are experiencing flickering or performance issues, double buffering can be a useful technique to mitigate these issues.
+
+Double buffering in JJ65c02 is completely user-controlled, allowing for unparalleled flexibility. This means that you can choose when to switch between buffers, enabling you to optimize performance for your specific use case. In general the logic is as follows:
+ * Enable double buffering via `enableDB()` or the ANSI Escape `ESC[zf;Z`.
+ * At the beginning of the animation loop call `show2drawDB()` (or `ESC[zd;Z)`) to copy the current displayed buffer to the drawing buffer (if desired; you can also blank out the drawing buffer and start from scratch if you wish). Any graphics generated after this will be drawn to the drawing buffer.
+ * At the end of the loop, signal the VGA system to switch buffers via `switchDB()` (or `ESC[ze;Z`). At the end of the current frame, the drawing and display buffers will be swapped.
