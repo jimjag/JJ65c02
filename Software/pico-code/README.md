@@ -56,6 +56,7 @@ Included in the VGA subsystem is a set of text and graphics primitives. Note tha
 * * ACM font ([preview](./font_previews/acm-preview-8x16.png)) | Font #1
 * * Toshiba font ([preview](./font_previews/toshiba-preview-8x16.png)) | Font #2
 * * Sperry font ([preview](./font_previews/sperry-preview-8x16.png)) | Font #3
+* * Verite font ([preview](./font_previews/verite-preview-8x16.png)) | Font #4
 * Fully addressable cursor
 * Blinking cursor
 * Smooth and Jump scrolling

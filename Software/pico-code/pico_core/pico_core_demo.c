@@ -285,8 +285,11 @@ int main() {
     setFont(3);
     setCursor(0, 420);
     drawString("Sperry|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    setFont(0);
+    setFont(4);
     setCursor(0, 400);
+    drawString("Verite|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    setFont(0);
+    setCursor(0, 380);
     drawString("Sweet16| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
     sleep_ms(1000);
 

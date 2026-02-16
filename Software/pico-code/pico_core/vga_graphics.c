@@ -427,6 +427,10 @@ void setTextColor2(char c, char b) {
 
 void setFont(char n) {
     switch (n) {
+        case 4:
+            font = font_verite;
+            txtfont = 4;
+            break;
         case 3:
             font = font_sperry;
             txtfont = 3;
