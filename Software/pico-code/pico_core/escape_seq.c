@@ -241,7 +241,18 @@ static void esc_sequence_received(void) {
                     case 12: // Draw a filled rounded rect: Esc[Z12;x;y;w;h;rZ
                         drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
-
+                    case 13:
+                        enableDB();
+                        break;
+                    case 14:
+                        disableDB();
+                        break;
+                    case 15:
+                        copyDB();
+                        break;
+                    case 16:
+                        switchDB();
+                        break;
                 }
                 break;
             default:

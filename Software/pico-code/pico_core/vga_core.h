@@ -147,12 +147,12 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
-void enableDP(void);
-void disableDP(void);
-void copyDP(void);
-void switchDP(void);
-bool getDPEnabled(void);
-bool getDPSwitched(void);
+void enableDB(void);
+void disableDB(void);
+void copyDB(void);
+void switchDB(void);
+bool getDBEnabled(void);
+bool getDBSwitched(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);

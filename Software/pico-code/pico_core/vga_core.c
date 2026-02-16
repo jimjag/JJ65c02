@@ -158,29 +158,29 @@ static void __time_critical_func(db_vga_ihandler)(void) {
 }
 
 // Enable or Disable the Double Buffering
-void enableDP(void) {
+void enableDB(void) {
     _db_vga = true;
 }
-void disableDP(void) {
+void disableDB(void) {
     _db_vga = false;
     db_draw = db_show;
 }
 // Get the current state of the Double Buffering
-bool getDPEnabled(void) {
+bool getDBEnabled(void) {
     return _db_vga;
 }
 // Copy the currently showing buffer to the drawing buffer
-void copyDP(void) {
+void copyDB(void) {
     if (db_show != db_draw) {
         dma_memcpy(vga_data_array[db_draw], &vga_data_array[db_show], txcount, true);
     }
 }
 // Mark the end-of-frame handler to switch buffers - Use at the end of the animation loop
-void switchDP(void) {
+void switchDB(void) {
     _do_switch = true;
 }
 // Did the handler switch the buffers?
-bool getDPSwitched(void) {
+bool getDBSwitched(void) {
     return _db_switched;
 }
 
