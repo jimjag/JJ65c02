@@ -140,11 +140,11 @@ int db_show = 0;
 int db_draw = 0;
 volatile bool _do_switch = false;
 volatile bool _db_switched = false;
-volatile bool _db_vga = false;
+volatile bool _db_vga_enabled = false;
 static void __time_critical_func(db_vga_ihandler)(void) {
 #if !PICO_RP2040
     _db_switched = false;
-    if (_db_vga && _do_switch) {
+    if (_db_vga_enabled && _do_switch) {
         db_show = db_draw;
         db_draw = !(db_draw);
         _do_switch = false;
@@ -159,19 +159,20 @@ static void __time_critical_func(db_vga_ihandler)(void) {
 
 // Enable or Disable the Double Buffering
 void enableDB(void) {
-    _db_vga = true;
+    _db_vga_enabled = true;
 }
 void disableDB(void) {
-    _db_vga = false;
+    _db_vga_enabled = false;
     db_draw = db_show;
 }
 // Get the current state of the Double Buffering
 bool getDBEnabled(void) {
-    return _db_vga;
+    return _db_vga_enabled;
 }
 // Copy the currently showing buffer to the drawing buffer
-void copyDB(void) {
-    if (db_show != db_draw) {
+// Safe to call whether DB is enabled or not
+void show2drawDB(void) {
+    if (_db_switched && (db_show != db_draw)) {
         dma_memcpy(vga_data_array[db_draw], &vga_data_array[db_show], txcount, true);
     }
 }

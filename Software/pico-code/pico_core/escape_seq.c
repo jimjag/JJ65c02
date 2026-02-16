@@ -242,16 +242,16 @@ static void esc_sequence_received(void) {
                         drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
                     case 13:
-                        enableDB();
+                        show2drawDB();
                         break;
                     case 14:
-                        disableDB();
+                        switchDB();
                         break;
                     case 15:
-                        copyDB();
+                        enableDB();
                         break;
                     case 16:
-                        switchDB();
+                        disableDB();
                         break;
                 }
                 break;

@@ -149,7 +149,7 @@ void initVGA(void);
 void conInTask(void);
 void enableDB(void);
 void disableDB(void);
-void copyDB(void);
+void show2drawDB(void);
 void switchDB(void);
 bool getDBEnabled(void);
 bool getDBSwitched(void);

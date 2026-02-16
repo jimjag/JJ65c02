@@ -1,6 +1,6 @@
 ;
-; NOTE: Timing assumes 4Mhz 6502 and 250Mhz state machine
-;       6502 clk 250ns; RP2040 clk 4ns; Prop+Level-shift Delay ~40ns
+; NOTE: Timing assumes 8Mhz 6502 and 250Mhz state machine
+;       6502 clk 125ns; RP2040 clk 4ns; Prop+Level-shift Delay ~40ns
 ;
 .program memin
 ;.wrap_target

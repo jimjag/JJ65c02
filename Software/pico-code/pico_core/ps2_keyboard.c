@@ -51,7 +51,7 @@ void initPS2(void) {
         gpio_init(pin);
         gpio_set_dir(pin, GPIO_OUT);
     }
-    gpio_init(PIRQ  );
+    gpio_init(PIRQ);
     gpio_set_dir(PIRQ, GPIO_OUT);
     gpio_pull_down(PIRQ);
     gpio_put(PIRQ, 0);
