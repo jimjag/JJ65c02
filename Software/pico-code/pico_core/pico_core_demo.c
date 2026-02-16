@@ -399,16 +399,10 @@ int main() {
     setCursor(65, 64);
     sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
     drawString(mem);
-    setCursor(65, 80);
-    sprintf(mem, "Scanline: %03d", get_scanline());
-    drawString(mem);
     int y = 2;
     int x0 = 605;
     int y0 = 1;
     for (int i = 10; i < 400; i++) {
-        setCursor(65, 80);
-        sprintf(mem, "Scanline: %03d", get_scanline());
-        drawString(mem);
         bool changed = false;
         drawSprite(0, i, y, true);
         for (int j = 1; j < 15; j++) {

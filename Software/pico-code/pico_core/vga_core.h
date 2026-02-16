@@ -23,7 +23,7 @@
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
  *  -   DMA channels 0, 1, 2, and 3
  *  -   IRQ 0, 1
- *  -   153.6 kBytes of RAM (for pixel color data)
+ *  -   307.2 kBytes of RAM (for double buffered pixel color data)
  *  - PS2:
  *  -   PIO state machine 0 on PIO instance 1
  *  -   IRQ 1
@@ -49,9 +49,13 @@
 #include "pico_synth_ex.h"
 #include "pico/platform.h"
 
-// TODO: Consider double buffering or, *gasp* racing the beam!
+// TODO: Consider, *gasp* racing the beam!
 
-#define VERSION_6502 "PICO Console: v2.0.0"
+#if PICO_RP2040
+#define VERSION_6502 "Pico Console: v2.0.0"
+#else
+#define VERSION_6502 "Pico2 Console: v2.0.0"
+#endif
 
 // VGA timing constants
 #define H_ACTIVE 655        // (active + frontporch - 1) - one cycle delay for mov
@@ -143,7 +147,12 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
-int get_scanline(void);
+void enableDP(void);
+void disableDP(void);
+void copyDP(void);
+void switchDP(void);
+bool getDPEnabled(void);
+bool getDPSwitched(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);

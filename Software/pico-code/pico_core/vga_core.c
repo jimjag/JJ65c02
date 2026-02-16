@@ -67,8 +67,14 @@
 // Length of the pixel array, and number of DMA transfers
 // #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
 int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
-unsigned char vga_data_array[(SCREENWIDTH * SCREENHEIGHT) / 2];
-unsigned char *address_pointer = &vga_data_array[0];
+
+// The RP2040 lacks enough memory for double buffering
+#if PICO_RP2040
+unsigned char vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
+#else
+unsigned char vga_data_array[2][(SCREENWIDTH * SCREENHEIGHT) / 2];
+#endif
+//unsigned char *address_pointer = &vga_data_array[0][0];
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 
 static const unsigned char *font = font_sweet16;
@@ -106,20 +112,6 @@ alarm_pool_t *apool = NULL;
 volatile bool cursorEnabled = false;
 volatile bool cursorOn = false;
 
-volatile int scanline_number = 0 ;
-int vga_done_flag_array[4] __attribute__ ((aligned (16)));
-
-int get_scanline(void) {
-    return scanline_number;
-}
-
-// ISR
-static void __time_critical_func(bump_scanline)(void) {
-    scanline_number++;
-    pio_interrupt_clear(pio0, 0);
-}
-static uint hsync_pio_irq;
-
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
     if (!cursorOn) {
@@ -140,6 +132,56 @@ bool enableCurs(bool flag) {
     }
     cursorEnabled = flag;
     return was;
+}
+
+// Double buffers stuff
+int vga_chan;
+int db_show = 0;
+int db_draw = 0;
+volatile bool _do_switch = false;
+volatile bool _db_switched = false;
+volatile bool _db_vga = false;
+static void __time_critical_func(db_vga_ihandler)(void) {
+#if !PICO_RP2040
+    _db_switched = false;
+    if (_db_vga && _do_switch) {
+        db_show = db_draw;
+        db_draw = !(db_draw);
+        _do_switch = false;
+        _db_switched = true;
+    }
+#endif
+    // Clear the interrupt request.
+    dma_hw->ints0 = 1u << vga_chan;
+    // Give the channel a table entry to read from, and re-trigger it
+    dma_channel_set_read_addr(vga_chan, &vga_data_array[db_show][0], true);
+}
+
+// Enable or Disable the Double Buffering
+void enableDP(void) {
+    _db_vga = true;
+}
+void disableDP(void) {
+    _db_vga = false;
+    db_draw = db_show;
+}
+// Get the current state of the Double Buffering
+bool getDPEnabled(void) {
+    return _db_vga;
+}
+// Copy the currently showing buffer to the drawing buffer
+void copyDP(void) {
+    if (db_show != db_draw) {
+        dma_memcpy(vga_data_array[db_draw], &vga_data_array[db_show], txcount, true);
+    }
+}
+// Mark the end-of-frame handler to switch buffers - Use at the end of the animation loop
+void switchDP(void) {
+    _do_switch = true;
+}
+// Did the handler switch the buffers?
+bool getDPSwitched(void) {
+    return _db_switched;
 }
 
 // Interrupt Handler: We have data on GPIO7-14 and DREADY on GPIO26
@@ -221,25 +263,13 @@ void initVGA(void) {
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
-    hsync_pio_irq = PIO0_IRQ_0;
-    pio_set_irq0_source_enabled(pio, pis_interrupt0, true);
-    irq_set_exclusive_handler(hsync_pio_irq, bump_scanline);
-    irq_set_enabled(hsync_pio_irq, true);
-
-    vga_done_flag_array[0] = 0 ;
-    vga_done_flag_array[1] = 0 ;
-    vga_done_flag_array[2] = 0 ;
-    vga_done_flag_array[3] = 0 ;
-
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // ============================== PIO DMA Channels
     // =================================================
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // DMA channels - 0 sends color data, 1 reconfigures and restarts 0
-    int vga_chan = dma_claim_unused_channel(true);
-    int recon_chan = dma_claim_unused_channel(true);
-    int rgb_done_chan = dma_claim_unused_channel(true);
+    // DMA channel - sends color data to VGA system
+    vga_chan = dma_claim_unused_channel(true);
 
     // DMA channel for dma_memcpy and dma_memset
     memcpy_dma_chan = dma_claim_unused_channel(true);
@@ -250,46 +280,22 @@ void initVGA(void) {
     channel_config_set_read_increment(&c0, true);           // yes read incrementing
     channel_config_set_write_increment(&c0, false);         // no write incrementing
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
-    channel_config_set_chain_to(&c0, recon_chan);        // chain to other channel
+    //channel_config_set_chain_to(&c0, recon_chan);        // chain to other channel
 
     dma_channel_configure(vga_chan,     // Channel to be configured
         &c0,                            // The configuration we just created
         &pio->txf[scanline_sm],         // write address (SCANLINE PIO TX FIFO)
-        &vga_data_array,                // The initial read address (pixel color array)
+        &vga_data_array[0][0],          // The initial read address (pixel color array)
         txcount,                        // Number of transfers; in this case each is 1 byte.
         false                           // Don't start immediately.
     );
 
-    // Channel One (reconfigures the first channel)
-    dma_channel_config c1 = dma_channel_get_default_config(recon_chan);     // default configs
-    channel_config_set_transfer_data_size(&c1, DMA_SIZE_32); // 32-bit txfers
-    channel_config_set_read_increment(&c1, false);           // no read incrementing
-    channel_config_set_write_increment(&c1, false);          // no write incrementing
-    channel_config_set_chain_to(&c1, rgb_done_chan);         // chain to other channel
+    // Tell the DMA to raise IRQ line 0 when the channel finishes a block
+    dma_channel_set_irq0_enabled(vga_chan, true);
+    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
+    irq_set_exclusive_handler(DMA_IRQ_0, db_vga_ihandler);
+    irq_set_enabled(DMA_IRQ_0, true);
 
-    dma_channel_configure(recon_chan,       // Channel to be configured
-        &c1,                                // The configuration we just created
-        &dma_hw->ch[vga_chan].read_addr,    // Write address (channel 0 read address)
-        &address_pointer,                   // Read address (POINTER TO AN ADDRESS)
-        1,                                  // Number of transfers, in this case each is 4 byte
-        false
-    );
-
-    dma_channel_config c2 = dma_channel_get_default_config(rgb_done_chan);   // default configs
-    channel_config_set_transfer_data_size(&c2, DMA_SIZE_32);        // 32-bit txfers
-    channel_config_set_read_increment(&c2, true);                   // read incrementing
-    channel_config_set_write_increment(&c2, false);                 // no write incrementing
-    channel_config_set_chain_to(&c2, vga_chan);                     // chain to other channel
-    channel_config_set_ring(&c2, false, 4); // 16 byte table
-
-    dma_channel_configure(
-        rgb_done_chan,                      // Channel to be configured
-        &c2,                                // The configuration we just created
-        &scanline_number,                   // Write address (variable)
-        vga_done_flag_array,                // Read address
-        1,
-        false
-    );
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
