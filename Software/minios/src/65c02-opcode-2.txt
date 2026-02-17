@@ -1,4 +1,4 @@
-;  
+;
 ;  MODE2:  .byte $00   ; 000 000    00                  0   error
 ;          .byte $21   ; 001 000    01      #$00        1   immediate
 ;          .byte $81   ; 100 000    01      $00         2   zero-page
@@ -13,7 +13,7 @@
 ;          .byte $4A   ; 010 010    10      ($0000)     B   indirect
 ;          .byte $85   ; 100 001    01      $00,Y       C   zero-page,Y
 ;          .byte $9D   ; 100 111    01      $0000*      D   relative
-;          
+;
 
 ;  MNEML:  .byte $1C,$8A,$1C,$23   ; BRK PHP BPL CLC
 ;          .byte $5D,$8B,$1B,$A1   ; JSR PLP BMI SEC
@@ -265,23 +265,23 @@ TYA      0x98
 
 BRA_REL  	 0x80
 
-BBR_ZPX	 0x0F
-BBR_ZPX	 0x1F
-BBR_ZPX	 0x2F
-BBR_ZPX	 0x3F
-BBR_ZPX	 0x4F
-BBR_ZPX	 0x5F
-BBR_ZPX	 0x6F
-BBR_ZPX	 0x7F
+BBR_AB	 0x0F
+BBR_AB	 0x1F
+BBR_AB	 0x2F
+BBR_AB	 0x3F
+BBR_AB	 0x4F
+BBR_AB	 0x5F
+BBR_AB	 0x6F
+BBR_AB	 0x7F
 
-BBS_ZPX	 0x8F
-BBS_ZPX	 0x9F
-BBS_ZPX	 0xAF
-BBS_ZPX	 0xBF
-BBS_ZPX	 0xCF
-BBS_ZPX	 0xDF
-BBS_ZPX	 0xEF
-BBS_ZPX	 0xFF
+BBS_AB	 0x8F
+BBS_AB	 0x9F
+BBS_AB	 0xAF
+BBS_AB	 0xBF
+BBS_AB	 0xCF
+BBS_AB	 0xDF
+BBS_AB	 0xEF
+BBS_AB	 0xFF
 
 RMB_ZP	 0x07
 RMB_ZP	 0x17
@@ -319,4 +319,3 @@ PLY 	 0x7A
 
 WAI      0xCB
 STP 	 0xDB
-
