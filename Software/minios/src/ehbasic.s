@@ -506,8 +506,7 @@ Stack_floor       = 16          ; bytes left free on stack for background interr
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ccflag on
 BASIC_COLD:
-    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
-    trb MINIOS_STATUS
+    rmb3 MINIOS_STATUS          ; comment out if not JJ65c02
     stz UseTTY
     ldy #PG2_TABE-PG2_TABS-1    ; byte count-1
 LAB_2D13:
@@ -2093,9 +2092,7 @@ LAB_1754:
 ; TODO: Ugly - Change to looping thru IO_TAB_Start<>IO_TAB_End
 LAB_TTY:
     pha
-    lda #(MINIOS_ACIA_ENABLED_FLAG)
-    bit MINIOS_STATUS
-    beq @done           ; If we don't have ACIA, we don't have serial for TTY
+    bbr0 MINIOS_STATUS, @done           ; If we don't have ACIA, we don't have serial for TTY
     lda UseTTY
     eor #$ff
     sta UseTTY
@@ -8767,9 +8764,7 @@ LAB_stlp:
 ; now do the signon message, Y = $00 here
 
 LAB_signon:
-    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
-    bit MINIOS_STATUS
-    bne @do_cold
+    bbs3 MINIOS_STATUS, @do_cold
 @loop:
     lda LAB_mess,Y              ; get byte from sign on message
     beq @LAB_nokey              ; exit loop if done

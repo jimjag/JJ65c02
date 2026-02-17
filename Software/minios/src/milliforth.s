@@ -272,8 +272,7 @@ tail := head+2 ; heap backward
 
 ;----------------------------------------------------------------------
 FORTH_main:
-    lda #(EHBASIC_ZP_CORRUPTED_FLAG)
-    tsb MINIOS_STATUS
+    smb3 MINIOS_STATUS
     CON_writeln FORTH_welcome
 ; link list of headers
     lda #>h_exit

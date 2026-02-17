@@ -107,9 +107,7 @@ main:                           ; boot routine, first thing loaded
     CON_writeln logo
 
     ; Are we serial enabled?
-    lda #(MINIOS_ACIA_ENABLED_FLAG)
-    bit MINIOS_STATUS
-    beq @no_acia
+    bbr0 MINIOS_STATUS, @no_acia
     TTY_writeln logo
     TTY_writeln message_welcomeacia
     CON_writeln message_welcomeacia
@@ -127,9 +125,7 @@ main:                           ; boot routine, first thing loaded
     ; Rest of boot up
     cli                         ; interupts are back on
     CON_writeln message_ramtest
-    lda #(MINIOS_RAM_TEST_PASS_FLAG)
-    bit MINIOS_STATUS
-    beq @ram_failed
+    bbr1 MINIOS_STATUS, @ram_failed
     CON_writeln message_pass
     bra @cont2
 @ram_failed:
@@ -457,8 +453,7 @@ MINIOS_test_ram_core:
     lda #0
     jsr MINIOS_ram_set
     ; And set mem test as passing
-    lda #(MINIOS_RAM_TEST_PASS_FLAG)
-    tsb MINIOS_STATUS
+    smb1 MINIOS_STATUS
 @skip:
     rts
 
