@@ -136,8 +136,8 @@ bool enableCurs(bool flag) {
 
 // Double buffers stuff
 int vga_chan;
-int db_show = 0;
-int db_draw = 0;
+volatile int db_show = 0;
+volatile int db_draw = 0;
 volatile bool _do_switch = false;
 volatile bool _db_switched = false;
 volatile bool _db_vga_enabled = false;
