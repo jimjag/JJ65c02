@@ -61,15 +61,28 @@ VIA_init:
 
 VIA_ihandler:
     pha
-    phx
     lda VIA1_PORTA
+.ifndef SIM
+    bbr4 MINIOS_STATUS, @testifps2
+    sta PICO_DATA
+    rmb4 MINIOS_STATUS
+    bra @done
+@testifps2:
+    cmp #$02
+    bne @isps2
+    smb4 MINIOS_STATUS
+    bra @done
+@isps2:
+.ENDIF
+    phx
     ldx PS2IN_WPTR
     sta INPUT_BUFFER,x          ; Store in rx buffer
     inc PS2IN_WPTR              ; Increase write buffer pointer
-    bmi @done
+    bmi @done2
     lda #$80                    ; We use $80 -> $ff of INPUT_BUFFER
     sta PS2IN_WPTR
-@done:
+@done2:
     plx
+@done:
     pla
     rts

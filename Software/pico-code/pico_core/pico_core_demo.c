@@ -215,12 +215,12 @@ int main() {
     sleep_ms(1000);
     enableSmoothScroll(true);
     vgaScrollUp(64);
-    sleep_ms(2000);
+    sleep_ms(1000);
     enableSmoothScroll(false);
     vgaScrollLeft(20);
     sleep_ms(1000);
     vgaScrollLeft(20);
-    sleep_ms(5000);
+    sleep_ms(1000);
     enableSmoothScroll(true);
     vgaScrollLeft(20);
     sleep_ms(1000);
@@ -302,10 +302,10 @@ int main() {
         char c = ps2GetChar(false);
         if (c == '\b') break;
         if (c) {
-            setTxtCursor(60, 24);
+            setTxtCursor(60, 22);
             writeChar(c);
             sprintf(hex, "0x%02x", c);
-            setTxtCursor(70, 24);
+            setTxtCursor(70, 22);
             printString(hex);
         }
     }
@@ -438,6 +438,7 @@ int main() {
     while (true) {
         unsigned char c = ps2GetChar(false);
         if (c == 'Q') break;
+        if (c == 0) continue;
         multicore_fifo_push_blocking((uint32_t)c);
     }
 }

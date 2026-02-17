@@ -19,5 +19,6 @@ unsigned char ps2GetChar(bool auto_print);
 unsigned char ps2GetCharBlk(bool auto_print);
 void clearPS2(void);
 void ps2Task(bool auto_print);
+void send2RAM(unsigned char c);
 
 #endif // P2_KEYBOARD_H_

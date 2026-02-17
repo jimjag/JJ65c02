@@ -43,9 +43,9 @@
 .exportzp GSND
 .exportzp SYSMEM_ZP_end
 
-
 .export CLK_SPD
 .export BANK_NUM
+.export PICO_DATA
 .export ISR_VECTOR
 
 .export USER_BUFFLEN
@@ -114,6 +114,7 @@ SYSMEM_ZP_end := XMODEM_pend + 1   ; Everything after here is allocated
 INPUT_BUFFER:   .res 256    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
+PICO_DATA:      .res 1      ; data _from_ the Pi Pico
 ISR_VECTOR:     .res 2      ; Store true ISR vector
 USER_BUFFLEN:   .res 1
 YMBUF:          .res YMBUF_SIZE    ; storage for XMODEM. 128bytes buffer + overhead

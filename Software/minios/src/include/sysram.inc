@@ -30,6 +30,8 @@ _SYSRAM_INC_ = 1
 
 .import CLK_SPD
 .import ISR_VECTOR
+.import BANK_NUM
+.import PICO_DATA
 
 .import USER_BUFFLEN
 .import SCRATCH_32a

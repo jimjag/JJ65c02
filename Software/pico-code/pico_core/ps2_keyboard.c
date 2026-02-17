@@ -213,3 +213,25 @@ void ps2Task(bool auto_print) {
         gpio_put(PIRQ, 0);  // Reset
     }
 }
+
+// We need some way to send a byte to the 6502 via the VIA
+// We do this being sending a special byte that the PS2 could
+// never send (0x02: STX) and then the actual 7-bit byte. The VIA
+// sees this sequence and acts accordingly.
+void send2RAM(unsigned char c) {
+    unsigned char d = 0x02;
+    for (uint pin = PA0; pin <= PA6; pin++) {
+        gpio_put(pin, d & 0x01);
+        d = d>>1;
+    }
+    gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
+    sleep_us(1);               // Give the 6502 time to read
+    gpio_put(PIRQ, 0);  // Reset
+    for (uint pin = PA0; pin <= PA6; pin++) {
+        gpio_put(pin, c & 0x01);
+        c = c>>1;
+    }
+    gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
+    sleep_us(1);               // Give the 6502 time to read
+    gpio_put(PIRQ, 0);  // Reset
+}
