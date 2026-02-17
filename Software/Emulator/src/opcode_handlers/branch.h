@@ -60,6 +60,7 @@ case BRA:
 
 case BBR0:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x01)) {
     if(!(read_byte(m, r1) & 0x01)) {
         branch_offset = s1;
@@ -68,6 +69,7 @@ case BBR0:
 
 case BBR1:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x02)) {
     if(!(read_byte(m, r1) & 0x02)) {
         branch_offset = s1;
@@ -76,6 +78,7 @@ case BBR1:
 
 case BBR2:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x04)) {
     if(!(read_byte(m, r1) & 0x04)) {
         branch_offset = s1;
@@ -84,6 +87,7 @@ case BBR2:
 
 case BBR3:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x08)) {
     if(!(read_byte(m, r1) & 0x08)) {
         branch_offset = s1;
@@ -92,6 +96,7 @@ case BBR3:
 
 case BBR4:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x10)) {
     if(!(read_byte(m, r1) & 0x10)) {
         branch_offset = s1;
@@ -100,6 +105,7 @@ case BBR4:
 
 case BBR5:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x20)) {
     if(!(read_byte(m,r1) & 0x20)) {
         branch_offset = s1;
@@ -108,6 +114,7 @@ case BBR5:
 
 case BBR6:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x40)) {
     if(!(read_byte(m, r1) & 0x40)) {
         branch_offset = s1;
@@ -116,6 +123,7 @@ case BBR6:
 
 case BBR7:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(!(m->mem[r1] & 0x80)) {
     if(!(read_byte(m, r1) & 0x80)) {
         branch_offset = s1;
@@ -124,6 +132,7 @@ case BBR7:
 
 case BBS0:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x01) {
     if(read_byte(m, r1) & 0x01) {
         branch_offset = s1;
@@ -132,6 +141,7 @@ case BBS0:
 
 case BBS1:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x02) {
     if(read_byte(m, r1) & 0x02) {
         branch_offset = s1;
@@ -140,6 +150,7 @@ case BBS1:
 
 case BBS2:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x04) {
     if(read_byte(m, r1) & 0x04) {
         branch_offset = s1;
@@ -148,6 +159,7 @@ case BBS2:
 
 case BBS3:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x08) {
     if(read_byte(m, r1) & 0x08) {
         branch_offset = s1;
@@ -156,6 +168,7 @@ case BBS3:
 
 case BBS4:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x10) {
     if(read_byte(m, r1) & 0x10) {
         branch_offset = s1;
@@ -164,6 +177,7 @@ case BBS4:
 
 case BBS5:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x20) {
     if(read_byte(m, r1) & 0x20) {
         branch_offset = s1;
@@ -172,6 +186,7 @@ case BBS5:
 
 case BBS6:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x40) {
     if(read_byte(m, r1) & 0x40) {
         branch_offset = s1;
@@ -180,6 +195,7 @@ case BBS6:
 
 case BBS7:
     r1 = ZP(NEXT_BYTE(m));
+    s1 = ZP(NEXT_BYTE(m));
     //if(m->mem[r1] & 0x80) {
     if(read_byte(m, r1) & 0x80) {
         branch_offset = s1;

@@ -62,7 +62,6 @@ VIA_init:
 VIA_ihandler:
     pha
     lda VIA1_PORTA
-.ifndef SIM
     bbr4 MINIOS_STATUS, @testifps2
     sta PICO_DATA
     rmb4 MINIOS_STATUS
@@ -73,7 +72,6 @@ VIA_ihandler:
     smb4 MINIOS_STATUS
     bra @done
 @isps2:
-.ENDIF
     phx
     ldx PS2IN_WPTR
     sta INPUT_BUFFER,x          ; Store in rx buffer
