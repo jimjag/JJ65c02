@@ -876,6 +876,8 @@ GETFMT:
 ; extract and print packed mnemonics
 PROPXX:
     tay
+    lda #' '
+    jsr CHROUT
     lda MNEML,Y                 ;   and place a temporary copy in STORE
     sta STORE
     lda MNEMR,Y
