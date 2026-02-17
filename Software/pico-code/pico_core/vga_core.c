@@ -159,7 +159,13 @@ static void __time_critical_func(db_vga_ihandler)(void) {
 
 // Enable or Disable the Double Buffering
 void enableDB(void) {
+#if !PICO_RP2040
     _db_vga_enabled = true;
+    db_show = db_draw;
+    db_draw = !(db_draw);
+    _do_switch = false;
+    _db_switched = true;
+#endif
 }
 void disableDB(void) {
     _db_vga_enabled = false;

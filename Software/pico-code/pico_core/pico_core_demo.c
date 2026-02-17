@@ -405,6 +405,8 @@ int main() {
     int y = 2;
     int x0 = 605;
     int y0 = 1;
+    // enableDB();
+    // show2drawDB();
     for (int i = 10; i < 400; i++) {
         bool changed = false;
         drawSprite(0, i, y, true);
@@ -423,7 +425,9 @@ int main() {
             changed = true;
         }
         sleep_ms(25);
+        // switchDB();
     }
+    // disableDB();
     y = 5;
     for (int i = 0; i > -32; i--) {
         drawSprite(2, i, y, false);
