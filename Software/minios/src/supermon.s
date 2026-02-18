@@ -144,18 +144,18 @@ NBS:
     bne SMOVE
     lda #0                      ; null-terminate input buffer
     sta INBUFF-1,X              ; (replacing the CR)
-ST1:
+@ST1:
     jsr GETCHR                  ; get a character from the buffer
     beq STRT                    ; start over if buffer is empty
     cmp #$20                    ; skip leading spaces
-    beq ST1
+    beq @ST1
 S0:
     ldx #KEYTOP-KEYW            ; loop through valid command characters
-S1:
+@S1:
     cmp KEYW,X                  ; see if input character matches
     beq S2                      ; command matched, dispatch it
     dex                         ; no match, check next command
-    bpl S1                      ; keep trying until we've checked them all
+    bpl @S1                      ; keep trying until we've checked them all
                             ; then fall through to error handler
 
 ; -----------------------------------------------------------------------------

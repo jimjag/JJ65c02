@@ -49,8 +49,7 @@ ACIA_init:
     cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_INT | ACIA_BAUD_19200)
     ;cmp #(ACIA_STOP_BITS_1 | ACIA_DATA_BITS_8 | ACIA_CLOCK_EXT | ACIA_BAUD_16XEXT)
     bne @done
-    lda #(MINIOS_ACIA_ENABLED_FLAG)
-    tsb MINIOS_STATUS
+    smb0 MINIOS_STATUS
 @done:
     jsr LIB_flush_serbuf
     pla
@@ -138,9 +137,7 @@ ACIA_write_byte:
     phx
     tax
     pha
-    lda #(MINIOS_ACIA_ENABLED_FLAG)
-    bit MINIOS_STATUS
-    beq @done
+    bbr0 MINIOS_STATUS, @done
 @wait_txd_empty_char:
     lda ACIA_STATUS
     and #(ACIA_STATUS_TX_EMPTY)
@@ -176,9 +173,7 @@ ACIA_read_blk_write_byte:
 
 ACIA_write_string:
     pha
-    lda #(MINIOS_ACIA_ENABLED_FLAG)
-    bit MINIOS_STATUS
-    beq @done
+    bbr0 MINIOS_STATUS,  @done
     phx
     phy
     ldy #$00
