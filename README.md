@@ -15,6 +15,14 @@ This project contains 3 main sections:
 
 Each section has its own Readme.md and folder under this repo.
 
+## Philosophy
+
+More than anything, I want JJ65c02 to have a retro feel. Sure, I'll use modern technology where needed, but I don't want it to be the focus of the project. I want to keep the hardware and software as authentic as possible, while still being able to take advantage of modern tools and techniques where it doesn't impact the feel and spirit of being "retro."
+
+I am therefore putting some restrictions on the project. For example, I am limiting the video output to a 640x480 VGA screen, and the keyboard input to PS/2; graphics are bitmapped. The system is setup to encourage and foster experimentation and innovation.
+
+Basically, I want to keep it simple and fun and recall the early days of 8-bit computing.
+
 ## Updates
 
 Keep up to date by following the project on [Hackaday](https://hackaday.io/project/193153-jj65c02) and our [YouTube channel](https://www.youtube.com/playlist?list=PLI32OMXu1rudGl28vJc05QFXHkXWn0A19). Older notes can be found by reading the [History](./HISTORY.md) file, which served as a running log of additions and improvements.

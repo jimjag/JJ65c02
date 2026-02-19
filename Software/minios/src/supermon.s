@@ -15,7 +15,8 @@ ENABLE_ASSEMBLER = 1
 ; Adapted from J.B. Langston's reformatted and annotated SUPERMON+ 64
 ; source by Andrew Taylor.. Original Commodore PET version by Wozniak & Baum,
 ; Russo, Seiler, and Butterfield
-;:
+;
+; Changes by jimjag:
 ; * The e'X'it command returns to the miniOS main menu
 ; * The input routine handles ^h as backspace and lower case letters
 ;   are converted to upper case
