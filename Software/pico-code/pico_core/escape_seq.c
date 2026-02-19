@@ -44,6 +44,7 @@ static void not_implemented(void) {}
 */
 static void esc_sequence_received(void) {
     int n,m;
+    int start,end;
 
     if (esc_c1 == '[') {
         // CSI
@@ -214,44 +215,61 @@ static void esc_sequence_received(void) {
                     case 3: // Set bg color: Esc[Z3;<color>Z
                         textbgcolor = convertRGB332(escP[1]);
                         break;
-                    case 4: // Draw Pixel at x,y: Esc[Z4;x;yZ
-                        drawPixel(escP[1], escP[2], textfgcolor, false);
+                    case 4: // VRAM cpy Esc[Z5;<x1>;<y1>;<x2>;<y2>;<len>Z
+                        // copy <len> bytes from x1,y1 to x2,y2
+                        start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
+                        end = (escP[4] * SCREENWIDTH + escP[3]) >> 1;
+                        dma_memcpy(&vga_data_array[db_draw][end], &vga_data_array[db_draw][start], escP[5], true);
                         break;
-                    case 5: // Draw character <char> at x,y: Esc[Z5;x;y;<char>Z
-                        drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
+                    case 5: // VRAM set Esc[Z5;<x>;<y>;<byte>;<len>Z
+                        start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
+                        dma_memset(&vga_data_array[db_draw][end], escP[3], escP[4], true);
                         break;
-                    case 6: // Draw a line: Esc[Z6;x1;y1;x2;y2Z
-                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                    case 6: // Esc[Z6;<lines>Z
+                        vgaScrollUp(escP[1]);
                         break;
-                    case 7: // Draw an empty rect: Esc[Z7;x;y;w;hZ
-                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                    case 7: // Esc[Z7;<pixels>Z
+                        vgaScrollLeft(escP[1]);
                         break;
-                    case 8: // Draw a filled rect: Esc[Z8;x;y;w;hZ
-                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
-                        break;
-                    case 9: // Draw an empty circle: Esc[Z9;x;y;rZ
-                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
-                        break;
-                    case 10: // Draw an filled circle: Esc[Z10;x;y;rZ
-                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
-                        break;
-                    case 11: // Draw an empty rounded rect: Esc[Z11;x;y;w;h;rZ
-                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
-                        break;
-                    case 12: // Draw a filled rounded rect: Esc[Z12;x;y;w;h;rZ
-                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
-                        break;
-                    case 13:
+                    case 8: // Esc[Z8;Z
                         show2drawDB();
                         break;
-                    case 14:
+                    case 9: // Esc[Z9;Z
                         switchDB();
                         break;
-                    case 15:
+                    case 10: // Esc[za;Z
                         enableDB();
                         break;
-                    case 16:
+                    case 11: // Esc[zb;Z
                         disableDB();
+                        break;
+                    // hold for future use
+                    case 16: // Draw Pixel at x,y: Esc[Z4;x;yZ
+                        drawPixel(escP[1], escP[2], textfgcolor, false);
+                        break;
+                    case 17: // Draw character <char> at x,y: Esc[Z5;x;y;<char>Z
+                        drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
+                        break;
+                    case 18: // Draw a line: Esc[Z6;x1;y1;x2;y2Z
+                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 19: // Draw an empty rect: Esc[Z7;x;y;w;hZ
+                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 20: // Draw a filled rect: Esc[Z8;x;y;w;hZ
+                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                        break;
+                    case 21: // Draw an empty circle: Esc[Z9;x;y;rZ
+                        drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
+                        break;
+                    case 22: // Draw an filled circle: Esc[Z10;x;y;rZ
+                        drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
+                        break;
+                    case 23: // Draw an empty rounded rect: Esc[Z11;x;y;w;h;rZ
+                        drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
+                        break;
+                    case 24: // Draw a filled rounded rect: Esc[Z12;x;y;w;h;rZ
+                        drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
                 }
                 break;

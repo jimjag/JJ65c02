@@ -95,18 +95,26 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z1;<code>Z` Send ascii char decimal code`<code>` to the rp2040 Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z1;101Z` will send `e` to `soundTask()` to play a single `Mi` note
 * `ESC[Z2;<color>Z` Set FG color to `<color>`
 * `ESC[Z3;<color>Z` Set BG color to `<color>`
+* `ESC[Z4;<x1>;<y1>;<x2>;<y2>;<size>Z` VRAM copy `<size>` bytes from `(x1,y1)` to `(x2,y2)`
+* `ESC[Z5;<x1>;<y1>;<x2>;<y2>;<val>Z` VRAM set bytesfrom `(x1,y1)` to `(x2,y2)` to `<val>`
 * `ESC[Z4;<x>,<y>Z` Draw pixel at `(x,y)` with current FG color
 * `ESC[Z5;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
-* `ESC[Z6;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
-* `ESC[Z7;<x>;<y>;<w>;<h>Z`Draw rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
-* `ESC[Z8;<x>;<y>;<w>;<h>Z`Draw filled rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
-* `ESC[Z9;<x>;<y>;<r>Z`Draw circle with center at `(x,y)` radius `r`
-* `ESC[Z10;<x>;<y>;<r>Z`Draw filled circle with center at `(x,y)` radius `r`
-* `ESC[Z11;<x>;<y>;<w>;<h>;<r>Z`Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
-* `ESC[Z12;<x>;<y>;<w>;<h>;<r>Z`Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
+* `ESC[Z6;<lines>Z` Scroll VGA screen up `<lines>` lines
+* `ESC[Z7;<pixels>Z` Scroll VGA screen left `<pixels>` pixels
+* `ESC[Z8;<y>Z` Copy VGA Display buffer to the Drawing buffer.
+* `ESC[Z9;<y>Z` Flag VGA system to switch VGA Display and Drawing buffers at next frame.
+* `ESC[Z10;<y>Z` Enable VGA double buffering.
+* `ESC[Z11;<y>Z` Disable VGA double buffering.
 
-
-
+* `ESC[Z16;<x>;<y>Z` Draw pixel at `(x,y)` with current FG color
+* `ESC[Z17;<x>;<y>;<c>Z` Draw character `<c>` at `(x,y)` with current FG color
+* `ESC[Z18;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
+* `ESC[Z19;<x>;<y>;<w>;<h>Z` Draw rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
+* `ESC[Z20;<x>;<y>;<w>;<h>Z` Draw filled rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis)
+* `ESC[Z21;<x>;<y>;<r>Z` Draw circle with center at `(x,y)` radius `r`
+* `ESC[Z22;<x>;<y>;<r>Z` Draw filled circle with center at `(x,y)` radius `r`
+* `ESC[Z23;<x>;<y>;<w>;<h>;<r>Z` Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
+* `ESC[Z24;<x>;<y>;<w>;<h>;<r>Z` Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
 
 Pixel locations are 0-based: (0,0) to (639, 479).
 
@@ -182,6 +190,6 @@ Double buffering can be used to minimize flickering if using the Pi Pico2 (RP235
 Using double buffering is normally not needed, as the VGA system is extremely fast. However, if you are experiencing flickering or performance issues, double buffering can be a useful technique to mitigate these issues.
 
 Double buffering in JJ65c02 is completely user-controlled, allowing for unparalleled flexibility. This means that you can choose when to switch between buffers, enabling you to optimize performance for your specific use case. In general the logic is as follows:
- * Enable double buffering via `enableDB()` or the ANSI Escape `ESC[zf;Z`.
- * At the beginning of the animation loop call `show2drawDB()` (or `ESC[zd;Z)`) to copy the current displayed buffer to the drawing buffer (if desired; you can also blank out the drawing buffer and start from scratch if you wish). Any graphics generated after this will be drawn to the drawing buffer.
- * At the end of the loop, signal the VGA system to switch buffers via `switchDB()` (or `ESC[ze;Z`). At the end of the current frame, the drawing and display buffers will be swapped.
+ * Enable double buffering via `enableDB()` or the ANSI Escape `ESC[za;Z`.
+ * At the beginning of the animation loop call `show2drawDB()` (or `ESC[z8;Z)`) to copy the current displayed buffer to the drawing buffer (if desired; you can also blank out the drawing buffer and start from scratch if you wish). Any graphics generated after this will be drawn to the drawing buffer.
+ * At the end of the loop, signal the VGA system to switch buffers via `switchDB()` (or `ESC[z9;Z`). At the end of the current frame, the drawing and display buffers will be swapped.

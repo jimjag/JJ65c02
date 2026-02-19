@@ -311,15 +311,15 @@ int main() {
     }
     vgaFillScreen(BLACK);
     setTextColor(RED);
-    printString("\x1b[Z6;10;10;500;5Z");
+    printString("\x1b[Z18;10;10;500;5Z");
     setTextColor(BLUE);
-    printString("\x1b[Z7;30;30;40;45Z");
+    printString("\x1b[Z19;30;30;40;45Z");
     setTextColor(GREEN);
-    printString("\x1b[Z8;50;50;75;155Z");
+    printString("\x1b[Z20;50;50;75;155Z");
     setTextColor(CYAN);
-    printString("\x1b[Z9;100;100;55Z");
+    printString("\x1b[Z21;100;100;55Z");
     setTextColor(YELLOW);
-    printString("\x1b[Z10;200;200;55Z");
+    printString("\x1b[Z22;200;200;55Z");
     setTxtCursor(0, 20);
     setTextColor2(WHITE, BLACK);
     writeChar('a');
