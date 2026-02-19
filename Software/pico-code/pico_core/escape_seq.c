@@ -215,15 +215,15 @@ static void esc_sequence_received(void) {
                     case 3: // Set bg color: Esc[Z3;<color>Z
                         textbgcolor = convertRGB332(escP[1]);
                         break;
-                    case 4: // VRAM cpy Esc[Z5;<x1>;<y1>;<x2>;<y2>;<len>Z
+                    case 4: // VRAM cpy Esc[Z4;<x1>;<y1>;<x2>;<y2>;<len>Z
                         // copy <len> bytes from x1,y1 to x2,y2
                         start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
                         end = (escP[4] * SCREENWIDTH + escP[3]) >> 1;
-                        dma_memcpy(&vga_data_array[db_draw][end], &vga_data_array[db_draw][start], escP[5], true);
+                        dma_memcpy(&vga_data_array[db_draw][end], &vga_data_array[db_draw][start], escP[5]>>1, true);
                         break;
                     case 5: // VRAM set Esc[Z5;<x>;<y>;<byte>;<len>Z
                         start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
-                        dma_memset(&vga_data_array[db_draw][end], escP[3], escP[4], true);
+                        dma_memset(&vga_data_array[db_draw][end], escP[3], escP[4]>>1, true);
                         break;
                     case 6: // Esc[Z6;<lines>Z
                         vgaScrollUp(escP[1]);

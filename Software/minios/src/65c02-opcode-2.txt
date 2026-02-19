@@ -1,40 +1,38 @@
-;
-;  MODE2:  .byte $00   ; 000 000    00                  0   error
-;          .byte $21   ; 001 000    01      #$00        1   immediate
-;          .byte $81   ; 100 000    01      $00         2   zero-page
-;          .byte $82   ; 100 000    10      $0000       3   absolute
-;          .byte $00   ; 000 000    00                  4   implied
-;          .byte $00   ; 000 000    00                  5   accumulator
-;          .byte $59   ; 010 110    01      ($00,X)     6   indirect,X
-;          .byte $4D   ; 010 011    01      ($00),Y     7   indirect,Y
-;          .byte $91   ; 100 100    01      $00,X       8   zero-page,X
-;          .byte $92   ; 100 100    10      $0000,X     9   absolute,X
-;          .byte $86   ; 100 001    10      $0000,Y     A   absolute,Y
-;          .byte $4A   ; 010 010    10      ($0000)     B   indirect
-;          .byte $85   ; 100 001    01      $00,Y       C   zero-page,Y
-;          .byte $9D   ; 100 111    01      $0000*      D   relative
-;
+; addressing mode format definitions indexed by opcode from IDX_MODE2 table
 
-;  MNEML:  .byte $1C,$8A,$1C,$23   ; BRK PHP BPL CLC
-;          .byte $5D,$8B,$1B,$A1   ; JSR PLP BMI SEC
-;          .byte $9D,$8A,$1D,$23   ; RTI PHA BVC CLI
-;          .byte $9D,$8B,$1D,$A1   ; RTS PLA BVS SEI
-;          .byte $00,$29,$19,$AE   ; ??? DEY BCC TYA
-;          .byte $69,$A8,$19,$23   ; LDY TAY BCS CLV
-;          .byte $24,$53,$1B,$23   ; CPY INY BNE CLD
-;          .byte $24,$53,$19,$A1   ; CPX INX BEQ SED
-;          ; XXXYY100 opcodes
-;          .byte $00,$1A,$5B,$5B   ; ??? BIT JMP JMP
-;          .byte $A5,$69,$24,$24   ; STY LDY CPY CPX
-;          ; 1XXX1010 opcodes
-;          .byte $AE,$AE,$A8,$AD   ; TXA TXS TAX TSX
-;          .byte $29,$00,$7C,$00   ; DEX ??? NOP ???
-;          ; XXXYYY10 opcodes
-;          .byte $15,$9C,$6D,$9C   ; ASL ROL LSR ROR
-;          .byte $A5,$69,$29,$53   ; STX LDX DEC INC
-;          ; XXXYYY01 opcodes
-;          .byte $84,$13,$34,$11   ; ORA AND EOR ADC
-;          .byte $A5,$69,$23,$A0   ; STA LDA CMP SMB
+; left 6 bits define which characters appear in the assembly operand
+; left 3 bits are before the address; next 3 bits are after
+
+; right-most 2 bits define length of binary operand
+
+; index               654 321
+; 1st character       $(# ,),
+; 2nd character        $$ X Y    length  format      idx mode
+;MODE2:  .byte $00   ; 000 000    00                  0   error
+;        .byte $21   ; 001 000    01      #$00        1   immediate
+;        .byte $81   ; 100 000    01      $00         2   zero-page
+;        .byte $82   ; 100 000    10      $0000       3   absolute
+;        .byte $00   ; 000 000    00                  4   implied
+;        .byte $00   ; 000 000    00                  5   accumulator
+;        .byte $59   ; 010 110    01      ($00,X)     6   indirect,X
+;        .byte $4D   ; 010 011    01      ($00),Y     7   indirect,Y
+;        .byte $91   ; 100 100    01      $00,X       8   zero-page,X
+;        .byte $92   ; 100 100    10      $0000,X     9   absolute,X
+;        .byte $86   ; 100 001    10      $0000,Y     A   absolute,Y
+;        .byte $4A   ; 010 010    10      ($0000)     B   indirect
+;        .byte $85   ; 100 001    01      $00,Y       C   zero-page,Y
+;        .byte $9D   ; 100 111    01      $0000*      D   relative
+
+; * relative is special-cased so format bits don't match
+
+
+; character lookup tables for the format definitions in MODE2
+
+;CHAR1:  .byte $2C,$29,$2C       ; ','  ')'  ','
+;        .byte $23,$28,$24       ; '#'  '('  '$'
+;
+;CHAR2:  .byte $59,$00,$58       ; 'Y'   0   'X'
+;        .byte $24,$24,$00       ; '$'  '$'   0
 
 ;  // Opcode constants that have multiple addressing modes are named in the form
 ;  // X_Y, where X is the instruction and Y is the addressing mode. The possible
