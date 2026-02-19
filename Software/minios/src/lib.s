@@ -22,6 +22,7 @@
 .export GRA_print_char
 .export GRA_set_fgcolor
 .export GRA_set_bgcolor
+.export SND_send
 
 ; Actual start of ROM code
 .segment "CODE"
@@ -447,7 +448,7 @@ GRA_print_char:
 ;================================================================================
 ;
 ;   GRA_set_fgcolor:
-;       "ESC[Z8;<color>Z"
+;       "ESC[Z2;<color>Z"
 ;   ————————————————————————————————————
 ;   Preparatory Ops: GCOLOR (R0)
 ;
@@ -459,7 +460,7 @@ GRA_print_char:
 ;================================================================================
 GRA_set_fgcolor:
     CON_writeln x_escZ_prefix
-    lda #'8'
+    lda #'2'
     jsr CON_write_byte
     lda #';'
     jsr CON_write_byte
@@ -471,7 +472,7 @@ GRA_set_fgcolor:
 ;================================================================================
 ;
 ;   GRA_set_bgcolor:
-;       "ESC[Z9;<color>Z"
+;       "ESC[Z3;<color>Z"
 ;   ————————————————————————————————————
 ;   Preparatory Ops: GCOLOR (R0)
 ;
@@ -483,7 +484,37 @@ GRA_set_fgcolor:
 ;================================================================================
 GRA_set_bgcolor:
     CON_writeln x_escZ_prefix
-    lda #'9'
+    lda #'3'
+    jsr CON_write_byte
+    lda #';'
+    jsr CON_write_byte
+    jsr LIB_byte2str
+    lda #'Z'
+    jmp CON_write_byte
+    ;rts
+
+
+; TODO: Add more assembly graphics calls? Or allow programmer to implement themselves?
+;       Let's see how much ROM space we have left
+;
+
+
+;================================================================================
+;
+;   SND_send:
+;       "ESC[Z1;<c>Z"
+;   ————————————————————————————————————
+;   Preparatory Ops: Sound Value (R0)
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y
+;   ————————————————————————————————————
+;
+;================================================================================
+SND_send:
+    CON_writeln x_escZ_prefix
+    lda #'1'
     jsr CON_write_byte
     lda #';'
     jsr CON_write_byte

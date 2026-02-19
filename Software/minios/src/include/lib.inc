@@ -18,6 +18,7 @@ _LIB_INC_ = 1
 .import GRA_print_char
 .import GRA_set_fgcolor
 .import GRA_set_bgcolor
+.import SND_send
 
 ; GRAphics colors
 BLACK_c          = 0
