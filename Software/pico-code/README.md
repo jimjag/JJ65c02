@@ -28,7 +28,7 @@ color palette. The `HSYNC`, `VSYNC` and `RGBI` signals are generated using
 but are limited by the onboard memory available on the __RP2040__.
 
 The display itself is fully bitmapped, allowing for each individual pixel
-to be directly addressed.  Changes to the bitmap are automatically reflected
+to be directly addressed via pseudo VRAM.  Changes to the bitmap are automatically reflected
 in the output using the __Pico__ DMA capability. Internally, each pixel is stored in 4bits of 1/2 of byte (ie: 2 pixels per byte), substantially reducing the memory footprint of the bitmapped display. Double buffering can be used to minimize flickering if using the Pi Pico2 (RP2350). See below for more details.
 
 Character bytes can be written to the __Pico__ from the 65C02 by simply writing
@@ -95,8 +95,8 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z1;<code>Z` Send ascii char decimal code`<code>` to the rp2040 Sound `soundTask()` function (see `pico_synth_ex.c`). For example, `ESC[Z1;101Z` will send `e` to `soundTask()` to play a single `Mi` note
 * `ESC[Z2;<color>Z` Set FG color to `<color>`
 * `ESC[Z3;<color>Z` Set BG color to `<color>`
-* `ESC[Z4;<x1>;<y1>;<x2>;<y2>;<size>Z` VRAM copy `<size>` bytes from `(x1,y1)` to `(x2,y2)`
-* `ESC[Z5;<x1>;<y1>;<x2>;<y2>;<val>Z` VRAM set bytesfrom `(x1,y1)` to `(x2,y2)` to `<val>`
+* `ESC[Z4;<x1>;<y1>;<x2>;<y2>;<size>Z` VRAM copy `<size>` pixels from `(x1,y1)` to `(x2,y2)`
+* `ESC[Z5;<x>;<y>;<val>;<len>Z` VRAM set `<len>` pixels from `(x,y)` to `<val>`
 * `ESC[Z4;<x>,<y>Z` Draw pixel at `(x,y)` with current FG color
 * `ESC[Z5;<x>;<y>;<c>Z` Graphically draw the char `<c>` with its upper left corner starting at pixel location (x,y)
 * `ESC[Z6;<lines>Z` Scroll VGA screen up `<lines>` lines
@@ -106,6 +106,7 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z10;<y>Z` Enable VGA double buffering.
 * `ESC[Z11;<y>Z` Disable VGA double buffering.
 
+##### Graphics Primitives
 * `ESC[Z16;<x>;<y>Z` Draw pixel at `(x,y)` with current FG color
 * `ESC[Z17;<x>;<y>;<c>Z` Draw character `<c>` at `(x,y)` with current FG color
 * `ESC[Z18;<x0>;<y0>;<x1>;<y1>Z` Draw line from `(x0,y0)` to `(x1,y1)` with current FG color
@@ -116,7 +117,8 @@ NOTE: Text cursor positions are 1-based: (1,1) to (80,30) in keeping with ANSI t
 * `ESC[Z23;<x>;<y>;<w>;<h>;<r>Z` Draw rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
 * `ESC[Z24;<x>;<y>;<w>;<h>;<r>Z` Draw filled rounded rectangle starting at `(x,y)` with width `w` (x-axis) and height `h` (y-axis) and corner radius of `<r>`
 
-Pixel locations are 0-based: (0,0) to (639, 479).
+VRAM pixel locations are 0-based: (0,0) to (639, 479).
+NOTE: The VGA system uses 2 pixels per byte of screen memory, so keep this in mind for VRAM copy/set operations.
 
 Graphics (lines, circles, ...) use FG color for their color.
 
