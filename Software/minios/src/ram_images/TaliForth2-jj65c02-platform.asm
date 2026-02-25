@@ -105,7 +105,7 @@ kernel_bye:
         ; """Forth shutdown called from BYE
         ; If you have a monitor or OS to go back to, put the code
         ; to do that here."""
-        jmp $B0B3
+        jmp ($FFF0)
 
 
 kernel_putc:

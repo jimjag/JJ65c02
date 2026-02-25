@@ -14,7 +14,7 @@
 
 ## Build and Install the miniOS
 
-minios requires the [ca65 Assembler](https://cc65.github.io) to assemble
+miniOS requires the [ca65 Assembler](https://cc65.github.io) to assemble
 and link the required files. For ease of assembly, you'll find a `Makefile`
 in the JJ65c02/minios directory. From there simply type `make`:
 
@@ -100,7 +100,7 @@ Without a doubt, EhBASIC is the largest consumer of zeropage memory. However, yo
 
 ### 2. Allocated RAM
 
-The miniOS also occupies some RAM. In the `jj65c02.cfg`
+The miniOS also allocates some RAM. In the `jj65c02.cfg`
 file this is set-aside as `RAM0` and is typically refered to as `SYSRAM`.
 Your programs are free to use `PROG`, `BSS`, `HEAP` and `RWDATA` as needed. (_*NOTE*_: `CODE` is ROM space)
 
