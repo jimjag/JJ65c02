@@ -503,28 +503,9 @@
         "wire_width": 6
       },
       {
-        "bus_width": 8,
+        "bus_width": 12,
         "clearance": 0.175,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "line_style": 0,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "Audio",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 0,
-        "schematic_color": "rgb(31, 255, 15)",
-        "track_width": 0.2286,
-        "via_diameter": 0.5,
-        "via_drill": 0.3,
-        "wire_width": 6
-      },
-      {
-        "bus_width": 10,
-        "clearance": 0.175,
-        "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
@@ -533,16 +514,15 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 1,
         "schematic_color": "rgb(0, 0, 255)",
-        "track_width": 0.3048,
+        "track_width": 0.4064,
         "via_diameter": 0.5,
         "via_drill": 0.3,
-        "wire_width": 6
+        "wire_width": 12
       },
       {
-        "bus_width": 10,
+        "bus_width": 12,
         "clearance": 0.175,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
@@ -551,10 +531,27 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2,
         "schematic_color": "rgb(255, 0, 0)",
-        "track_width": 0.3048,
+        "track_width": 0.4064,
         "via_diameter": 0.5,
         "via_drill": 0.3,
-        "wire_width": 6
+        "wire_width": 12
+      },
+      {
+        "bus_width": 8,
+        "clearance": 0.175,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "SND",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgb(31, 255, 15)",
+        "track_width": 0.2286,
+        "via_diameter": 0.5,
+        "via_drill": 0.3,
+        "wire_width": 8
       }
     ],
     "meta": {
@@ -568,11 +565,11 @@
     },
     "netclass_patterns": [
       {
-        "netclass": "Audio",
+        "netclass": "SND",
         "pattern": "Net-(C6-Pad1)"
       },
       {
-        "netclass": "Audio",
+        "netclass": "SND",
         "pattern": "Net-(C7-Pad1)"
       },
       {
@@ -588,12 +585,16 @@
         "pattern": "+3V3"
       },
       {
-        "netclass": "Audio",
+        "netclass": "SND",
         "pattern": "Net-(R18-Pad1)"
       },
       {
-        "netclass": "Audio",
+        "netclass": "SND",
         "pattern": "Net-(R18-Pad2)"
+      },
+      {
+        "netclass": "SND",
+        "pattern": "SND"
       }
     ]
   },
