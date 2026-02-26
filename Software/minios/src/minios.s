@@ -179,7 +179,7 @@ MINIOS_main_menu:
     jsr MINIOS_clear_ram
     jmp @start
 @test_ram:                      ; start the test ram routine
-    jsr MINIOS_test_ram
+    jsr MINIOS_test_ram_banks
     jmp @start
 @start_basic:
     CON_writeln message_readybasic
@@ -373,7 +373,7 @@ MINIOS_clear_ram:
 
 ;================================================================================
 ;
-;   MINIOS_test_ram - clears RAM from PROGRAM_START up to PROGRAM_END
+;   MINIOS_test_ram - tests RAM from PROGRAM_START up to PROGRAM_END
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: none
@@ -392,7 +392,7 @@ MINIOS_test_ram:
     lda #>PROGRAM_START
     sta Z1
     jsr MINIOS_test_ram_core
-    bcs @failed
+    bbr1 MINIOS_STATUS, @failed
     CON_writeln message_pass
     bra @done
 @failed:
@@ -400,6 +400,19 @@ MINIOS_test_ram:
 @done:
     lda #10
     jsr LIB_delay100ms          ; let them see and know it
+    rts
+
+MINIOS_test_ram_banks:
+    ldx #0
+@do:
+    phx
+    txa
+    jsr LIB_setrambank
+    jsr MINIOS_test_ram
+    plx
+    inx
+    cpx #4
+    blt @do
     rts
 
 ;================================================================================
@@ -419,39 +432,33 @@ MINIOS_test_ram:
 ;================================================================================
 
 MINIOS_test_ram_core:
+    rmb1 MINIOS_STATUS
     lda Z0
     sta Z2
     lda Z1
     sta Z3
-    lda #$5A
+    lda #$FF
     jsr MINIOS_ram_set
     lda Z2
     sta Z0
     lda Z3
     sta Z1
-    lda #$5A
+    lda #$FF
     jsr MINIOS_ram_check
     bcs @skip
-    lda Z2
-    sta Z0
-    lda Z3
-    sta Z1
-    lda #$A5
-    jsr MINIOS_ram_set
-    lda Z2
-    sta Z0
-    lda Z3
-    sta Z1
-    lda #$A5
-    jsr MINIOS_ram_check
-    bcs @skip
-    ; All good - null out all memory
     lda Z2
     sta Z0
     lda Z3
     sta Z1
     lda #0
     jsr MINIOS_ram_set
+    lda Z2
+    sta Z0
+    lda Z3
+    sta Z1
+    lda #$0
+    jsr MINIOS_ram_check
+    bcs @skip
     ; And set mem test as passing
     smb1 MINIOS_STATUS
 @skip:
