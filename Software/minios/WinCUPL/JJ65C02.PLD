@@ -22,11 +22,11 @@ A14   |3     22| /ROM_CS
 A13   |4     21| /IO_CS
 A12   |5     20| BA13
 A11   |6     19| BA14
-BK0   |7     18| --
+BK0   |7     18| BA16
 BK1   |8     17| --
 RW    |9     16| --
 PHI2  |10    15| PICO_DR
---    |11    14| --
+BK2   |11    14| --
 Gnd   |12    13| --
        --------
 */
@@ -42,6 +42,7 @@ Pin 7  =  BK0;   /* Bit 0 of the VIA 3-bit Bank number */
 Pin 8  =  BK1;   /* Bit 1 of the VIA 3-bit Bank number */
 Pin 9  =  RW;    /* R/W of the 6502 */
 Pin 10 =  PHI2;  /* 65C02 CLK */
+Pin 11 =  BK2;   /* Bit 2 of the VIA 3-bit Bank number */
 
 
 /* Outputs:  Chip Selects */
@@ -49,7 +50,9 @@ Pin 23 = RAM_CS;  /* to RAM /CS pin */
 Pin 22 = ROM_CS;  /* to ROM /CS */
 Pin 21 = IO_CS;   /* to IO (VIA and ACIA) /CS pin */
 Pin 20 = BA13;    /* To RAM chip, A13 */
-Pin 19 = BA14;    /* To RAM ship, A14 */
+Pin 19 = BA14;    /* To RAM chip, A14 */
+Pin 18 = BA16;    /* To RAM chip, A16 */
+
 /* To Pi Pico / Data Ready to Read on Data Input Pins - NOTE: Active High */
 Pin 15 = PICO_DR;
 
@@ -65,6 +68,7 @@ ROM       = ADDR:[B000..FFFF];  /* 20k */
 
 IS_ROM = ROM;
 IS_IO = IO;
+IS_BANK = BANK;
 
 !ROM_CS  = IS_ROM;
 !IO_CS   = IS_IO;
@@ -72,10 +76,11 @@ IS_IO = IO;
 
 BA13 = (!A15 & A13) # (A15 & BK0);
 BA14 = (!A15 & A14) # (A15 & BK1);
+BA16 = IS_BANK & BK2;
+
 /* Pi Pico is 0XA800 */
 PICO_DR = !RW & IS_IO & A11 & PHI2;
 
 /*
  A15 -> A15
- BK2 -> A16
  */
