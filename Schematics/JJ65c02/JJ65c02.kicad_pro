@@ -614,7 +614,7 @@
   },
   "schematic": {
     "annotate_start_num": 0,
-    "bom_export_filename": "Parts",
+    "bom_export_filename": "JJ65c02-bom.tsv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": "\t",

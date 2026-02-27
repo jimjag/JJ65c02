@@ -25,13 +25,14 @@
 .export MN_IOVW_t
 .export MN_IOVRBW_c
 .export MN_IOVRBW_t
+.export MN_ENTRY_VEC
 
 ;================================================================================
 ;
 ;                                    "JJ65c02"
 ;                                    _________
 ;
-;   miniOS: RAM bootloader and viewer (r/o) w/ Console and serial/tty connection support
+;   miniOS: OS Menu, RAM bootloader/viewer (r/o) w/ Console and serial/tty connection support
 ;
 ;   Jim Jagielski for the JJ65c02 Hobby Breadboard Project
 ;      ==> https://github.com/jimjag/JJ65c02
@@ -411,7 +412,7 @@ MINIOS_test_ram_banks:
     jsr MINIOS_test_ram
     plx
     inx
-    cpx #4
+    cpx #4                      ; soon to be 8
     blt @do
     rts
 
@@ -546,7 +547,7 @@ MN_IOVW_t:    .word TTY_write_char
 MN_IOVRBW_t:  .word TTY_read_write_char
 
 .segment "VECTORS"
-    .word MINIOS_main_menu                      ; Lets use FFF0 as a miniOS entry vector
+MN_ENTRY_VEC:    .word MINIOS_main_menu                      ; Lets use FFF0 as a miniOS entry vector
     .word $0000
     .word $0000
     .word $0000

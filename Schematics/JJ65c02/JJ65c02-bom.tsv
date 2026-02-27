@@ -1,0 +1,39 @@
+Reference	Value	Datasheet	Footprint	Qty	DNP
+ACIA1	65C51N		Package_DIP:DIP-28_W15.24mm_Socket	1	
+AUDIO1	AudioJack3	~	Connector_Audio:Jack_3.5mm_CUI_SJ1-3533NG_Horizontal	1	
+C1,C2,C3,C4,C5,C6,C7,C9,C10,C13	0.1uF	~	Capacitor_THT:C_Disc_D4.7mm_W2.5mm_P5.00mm	10	
+C8	10uF	~	Capacitor_THT:CP_Radial_D5.0mm_P2.50mm	1	
+C11	100nf	~	Capacitor_THT:C_Disc_D4.7mm_W2.5mm_P5.00mm	1	
+C12	47uf	~	Capacitor_THT:C_Disc_D4.7mm_W2.5mm_P5.00mm	1	
+C14	22uF	~	Capacitor_THT:CP_Radial_D6.3mm_P2.50mm	1	
+CLK1	8 Mhz	http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf	Oscillator:Oscillator_DIP-14	1	
+CPU1	65C02S		Package_DIP:DIP-40_W15.24mm_Socket	1	
+DECODER1	ATF22V10C-7		Package_DIP:DIP-24_W7.62mm_Socket	1	
+NE1	NE555	http://www.ti.com/lit/ds/symlink/lm555.pdf	Package_DIP:DIP-8_W7.62mm	1	
+Pico1	Pi Pico		Library:Raspberry_pi_pico	1	
+POWER1	LED (BLUE)	~	LED_THT:LED_D3.0mm_FlatTop	1	
+PS/1	Mini-DIN-6	http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf	JJ65c02:mini_din-6	1	
+R1	1M	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R2	47K	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R3	10K	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R4	220	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R5	100	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R6	2k	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+R7	330	~	Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal	1	
+RAM1	AS6C1008-55PCN		Package_DIP:DIP-32_W15.24mm_Socket	1	
+RN1,RN2	4.7k	http://www.vishay.com/docs/31509/csc.pdf	Resistor_THT:R_Array_SIP6	2	
+RN3	1k	http://www.vishay.com/docs/31509/csc.pdf	Resistor_THT:R_Array_SIP6	1	
+RN4	470	http://www.vishay.com/docs/31509/csc.pdf	Resistor_THT:R_Array_SIP6	1	
+ROM1	SST39SF010	http://ww1.microchip.com/downloads/en/DeviceDoc/25022B.pdf	Package_DIP:DIP-32_W15.24mm_Socket	1	
+RS1	FT234XD		TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-6_1x06_P2.54mm_Horizontal	1	
+SW1	RESET	~	Button_Switch_THT:SW_PUSH_6mm	1	
+SW2	SW_SPDT	~	JJ65c02:SW_SPDT	1	
+U1	74HC00	http://www.ti.com/lit/gpn/sn74LS08,http://www.ti.com/lit/gpn/sn74hc00	Package_DIP:DIP-14_W7.62mm_Socket	1	
+U3	TXB0108PWR	TXB0108PWR	Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm	1	
+U4	TXB0104PW	http://www.ti.com/lit/ds/symlink/txb0104.pdf	Package_SO:SOIC-14_3.9x8.7mm_P1.27mm	1	
+U5	74LS573	74xx/74hc573.pdf	Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm	1	
+U6	TLV2217-33KCSE3	http://www.ti.com/lit/ds/symlink/lm2936.pdf	Package_TO_SOT_THT:TO-220-3_Vertical	1	
+USBC1	USB_C_Receptacle_PowerOnly	https://www.usb.org/sites/default/files/documents/usb_type-c.zip	JJ65c02:USBC_power	1	
+VGA1	DE15_Receptacle_HighDensity	~	JJ65c02:CONN_HDE15P_AMP	1	
+VIA1	65C22S		Package_DIP:DIP-40_W15.24mm_Socket	1	
+X1	1.8Mhz	http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf	Oscillator:Oscillator_DIP-14	1	
