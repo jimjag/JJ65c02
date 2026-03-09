@@ -412,7 +412,7 @@ MINIOS_test_ram_banks:
     jsr MINIOS_test_ram
     plx
     inx
-    cpx #4                      ; soon to be 8
+    cpx #8                      ; soon to be 8
     blt @do
     rts
 
