@@ -13,6 +13,13 @@
 
 ;
 ; EHBASIC has been reported to be released into the Public Domain
+; Originally by Lee Davison
+; Original Copyright statement:
+;     EhBASIC is free but not copyright free. For non commercial use there is only one
+;     restriction, any derivative work should include, in any binary image distributed,
+;     the string "Derived from EhBASIC" and in any distribution that includes human
+;     readable files a file that includes the above string in a human readable form
+;     e.g. not as a comment in an HTML file.
 ;
 ;=====================================================================
 ; look for "SYSTEM SPECIFIC VALUE!" for values/settings/functions
