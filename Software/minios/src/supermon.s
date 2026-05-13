@@ -921,11 +921,6 @@ GETFMT:
 PROPXX:
     and #$7F                    ; strip bit-instruction flag before indexing
     tay
-    lda BITDIG                  ; 4-char mnemonic (RMBn/SMBn/BBRn/BBSn)?
-    bne @noldsp                 ; if so, skip leading space so column width stays 5
-    lda #' '
-    jsr CHROUT
-@noldsp:
     lda MNEML,Y                 ;   and place a temporary copy in STORE
     sta STORE
     lda MNEMR,Y
@@ -946,8 +941,10 @@ PRMN2:
     lda BITDIG                  ; RMBn/SMBn/BBRn/BBSn append bit digit as 4th char
     beq @nodig
     jsr CHROUT
+    jmp SPACE                   ; 4-char mnemonic: one trailing space
 @nodig:
-    jmp SPACE                   ; output trailing space
+    jsr SPACE                   ; 3-char mnemonic: two trailing spaces so the
+    jmp SPACE                   ;   operand column matches the 4-char case
 
 ; -----------------------------------------------------------------------------
 ; read parameters
