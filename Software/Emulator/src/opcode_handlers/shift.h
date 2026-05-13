@@ -3,7 +3,8 @@ case ASL_AB:
     r1 = mem_abs(arg1, NEXT_BYTE(m), 0);
     t2 = read_byte(m, r1);
     set_flag(m, FLAG_CARRY, t2 & 0x80);
-    write_byte(m, r1, (t2 << 1) & 0xFE);
+    t2 = (t2 << 1) & 0xFE;
+    write_byte(m, r1, t2);
     set_flags(m, t2);
     mark_dirty(m, r1);
     break;
@@ -13,7 +14,8 @@ case ASL_ABX:
     r1 = mem_abs(arg1, NEXT_BYTE(m), m->x);
     t2 = read_byte(m, r1);
     set_flag(m, FLAG_CARRY, t2 & 0x80);
-    write_byte(m, r1, (t2 << 1) & 0xFE);
+    t2 = (t2 << 1) & 0xFE;
+    write_byte(m, r1, t2);
     set_flags(m, t2);
     mark_dirty(m, r1);
     break;
@@ -28,7 +30,8 @@ case ASL_ZP:
     arg1 = NEXT_BYTE(m);
     t2 = read_byte(m, arg1);
     set_flag(m, FLAG_CARRY, t2 & 0x80);
-    write_byte(m, arg1, (t2 << 1) & 0xFE);
+    t2 = (t2 << 1) & 0xFE;
+    write_byte(m, arg1, t2);
     set_flags(m, t2);
     mark_dirty(m, arg1);
     break;
@@ -37,7 +40,8 @@ case ASL_ZPX:
     arg1 = ZP(NEXT_BYTE(m) + m->x);
     t2 = read_byte(m, arg1);
     set_flag(m, FLAG_CARRY, t2 & 0x80);
-    write_byte(m, arg1, (t2 << 1) & 0xFE);
+    t2 = (t2 << 1) & 0xFE;
+    write_byte(m, arg1, t2);
     set_flags(m, t2);
     mark_dirty(m, arg1);
     break;
@@ -47,7 +51,8 @@ case LSR_AB:
     r1 = mem_abs(arg1, NEXT_BYTE(m), 0);
     t2 = read_byte(m, r1);
     set_flag(m, FLAG_CARRY, t2 & 0x01);
-    write_byte(m, r1, (t2 >> 1) & 0x7F);
+    t2 = (t2 >> 1) & 0x7F;
+    write_byte(m, r1, t2);
     set_flags(m, t2);
     mark_dirty(m, r1);
     break;
@@ -57,7 +62,8 @@ case LSR_ABX:
     r1 = mem_abs(arg1, NEXT_BYTE(m), m->x);
     t2 = read_byte(m, r1);
     set_flag(m, FLAG_CARRY, t2 & 0x01);
-    write_byte(m, r1, (t2 >> 1) & 0x7F);
+    t2 = (t2 >> 1) & 0x7F;
+    write_byte(m, r1, t2);
     set_flags(m, t2);
     mark_dirty(m, r1);
     break;
@@ -72,7 +78,8 @@ case LSR_ZP:
     arg1 = NEXT_BYTE(m);
     t2 = read_byte(m, arg1);
     set_flag(m, FLAG_CARRY, t2 & 0x01);
-    write_byte(m, arg1, (t2 >> 1) & 0x7F);
+    t2 = (t2 >> 1) & 0x7F;
+    write_byte(m, arg1, t2);
     set_flags(m, t2);
     mark_dirty(m, arg1);
     break;
@@ -81,7 +88,8 @@ case LSR_ZPX:
     arg1 = ZP(NEXT_BYTE(m) + m->x);
     t2 = read_byte(m, arg1);
     set_flag(m, FLAG_CARRY, t2 & 0x01);
-    write_byte(m, arg1, (t2 >> 1) & 0x7F);
+    t2 = (t2 >> 1) & 0x7F;
+    write_byte(m, arg1, t2);
     set_flags(m, t2);
     mark_dirty(m, arg1);
     break;
@@ -91,7 +99,8 @@ case ROL_AB:
     r1 = mem_abs(arg1, NEXT_BYTE(m), 0);
     t2 = read_byte(m, r1);
     t1 = t2 & 0x80;
-    write_byte(m, r1, ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY));
+    t2 = ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY);
+    write_byte(m, r1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, r1);
@@ -102,7 +111,8 @@ case ROL_ABX:
     r1 = mem_abs(arg1, NEXT_BYTE(m), m->x);
     t2 = read_byte(m, r1);
     t1 = t2 & 0x80;
-    write_byte(m, r1, ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY));
+    t2 = ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY);
+    write_byte(m, r1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, r1);
@@ -119,7 +129,8 @@ case ROL_ZP:
     arg1 = NEXT_BYTE(m);
     t2 = read_byte(m, arg1);
     t1 = t2 & 0x80;
-    write_byte(m, arg1, ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY));
+    t2 = ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY);
+    write_byte(m, arg1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, arg1);
@@ -129,7 +140,8 @@ case ROL_ZPX:
     arg1 = ZP(NEXT_BYTE(m) + m->x);
     t2 = read_byte(m, arg1);
     t1 = t2 & 0x80;
-    write_byte(m, arg1, ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY));
+    t2 = ((t2 << 1) & 0xFE) | get_flag(m, FLAG_CARRY);
+    write_byte(m, arg1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, arg1);
@@ -140,7 +152,8 @@ case ROR_AB:
     r1 = mem_abs(arg1, NEXT_BYTE(m), 0);
     t2 = read_byte(m, r1);
     t1 = t2 & 0x01;
-    write_byte(m, r1, ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7));
+    t2 = ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7);
+    write_byte(m, r1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, r1);
@@ -151,7 +164,8 @@ case ROR_ABX:
     r1 = mem_abs(arg1, NEXT_BYTE(m), m->x);
     t2 = read_byte(m, r1);
     t1 = t2 & 0x01;
-    write_byte(m, r1, ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7));
+    t2 = ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7);
+    write_byte(m, r1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, r1);
@@ -168,7 +182,8 @@ case ROR_ZP:
     arg1 = NEXT_BYTE(m);
     t2 = read_byte(m, arg1);
     t1 = t2 & 0x01;
-    write_byte(m, arg1, ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7));
+    t2 = ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7);
+    write_byte(m, arg1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, arg1);
@@ -178,7 +193,8 @@ case ROR_ZPX:
     arg1 = ZP(NEXT_BYTE(m) + m->x);
     t2 = read_byte(m, arg1);
     t1 = t2 & 0x01;
-    write_byte(m, arg1, ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7));
+    t2 = ((t2 >> 1) & 0x7F) | (get_flag(m, FLAG_CARRY) << 7);
+    write_byte(m, arg1, t2);
     set_flag(m, FLAG_CARRY, t1);
     set_flags(m, t2);
     mark_dirty(m, arg1);

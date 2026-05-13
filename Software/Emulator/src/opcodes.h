@@ -64,6 +64,8 @@
 #define BEQ_REL  0xF0
 
 #define BIT_AB   0x2C
+#define BIT_ABX  0x3C
+#define BIT_IMM  0x89
 #define BIT_ZP   0x24
 #define BIT_ZPX  0x34
 
@@ -287,6 +289,23 @@
 
 #define WAI      0xCB
 #define STP 	 0xDB
+
+// Reserved/undocumented NOPs on the WDC65C02. These consume operand bytes
+// and cycles even though they otherwise have no effect.
+#define NOP2_02  0x02
+#define NOP2_22  0x22
+#define NOP2_42  0x42
+#define NOP2_62  0x62
+#define NOP2_82  0x82
+#define NOP2_C2  0xC2
+#define NOP2_E2  0xE2
+#define NOP2_44  0x44
+#define NOP2_54  0x54
+#define NOP2_D4  0xD4
+#define NOP2_F4  0xF4
+#define NOP3_5C  0x5C
+#define NOP3_DC  0xDC
+#define NOP3_FC  0xFC
 
 char* translate_opcode(const uint8_t opcode);
 uint8_t translate_opcode_cycles(const uint8_t opcode);

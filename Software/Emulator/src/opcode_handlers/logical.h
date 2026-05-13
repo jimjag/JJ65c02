@@ -174,6 +174,21 @@ case BIT_ZPX:
     set_flag(m, FLAG_NEGATIVE, t1 & 0x80);
     break;
 
+case BIT_ABX:
+    arg1 = NEXT_BYTE(m);
+    arg2 = NEXT_BYTE(m);
+    t1 = read_byte(m, mem_abs(arg1, arg2, m->x));
+    set_flag(m, FLAG_ZERO, !(t1 & m->ac));
+    set_flag(m, FLAG_OVERFLOW, t1 & 0x40);
+    set_flag(m, FLAG_NEGATIVE, t1 & 0x80);
+    break;
+
+case BIT_IMM:
+    // Immediate BIT only affects Z; N and V are unchanged on 65C02.
+    t1 = NEXT_BYTE(m);
+    set_flag(m, FLAG_ZERO, !(t1 & m->ac));
+    break;
+
 case RMB0:
     r1 = ZP(NEXT_BYTE(m));
     //m->mem[r1] &= ~0x01;

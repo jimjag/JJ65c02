@@ -49,6 +49,7 @@ void main_loop(cpu *m) {
             #include "opcode_handlers/jump.h"
             #include "opcode_handlers/load.h"
             #include "opcode_handlers/logical.h"
+            #include "opcode_handlers/nop.h"
             #include "opcode_handlers/shift.h"
             #include "opcode_handlers/stack.h"
             #include "opcode_handlers/store.h"
@@ -83,11 +84,12 @@ void main_loop(cpu *m) {
         if (m->interrupt_waiting && !get_flag(m, FLAG_INTERRUPT)) {
             STACK_PUSH(m, (m->pc & 0xFF00) >> 8);
             STACK_PUSH(m, m->pc & 0xFF);
-            STACK_PUSH(m, m->sr);
+            STACK_PUSH(m, (m->sr | 0x20) & ~FLAG_BREAK);
 
             m->interrupt_waiting = 0x00;
             set_pc(m, mem_abs(m->mem[0xFFFE], m->mem[0xFFFF], 0));
             m->sr |= FLAG_INTERRUPT;
+            set_flag(m, FLAG_DECIMAL, 0);
         }
         if (m->shutdown) {
             break;
