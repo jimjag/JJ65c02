@@ -66,9 +66,11 @@ U9F     := SAVY+1           ; index into assembler work buffer
 
 DISPMEM_BPL      := U9F+1   ; number of bytes per line to display in DISPMEM
 DISPMEM_BPL_LOG2 := DISPMEM_BPL+1    ; log 2 of DISPMEM_BPL
+BITDIG  := DISPMEM_BPL_LOG2+1   ; ASCII '0'..'7' for RMBn/SMBn/BBRn/BBSn 4th char,
+                                ; or 0 if current opcode is not a bit instruction
 
 ; temporary pointers
-TMP0    := R0; DISPMEM_BPL_LOG2+1  ; used to return input, often holds end address - 2 bytes
+TMP0    := R0; BITDIG+1            ; used to return input, often holds end address - 2 bytes
 TMP2    := R1; TMP0+2              ; usually holds start address - 2 bytes
 
 ; -----------------------------------------------------------------------------
@@ -580,6 +582,7 @@ ATRYOP:
     stx STORE+1
     tax                         ; use current opcode as index
     lda IDX_NAME, x
+    and #$7F                    ; strip bit-instruction flag before MNEM* indexing
     tax
     lda MNEMR,X                 ; check right byte of compressed mnemonic
     jsr CHEKOP
@@ -798,6 +801,9 @@ NXBYT:
     pla                         ; restore index into mnemonic table
     ldx #3                      ; 3 letters in mnemonic
     jsr PROPXX                  ; print mnemonic
+    lda ACMD                    ; zp,rel mode (BBR/BBS) is fully special-cased
+    cmp #$02
+    beq PRZPREL
     ldx #6                      ; 6 possible address mode character combos
 PRADR1:
     cpx #3                      ; have we checked the third combo yet?
@@ -835,6 +841,28 @@ RELAD:
 RELEND:
     jmp WRADDR                  ; print address
 
+; print BBR/BBS operand as "$<zp>,$<target>"
+PRZPREL:
+    lda #'$'
+    jsr CHROUT
+    ldy #1                      ; first operand byte: zero-page address
+    lda (TMP2),Y
+    jsr WRTWO
+    lda #','
+    jsr CHROUT
+    lda #'$'
+    jsr CHROUT
+    ldy #2                      ; second operand byte: signed relative offset
+    lda (TMP2),Y
+    clc                         ; UB64D's adc is unguarded; force carry clear so
+    jsr UB64D                   ;   it computes plain (TMP2 + signed rel)
+    clc
+    adc #3                      ; +3 because next PC = TMP2 + 3 (BBR/BBS is 3 bytes)
+    bcc @nohi
+    inx
+@nohi:
+    jmp WRADDR
+
 UB64D:
     ldx TMP2+1                  ; get high byte of current address
     tay                         ; is relative address positive or negative?
@@ -868,16 +896,36 @@ GETFMT:
     sta ACMD                    ; save for later use
     and #$03                    ; lower 2 bits indicate number of bytes in operand
     sta LENGTH
-    lda IDX_NAME, y
+    lda IDX_NAME, y             ; bit 7 set => RMBn/SMBn/BBRn/BBSn instruction
+    bpl @plain                  ; not flagged; clear BITDIG and return raw value
+    and #$7F                    ; strip flag so the returned index is in-range for
+    pha                         ;   MNEML/MNEMR (callers don't see the flag at all)
+    tya                         ; opcode -> A; bit number is opcode bits 4-6
+    lsr A
+    lsr A
+    lsr A
+    lsr A
+    and #$07
+    ora #'0'                    ; convert to ASCII '0'..'7'
+    sta BITDIG
+    pla
     ldy #0
+    rts
+@plain:
+    ldy #0
+    sty BITDIG                  ; not a bit instruction; suppress 4th char
     rts
 
 ; -----------------------------------------------------------------------------
 ; extract and print packed mnemonics
 PROPXX:
+    and #$7F                    ; strip bit-instruction flag before indexing
     tay
+    lda BITDIG                  ; 4-char mnemonic (RMBn/SMBn/BBRn/BBSn)?
+    bne @noldsp                 ; if so, skip leading space so column width stays 5
     lda #' '
     jsr CHROUT
+@noldsp:
     lda MNEML,Y                 ;   and place a temporary copy in STORE
     sta STORE
     lda MNEMR,Y
@@ -895,7 +943,11 @@ PRMN2:
     jsr CHROUT                  ; output letter
     dex                         ; next letter
     bne PRMN1                   ; loop until all 3 letters are output
-    jmp SPACE                   ; output space
+    lda BITDIG                  ; RMBn/SMBn/BBRn/BBSn append bit digit as 4th char
+    beq @nodig
+    jsr CHROUT
+@nodig:
+    jmp SPACE                   ; output trailing space
 
 ; -----------------------------------------------------------------------------
 ; read parameters
@@ -1400,8 +1452,13 @@ MODE2:  .byte $00   ; 000 000    00                  0   error
         .byte $4A   ; 010 010    10      ($0000)     B   indirect
         .byte $85   ; 100 001    01      $00,Y       C   zero-page,Y
         .byte $9D   ; 100 111    01      $0000*      D   relative
+        .byte $49   ; 010 010    01      ($00)       E   zp-indirect
+        .byte $02   ; 000 000    10      $00,$rrrr** F   zp,rel (BBR/BBS)
 
-; * relative is special-cased so format bits don't match
+; *  relative is special-cased so format bits don't match
+; ** zp,rel format byte is a sentinel ($02): length=2 for the byte-hex dump,
+;    upper format bits zero so the generic PRADR loop emits nothing; DISLIN
+;    detects ACMD==$02 and prints "$zp,$rrrr" itself.
 
 
 ; character lookup tables for the format definitions in MODE2
@@ -1423,7 +1480,7 @@ MNEML:
     .byte $a3,$29,$ae,$18,$19,$ae,$ae,$69    ; SMB DEY TXA BBS BCC TYA TXS LDY
     .byte $69,$69,$a8,$a8,$19,$23,$ad,$24    ; LDA LDX TAY TAX BCS CLV TSX CPY
     .byte $23,$53,$29,$c0,$1b,$23,$8a,$a5    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $24,$53,$7c,$19,$a1,$8b            ; CPX INX NOP BEQ SED PLX
+    .byte $24,$53,$7c,$19,$a1,$8b,$a0        ; CPX INX NOP BEQ SED PLX SBC
 
 ;
 MNEMR:
@@ -1435,45 +1492,49 @@ MNEMR:
     .byte $86,$b4,$44,$e8,$08,$84,$68,$74    ; SMB DEY TXA BBS BCC TYA TXS LDY
     .byte $44,$72,$b4,$b2,$28,$6e,$32,$74    ; LDA LDX TAY TAX BCS CLV TSX CPY
     .byte $a2,$f4,$b2,$94,$cc,$4a,$72,$62    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $72,$f2,$22,$a4,$8a,$72            ; CPX INX NOP BEQ SED PLX
+    .byte $72,$f2,$22,$a4,$8a,$72,$c8        ; CPX INX NOP BEQ SED PLX SBC
 
 ;
+; Entries with bit 7 set ($80) are bit-test/manipulation instructions
+; (RMBn/SMBn/BBRn/BBSn). The high bit is masked off before indexing into
+; MNEML/MNEMR; the disassembler appends the digit n derived from the opcode.
 IDX_NAME:
-    .byte $00,$01,$02,$02,$03,$01,$04,$05,$06,$01,$04,$02,$03,$01,$04,$07
-    .byte $08,$01,$01,$02,$09,$01,$04,$05,$0a,$01,$0b,$02,$09,$01,$04,$07
-    .byte $0c,$0d,$02,$02,$0e,$0d,$0f,$05,$10,$0d,$0f,$02,$0e,$0d,$0f,$07
-    .byte $11,$0d,$0d,$02,$0e,$0d,$0f,$05,$12,$0d,$13,$02,$02,$0d,$0f,$07
-    .byte $14,$15,$02,$02,$02,$15,$16,$05,$17,$15,$16,$02,$18,$15,$16,$07
-    .byte $19,$15,$15,$02,$02,$15,$16,$05,$1a,$15,$1b,$02,$02,$15,$16,$07
-    .byte $1c,$1d,$02,$02,$1e,$1d,$1f,$05,$20,$1d,$1f,$02,$18,$1d,$1f,$07
-    .byte $21,$1d,$1d,$02,$1e,$1d,$1f,$05,$22,$1d,$23,$02,$18,$1d,$1f,$07
-    .byte $24,$25,$02,$02,$26,$25,$27,$28,$29,$02,$2a,$02,$26,$25,$27,$2b
-    .byte $2c,$25,$25,$02,$26,$25,$27,$28,$2d,$25,$2e,$02,$1e,$25,$1e,$2b
-    .byte $2f,$30,$31,$02,$2f,$30,$31,$28,$32,$30,$33,$02,$2f,$30,$31,$2b
-    .byte $34,$30,$30,$02,$2f,$30,$31,$28,$35,$30,$36,$02,$2f,$30,$31,$2b
-    .byte $37,$38,$02,$02,$37,$38,$13,$28,$39,$38,$3a,$3b,$37,$38,$13,$2b
-    .byte $3c,$38,$38,$02,$02,$38,$13,$28,$3d,$38,$3e,$3f,$02,$38,$13,$2b
-    .byte $40,$28,$02,$02,$40,$28,$0b,$28,$41,$28,$42,$02,$40,$28,$0b,$2b
-    .byte $43,$28,$28,$02,$02,$28,$0b,$28,$44,$28,$45,$02,$02,$28,$0b,$2b
+    .byte $00,$01,$02,$02,$03,$01,$04,$85,$06,$01,$04,$02,$03,$01,$04,$87  ; $00-$0F  RMB0/BBR0
+    .byte $08,$01,$01,$02,$09,$01,$04,$85,$0a,$01,$0b,$02,$09,$01,$04,$87  ; $10-$1F  RMB1/BBR1
+    .byte $0c,$0d,$02,$02,$0e,$0d,$0f,$85,$10,$0d,$0f,$02,$0e,$0d,$0f,$87  ; $20-$2F  RMB2/BBR2
+    .byte $11,$0d,$0d,$02,$0e,$0d,$0f,$85,$12,$0d,$13,$02,$0e,$0d,$0f,$87  ; $30-$3F  RMB3/BBR3
+    .byte $14,$15,$02,$02,$02,$15,$16,$85,$17,$15,$16,$02,$18,$15,$16,$87  ; $40-$4F  RMB4/BBR4
+    .byte $19,$15,$15,$02,$02,$15,$16,$85,$1a,$15,$1b,$02,$02,$15,$16,$87  ; $50-$5F  RMB5/BBR5
+    .byte $1c,$1d,$02,$02,$1e,$1d,$1f,$85,$20,$1d,$1f,$02,$18,$1d,$1f,$87  ; $60-$6F  RMB6/BBR6
+    .byte $21,$1d,$1d,$02,$1e,$1d,$1f,$85,$22,$1d,$23,$02,$18,$1d,$1f,$87  ; $70-$7F  RMB7/BBR7
+    .byte $24,$25,$02,$02,$26,$25,$27,$a8,$29,$0e,$2a,$02,$26,$25,$27,$ab  ; $80-$8F  SMB0/BBS0
+    .byte $2c,$25,$25,$02,$26,$25,$27,$a8,$2d,$25,$2e,$02,$1e,$25,$1e,$ab  ; $90-$9F  SMB1/BBS1
+    .byte $2f,$30,$31,$02,$2f,$30,$31,$a8,$32,$30,$33,$02,$2f,$30,$31,$ab  ; $A0-$AF  SMB2/BBS2
+    .byte $34,$30,$30,$02,$2f,$30,$31,$a8,$35,$30,$36,$02,$2f,$30,$31,$ab  ; $B0-$BF  SMB3/BBS3
+    .byte $37,$38,$02,$02,$37,$38,$13,$a8,$39,$38,$3a,$3b,$37,$38,$13,$ab  ; $C0-$CF  SMB4/BBS4
+    .byte $3c,$38,$38,$02,$02,$38,$13,$a8,$3d,$38,$3e,$3f,$02,$38,$13,$ab  ; $D0-$DF  SMB5/BBS5
+    .byte $40,$46,$02,$02,$40,$46,$0b,$a8,$41,$46,$42,$02,$40,$46,$0b,$ab  ; $E0-$EF  SMB6/BBS6
+    .byte $43,$46,$46,$02,$02,$46,$0b,$a8,$44,$46,$45,$02,$02,$46,$0b,$ab  ; $F0-$FF  SMB7/BBS7
 
 ;
+; Low nibble $F (BBR0..BBR7 / BBS0..BBS7) uses mode $F (zp,rel)
 IDX_MODE2:
-    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$2,$8,$8,$2,$4,$a,$5,$0,$3,$9,$9,$3
-    .byte $3,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$5,$0,$0,$9,$9,$3
-    .byte $4,$6,$0,$0,$0,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$3
-    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$0,$3,$3,$3
-    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$4,$0,$9,$9,$9,$3
-    .byte $d,$6,$0,$0,$2,$2,$2,$2,$4,$0,$4,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$3,$9,$9,$3
-    .byte $1,$6,$1,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$9,$9,$a,$3
-    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$4,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$4,$0,$9,$9,$3
-    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$3
-    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$3
+    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$2,$8,$8,$2,$4,$a,$5,$0,$3,$9,$9,$f
+    .byte $3,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$5,$0,$9,$9,$9,$f
+    .byte $4,$6,$0,$0,$0,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$f
+    .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$b,$3,$3,$f
+    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$4,$0,$9,$9,$9,$f
+    .byte $d,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$3,$9,$9,$f
+    .byte $1,$6,$1,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$9,$9,$a,$f
+    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$4,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$4,$0,$9,$9,$f
+    .byte $1,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$f
+    .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$f
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
