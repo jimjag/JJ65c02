@@ -4,11 +4,38 @@
  */
 // Core VGA Graphics functions
 //
+// Pixel storage convention — IMPORTANT, easy to get wrong:
+//   - Two 4-bit pixels are packed per byte in vga_data_array[].
+//   - Pixel index P = (SCREENWIDTH * y) + x. Byte index = P >> 1.
+//   - Even-indexed pixel (P & 1 == 0) -> LOW  nibble of the byte.
+//     Update via (byte & BOTTOMMASK 0xF0) | color
+//   - Odd-indexed pixel  (P & 1 == 1) -> HIGH nibble of the byte.
+//     Update via (byte & TOPMASK 0x0F) | (color << 4)
+//   - Note the mask names are inverted from intuition: TOPMASK keeps
+//     the LOW nibble (clears top so we can write the top); BOTTOMMASK
+//     keeps the HIGH nibble. The PIO scanout reads the byte and emits
+//     the LOW nibble first, then the HIGH nibble.
+//   - Because SCREENWIDTH (640) is even, (P & 1) == (x & 1). Some code
+//     paths (drawVLine) rely on this — revisit if SCREENWIDTH changes.
+//   - dma_memset writes one constant byte; to fill a run of same-color
+//     pixels use byte = (color & 0x0F) | ((color & 0x0F) << 4).
 
 void vgaFillScreen(unsigned char color) {
     color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
     dma_memset(vga_data_array[db_draw], (color) | (color << 4), txcount, true);
+}
+
+// Caller must guarantee 0 <= x < SCREENWIDTH, 0 <= y < SCREENHEIGHT,
+// and color != TRANSPARENT_INT. No range or transparency checks.
+static inline void drawPixelFast(int x, int y, unsigned char color) {
+    int pixel = SCREENWIDTH * y + x;
+    unsigned char *cell = &vga_data_array[db_draw][pixel >> 1];
+    if (pixel & 1) {
+        *cell = (*cell & TOPMASK) | (color << 4);
+    } else {
+        *cell = (*cell & BOTTOMMASK) | color;
+    }
 }
 
 // A function for drawing a pixel with a specified color.
@@ -42,16 +69,46 @@ void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332) {
 void drawVLine(int x, int y, int h, unsigned char color, bool colorIsRGB332) {
     if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    for (int i = y; i < (y + h); i++) {
-        drawPixel(x, i, color, false);
+    if (x < 0 || x >= SCREENWIDTH) return;
+    if (y < 0) { h += y; y = 0; }
+    if (y + h > SCREENHEIGHT) h = SCREENHEIGHT - y;
+    if (h <= 0) return;
+    unsigned char *buf = vga_data_array[db_draw];
+    int byte = (SCREENWIDTH * y + x) >> 1;
+    if (x & 1) {
+        for (int i = 0; i < h; i++, byte += scanline_size)
+            buf[byte] = (buf[byte] & TOPMASK) | (color << 4);
+    } else {
+        for (int i = 0; i < h; i++, byte += scanline_size)
+            buf[byte] = (buf[byte] & BOTTOMMASK) | color;
     }
 }
 
 void drawHLine(int x, int y, int w, unsigned char color, bool colorIsRGB332) {
     if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    for (int i = x; i < (x + w); i++) {
-        drawPixel(i, y, color, false);
+    if (y < 0 || y >= SCREENHEIGHT) return;
+    if (x < 0) { w += x; x = 0; }
+    if (x + w > SCREENWIDTH) w = SCREENWIDTH - x;
+    if (w <= 0) return;
+    unsigned char *buf = vga_data_array[db_draw];
+    int pixel = SCREENWIDTH * y + x;
+    // Leading odd pixel: writes high nibble
+    if (pixel & 1) {
+        buf[pixel >> 1] = (buf[pixel >> 1] & TOPMASK) | (color << 4);
+        pixel++;
+        w--;
+    }
+    // Aligned middle: pack two pixels per byte and DMA-fill
+    int middle = w >> 1;
+    if (middle > 0) {
+        dma_memset(&buf[pixel >> 1], color | (color << 4), middle, true);
+        pixel += middle * 2;
+        w -= middle * 2;
+    }
+    // Trailing pixel: writes low nibble
+    if (w == 1) {
+        buf[pixel >> 1] = (buf[pixel >> 1] & BOTTOMMASK) | color;
     }
 }
 
@@ -186,6 +243,28 @@ void drawCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332) 
     int ddF_y = -2 * r;
     int x = 0;
     int y = r;
+
+    bool inside = (r >= 0) && (x0 - r >= 0) && (x0 + r < SCREENWIDTH) &&
+                  (y0 - r >= 0) && (y0 + r < SCREENHEIGHT);
+    if (inside) {
+        drawPixelFast(x0, y0 + r, color);
+        drawPixelFast(x0, y0 - r, color);
+        drawPixelFast(x0 + r, y0, color);
+        drawPixelFast(x0 - r, y0, color);
+        while (x < y) {
+            if (f >= 0) { y--; ddF_y += 2; f += ddF_y; }
+            x++; ddF_x += 2; f += ddF_x;
+            drawPixelFast(x0 + x, y0 + y, color);
+            drawPixelFast(x0 - x, y0 + y, color);
+            drawPixelFast(x0 + x, y0 - y, color);
+            drawPixelFast(x0 - x, y0 - y, color);
+            drawPixelFast(x0 + y, y0 + x, color);
+            drawPixelFast(x0 - y, y0 + x, color);
+            drawPixelFast(x0 + y, y0 - x, color);
+            drawPixelFast(x0 - y, y0 - x, color);
+        }
+        return;
+    }
 
     drawPixel(x0, y0 + r, color, false);
     drawPixel(x0, y0 - r, color, false);
@@ -323,10 +402,8 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color, bool isColo
     // tft_setAddrWindow(x, y, x+w-1, y+h-1);
     if (isColorRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
-    for (int i = x; i < (x + w); i++) {
-        for (int j = y; j < (y + h); j++) {
-            drawPixel(i, j, color, false);
-        }
+    for (int j = y; j < (y + h); j++) {
+        drawHLine(x, j, w, color, false);
     }
 }
 
@@ -502,7 +579,7 @@ void enableSmoothScroll(bool flag) { smooth_scroll = flag; }
 
 void vgaScrollLeft (int pixels) {
     if (pixels <= 0 || pixels >= SCREENWIDTH - 1) return;
-    int scanlines = SCREENHEIGHT - 1;
+    int scanlines = SCREENHEIGHT;
     int xfer = (SCREENWIDTH - pixels) >> 1;
     int maxxfer = (SCREENWIDTH - 1) >> 1;
     for (int y = 0; y < scanlines; y++) {
@@ -522,11 +599,11 @@ void vgaScrollLeft (int pixels) {
 void vgaScrollUp (int scanlines) {
     if (scanlines <= 0) scanlines = FONTHEIGHT;
     if (scanlines >= SCREENHEIGHT) scanlines = SCREENHEIGHT - 1;
-    if (!smooth_scroll) {  // At standard speeds, the difference is hardly noticeable
-        scanlines *= scanline_size;
-        dma_memcpy(vga_data_array[db_draw], vga_data_array[db_draw] + scanlines, txcount - scanlines, true);
-        dma_memset(vga_data_array[db_draw] + txcount - scanlines, (textbgcolor) | (textbgcolor << 4), scanlines, true);
-    }  else {
+    if (!smooth_scroll) {
+        int bytes = scanlines * scanline_size;
+        dma_memcpy(vga_data_array[db_draw], vga_data_array[db_draw] + bytes, txcount - bytes, true);
+        dma_memset(vga_data_array[db_draw] + txcount - bytes, (textbgcolor) | (textbgcolor << 4), bytes, true);
+    } else {
         for (int i = 0; i < scanlines; i++) {
             dma_memcpy(vga_data_array[db_draw], vga_data_array[db_draw] + scanline_size, txcount - scanline_size, true);
             dma_memset(vga_data_array[db_draw] + txcount - scanline_size, (textbgcolor) | (textbgcolor << 4), scanline_size, true);
@@ -755,8 +832,9 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     sprite_t *n = malloc(sizeof(sprite_t));
     bool needFree = false;
     if (!sdata) {
-        sdata = malloc(width * height);
-        for (int i = 0; i < sizeof(sdata);) {
+        int chunk = width * height;
+        sdata = malloc(chunk);
+        for (int i = 0; i < chunk;) {
             unsigned char cx;
             if (!getByte(&cx))
                 continue;
@@ -937,8 +1015,9 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
     tile_t *n = malloc(sizeof(tile_t));
     bool needFree = false;
     if (!sdata) {
-        sdata = malloc(width * height);
-        for (int i = 0; i < sizeof(sdata);) {
+        int chunk = width * height;
+        sdata = malloc(chunk);
+        for (int i = 0; i < chunk;) {
             unsigned char cx;
             if (!getByte(&cx))
                 continue;

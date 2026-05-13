@@ -256,7 +256,7 @@ static void play_note(uint8_t key) {
     voice_pitch[current_voice] = pitch;
     voice_gate[current_voice] = Voice_lifetime[current_voice];
     previous_voice = current_voice;
-    current_voice = (++current_voice % 4);
+    current_voice = (current_voice + 1) % 4;
 }
 
 static void note_off(uint8_t key) {
