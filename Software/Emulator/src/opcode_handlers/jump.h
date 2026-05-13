@@ -5,7 +5,8 @@ case JMP_AB:
 
 case JMP_ABX:
     arg1 = NEXT_BYTE(m);
-    set_pc(m, mem_abs(arg1, NEXT_BYTE(m), m->x));
+    r1 = mem_abs(arg1, NEXT_BYTE(m), m->x);
+    set_pc(m, mem_abs(read_byte(m, r1), read_byte(m, r1+1), 0));
     break;
 
 case JMP_IN:

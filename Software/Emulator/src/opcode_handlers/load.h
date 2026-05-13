@@ -40,12 +40,13 @@ case LDA_ZP:
     break;
 
 case LDA_ZPX:
-    m->ac = read_byte(m, NEXT_BYTE(m) + m->x); //m->mem[NEXT_BYTE(m) + m->x];
+    m->ac = read_byte(m, ZP(NEXT_BYTE(m) + m->x));
     set_flags(m, m->ac);
     break;
 
 case LDA_INZP:
     m->ac = read_byte(m, mem_indirect_zp(m, NEXT_BYTE(m))); //m->mem[mem_indirect_zp(m, NEXT_BYTE(m))];
+    set_flags(m, m->ac);
     break;
 
 case LDX_AB:
@@ -73,7 +74,7 @@ case LDX_ZP:
     break;
 
 case LDX_ZPY:
-    m->x = read_byte(m, NEXT_BYTE(m) + m->y); //m->mem[NEXT_BYTE(m) + m->y];
+    m->x = read_byte(m, ZP(NEXT_BYTE(m) + m->y));
     set_flags(m, m->x);
     break;
 
@@ -102,6 +103,6 @@ case LDY_ZP:
     break;
 
 case LDY_ZPX:
-    m->y = read_byte(m, NEXT_BYTE(m) + m->x); //m->mem[NEXT_BYTE(m) + m->x];
+    m->y = read_byte(m, ZP(NEXT_BYTE(m) + m->x));
     set_flags(m, m->y);
     break;
