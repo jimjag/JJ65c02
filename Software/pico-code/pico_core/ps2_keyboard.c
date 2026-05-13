@@ -150,24 +150,23 @@ void ps2_ihandler(void) {
             if (!release) {
                 if (cntl) {
                     ascii = ps2_to_ascii_cntl[code];
-                    // cntl = 0;
                 } else if (shift) {
                     ascii = ps2_to_ascii_upper[code];
-                    // shift = 0;
                 } else {
-                    // default
                     ascii = ps2_to_ascii_lower[code];
                     if (caps && (ascii >= 'a' && ascii <= 'z')) {
                         ascii -= 32;
                     }
                 }
+                if (ascii) {
+                    *wptr++ = ascii;
+                    if (wptr >= (keybuf + sizeof(keybuf)))
+                        wptr = keybuf;
+                }
             }
             release = 0;
             break;
     }
-    *wptr++ = ascii;
-    if (wptr >= (keybuf + sizeof(keybuf)))
-        wptr = keybuf;
     pio_interrupt_clear(ps2_pio, 1);
 }
 
@@ -197,6 +196,15 @@ unsigned char ps2GetCharBlk(bool auto_print) {
     return c;
 }
 
+#define PA_MASK (((1u << (PA6 - PA0 + 1)) - 1u) << PA0)
+
+static inline void put_via_byte(unsigned char c) {
+    gpio_put_masked(PA_MASK, ((uint32_t)(c & 0x7F)) << PA0);
+    gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
+    sleep_us(1);        // Give the 6502 time to read
+    gpio_put(PIRQ, 0);  // Reset
+}
+
 // This is the actual task used in polling/looping:
 //   Check if we rec'd a character from the PS/2 Keyboard
 //   if so, we print it (send it to the VGA system) and
@@ -204,13 +212,7 @@ unsigned char ps2GetCharBlk(bool auto_print) {
 void ps2Task(bool auto_print) {
     unsigned char c;
     if ((c = ps2GetChar(auto_print))) {
-        for (uint pin = PA0; pin <= PA6; pin++) {
-            gpio_put(pin, c & 0x01);
-            c = c>>1;
-        }
-        gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
-        sleep_us(1);               // Give the 6502 time to read
-        gpio_put(PIRQ, 0);  // Reset
+        put_via_byte(c);
     }
 }
 
@@ -219,19 +221,6 @@ void ps2Task(bool auto_print) {
 // never send (0x02: STX) and then the actual 7-bit byte. The VIA
 // sees this sequence and acts accordingly.
 void send2RAM(unsigned char c) {
-    unsigned char d = 0x02;
-    for (uint pin = PA0; pin <= PA6; pin++) {
-        gpio_put(pin, d & 0x01);
-        d = d>>1;
-    }
-    gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
-    sleep_us(1);               // Give the 6502 time to read
-    gpio_put(PIRQ, 0);  // Reset
-    for (uint pin = PA0; pin <= PA6; pin++) {
-        gpio_put(pin, c & 0x01);
-        c = c>>1;
-    }
-    gpio_put(PIRQ, 1);  // Trigger VIA to read PortA
-    sleep_us(1);               // Give the 6502 time to read
-    gpio_put(PIRQ, 0);  // Reset
+    put_via_byte(0x02);
+    put_via_byte(c);
 }

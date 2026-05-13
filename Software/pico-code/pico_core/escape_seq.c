@@ -223,7 +223,7 @@ static void esc_sequence_received(void) {
                         break;
                     case 5: // VRAM set Esc[Z5;<x>;<y>;<byte>;<len>Z
                         start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
-                        dma_memset(&vga_data_array[db_draw][end], escP[3], escP[4]>>1, true);
+                        dma_memset(&vga_data_array[db_draw][start], escP[3], escP[4]>>1, true);
                         break;
                     case 6: // Esc[Z6;<lines>Z
                         vgaScrollUp(escP[1]);

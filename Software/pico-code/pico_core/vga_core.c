@@ -68,11 +68,18 @@
 // #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
 int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
-// The RP2040 lacks enough memory for double buffering
+// The RP2040 lacks enough memory for double buffering.
+// On RP2350 the two 153.6 KB buffers benefit from being placed in separate
+// striped SRAM banks so DMA scanout (one bank) doesn't contend with CPU
+// drawing (the other). The default linker script already striplaces .bss
+// across SRAM banks 0-3 in 4-byte chunks, which gives reasonable parallel
+// access. To force per-buffer bank placement, define custom sections in a
+// memmap override and tag each array with __attribute__((section("...")))
+// e.g. ".vga_show_buf" / ".vga_draw_buf".
 #if PICO_RP2040
-unsigned char vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
+unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #else
-unsigned char vga_data_array[2][(SCREENWIDTH * SCREENHEIGHT) / 2];
+unsigned char __attribute__((aligned(4))) vga_data_array[2][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #endif
 //unsigned char *address_pointer = &vga_data_array[0][0];
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
@@ -88,10 +95,10 @@ int memcpy_dma_chan;
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
 //      we handle "special" characters (like arrows and other non-printables
 static bool wrap = true, cr2crlf = false, lf2crlf = false, smooth_scroll = false;
-char textfgcolor = WHITE_INT, textbgcolor = BLACK_INT;
+volatile char textfgcolor = WHITE_INT, textbgcolor = BLACK_INT;
 
 struct scrpos savedTcurs = {0,0};
-struct scrpos tcurs = {0,0};
+volatile struct scrpos tcurs = {0,0};
 struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEIGHT) - 1};
 
 // The terminal mode array
@@ -400,4 +407,7 @@ void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num, bool blo
     }
 }
 
+// vga_graphics.c is included here (not compiled separately) so the two
+// share a translation unit. Do NOT add vga_graphics.c to target_sources
+// in CMakeLists.txt or you'll get duplicate-symbol errors at link.
 #include "vga_graphics.c"
