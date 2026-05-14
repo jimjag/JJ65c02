@@ -45,6 +45,7 @@
 #include "hardware/dma.h"
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
+#include "hardware/sync.h"
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,20 +69,27 @@
 // #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
 int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
-// The RP2040 lacks enough memory for double buffering.
-// On RP2350 the two 153.6 KB buffers benefit from being placed in separate
-// striped SRAM banks so DMA scanout (one bank) doesn't contend with CPU
-// drawing (the other). The default linker script already striplaces .bss
-// across SRAM banks 0-3 in 4-byte chunks, which gives reasonable parallel
-// access. To force per-buffer bank placement, define custom sections in a
-// memmap override and tag each array with __attribute__((section("...")))
-// e.g. ".vga_show_buf" / ".vga_draw_buf".
+// On RP2350, place the two 153.6 KB framebuffers in distinct SRAM regions so
+// the scanout DMA (always reading the show buffer) and the CPU/copy DMA
+// (writing the draw buffer) hit different bus targets concurrently. The
+// custom linker script (memmap_jj65c02_rp2350.ld) provides RAM_LOW (banks
+// 0-3 striped) and RAM_HIGH (banks 4-7 striped); .vga_buf_b lives in the
+// upper region. Without the custom script both still link, but they may
+// land in the same striped region — the bus relief is then minimal.
+//
+// Indexing through a pointer table keeps every existing
+// `vga_data_array[idx][offset]` call site working unchanged.
 #if PICO_RP2040
-unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
+static unsigned char __attribute__((aligned(4)))
+    vga_buf_a[(SCREENWIDTH * SCREENHEIGHT) / 2];
+unsigned char *const vga_data_array[1] = { vga_buf_a };
 #else
-unsigned char __attribute__((aligned(4))) vga_data_array[2][(SCREENWIDTH * SCREENHEIGHT) / 2];
+static unsigned char __attribute__((aligned(4), section(".vga_buf_a")))
+    vga_buf_a[(SCREENWIDTH * SCREENHEIGHT) / 2];
+static unsigned char __attribute__((aligned(4), section(".vga_buf_b")))
+    vga_buf_b[(SCREENWIDTH * SCREENHEIGHT) / 2];
+unsigned char *const vga_data_array[2] = { vga_buf_a, vga_buf_b };
 #endif
-//unsigned char *address_pointer = &vga_data_array[0][0];
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 
 static const unsigned char *font = font_sweet16;
@@ -141,7 +149,20 @@ bool enableCurs(bool flag) {
     return was;
 }
 
-// Double buffers stuff
+// Double buffer state.
+//
+// Synchronization model:
+//   db_show / db_draw : indices, 0 or 1, flipped only inside the scanout IRQ.
+//   _do_switch        : request flag. switchDB() sets it; the IRQ clears it
+//                       after performing the swap and __sev()s.
+//   _db_switched      : sticky bit set every time the IRQ performs a swap;
+//                       cleared by enableDB().
+//
+// switchDB() blocks until the IRQ has actually swapped the buffers, so on
+// return the freshly-drawn buffer is the one being scanned out and db_draw
+// points to the previously-shown buffer. show2drawDB() can then safely copy
+// the now-shown buffer into the now-draw buffer without clobbering the
+// frame that was just made visible.
 int vga_chan;
 volatile int db_show = 0;
 volatile int db_draw = 0;
@@ -150,50 +171,65 @@ volatile bool _db_switched = false;
 volatile bool _db_vga_enabled = false;
 static void __time_critical_func(db_vga_ihandler)(void) {
 #if !PICO_RP2040
-    _db_switched = false;
     if (_db_vga_enabled && _do_switch) {
         db_show = db_draw;
         db_draw = !(db_draw);
         _do_switch = false;
         _db_switched = true;
+        __sev();
     }
 #endif
     // Clear the interrupt request.
     dma_hw->ints0 = 1u << vga_chan;
     // Give the channel a table entry to read from, and re-trigger it
-    dma_channel_set_read_addr(vga_chan, &vga_data_array[db_show][0], true);
+    dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], true);
 }
 
-// Enable or Disable the Double Buffering
+// Enable Double Buffering. db_draw becomes the buffer not currently scanning
+// out; no swap pending on entry.
 void enableDB(void) {
 #if !PICO_RP2040
     _db_vga_enabled = true;
-    db_show = db_draw;
-    db_draw = !(db_draw);
     _do_switch = false;
-    _db_switched = true;
+    _db_switched = false;
+    db_draw = !db_show;
 #endif
 }
 void disableDB(void) {
     _db_vga_enabled = false;
+    _do_switch = false;
     db_draw = db_show;
 }
 // Get the current state of the Double Buffering
 bool getDBEnabled(void) {
     return _db_vga_enabled;
 }
-// Copy the currently showing buffer to the drawing buffer
-// Safe to call whether DB is enabled or not
+// Copy the currently showing buffer to the drawing buffer.
+// Intended call order:
+//     ...draw frame N into db_draw...
+//     switchDB();        // blocks until swap; db_show now == frame N
+//     show2drawDB();     // db_draw <- frame N (== db_show)
+//     ...draw frame N+1 as deltas on top of db_draw...
 void show2drawDB(void) {
-    if (_db_switched && (db_show != db_draw)) {
-        dma_memcpy(vga_data_array[db_draw], &vga_data_array[db_show], txcount, true);
+    if (_db_vga_enabled && db_show != db_draw) {
+        dma_memcpy(vga_data_array[db_draw], vga_data_array[db_show], txcount, true);
     }
 }
-// Mark the end-of-frame handler to switch buffers - Use at the end of the animation loop
+// Request a buffer swap and block until the scanout IRQ performs it.
+// No-op when DB is disabled, so user code can call it unconditionally.
 void switchDB(void) {
+#if !PICO_RP2040
+    if (!_db_vga_enabled) return;
     _do_switch = true;
+    // __wfe sleeps until any event, including the __sev() the IRQ posts
+    // after the swap. Re-check the flag because __wfe can return on
+    // unrelated events.
+    while (_do_switch) {
+        __wfe();
+    }
+#endif
 }
-// Did the handler switch the buffers?
+// Did the handler switch the buffers? Sticky since enableDB().
 bool getDBSwitched(void) {
     return _db_switched;
 }
@@ -361,24 +397,27 @@ void initVGA(void) {
     alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
+// Use 32-bit transfers when source/dest/length are 4-byte aligned. This cuts
+// bus arbitration count by 4x, leaving more headroom for the scanout DMA on
+// the same fabric. All current callers block, so the on-stack v32/val storage
+// is safe for the duration of the transfer.
 void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool block) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+    bool use32 = ((((uintptr_t)dest) & 3u) == 0) && ((num & 3u) == 0);
+    uint32_t v32 = (uint32_t)val * 0x01010101u;
+    channel_config_set_transfer_data_size(&c, use32 ? DMA_SIZE_32 : DMA_SIZE_8);
     channel_config_set_read_increment(&c, false);
     channel_config_set_write_increment(&c, true);
 
     dma_channel_configure(
-            memcpy_dma_chan, // Channel to be configured
-            &c,              // The configuration we just created
-            dest,            // The initial write address
-            &val,            // The initial read address
-            num, // Number of transfers; in this case each is 1 byte.
-            true // Start immediately.
+            memcpy_dma_chan,
+            &c,
+            dest,
+            use32 ? (const volatile void *)&v32 : (const volatile void *)&val,
+            use32 ? (num >> 2) : num,
+            true
     );
 
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
     if (block) {
         dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
     }
@@ -386,22 +425,20 @@ void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool b
 
 void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num, bool block) {
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+    bool use32 = ((((uintptr_t)dest | (uintptr_t)src | (uintptr_t)num) & 3u) == 0);
+    channel_config_set_transfer_data_size(&c, use32 ? DMA_SIZE_32 : DMA_SIZE_8);
     channel_config_set_read_increment(&c, true);
     channel_config_set_write_increment(&c, true);
 
     dma_channel_configure(
-            memcpy_dma_chan, // Channel to be configured
-            &c,              // The configuration we just created
-            dest,            // The initial write address
-            src,             // The initial read address
-            num, // Number of transfers; in this case each is 1 byte.
-            true // Start immediately.
+            memcpy_dma_chan,
+            &c,
+            dest,
+            src,
+            use32 ? (num >> 2) : num,
+            true
     );
 
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
     if (block) {
         dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
     }
