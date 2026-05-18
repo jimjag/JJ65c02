@@ -69,26 +69,18 @@
 // #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
 int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
-// On RP2350, place the two 153.6 KB framebuffers in distinct SRAM regions so
-// the scanout DMA (always reading the show buffer) and the CPU/copy DMA
-// (writing the draw buffer) hit different bus targets concurrently. The
-// custom linker script (memmap_jj65c02_rp2350.ld) provides RAM_LOW (banks
-// 0-3 striped) and RAM_HIGH (banks 4-7 striped); .vga_buf_b lives in the
-// upper region. Without the custom script both still link, but they may
-// land in the same striped region — the bus relief is then minimal.
-//
-// Indexing through a pointer table keeps every existing
-// `vga_data_array[idx][offset]` call site working unchanged.
+// The RP2040 lacks enough memory for double buffering.
+// On RP2350 the two 153.6 KB buffers benefit from being placed in separate
+// striped SRAM banks so DMA scanout (one bank) doesn't contend with CPU
+// drawing (the other). The default linker script already striplaces .bss
+// across SRAM banks 0-3 in 4-byte chunks, which gives reasonable parallel
+// access. To force per-buffer bank placement, define custom sections in a
+// memmap override and tag each array with __attribute__((section("...")))
+// e.g. ".vga_show_buf" / ".vga_draw_buf".
 #if PICO_RP2040
-static unsigned char __attribute__((aligned(4)))
-    vga_buf_a[(SCREENWIDTH * SCREENHEIGHT) / 2];
-unsigned char *const vga_data_array[1] = { vga_buf_a };
+unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #else
-static unsigned char __attribute__((aligned(4), section(".vga_buf_a")))
-    vga_buf_a[(SCREENWIDTH * SCREENHEIGHT) / 2];
-static unsigned char __attribute__((aligned(4), section(".vga_buf_b")))
-    vga_buf_b[(SCREENWIDTH * SCREENHEIGHT) / 2];
-unsigned char *const vga_data_array[2] = { vga_buf_a, vga_buf_b };
+unsigned char __attribute__((aligned(4))) vga_data_array[2][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #endif
 int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 
