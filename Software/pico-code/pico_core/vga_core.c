@@ -24,7 +24,7 @@
  *  CORE 0
  *  - VGA:
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
- *  -   DMA channels 0, 1, 2, and 3
+ *  -   DMA channels 0, 1, and 2 (vga, memset, memcpy)
  *  -   IRQ 0, 1
  *  -   153.6 kBytes of RAM (for pixel color data)
  *  - PS2:
@@ -92,8 +92,8 @@ int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
 static const unsigned char *font = font_sweet16;
 static char txtfont = 0;
 
-// DMA channel for dma_memcpy and dma_memset
-int memcpy_dma_chan;
+static int memset_dma_chan;
+static int memcpy_dma_chan;
 
 // configurations
 // wrap: auto wrap around at terminal end
@@ -296,6 +296,7 @@ void initVGA(void) {
     // is consolidated in one place. Here in the C, we then just import and use it.
     hsync_program_init(pio, hsync_sm, hsync_offset, HSYNC, PIXFREQ);
     vsync_program_init(pio, vsync_sm, vsync_offset, VSYNC, PIXFREQ);
+    pio_sm_exec(pio, vsync_sm, pio_encode_set(pio_pins, 1));  // prime vsync pin HIGH; PIO output register resets to 0, causing false sync on frame 1
     scanline_program_init(pio, scanline_sm, scanline_offset, RED_PIN, SCANFREQ);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +307,7 @@ void initVGA(void) {
     // DMA channel - sends color data to VGA system
     vga_chan = dma_claim_unused_channel(true);
 
-    // DMA channel for dma_memcpy and dma_memset
+    memset_dma_chan = dma_claim_unused_channel(true);
     memcpy_dma_chan = dma_claim_unused_channel(true);
 
     // Channel Zero (sends color data to PIO VGA machine)
@@ -382,49 +383,113 @@ void initVGA(void) {
     alarm_pool_add_repeating_timer_ms(apool, 500, cursor_callback, NULL, &ctimer);
 }
 
+// Strategy:
+//   1. CPU-fill any unaligned head bytes (synchronous, before kicking off DMA).
+//   2. block=true OR tail==0: word-DMA the aligned bulk (fast path).
+//      block=true also runs CPU tail writes after the DMA completes.
+//   3. block=false with tail bytes: fall back to a single byte-DMA covering
+//      the whole post-head range so the call returns truly asynchronously.
+// Static fill words/bytes outlive the stack frame so the DMA source remains
+// valid after this function returns in the non-blocking case.
 void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool block) {
-    dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+    if (num == 0) return;
+
+    uint8_t *d = (uint8_t *)dest;
+
+    // Head: CPU-fill 0-3 bytes until d is 4-byte aligned.
+    while (num > 0 && ((uintptr_t)d & 3) != 0) {
+        *d++ = val;
+        num--;
+    }
+    if (num == 0) return;
+
+    size_t words = num >> 2;
+    size_t tail = num & 3;
+
+    static uint32_t word32;
+    word32 = (uint32_t)val * 0x01010101u;
+
+    dma_channel_config c = dma_channel_get_default_config(memset_dma_chan);
     channel_config_set_read_increment(&c, false);
     channel_config_set_write_increment(&c, true);
 
-    dma_channel_configure(
-            memcpy_dma_chan, // Channel to be configured
-            &c,              // The configuration we just created
-            dest,            // The initial write address
-            &val,            // The initial read address
-            num, // Number of transfers; in this case each is 1 byte.
-            true // Start immediately.
-    );
-
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
     if (block) {
-        dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+        // Synchronous: word-DMA the bulk (if any), then CPU-fill the tail.
+        if (words > 0) {
+            channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+            dma_channel_configure(memset_dma_chan, &c, d, &word32, words, true);
+            dma_channel_wait_for_finish_blocking(memset_dma_chan);
+            d += words << 2;
+        }
+        while (tail > 0) {
+            *d++ = val;
+            tail--;
+        }
+    } else if (tail == 0) {
+        // Async fast path: pure word DMA (num >= 4 guaranteed here).
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+        dma_channel_configure(memset_dma_chan, &c, d, &word32, words, true);
+    } else {
+        // Async with tail bytes: single byte DMA covers the whole range so
+        // the call returns truly asynchronously.
+        static uint8_t byte_val;
+        byte_val = val;
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+        dma_channel_configure(memset_dma_chan, &c, d, &byte_val, num, true);
     }
 }
 
-void __not_in_flash_func(dma_memcpy)(void *dest, void *src, size_t num, bool block) {
+void __not_in_flash_func(dma_memcpy)(void *dest, const void *src, size_t num, bool block) {
+    if (num == 0) return;
+
+    uint8_t *d = (uint8_t *)dest;
+    const uint8_t *s = (const uint8_t *)src;
+
     dma_channel_config c = dma_channel_get_default_config(memcpy_dma_chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
     channel_config_set_read_increment(&c, true);
     channel_config_set_write_increment(&c, true);
 
-    dma_channel_configure(
-            memcpy_dma_chan, // Channel to be configured
-            &c,              // The configuration we just created
-            dest,            // The initial write address
-            src,             // The initial read address
-            num, // Number of transfers; in this case each is 1 byte.
-            true // Start immediately.
-    );
+    // Mismatched alignment: word-mode would corrupt — single byte DMA.
+    // Works for both blocking and non-blocking (src is caller-owned).
+    if ((((uintptr_t)d ^ (uintptr_t)s) & 3) != 0) {
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+        dma_channel_configure(memcpy_dma_chan, &c, d, s, num, true);
+        if (block) dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+        return;
+    }
 
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
+    // Head: CPU-copy 0-3 bytes until both pointers are 4-byte aligned.
+    while (num > 0 && ((uintptr_t)d & 3) != 0) {
+        *d++ = *s++;
+        num--;
+    }
+    if (num == 0) return;
+
+    size_t words = num >> 2;
+    size_t tail = num & 3;
+
     if (block) {
-        dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+        // Synchronous: word-DMA the bulk (if any), then CPU-copy the tail.
+        if (words > 0) {
+            channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+            dma_channel_configure(memcpy_dma_chan, &c, d, s, words, true);
+            dma_channel_wait_for_finish_blocking(memcpy_dma_chan);
+            size_t bulk = words << 2;
+            d += bulk;
+            s += bulk;
+        }
+        while (tail > 0) {
+            *d++ = *s++;
+            tail--;
+        }
+    } else if (tail == 0) {
+        // Async fast path: pure word DMA (num >= 4 guaranteed here).
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+        dma_channel_configure(memcpy_dma_chan, &c, d, s, words, true);
+    } else {
+        // Async with tail bytes: single byte DMA covers the whole range.
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+        dma_channel_configure(memcpy_dma_chan, &c, d, s, num, true);
     }
 }
 

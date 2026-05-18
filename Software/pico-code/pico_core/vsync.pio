@@ -33,7 +33,7 @@ wait 1 irq 0                      ; Wait for one line
 wait 1 irq 0                      ; Wait for a second line
 
 ; BACKPORCH
-set y, 31                         ; First part of back porch into y scratch register (and delays a cycle)
+set y, 32                         ; First part of back porch into y scratch register (33 iters = spec)
 backporch:
     wait 1 irq 0   side 1         ; Wait for hsync to go high
     jmp y-- backporch             ; Remain in backporch, decrementing counter

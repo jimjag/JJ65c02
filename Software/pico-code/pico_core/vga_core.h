@@ -21,7 +21,7 @@
  *  CORE 0
  *  - VGA:
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
- *  -   DMA channels 0, 1, 2, and 3
+ *  -   DMA channels 0, 1, and 2 (vga, memset, memcpy)
  *  -   IRQ 0, 1
  *  -   307.2 kBytes of RAM (for double buffered pixel color data)
  *  - PS2:
@@ -205,7 +205,7 @@ void drawString(unsigned char* str);
 void vgaFillScreen(unsigned char color);
 
 void dma_memset(void *dest, uint8_t val, size_t num, bool block);
-void dma_memcpy(void *dest, void *src, size_t num, bool block);
+void dma_memcpy(void *dest, const void *src, size_t num, bool block);
 
 void writeChar(unsigned char chrx); // write the interpreted character
 void handleByte(unsigned char c);     // auto-decide based on graphics/text mode
