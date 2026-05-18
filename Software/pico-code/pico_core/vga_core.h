@@ -147,10 +147,33 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
+
+// Double-buffering API (RP2350 only; no-ops on RP2040)
+//
+// Recommended animation loop:
+//
+//   enableDB();
+//   show2drawDB();          // seed draw buffer from initial screen contents
+//
+//   while (true) {
+//       // ... draw next frame into vga_data_array[db_draw] ...
+//       switchDB();         // request buffer swap at next VBlank
+//       waitForVBlank();    // block until the IRQ fires and swaps buffers
+//       show2drawDB();      // optional: copy new show buf into draw buf as
+//                           //   starting point for the next frame
+//   }
+//
+// Why this order matters:
+//   switchDB()      marks _do_switch; the IRQ will act on it at end of frame.
+//   waitForVBlank() spins until that IRQ fires, guaranteeing db_draw now
+//                   points to the buffer the pixel DMA is NOT scanning out.
+//   show2drawDB()   copies show→draw; called after waitForVBlank() so it
+//                   does not contend with the pixel DMA on the same buffer.
 void enableDB(void);
 void disableDB(void);
 void show2drawDB(void);
 void switchDB(void);
+void waitForVBlank(void);
 bool getDBEnabled(void);
 bool getDBSwitched(void);
 

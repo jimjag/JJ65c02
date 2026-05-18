@@ -49,6 +49,17 @@ target_link_libraries (
     hardware_irq
 )
 
+# On RP2350 use the custom linker script that places the two VGA frame buffers
+# in bank-isolated SRAM regions to prevent pixel-DMA / utility-DMA contention.
+# Note: the bare "rp2350" value is normalised to "rp2350-arm-s" by the SDK's
+# pico_pre_load_platform.cmake before this if() is evaluated, so it is not
+# listed here. All three concrete RP2350 variants are covered.
+if(PICO_PLATFORM STREQUAL "rp2350-arm-s" OR
+   PICO_PLATFORM STREQUAL "rp2350-arm-ns" OR
+   PICO_PLATFORM STREQUAL "rp2350-riscv")
+    pico_set_linker_script(pico_core_code ${CMAKE_CURRENT_LIST_DIR}/memmap_vga_rp2350.ld)
+endif()
+
 if(DEFINED ENV{PICO_DEMO})
     pico_enable_stdio_usb(pico_core_code 1)
     pico_enable_stdio_uart(pico_core_code 0)
