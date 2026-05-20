@@ -951,6 +951,7 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
 }
 
 void eraseSprite(uint sn) {
+    if (sn >= MAXSPRITES || !sprites[sn]) return;
     // Restore background (original screen)
     if (!sprites[sn]->bgValid)
         return;
@@ -1049,6 +1050,14 @@ void hideSprite(uint sn) {
     draw_order_remove(sn);
 }
 
+static inline bool dest_overlaps_sprite(short x, short y, short w, short h, int s) {
+    if (!sprites[s] || !sprites[s]->bgValid) return false;
+    return !(x + w  <= sprites[s]->x ||
+             sprites[s]->x + sprites[s]->width  <= x ||
+             y + h <= sprites[s]->y ||
+             sprites[s]->y + sprites[s]->height <= y);
+}
+
 void moveSprite(uint sn, short x, short y) {
     if (sn >= MAXSPRITES || !sprites[sn]) return;
     if (!sprites[sn]->bgValid) {
@@ -1056,25 +1065,68 @@ void moveSprite(uint sn, short x, short y) {
         return;
     }
 
-    // Build the erase set: start with the sprite being moved
-    uint32_t erase_set = 1u << sn;
+    int sn_idx = draw_order_find(sn);
+    short sw = sprites[sn]->width;
+    short sh = sprites[sn]->height;
 
-    // Walk backward through draw order. Any sprite drawn on top of
-    // something in erase_set must also be erased/redrawn.
-    for (int i = draw_order_count - 1; i >= 0; i--) {
+    // Fast path: no overlap at source AND no higher-z overlap at destination.
+    bool has_src_overlap = false;
+    for (int i = 0; i < draw_order_count; i++) {
         int s = draw_order[i];
-        if (erase_set & (1u << s)) continue;
-        if (!sprites[s] || !sprites[s]->bgValid) continue;
-        // Check if sprite s overlaps anything in erase_set
-        for (int j = 0; j < draw_order_count; j++) {
-            int es = draw_order[j];
-            if (!(erase_set & (1u << es))) continue;
-            if (sprites_overlap(s, es)) {
-                erase_set |= (1u << s);
+        if (s == (int)sn) continue;
+        if (sprites_overlap(s, sn)) {
+            has_src_overlap = true;
+            break;
+        }
+    }
+    if (!has_src_overlap) {
+        bool has_dest_higher = false;
+        for (int i = sn_idx + 1; i < draw_order_count; i++) {
+            int s = draw_order[i];
+            if (dest_overlaps_sprite(x, y, sw, sh, s)) {
+                has_dest_higher = true;
                 break;
             }
         }
+        if (!has_dest_higher) {
+            drawSprite(sn, x, y, true);
+            return;
+        }
     }
+
+    // Full path: build the complete erase/redraw set.
+    // Seed with sn, add source overlaps and dest overlaps,
+    // then compute transitive closure (any sprite that overlaps
+    // something already in the set must also be included).
+    uint32_t erase_set = 1u << sn;
+
+    // Add higher-z sprites that overlap sn's destination
+    for (int i = sn_idx + 1; i < draw_order_count; i++) {
+        int s = draw_order[i];
+        if (sprites[s] && sprites[s]->bgValid && dest_overlaps_sprite(x, y, sw, sh, s))
+            erase_set |= (1u << s);
+    }
+
+    // Transitive closure: keep adding sprites that overlap anything
+    // already in the set until stable.
+    bool changed;
+    do {
+        changed = false;
+        for (int i = 0; i < draw_order_count; i++) {
+            int s = draw_order[i];
+            if (erase_set & (1u << s)) continue;
+            if (!sprites[s] || !sprites[s]->bgValid) continue;
+            for (int j = 0; j < draw_order_count; j++) {
+                int es = draw_order[j];
+                if (!(erase_set & (1u << es))) continue;
+                if (sprites_overlap(s, es)) {
+                    erase_set |= (1u << s);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+    } while (changed);
 
     // Erase in reverse draw order
     for (int i = draw_order_count - 1; i >= 0; i--) {
@@ -1087,7 +1139,7 @@ void moveSprite(uint sn, short x, short y) {
     sprites[sn]->x = x;
     sprites[sn]->y = y;
 
-    // Redraw in forward draw order
+    // Redraw all affected sprites in forward draw order
     for (int i = 0; i < draw_order_count; i++) {
         int s = draw_order[i];
         if (erase_set & (1u << s))
@@ -1135,7 +1187,7 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
 
     n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
     n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
-    if (width == SPRITE32_WIDTH) {
+    if (width == TILE32_WIDTH) {
         // 2nd 64bit int
         n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
         n->bitmap[1][1] = malloc(sizeof(uint64_t) * height);
