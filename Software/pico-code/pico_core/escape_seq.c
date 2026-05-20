@@ -310,20 +310,25 @@ static void esc_sequence_received(void) {
                     case 21: // Draw character: Esc[Z21;<x>;<y>;<char>Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
                         break;
-                    case 22: // Draw line: Esc[Z22;<x1>;<y1>;<x2>;<y2>Z
-                        drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                    case 22: // Draw line: Esc[Z22;<x1>;<y1>;<x2>;<y2>[;<color>]Z
+                        drawLine(escP[1], escP[2], escP[3], escP[4],
+                            esc_parameter_count > 4 ? escP[5] & 0x0f : textfgcolor, false);
                         break;
-                    case 23: // Draw rect: Esc[Z23;<x>;<y>;<w>;<h>;<color>Z
-                        drawRect(escP[1], escP[2], escP[3], escP[4], escP[5] & 0x0f, false);
+                    case 23: // Draw rect: Esc[Z23;<x>;<y>;<w>;<h>[;<color>]Z
+                        drawRect(escP[1], escP[2], escP[3], escP[4],
+                            esc_parameter_count > 4 ? escP[5] & 0x0f : textfgcolor, false);
                         break;
-                    case 24: // Draw filled rect: Esc[Z24;<x>;<y>;<w>;<h>;<color>Z
-                        drawFilledRect(escP[1], escP[2], escP[3], escP[4], escP[5] & 0x0f, false);
+                    case 24: // Draw filled rect: Esc[Z24;<x>;<y>;<w>;<h>[;<color>]Z
+                        drawFilledRect(escP[1], escP[2], escP[3], escP[4],
+                            esc_parameter_count > 4 ? escP[5] & 0x0f : textfgcolor, false);
                         break;
-                    case 25: // Draw circle: Esc[Z25;<x>;<y>;<r>;<color>Z
-                        drawCircle(escP[1], escP[2], escP[3], escP[4] & 0x0f, false);
+                    case 25: // Draw circle: Esc[Z25;<x>;<y>;<r>[;<color>]Z
+                        drawCircle(escP[1], escP[2], escP[3],
+                            esc_parameter_count > 3 ? escP[4] & 0x0f : textfgcolor, false);
                         break;
-                    case 26: // Draw filled circle: Esc[Z26;<x>;<y>;<r>;<color>Z
-                        drawFilledCircle(escP[1], escP[2], escP[3], escP[4] & 0x0f, false);
+                    case 26: // Draw filled circle: Esc[Z26;<x>;<y>;<r>[;<color>]Z
+                        drawFilledCircle(escP[1], escP[2], escP[3],
+                            esc_parameter_count > 3 ? escP[4] & 0x0f : textfgcolor, false);
                         break;
                     case 27: // Draw rounded rect: Esc[Z27;<x>;<y>;<w>;<h>;<r>Z
                         drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);

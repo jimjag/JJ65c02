@@ -397,6 +397,7 @@ BASIC_ZP_end     := Decssp1
     token_CIRCLE
     token_RECTF
     token_CIRCLEF
+    token_PLOT
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -2593,6 +2594,137 @@ LAB_CIRCLEF:
     lda R2
     sta R0
     lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<color>"
+    lda #';'
+    jsr CON_write_byte
+    lda Z6
+    sta R0
+    stz R0+1
+    jsr LIB_short2str
+
+    ; Send final 'Z'
+    lda #'Z'
+    jsr CON_write_byte
+
+    rts
+
+; perform PLOT x1, y1, x2, y2, color
+; Draws a line by emitting escape sequence: ESC[Z22;<x1>;<y1>;<x2>;<y2>;<color>Z
+
+LAB_PLOT:
+    jsr LAB_EVNM                ; evaluate x1 expression (numeric)
+    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
+
+    lda Itempl                  ; save x1 low byte
+    pha
+    lda Itemph                  ; save x1 high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y1 expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y1 low byte
+    pha
+    lda Itemph                  ; save y1 high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate x2 expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save x2 low byte
+    pha
+    lda Itemph                  ; save x2 high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y2 expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y2 low byte
+    pha
+    lda Itemph                  ; save y2 high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_GTBY                ; evaluate color expression, get byte in X
+    txa
+    pha                         ; save color
+
+    ; Now emit: ESC[Z22;<x1>;<y1>;<x2>;<y2>;<color>Z
+    lda #<x_escZ_prefix
+    sta CON_SPTR
+    lda #>x_escZ_prefix
+    sta CON_SPTR+1
+    jsr CON_write_string
+
+    ; Send "22"
+    lda #'2'
+    jsr CON_write_byte
+    lda #'2'
+    jsr CON_write_byte
+
+    ; Pull color (on top of stack)
+    pla
+    sta Z6
+
+    ; Pull y2
+    pla                         ; y2 high byte
+    sta R3+1
+    pla                         ; y2 low byte
+    sta R3
+
+    ; Pull x2
+    pla                         ; x2 high byte
+    sta R2+1
+    pla                         ; x2 low byte
+    sta R2
+
+    ; Pull y1
+    pla                         ; y1 high byte
+    sta R1+1
+    pla                         ; y1 low byte
+    sta R1
+
+    ; Pull x1
+    pla                         ; x1 high byte
+    sta R0+1
+    pla                         ; x1 low byte
+    sta R0
+
+    ; Send ";<x1>"
+    lda #';'
+    jsr CON_write_byte
+    jsr LIB_short2str
+
+    ; Send ";<y1>"
+    lda #';'
+    jsr CON_write_byte
+    lda R1
+    sta R0
+    lda R1+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<x2>"
+    lda #';'
+    jsr CON_write_byte
+    lda R2
+    sta R0
+    lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<y2>"
+    lda #';'
+    jsr CON_write_byte
+    lda R3
+    sta R0
+    lda R3+1
     sta R0+1
     jsr LIB_short2str
 
@@ -8541,6 +8673,7 @@ LAB_CTBL:
     .word LAB_CIRCLE-1      ; CIRCLE          new command
     .word LAB_RECTF-1       ; RECTF           new command
     .word LAB_CIRCLEF-1     ; CIRCLEF         new command
+    .word LAB_PLOT-1        ; PLOT            new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8898,6 +9031,8 @@ LBB_PEEK:
       .byte "EEK(",token_PEEK    ; PEEK(
 LBB_PI:
       .byte "I",token_PI         ; PI
+LBB_PLOT:
+      .byte "LOT",token_PLOT     ; PLOT
 LBB_POKE:
       .byte "OKE",token_POKE     ; POKE
 LBB_POS:
@@ -9097,6 +9232,8 @@ LAB_KEYT:
       .word LBB_RECTF         ; RECTF
       .byte 7,'C'
       .word LBB_CIRCLEF       ; CIRCLEF
+      .byte 4,'P'
+      .word LBB_PLOT          ; PLOT
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'
