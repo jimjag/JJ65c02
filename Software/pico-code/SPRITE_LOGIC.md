@@ -68,7 +68,9 @@ The display DMA is continuously scanning `vga_data_array[0]` while the CPU modif
 
 ## Case 2: Double Buffering (RP2350)
 
-Two buffers exist: `db_show` (being scanned by DMA) and `db_draw` (being modified by CPU). At VBlank, they swap. The user never modifies the buffer currently being displayed.
+Two buffers exist: `db_show` (index 0, always scanned by PIO DMA) and `db_draw` (index 1, modified by CPU). Both buffers are initialized to the same content when DB is enabled. At VBlank, calling `switchDB()` triggers the IRQ handler to **copy** the draw buffer into the show buffer (not swap pointers). The draw buffer retains its contents after the copy, allowing incremental updates across frames.
+
+**Key difference from a traditional pointer-swap:** because the copy goes draw→show, the draw buffer is never replaced. Sprite `bgrnd` data in the draw buffer remains valid across frames without needing `show2drawDB()`.
 
 ### Best Logic Flow
 
@@ -76,7 +78,9 @@ Two buffers exist: `db_show` (being scanned by DMA) and `db_draw` (being modifie
 +----------------------------------------------------------+
 | INIT                                                     |
 |   enableDB()                    // db_show=0, db_draw=1  |
-|   show2drawDB()                 // seed draw from show   |
+|                                 // both buffers start    |
+|                                 // identical (show→draw  |
+|                                 // copy done internally) |
 |   loadSprite(sn, ...) for each sprite                    |
 |   drawSprite(sn, x, y, false) in z-order (bottom->top)  |
 |   switchDB()                    // present first frame   |
@@ -87,43 +91,49 @@ Two buffers exist: `db_show` (being scanned by DMA) and `db_draw` (being modifie
 +----------------------------------------------------------+
 | ANIMATION LOOP                                           |
 |                                                          |
-|   show2drawDB()     // copy show->draw as clean slate    |
-|                     // (this INVALIDATES all bgrnd data  |
-|                     //  since draw buffer was replaced)   |
-|                                                          |
 |   // --- Option A: Full redraw (simplest) ---            |
-|   // All sprite bgrnd is stale after show2drawDB().      |
-|   // Mark all sprites as bgValid=false, then redraw:     |
+|   // Call show2drawDB() to re-seed draw from show.       |
+|   // This INVALIDATES all bgrnd data since draw buffer   |
+|   // was replaced. Mark all sprites as bgValid=false,    |
+|   // then redraw:                                        |
+|   show2drawDB()                                          |
 |   for each visible sprite (forward z-order):             |
 |       sprites[sn]->bgValid = false                       |
 |       drawSprite(sn, newX, newY, false)                  |
 |                                                          |
-|   // --- Option B: Selective move (optimized) ---        |
-|   // Skip show2drawDB(). Keep draw buffer persistent.    |
-|   // bgrnd remains valid across frames.                  |
+|   // --- Option B: Persistent draw buffer (optimized) -- |
+|   // Skip show2drawDB(). The draw buffer persists with   |
+|   // sprites composited. bgrnd remains valid.            |
 |   for each sprite that moved:                            |
 |       moveSprite(sn, newX, newY)                         |
 |                                                          |
-|   switchDB()                                             |
-|   waitForVBlank()                                        |
+|   switchDB()                    // request draw→show copy|
+|   waitForVBlank()               // block until complete  |
 +----------------------------------------------------------+
 ```
 
 ### Option A -- Full Redraw Per Frame (Tear-Free, Simplest)
 
-- After `show2drawDB()`, the draw buffer is a pristine copy of what was displayed -- no sprites drawn on it yet.
+- Call `show2drawDB()` to overwrite the draw buffer with the current show buffer contents -- a pristine copy with no sprites drawn.
 - All `bgrnd` data is stale (it references the *old* draw buffer contents which are now gone).
 - Invalidate all `bgValid` flags, then draw each sprite in z-order. Each captures its fresh background from the clean buffer.
 - No erase step needed -- the copy *is* the erase.
 - **Do NOT use `refreshSprites()` here.** It calls `eraseSprite` first, which would write stale `bgrnd` data into the clean buffer. Instead, manually invalidate `bgValid` and redraw.
 - **Trade-off:** `show2drawDB()` costs ~150KB DMA copy, plus redrawing all sprites every frame. But zero tearing and zero overlap bugs.
 
-### Option B -- Persistent Draw Buffer (Faster, Same Logic as Single-Buffer)
+### Option B -- Persistent Draw Buffer (Faster, Recommended)
 
 - Do NOT call `show2drawDB()`. The draw buffer persists between frames with sprites already composited.
-- `bgrnd` remains valid because the draw buffer was not overwritten.
+- Because `switchDB()` copies draw→show (not a swap), the draw buffer is never replaced. `bgrnd` data remains valid across frames.
 - Use `moveSprite()` exactly as in single-buffer mode.
-- **Trade-off:** faster (only touched sprites are erased/redrawn), but the draw buffer accumulates the same potential for multi-sprite overlap complexity. The win over single-buffer is that all the erase/redraw happens invisibly on the draw buffer, then appears atomically at swap -- **no tearing**.
+- **Trade-off:** faster (only touched sprites are erased/redrawn), but the draw buffer accumulates the same potential for multi-sprite overlap complexity. The win over single-buffer is that all the erase/redraw happens invisibly on the draw buffer, then appears atomically via the VBlank copy -- **no tearing**.
+
+### Timing
+
+The VBlank copy (draw→show) is performed by a dedicated ISR DMA channel during the vertical blanking interval:
+- VBlank duration: ~1,440µs (45 lines × 32µs/line)
+- Copy time: ~256µs (153,600 bytes as 38,400 word transfers at 150MHz)
+- Margin: >1ms remaining for other VBlank work
 
 ---
 
@@ -136,4 +146,4 @@ Two buffers exist: `db_show` (being scanned by DMA) and `db_draw` (being modifie
 | RP2350, tear-free needed, few sprites | Double-buffer Option A (full redraw) |
 | RP2350, tear-free needed, many sprites | Double-buffer Option B (persistent draw buf + `moveSprite`) |
 
-Option B is the sweet spot for RP2350 -- it gives tear-free display with the same incremental update cost as single-buffer mode, because `moveSprite`'s overlap logic keeps backgrounds correct without needing a full-frame copy.
+Option B is the sweet spot for RP2350 -- it gives tear-free display with the same incremental update cost as single-buffer mode.  Because `switchDB()` copies draw→show (rather than swapping pointers), the draw buffer is never replaced and `bgrnd` remains valid across frames.  `moveSprite`'s overlap logic keeps backgrounds correct without needing a per-frame `show2drawDB()` copy.

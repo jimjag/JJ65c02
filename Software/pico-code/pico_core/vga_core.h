@@ -150,25 +150,25 @@ void conInTask(void);
 
 // Double-buffering API (RP2350 only; no-ops on RP2040)
 //
+// Model: The show buffer (index 0) is ALWAYS the one scanned out by the PIO
+// DMA.  When DB is enabled, all drawing goes to the draw buffer (index 1).
+// Calling switchDB() sets a flag; at the next VBlank the IRQ handler copies
+// the draw buffer into the show buffer (during the ~1.4ms blanking interval).
+// Because draw→show is a copy (not a pointer swap), the draw buffer retains
+// its contents and can be incrementally updated for the next frame.
+//
 // Recommended animation loop:
 //
-//   enableDB();
-//   show2drawDB();          // seed draw buffer from initial screen contents
+//   enableDB();                // both buffers start identical
 //
 //   while (true) {
 //       // ... draw next frame into vga_data_array[db_draw] ...
-//       switchDB();         // request buffer swap at next VBlank
-//       waitForVBlank();    // block until the IRQ fires and swaps buffers
-//       show2drawDB();      // optional: copy new show buf into draw buf as
-//                           //   starting point for the next frame
+//       switchDB();           // request draw→show copy at next VBlank
+//       waitForVBlank();      // block until copy completes
 //   }
 //
-// Why this order matters:
-//   switchDB()      marks _do_switch; the IRQ will act on it at end of frame.
-//   waitForVBlank() spins until that IRQ fires, guaranteeing db_draw now
-//                   points to the buffer the pixel DMA is NOT scanning out.
-//   show2drawDB()   copies show→draw; called after waitForVBlank() so it
-//                   does not contend with the pixel DMA on the same buffer.
+// show2drawDB() is available if you need to re-seed the draw buffer from
+// the show buffer (e.g. after disabling DB temporarily).
 void enableDB(void);
 void disableDB(void);
 void show2drawDB(void);

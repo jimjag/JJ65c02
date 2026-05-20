@@ -24,7 +24,7 @@
  *  CORE 0
  *  - VGA:
  *  -   PIO state machines 0, 1, and 2 on PIO instance 0
- *  -   DMA channels 0, 1, and 2 (vga, memset, memcpy)
+ *  -   DMA channels 0, 1, 2, and 3 (vga, memset, memcpy, isr-copy)
  *  -   IRQ 0, 1
  *  -   153.6 kBytes of RAM (for pixel color data)
  *  - PS2:
@@ -72,10 +72,12 @@ int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have
 // On RP2350 the two buffers are placed in separate named sections so the
 // custom linker script (memmap_vga_rp2350.ld) can pin them to different
 // SRAM bank groups.  Buffer 0 (show) lands in SRAM4/5; buffer 1 (draw)
-// lands in SRAM6/7.  This ensures the pixel DMA (reading show) and the
-// CPU/utility DMA (writing draw, or copying in show2drawDB) never contend
-// on the same bus, eliminating the scanline FIFO underruns that cause
-// horizontal corruption.  On RP2040 a single buffer is used (no DB).
+// lands in SRAM6/7.  The show buffer is always the one scanned out by the
+// PIO DMA.  When double-buffering is enabled the VBlank handler copies the
+// draw buffer into the show buffer (~256µs via word-DMA, well within the
+// ~1,440µs blanking interval).  Separate banks ensure this copy and the
+// pixel DMA never contend on the same bus.  On RP2040 a single buffer is
+// used (no DB).
 #if PICO_RP2040
 unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #else
@@ -94,6 +96,7 @@ static char txtfont = 0;
 
 static int memset_dma_chan;
 static int memcpy_dma_chan;
+static int isr_dma_chan;
 
 // configurations
 // wrap: auto wrap around at terminal end
@@ -158,20 +161,21 @@ volatile bool _db_vga_enabled = false;
 // Incremented on every frame boundary (VBlank). Used by waitForVBlank().
 volatile uint32_t _vblank_count = 0;
 static void __time_critical_func(db_vga_ihandler)(void) {
+    // Clear the interrupt request first so the DMA controller does not
+    // immediately re-assert when we re-trigger below.
+    dma_hw->ints0 = 1u << vga_chan;
 #if !PICO_RP2040
     _db_switched = false;
     if (_db_vga_enabled && _do_switch) {
-        db_show = db_draw;
-        db_draw = db_draw ^ 1;
+        dma_channel_set_read_addr(isr_dma_chan, vga_data_array[db_draw], false);
+        dma_channel_set_write_addr(isr_dma_chan, vga_data_array[db_show], false);
+        dma_channel_set_trans_count(isr_dma_chan, txcount >> 2, true);
+        dma_channel_wait_for_finish_blocking(isr_dma_chan);
         _do_switch = false;
         _db_switched = true;
     }
 #endif
-    // Clear the interrupt request.
-    dma_hw->ints0 = 1u << vga_chan;
-    // Give the channel a table entry to read from, and re-trigger it.
-    // IRQ clear must happen before the re-trigger write so the DMA
-    // controller does not immediately re-assert the interrupt.
+    // Re-trigger VGA DMA — show buffer always remains at index 0.
     dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], true);
     _vblank_count++;
 }
@@ -179,34 +183,39 @@ static void __time_critical_func(db_vga_ihandler)(void) {
 // Enable or Disable the Double Buffering
 void enableDB(void) {
 #if !PICO_RP2040
+    _do_switch = false;
     _db_vga_enabled = true;
     db_show = 0;
     db_draw = 1;
-    // Seed draw buffer from show buffer so the first rendered frame starts clean
+    // Both buffers start with identical content — copy show→draw so the
+    // draw buffer begins as an exact clone of what's currently on screen.
     dma_memcpy(vga_data_array[db_draw], vga_data_array[db_show], txcount, true);
-    _do_switch = false;
     _db_switched = true;
 #endif
 }
 void disableDB(void) {
     _db_vga_enabled = false;
-    db_draw = db_show;
+    // When disabling, ensure show buffer has the latest draw content,
+    // then point both indices at the show buffer.
+    dma_memcpy(vga_data_array[0], vga_data_array[db_draw], txcount, true);
+    db_show = 0;
+    db_draw = 0;
 }
 // Get the current state of the Double Buffering
 bool getDBEnabled(void) {
     return _db_vga_enabled;
 }
 // Copy the currently showing buffer to the drawing buffer.
-// Call this AFTER waitForVBlank() so the copy runs during VBlank/back-porch,
-// not while the pixel DMA is scanning out the show buffer.
-// Safe to call whether DB is enabled or not.
+// Under the new model the switchDB handler copies draw→show, so after a
+// switch both buffers are already identical.  This function exists so
+// callers that only modify a small portion of the frame can explicitly
+// re-seed the draw buffer from the show buffer at any time.
 void show2drawDB(void) {
-    if (_db_switched && (db_show != db_draw)) {
+    if (db_show != db_draw) {
         dma_memcpy(vga_data_array[db_draw], vga_data_array[db_show], txcount, true);
     }
 }
-// Request a buffer swap at the next VBlank. See vga_core.h for the
-// recommended animation loop pattern (switchDB → waitForVBlank → show2drawDB).
+// Request a draw→show copy at the next VBlank.
 void switchDB(void) {
     _do_switch = true;
 }
@@ -311,6 +320,19 @@ void initVGA(void) {
 
     memset_dma_chan = dma_claim_unused_channel(true);
     memcpy_dma_chan = dma_claim_unused_channel(true);
+    isr_dma_chan = dma_claim_unused_channel(true);
+
+#if !PICO_RP2040
+    // Fully pre-configure isr_dma_chan for draw→show copies in the VBlank ISR.
+    // Addresses and config are static; the ISR only sets trans_count to trigger.
+    dma_channel_config ci = dma_channel_get_default_config(isr_dma_chan);
+    channel_config_set_transfer_data_size(&ci, DMA_SIZE_32);
+    channel_config_set_read_increment(&ci, true);
+    channel_config_set_write_increment(&ci, true);
+    dma_channel_configure(isr_dma_chan, &ci,
+        vga_data_array[0], vga_data_array[1],
+        0, false);
+#endif
 
     // Channel Zero (sends color data to PIO VGA machine)
     dma_channel_config c0 = dma_channel_get_default_config(vga_chan);    // default configs
