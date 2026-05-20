@@ -10,6 +10,7 @@
 .include "sysram.inc"
 .include "tty.inc"
 .include "console.inc"
+.include "lib.inc"
 
 ;
 ; EHBASIC has been reported to be released into the Public Domain
@@ -392,6 +393,8 @@ BASIC_ZP_end     := Decssp1
     token_NMI
     token_EXIT
     token_TTY
+    token_RECT
+    token_FGCLR
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -2127,6 +2130,152 @@ LAB_TTY:
 @done:
     pla
     jmp BASIC_WARM              ; go do warm start
+
+; perform RECT x, y, w, h
+; Draws a rectangle by emitting escape sequence: ESC[Z23;<x>;<y>;<w>;<h>Z
+
+LAB_RECT:
+    jsr LAB_EVNM                ; evaluate x expression (numeric)
+    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
+
+    lda Itempl                  ; save x low byte
+    pha
+    lda Itemph                  ; save x high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y low byte
+    pha
+    lda Itemph                  ; save y high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate w expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save w low byte
+    pha
+    lda Itemph                  ; save w high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate h expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save h low byte
+    pha
+    lda Itemph                  ; save h high byte
+    pha
+
+    ; Now emit: ESC[Z23;<x>;<y>;<w>;<h>Z
+    ; Send ESC[Z prefix
+    lda #<x_escZ_prefix
+    sta CON_SPTR
+    lda #>x_escZ_prefix
+    sta CON_SPTR+1
+    jsr CON_write_string
+
+    ; Send "23"
+    lda #'2'
+    jsr CON_write_byte
+    lda #'3'
+    jsr CON_write_byte
+
+    ; Send ";<x>"
+    lda #';'
+    jsr CON_write_byte
+    ; pull h off to get to x (stack is: h_hi, h_lo, w_hi, w_lo, y_hi, y_lo, x_hi, x_lo)
+    ; Actually stack order (top to bottom): h_hi, h_lo, w_hi, w_lo, y_hi, y_lo, x_hi, x_lo
+    ; We need x first, so let's reorganize - pull all and store
+
+    ; Pull h (on top of stack)
+    pla                         ; h high byte
+    sta R3+1
+    pla                         ; h low byte
+    sta R3
+
+    ; Pull w
+    pla                         ; w high byte
+    sta R2+1
+    pla                         ; w low byte
+    sta R2
+
+    ; Pull y
+    pla                         ; y high byte
+    sta R1+1
+    pla                         ; y low byte
+    sta R1
+
+    ; Pull x
+    pla                         ; x high byte
+    sta R0+1
+    pla                         ; x low byte
+    sta R0
+
+    ; Output x as decimal
+    jsr LIB_short2str
+
+    ; Send ";<y>"
+    lda #';'
+    jsr CON_write_byte
+    lda R1
+    sta R0
+    lda R1+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<w>"
+    lda #';'
+    jsr CON_write_byte
+    lda R2
+    sta R0
+    lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<h>"
+    lda #';'
+    jsr CON_write_byte
+    lda R3
+    sta R0
+    lda R3+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send final 'Z'
+    lda #'Z'
+    jsr CON_write_byte
+
+    rts
+
+; perform FGCLR color
+; Sets foreground color by emitting escape sequence: ESC[Z2;<color>Z
+
+LAB_FGCLR:
+    jsr LAB_GTBY                ; evaluate expression, get byte result in X
+    stx R0                      ; save color value before it gets clobbered
+
+    ; Emit: ESC[Z2;<color>Z
+    lda #<x_escZ_prefix
+    sta CON_SPTR
+    lda #>x_escZ_prefix
+    sta CON_SPTR+1
+    jsr CON_write_string
+
+    lda #'2'
+    jsr CON_write_byte
+    lda #';'
+    jsr CON_write_byte
+
+    jsr LIB_byte2str            ; output R0 as decimal
+
+    lda #'Z'
+    jsr CON_write_byte
+
+    rts
 
 ; perform REM, skip (rest of) line
 
@@ -8055,6 +8204,8 @@ LAB_CTBL:
     .word LAB_NMI-1         ; NMI             new command
     .word V_EXIT-1          ; EXIT            new command
     .word LAB_TTY-1         ; TTY             new command
+    .word LAB_RECT-1        ; RECT            new command
+    .word LAB_FGCLR-1       ; FGCLR           new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8325,6 +8476,8 @@ LBB_EXP:
       .byte "XP(",token_EXP      ; EXP(
       .byte $00
 TAB_ASCF:
+LBB_FGCLR:
+      .byte "GCLR",token_FGCLR   ; FGCLR
 LBB_FN:
       .byte "N",token_FN         ; FN
 LBB_FOR:
@@ -8418,6 +8571,8 @@ LBB_PRINT:
 TAB_ASCR:
 LBB_READ:
       .byte "EAD",token_READ     ; READ
+LBB_RECT:
+      .byte "ECT",token_RECT     ; RECT
 LBB_REM:
       .byte "EM",token_REM       ; REM
 LBB_RESTORE:
