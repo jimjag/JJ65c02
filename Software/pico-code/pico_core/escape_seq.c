@@ -148,22 +148,12 @@ static void esc_sequence_received(void) {
                 break;
             case 'h': // SM - Set Mode
                 if (parameter_q && (escP[0] == 25)) {
-                    // show cursor
                     enableCurs(true);
-                }
-                if (parameter_q && (escP[0] == 4)) {
-                    // show cursor
-                    enableSmoothScroll(true);
                 }
                 break;
             case 'l': // RM - Reset Mode
                 if (parameter_q && (escP[0] == 25)) {
-                    // hide cursor
                     enableCurs(false);
-                }
-                if (parameter_q && (escP[0] == 4)) {
-                    // show cursor
-                    enableSmoothScroll(false);
                 }
                 break;
             case 'm': // SGR - Select Graphic Rendition
@@ -200,13 +190,12 @@ static void esc_sequence_received(void) {
                 savedTcurs.x = tcurs.x;
                 savedTcurs.y = tcurs.y;
                 break;
-            case 'Z':  // Extended: Basic graphics
-                       // NOTE: <char> is the character __in decimal__!
+            case 'Z':  // Extended commands
                 switch (escP[0]) {
                     case 0: // Write a raw character: Esc[Z;<char>Z
                         writeChar(escP[1]);
                         break;
-                    case 1: // Sound function - send <val> to sound routine (see soundTask() for codes) Esc[Z1;<val>Z
+                    case 1: // Sound: Esc[Z1;<val>Z
                         multicore_fifo_push_blocking((uint32_t)escP[1]);
                         break;
                     case 2: // Set fg color: Esc[Z2;<color>Z
@@ -215,61 +204,58 @@ static void esc_sequence_received(void) {
                     case 3: // Set bg color: Esc[Z3;<color>Z
                         textbgcolor = convertRGB332(escP[1]);
                         break;
-                    case 4: // VRAM cpy Esc[Z4;<x1>;<y1>;<x2>;<y2>;<len>Z
-                        // copy <len> bytes from x1,y1 to x2,y2
-                        start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
-                        end = (escP[4] * SCREENWIDTH + escP[3]) >> 1;
-                        dma_memcpy(&vga_data_array[db_draw][end], &vga_data_array[db_draw][start], escP[5]>>1, true);
+                    case 6: // Scroll up N lines: Esc[Z6;<lines>Z
+                        n = escP[1] / FONTHEIGHT;
+                        if (n <= 0) n = 1;
+                        termScrollUp(n);
                         break;
-                    case 5: // VRAM set Esc[Z5;<x>;<y>;<byte>;<len>Z
-                        start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
-                        dma_memset(&vga_data_array[db_draw][start], escP[3], escP[4]>>1, true);
+                    case 9: // Switch to tile mode: Esc[Z9;Z
+                        setRenderModeTile();
                         break;
-                    case 6: // Esc[Z6;<lines>Z
-                        vgaScrollUp(escP[1]);
+                    case 10: // Switch to text mode: Esc[Za;Z
+                        setRenderModeText();
                         break;
-                    case 7: // Esc[Z7;<pixels>Z
-                        vgaScrollLeft(escP[1]);
+                    case 11: // Set tilemap cell: Esc[Zb;<col>;<row>;<tid>Z
+                        setTilemapCell(escP[1], escP[2], escP[3]);
                         break;
-                    case 8: // Esc[Z8;Z
-                        show2drawDB();
+                    case 12: // Set tilemap bg: Esc[Zc;<color>Z
+                        setTilemapBg(convertRGB332(escP[1]));
                         break;
-                    case 9: // Esc[Z9;Z
-                        switchDB();
+                    case 13: // Set tilemap scroll: Esc[Zd;<sx>;<sy>Z
+                        setTilemapScroll(escP[1], escP[2]);
                         break;
-                    case 10: // Esc[za;Z
-                        enableDB();
+                    case 14: // Move sprite: Esc[Ze;<sn>;<x>;<y>Z
+                        moveSprite(escP[1], escP[2], escP[3]);
                         break;
-                    case 11: // Esc[zb;Z
-                        disableDB();
-                        break;
-                    // hold for future use
-                    case 16: // Draw Pixel at x,y: Esc[Z4;x;yZ
+                    case 16: // Draw Pixel: Esc[Z16;<x>;<y>Z
                         drawPixel(escP[1], escP[2], textfgcolor, false);
                         break;
-                    case 17: // Draw character <char> at x,y: Esc[Z5;x;y;<char>Z
+                    case 17: // Draw character at x,y: Esc[Z17;<x>;<y>;<char>Z
                         drawChar(escP[1], escP[2], escP[3], textfgcolor, textbgcolor, 1, false);
                         break;
-                    case 18: // Draw a line: Esc[Z6;x1;y1;x2;y2Z
+                    case 18: // Draw line: Esc[Z18;<x1>;<y1>;<x2>;<y2>Z
                         drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
-                    case 19: // Draw an empty rect: Esc[Z7;x;y;w;hZ
+                    case 19: // Draw rect: Esc[Z19;<x>;<y>;<w>;<h>Z
                         drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
-                    case 20: // Draw a filled rect: Esc[Z8;x;y;w;hZ
+                    case 20: // Draw filled rect: Esc[Z20;<x>;<y>;<w>;<h>Z
                         drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
-                    case 21: // Draw an empty circle: Esc[Z9;x;y;rZ
+                    case 21: // Draw circle: Esc[Z21;<x>;<y>;<r>Z
                         drawCircle(escP[1], escP[2], escP[3], textfgcolor, false);
                         break;
-                    case 22: // Draw an filled circle: Esc[Z10;x;y;rZ
+                    case 22: // Draw filled circle: Esc[Z22;<x>;<y>;<r>Z
                         drawFilledCircle(escP[1], escP[2], escP[3], textfgcolor, false);
                         break;
-                    case 23: // Draw an empty rounded rect: Esc[Z11;x;y;w;h;rZ
+                    case 23: // Draw round rect: Esc[Z23;<x>;<y>;<w>;<h>;<r>Z
                         drawRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
                         break;
-                    case 24: // Draw a filled rounded rect: Esc[Z12;x;y;w;h;rZ
+                    case 24: // Draw filled round rect: Esc[Z24;<x>;<y>;<w>;<h>;<r>Z
                         drawFilledRoundRect(escP[1], escP[2], escP[3], escP[4], escP[5], textfgcolor, false);
+                        break;
+                    case 25: // Fill screen: Esc[Z25;<color>Z
+                        vgaFillScreen(convertRGB332(escP[1]));
                         break;
                 }
                 break;

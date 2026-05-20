@@ -61,33 +61,33 @@
 // Font file
 #include "vga_fonts.c"
 
-// Pixel color array that is DMAed to the PIO machines and
-// a pointer to the ADDRESS of this color array.
-// Note that this array is automatically initialized to all 0's (black)
-// Length of the pixel array, and number of DMA transfers
-// #define txcount 153600 // Total pixels/2 (since we have 2 pixels per byte)
-int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
+// All display output is rendered per-scanline (beam-chasing).
+// The rendering pipeline composites layers:
+//   RENDER_TILEMAP: background pixels → tiles → sprites
+//   RENDER_TEXT:    terminal[] + font (per-cell color)
+int scanline_size = (SCREENWIDTH / 2); // bytes per scanline (320)
 
-// The RP2040 lacks enough memory for double buffering.
-// On RP2350 the two buffers are placed in separate named sections so the
-// custom linker script (memmap_vga_rp2350.ld) can pin them to different
-// SRAM bank groups.  Buffer 0 (show) lands in SRAM4/5; buffer 1 (draw)
-// lands in SRAM6/7.  This ensures the pixel DMA (reading show) and the
-// CPU/utility DMA (writing draw, or copying in show2drawDB) never contend
-// on the same bus, eliminating the scanline FIFO underruns that cause
-// horizontal corruption.  On RP2040 a single buffer is used (no DB).
-#if PICO_RP2040
-unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
-#else
-unsigned char __attribute__((aligned(4), section(".vga_show_buf"))) vga_buf0[(SCREENWIDTH * SCREENHEIGHT) / 2];
-unsigned char __attribute__((aligned(4), section(".vga_draw_buf"))) vga_buf1[(SCREENWIDTH * SCREENHEIGHT) / 2];
-// Pointer array indexed by db_show / db_draw — same call-site syntax as before.
-// Initialised from address constants so the compiler places it in .rodata (flash).
-// Two pointer reads at 60 Hz from flash is negligible; the buffers themselves are in RAM.
-unsigned char * const vga_data_array[2] = { vga_buf0, vga_buf1 };
-#endif
-//unsigned char *address_pointer = &vga_data_array[0][0];
-int scanline_size = (SCREENWIDTH / 2); // Amount of bytes taken by each scanline
+enum render_mode { RENDER_TEXT = 0, RENDER_TILEMAP };
+static volatile enum render_mode _render_mode = RENDER_TEXT;
+static unsigned char __attribute__((aligned(4))) _line_buf[2][SCREENWIDTH / 2];
+static volatile int _line_buf_ready = 0; // which buf is ready for DMA
+static volatile int _line_buf_render = 1; // which buf the CPU renders into
+static volatile int _render_line = 0; // next line the CPU should render
+
+// Background pixel layer for RENDER_TILEMAP mode.
+// Graphics primitives (drawPixel, drawLine, etc.) write here.
+// The tile scanline renderer reads one scanline from this as layer 0,
+// then composites tiles and sprites on top.
+static unsigned char __attribute__((aligned(4))) _bg_pixels[(SCREENWIDTH * SCREENHEIGHT) / 2];
+
+// Tilemap state: grid of tile IDs composited per scanline.
+// 640/16 = 40 columns, 480/16 = 30 rows for 16px tiles.
+// For 32px tiles: 640/32 = 20 columns, 480/32 = 15 rows.
+#define TILEMAP_COLS (SCREENWIDTH / TILE16_WIDTH)
+#define TILEMAP_ROWS (SCREENHEIGHT / TILE16_WIDTH)
+static unsigned char _tilemap[TILEMAP_ROWS][TILEMAP_COLS];
+static int _tilemap_scroll_x = 0;
+static int _tilemap_scroll_y = 0;
 
 static const unsigned char *font = font_sweet16;
 static char txtfont = 0;
@@ -99,7 +99,7 @@ static int memcpy_dma_chan;
 // wrap: auto wrap around at terminal end
 // cr2crlf/lf2crlf: auto CRLF when we get CR or LF
 //      we handle "special" characters (like arrows and other non-printables
-static bool wrap = true, cr2crlf = false, lf2crlf = false, smooth_scroll = false;
+static bool wrap = true, cr2crlf = false, lf2crlf = false;
 volatile char textfgcolor = WHITE_INT, textbgcolor = BLACK_INT;
 
 struct scrpos savedTcurs = {0,0};
@@ -108,6 +108,7 @@ struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEI
 
 // The terminal mode array
 unsigned char *terminal;
+unsigned char *term_attr; // per-cell color: high nibble = bg, low nibble = fg
 int terminal_size = (SCREENWIDTH / FONTWIDTH) * (SCREENHEIGHT / FONTHEIGHT);
 int textrow_size = (SCREENWIDTH / FONTWIDTH);
 
@@ -124,13 +125,16 @@ alarm_pool_t *apool = NULL;
 volatile bool cursorEnabled = false;
 volatile bool cursorOn = false;
 
+static unsigned char _cursor_saved_char = ' ';
+
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
+    int idx = tcurs.x + (tcurs.y * textrow_size);
     if (!cursorOn) {
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize, false);
+        _cursor_saved_char = terminal[idx] ? terminal[idx] : ' ';
+        terminal[idx] = '_';
     } else {
-        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
+        terminal[idx] = _cursor_saved_char;
     }
     cursorOn = !cursorOn;
     return true;
@@ -138,85 +142,199 @@ bool cursor_callback(struct repeating_timer *t) {
 
 bool enableCurs(bool flag) {
     bool was = cursorEnabled;
-    if (!flag && cursorEnabled && cursorOn) { // turning it off when on
-        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
+    if (!flag && cursorEnabled && cursorOn) {
+        int idx = tcurs.x + (tcurs.y * textrow_size);
+        terminal[idx] = _cursor_saved_char;
+        cursorOn = false;
     }
     cursorEnabled = flag;
     return was;
 }
 
-// Double buffers stuff
-int vga_chan;
-volatile int db_show = 0;
-volatile int db_draw = 0;
-volatile bool _do_switch = false;
-volatile bool _db_switched = false;
-volatile bool _db_vga_enabled = false;
-// Incremented on every frame boundary (VBlank). Used by waitForVBlank().
-volatile uint32_t _vblank_count = 0;
-static void __time_critical_func(db_vga_ihandler)(void) {
-#if !PICO_RP2040
-    _db_switched = false;
-    if (_db_vga_enabled && _do_switch) {
-        db_show = db_draw;
-        db_draw = db_draw ^ 1;
-        _do_switch = false;
-        _db_switched = true;
+// Render one scanline of text into buf (320 bytes = 640 pixels at 4bpp).
+// Called from main-loop context (not ISR) to prepare the next line.
+static void __not_in_flash_func(render_text_scanline)(int line, unsigned char *buf) {
+    int char_row = line / FONTHEIGHT;
+    int font_row = line % FONTHEIGHT;
+    unsigned char *trow = &terminal[char_row * textrow_size];
+    unsigned char *arow = &term_attr[char_row * textrow_size];
+
+    for (int col = 0; col < textrow_size; col++) {
+        unsigned char glyph = pgm_read_byte(font + (trow[col] * FONTHEIGHT) + font_row);
+        unsigned char attr = arow[col];
+        unsigned char fg = attr & 0x0F;
+        unsigned char bg = (attr >> 4) & 0x0F;
+
+        // Expand 8 monochrome pixels into 4 bytes (2 pixels per byte).
+        // PIO emits low nibble first, then high nibble.
+        buf[0] = ((glyph & 0x80) ? fg : bg) | (((glyph & 0x40) ? fg : bg) << 4);
+        buf[1] = ((glyph & 0x20) ? fg : bg) | (((glyph & 0x10) ? fg : bg) << 4);
+        buf[2] = ((glyph & 0x08) ? fg : bg) | (((glyph & 0x04) ? fg : bg) << 4);
+        buf[3] = ((glyph & 0x02) ? fg : bg) | (((glyph & 0x01) ? fg : bg) << 4);
+        buf += 4;
     }
-#endif
-    // Clear the interrupt request.
-    dma_hw->ints0 = 1u << vga_chan;
-    // Give the channel a table entry to read from, and re-trigger it.
-    // IRQ clear must happen before the re-trigger write so the DMA
-    // controller does not immediately re-assert the interrupt.
-    dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], true);
-    _vblank_count++;
 }
 
-// Enable or Disable the Double Buffering
-void enableDB(void) {
-#if !PICO_RP2040
-    _db_vga_enabled = true;
-    db_show = 0;
-    db_draw = 1;
-    // Seed draw buffer from show buffer so the first rendered frame starts clean
-    dma_memcpy(vga_data_array[db_draw], vga_data_array[db_show], txcount, true);
-    _do_switch = false;
-    _db_switched = true;
-#endif
-}
-void disableDB(void) {
-    _db_vga_enabled = false;
-    db_draw = db_show;
-}
-// Get the current state of the Double Buffering
-bool getDBEnabled(void) {
-    return _db_vga_enabled;
-}
-// Copy the currently showing buffer to the drawing buffer.
-// Call this AFTER waitForVBlank() so the copy runs during VBlank/back-porch,
-// not while the pixel DMA is scanning out the show buffer.
-// Safe to call whether DB is enabled or not.
-void show2drawDB(void) {
-    if (_db_switched && (db_show != db_draw)) {
-        dma_memcpy(vga_data_array[db_draw], vga_data_array[db_show], txcount, true);
+// Sprite and tile arrays — defined here (before the beam renderer) and
+// referenced by the graphics functions in vga_graphics.c (same TU).
+sprite_t *sprites[MAXSPRITES];
+tile_t *tiles[MAXTILES];
+
+// Render one scanline of tilemap + sprites into buf.
+// Layer order: background pixels → tiles → sprites.
+static void __not_in_flash_func(render_tile_scanline)(int line, unsigned char *buf) {
+    int sy = (line + _tilemap_scroll_y) % (TILEMAP_ROWS * TILE16_WIDTH);
+    int tile_row = sy / TILE16_WIDTH;
+    int tile_y = sy % TILE16_WIDTH;
+    int sx_base = _tilemap_scroll_x;
+
+    // Layer 0: copy background pixel scanline
+    const unsigned char *bg_src = &_bg_pixels[line * scanline_size];
+    for (int i = 0; i < scanline_size; i++)
+        buf[i] = bg_src[i];
+
+    // Blit tiles for this scanline
+    for (int col = 0; col < TILEMAP_COLS; col++) {
+        int sx = (col * TILE16_WIDTH - sx_base);
+        // Wrap horizontally
+        if (sx < 0) sx += TILEMAP_COLS * TILE16_WIDTH;
+        if (sx >= SCREENWIDTH) continue;
+
+        unsigned char tid = _tilemap[tile_row][col];
+        if (tid == 0 || tid >= MAXTILES || !tiles[tid]) continue;
+
+        // Tile row is stored as uint64_t (8 bytes = 16 pixels at 4bpp).
+        // Tiles at even X positions (aligned to 16px grid) use the [0] variant.
+        int oddeven = (sx & 1);
+        int byte_offset = sx >> 1;
+
+        // For 16px tiles: one 64-bit chunk
+        uint64_t bm = tiles[tid]->bitmap[0][oddeven][tile_y];
+        if (byte_offset >= 0 && byte_offset + 8 <= scanline_size) {
+            uint64_t *dest = (uint64_t *)&buf[byte_offset];
+            *dest = bm;
+        }
+        // For 32px tiles: second chunk
+        if (tiles[tid]->width == TILE32_WIDTH && byte_offset + 16 <= scanline_size) {
+            uint64_t bm1 = tiles[tid]->bitmap[1][oddeven][tile_y];
+            uint64_t *dest1 = (uint64_t *)&buf[byte_offset + 8];
+            *dest1 = bm1;
+        }
+    }
+
+    // Overlay active sprites using mask compositing
+    for (int s = 0; s < MAXSPRITES; s++) {
+        if (!sprites[s]) continue;
+        int spy = sprites[s]->y;
+        int sph = sprites[s]->height;
+        if (line < spy || line >= spy + sph) continue;
+
+        int sprite_row = line - spy;
+        int spx = sprites[s]->x;
+        int oddeven = spx & 1;
+        int byte_offset = spx >> 1;
+        int chunks = sprites[s]->width / SPRITE16_WIDTH;
+
+        for (int k = 0; k < chunks; k++) {
+            int bo = byte_offset + (k * 8);
+            if (bo < 0 || bo + 8 > scanline_size) continue;
+            uint64_t bm = sprites[s]->bitmap[k][oddeven][sprite_row];
+            uint64_t mk = sprites[s]->mask[k][oddeven][sprite_row];
+            uint64_t *dest = (uint64_t *)&buf[bo];
+            *dest = (*dest & mk) | (~mk & bm);
+        }
     }
 }
-// Request a buffer swap at the next VBlank. See vga_core.h for the
-// recommended animation loop pattern (switchDB → waitForVBlank → show2drawDB).
-void switchDB(void) {
-    _do_switch = true;
+
+int vga_chan;
+// Incremented on every frame boundary (VBlank). Used by waitForVBlank().
+volatile uint32_t _vblank_count = 0;
+// Per-scanline DMA state: fires once per line (480 times/frame).
+static volatile int _scanline_num = 0;
+static void __time_critical_func(scanline_ihandler)(void) {
+    dma_hw->ints0 = 1u << vga_chan;
+
+    _scanline_num++;
+    if (_scanline_num >= SCREENHEIGHT) {
+        _scanline_num = 0;
+        _vblank_count++;
+        // Render line 0 directly — safe during VBlank (~1.4ms available).
+        if (_render_mode == RENDER_TEXT)
+            render_text_scanline(0, _line_buf[_line_buf_render]);
+        else
+            render_tile_scanline(0, _line_buf[_line_buf_render]);
+        _line_buf_ready ^= 1;
+        _line_buf_render ^= 1;
+        _render_line = 1;
+        dma_channel_set_read_addr(vga_chan, _line_buf[_line_buf_ready], true);
+        return;
+    }
+
+    if (_render_line < 0) {
+        _line_buf_ready ^= 1;
+        _line_buf_render ^= 1;
+    }
+    _render_line = _scanline_num + 1;
+    dma_channel_set_read_addr(vga_chan, _line_buf[_line_buf_ready], true);
 }
-// Did the handler switch the buffers?
-bool getDBSwitched(void) {
-    return _db_switched;
-}
-// Block until the DMA frame-end IRQ fires. See vga_core.h for usage context.
+
 void waitForVBlank(void) {
     uint32_t before = _vblank_count;
     while (_vblank_count == before)
         tight_loop_contents();
+}
+
+// Switch to text rendering mode (terminal[] + font).
+void setRenderModeText(void) {
+    render_text_scanline(0, _line_buf[_line_buf_ready]);
+    _render_line = 1;
+    _render_mode = RENDER_TEXT;
+}
+
+// Switch to tilemap rendering mode (background pixels → tiles → sprites).
+void setRenderModeTile(void) {
+    for (int r = 0; r < TILEMAP_ROWS; r++)
+        for (int c = 0; c < TILEMAP_COLS; c++)
+            _tilemap[r][c] = 0;
+    _tilemap_scroll_x = 0;
+    _tilemap_scroll_y = 0;
+    dma_memset(_bg_pixels, 0, sizeof(_bg_pixels), true);
+    render_tile_scanline(0, _line_buf[_line_buf_ready]);
+    _render_line = 1;
+    _render_mode = RENDER_TILEMAP;
+}
+
+bool isRenderModeText(void) {
+    return _render_mode == RENDER_TEXT;
+}
+
+bool isRenderModeTile(void) {
+    return _render_mode == RENDER_TILEMAP;
+}
+
+void setTilemapCell(int col, int row, unsigned char tile_id) {
+    if (col >= 0 && col < TILEMAP_COLS && row >= 0 && row < TILEMAP_ROWS)
+        _tilemap[row][col] = tile_id;
+}
+
+void setTilemapBg(unsigned char color) {
+    dma_memset(_bg_pixels, (color & 0x0F) | (color << 4), sizeof(_bg_pixels), true);
+}
+
+void setTilemapScroll(int scroll_x, int scroll_y) {
+    _tilemap_scroll_x = scroll_x;
+    _tilemap_scroll_y = scroll_y;
+}
+
+// Must be called frequently from the main loop to feed the scanline renderer.
+void __not_in_flash_func(beamRenderTask)(void) {
+    int line = _render_line;
+    if (line < 0 || line >= SCREENHEIGHT) return;
+    if (_render_mode == RENDER_TEXT)
+        render_text_scanline(line, _line_buf[_line_buf_render]);
+    else
+        render_tile_scanline(line, _line_buf[_line_buf_render]);
+    _render_line = -1;
 }
 
 // Interrupt Handler: We have data on GPIO7-14 and DREADY on GPIO26
@@ -260,6 +378,7 @@ bool getByte(unsigned char *ascii) {
 //   Check if we rec'd a character from the 6502
 //   if so, we print it (send it to the VGA system)
 void conInTask(void) {
+    beamRenderTask();
     unsigned char ascii;
     if (getByte(&ascii)) {
         handleByte(ascii);
@@ -318,46 +437,34 @@ void initVGA(void) {
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
     //channel_config_set_chain_to(&c0, recon_chan);        // chain to other channel
 
-    dma_channel_configure(vga_chan,     // Channel to be configured
-        &c0,                            // The configuration we just created
+    // Setup terminal and per-cell color attributes (before DMA, since
+    // render_text_scanline reads from these).
+    terminal = malloc(terminal_size);
+    term_attr = malloc(terminal_size);
+    dma_memset(terminal, ' ', terminal_size, true);
+    dma_memset(term_attr, (BLACK_INT << 4) | WHITE_INT, terminal_size, true);
+
+    // Pre-render line 0 so DMA has valid data on first trigger.
+    render_text_scanline(0, _line_buf[_line_buf_ready]);
+
+    dma_channel_configure(vga_chan,
+        &c0,
         &pio->txf[scanline_sm],         // write address (SCANLINE PIO TX FIFO)
-        vga_data_array[0],              // The initial read address (pixel color array)
-        txcount,                        // Number of transfers; in this case each is 1 byte.
-        false                           // Don't start immediately.
+        _line_buf[_line_buf_ready],      // Initial read address (line buffer)
+        scanline_size,                   // One scanline per DMA transfer (320 bytes).
+        false
     );
 
-    // Tell the DMA to raise IRQ line 0 when the channel finishes a block
     dma_channel_set_irq0_enabled(vga_chan, true);
-    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-    irq_set_exclusive_handler(DMA_IRQ_0, db_vga_ihandler);
+    irq_set_exclusive_handler(DMA_IRQ_0, scanline_ihandler);
     irq_set_enabled(DMA_IRQ_0, true);
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Initialize PIO state machine counters. This passes the information to the state
-    // machines that they retrieve in the first 'pull' instructions, before the
-    // .wrap_target directive in the assembly. Each uses these values to initialize some
-    // counting registers.
     pio_sm_put_blocking(pio, hsync_sm, H_ACTIVE);
     pio_sm_put_blocking(pio, vsync_sm, V_ACTIVE);
     pio_sm_put_blocking(pio, scanline_sm, SCANLINE_ACTIVE);
 
-    // Start the two pio machine IN SYNC
-    // Note that the SCANLINE state machine is running at full speed,
-    // so synchronization doesn't matter for that one. But, we'll
-    // start them all simultaneously anyway.
     pio_enable_sm_mask_in_sync(pio, ((1u << hsync_sm) | (1u << vsync_sm) | (1u << scanline_sm)));
-
-    // Start DMA channel 0. Once started, the contents of the pixel color array
-    // will be constantly DMAed to the PIO machines that are driving the screen.
-    // To change the contents of the screen, we need only change the contents
-    // of that array.
     dma_start_channel_mask((1u << vga_chan));
-
-    // Now setup terminal
-    terminal = malloc(terminal_size);
-    dma_memset(terminal, ' ', terminal_size, true);
 
     // GPIO pin setup for data sent from 6502 to us (Console Output)
     rptr = wptr = inbuf;

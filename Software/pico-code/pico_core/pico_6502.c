@@ -74,17 +74,12 @@ int main() {
     multicore_launch_core1(&core1_main);
     // Initialize the VGA screen and PS/2 interface
     initVGA();
-    //initPS2();
-    //clearPS2();
     setFont(0);
     setTextColor2(WHITE, BLUE);
+    clearScreen();
     setTxtCursor(0, 0);
-    vgaFillScreen(BLUE);
-    setCursor(65, 0);
-    setTextSize(2);
-    drawString(VERSION_6502);
-    setTextSize(1);
-    setTxtCursor(0, 3);
+    printString(VERSION_6502);
+    setTxtCursor(0, 2);
     enableCurs(true);
     //clearPS2();
     while (true) {

@@ -49,7 +49,7 @@
 #include "pico_synth_ex.h"
 #include "pico/platform.h"
 
-// TODO: Consider, *gasp* racing the beam!
+// Phase 1: Per-scanline DMA (chase the beam). Still uses full framebuffer.
 
 #if PICO_RP2040
 #define VERSION_6502 "Pico Console: v2.0.0"
@@ -113,14 +113,12 @@ static const char ansi_pallet[] = {
 #define SPRITE32_WIDTH 32  // "" ""
 #define MAXSPRITES 32
 typedef struct {
-    uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
+    uint64_t *bitmap[2][2];  // [chunk 0/1][odd/even X variant]
     uint64_t *mask[2][2];
-    uint64_t *bgrnd[2];
     short x;
     short y;
     unsigned char height;
     unsigned char width;
-    bool bgValid;
 } sprite_t;
 
 // Tiles
@@ -147,49 +145,36 @@ enum data_pins {DATA0=7, DATA1, DATA2, DATA3, DATA4, DATA5, DATA6, DATA7, DREADY
 // VGA Core Functions
 void initVGA(void);
 void conInTask(void);
-
-// Double-buffering API (RP2350 only; no-ops on RP2040)
-//
-// Recommended animation loop:
-//
-//   enableDB();
-//   show2drawDB();          // seed draw buffer from initial screen contents
-//
-//   while (true) {
-//       // ... draw next frame into vga_data_array[db_draw] ...
-//       switchDB();         // request buffer swap at next VBlank
-//       waitForVBlank();    // block until the IRQ fires and swaps buffers
-//       show2drawDB();      // optional: copy new show buf into draw buf as
-//                           //   starting point for the next frame
-//   }
-//
-// Why this order matters:
-//   switchDB()      marks _do_switch; the IRQ will act on it at end of frame.
-//   waitForVBlank() spins until that IRQ fires, guaranteeing db_draw now
-//                   points to the buffer the pixel DMA is NOT scanning out.
-//   show2drawDB()   copies show→draw; called after waitForVBlank() so it
-//                   does not contend with the pixel DMA on the same buffer.
-void enableDB(void);
-void disableDB(void);
-void show2drawDB(void);
-void switchDB(void);
 void waitForVBlank(void);
-bool getDBEnabled(void);
-bool getDBSwitched(void);
+void beamRenderTask(void);
 
-// Graphics functions
+// Rendering modes — all output is beam-chased (no framebuffer).
+// Text mode: renders terminal[] + font with per-cell fg/bg color.
+// Tile mode: composites background → tilemap → sprites per scanline.
+void setRenderModeText(void);
+void setRenderModeTile(void);
+bool isRenderModeText(void);
+bool isRenderModeTile(void);
+
+// Tilemap API (tile mode only)
+void setTilemapCell(int col, int row, unsigned char tile_id);
+void setTilemapBg(unsigned char color);
+void setTilemapScroll(int scroll_x, int scroll_y);
+
+// Graphics primitives — write to the background pixel layer (tile mode).
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);
 void drawVLine(int x, int y, int h, unsigned char color, bool colorIsRGB332);
 void drawHLine(int x, int y, int w, unsigned char color, bool colorIsRGB332);
 void drawLine(int x0, int y0, int x1, int y1, unsigned char color, bool colorIsRGB332);
 void drawRect(int x, int y, int w, int h, unsigned char color, bool colorIsRGB332);
+void drawFilledRect(int x, int y, int w, int h, unsigned char color, bool colorIsRGB332);
 void drawCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332);
-// void drawCircleHelper( int x0, int y0, int r, unsigned char cornername, unsigned char color);
 void drawFilledCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332);
-// void fillCircleHelper(int x0, int y0, int r, unsigned char cornername, int delta, unsigned char color);
 void drawRoundRect(int x, int y, int w, int h, int r, unsigned char color, bool colorIsRGB332);
 void drawFilledRoundRect(int x, int y, int w, int h, int r, unsigned char color, bool colorIsRGB332);
-void drawFilledRect(int x, int y, int w, int h, unsigned char color, bool colorIsRGB332);
+void vgaFillScreen(unsigned char color);
+
+// Text / terminal functions
 void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg, unsigned char size, bool colorIsRGB332);
 void setCursor(int x, int y);
 void setTextColor(char c);
@@ -199,32 +184,22 @@ void setTextWrap(bool w);
 void setCr2Crlf(bool w);
 void setLf2Crlf(bool w);
 void setFont(char n);
-// void tft_write(unsigned char c);
 void drawString(unsigned char* str);
-
-void vgaFillScreen(unsigned char color);
 
 void dma_memset(void *dest, uint8_t val, size_t num, bool block);
 void dma_memcpy(void *dest, const void *src, size_t num, bool block);
 
-void writeChar(unsigned char chrx); // write the interpreted character
-void handleByte(unsigned char c);     // auto-decide based on graphics/text mode
-void vgaScrollUp (int scanlines);
+void writeChar(unsigned char chrx);
+void handleByte(unsigned char c);
 void termScrollUp (int rows);
-void vgaScrollLeft(int pixels);
 unsigned char convertRGB332(unsigned char c);
 void setTxtCursor(int x, int y);
 void printString(char* str);
 void clearScreen(void);
 bool enableCurs(bool flag);
-void enableSmoothScroll(bool flag);
-// void enableRaw(bool flag);
 
-void drawSprite(uint sn, short x, short y, bool erase);
+void moveSprite(uint sn, short x, short y);
 void loadSprite(uint sn, short width, short height, unsigned char *sdata);
-void eraseSprite(uint sn);
-
-void drawTile(uint sn, short x, short y);
 void loadTile(uint sn, short width, short height, unsigned char *sdata);
 
 #endif // VGA_CORE_H_
