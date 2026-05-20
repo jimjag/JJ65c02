@@ -108,6 +108,7 @@ struct scrpos maxTcurs = {(SCREENWIDTH / FONTWIDTH) - 1, (SCREENHEIGHT / FONTHEI
 
 // The terminal mode array
 unsigned char *terminal;
+unsigned char *terminal_attr; // per-cell color: high nibble = bg, low nibble = fg
 int terminal_size = (SCREENWIDTH / FONTWIDTH) * (SCREENHEIGHT / FONTHEIGHT);
 int textrow_size = (SCREENWIDTH / FONTWIDTH);
 
@@ -126,11 +127,15 @@ volatile bool cursorOn = false;
 
 bool cursor_callback(struct repeating_timer *t) {
     if (!cursorEnabled) return true;
+    int idx = tcurs.x + (tcurs.y * textrow_size);
+    unsigned char attr = terminal_attr[idx];
+    unsigned char cellfg = attr & 0x0f;
+    unsigned char cellbg = (attr >> 4) & 0x0f;
     if (!cursorOn) {
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', textfgcolor, textbgcolor, textsize, false);
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, '_', cellfg, cellbg, textsize, false);
     } else {
-        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
+        unsigned char oldChar = terminal[idx] ? terminal[idx] : ' ';
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, cellfg, cellbg, textsize, false);
     }
     cursorOn = !cursorOn;
     return true;
@@ -139,8 +144,12 @@ bool cursor_callback(struct repeating_timer *t) {
 bool enableCurs(bool flag) {
     bool was = cursorEnabled;
     if (!flag && cursorEnabled && cursorOn) { // turning it off when on
-        unsigned char oldChar = (terminal[tcurs.x + (tcurs.y * textrow_size)]) ? terminal[tcurs.x + (tcurs.y * textrow_size)] : ' ';
-        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, textfgcolor, textbgcolor, textsize, false);
+        int idx = tcurs.x + (tcurs.y * textrow_size);
+        unsigned char attr = terminal_attr[idx];
+        unsigned char cellfg = attr & 0x0f;
+        unsigned char cellbg = (attr >> 4) & 0x0f;
+        unsigned char oldChar = terminal[idx] ? terminal[idx] : ' ';
+        drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, oldChar, cellfg, cellbg, textsize, false);
     }
     cursorEnabled = flag;
     return was;
@@ -358,6 +367,8 @@ void initVGA(void) {
     // Now setup terminal
     terminal = malloc(terminal_size);
     dma_memset(terminal, ' ', terminal_size, true);
+    terminal_attr = malloc(terminal_size);
+    dma_memset(terminal_attr, (BLACK_INT << 4) | WHITE_INT, terminal_size, true);
 
     // GPIO pin setup for data sent from 6502 to us (Console Output)
     rptr = wptr = inbuf;

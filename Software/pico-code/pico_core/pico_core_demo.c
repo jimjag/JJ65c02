@@ -405,16 +405,23 @@ int main() {
     int y = 2;
     int x0 = 605;
     int y0 = 1;
-    // enableDB();
-    // show2drawDB();
-    for (int i = 10; i < 400; i++) {
+    // Initial draw of all sprites (no erase needed on first frame)
+    drawSprite(0, 10, y, false);
+    for (int j = 1; j < 15; j++) {
+        drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), false);
+    }
+    for (int j = 15; j < 31; j++) {
+        drawSprite(j, (x0 - (j*10)), (y0 + (j*15)), false);
+    }
+    for (int i = 11; i < 400; i++) {
         bool changed = false;
-        drawSprite(0, i, y, true);
+        // Update positions — moveSprite handles overlap-aware erase/redraw
+        moveSprite(0, i, y);
         for (int j = 1; j < 15; j++) {
-            drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), true);
+            moveSprite(j, (x0 - (j*20)), (y0 + (j*15)));
         }
         for (int j = 15; j < 31; j++) {
-            drawSprite(j, (x0 - (j*10)), (y0 + (j*15)), true);
+            moveSprite(j, (x0 - (j*10)), (y0 + (j*15)));
         }
         y++;
         x0--;
@@ -425,9 +432,7 @@ int main() {
             changed = true;
         }
         sleep_ms(25);
-        // switchDB();
     }
-    // disableDB();
     y = 5;
     for (int i = 0; i > -32; i--) {
         drawSprite(2, i, y, false);

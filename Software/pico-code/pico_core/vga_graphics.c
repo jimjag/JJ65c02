@@ -619,6 +619,8 @@ void termScrollUp (int rows) {
     rows *= textrow_size;
     dma_memcpy(terminal, terminal + rows, terminal_size - rows, true);
     dma_memset(terminal + terminal_size - rows, ' ', rows, true);
+    dma_memcpy(terminal_attr, terminal_attr + rows, terminal_size - rows, true);
+    dma_memset(terminal_attr + terminal_size - rows, (textbgcolor << 4) | (textfgcolor & 0x0f), rows, true);
     vgaScrollUp(orows * FONTHEIGHT);
     enableCurs(was);
 }
@@ -646,7 +648,9 @@ void setTxtCursor(int x, int y) {
 // Print the raw character byte (as-is, as rec'd) to the screen and terminal
 void writeChar(unsigned char chrx) {
     bool was = enableCurs(false);
-    terminal[tcurs.x + (tcurs.y * textrow_size)] = chrx;
+    int idx = tcurs.x + (tcurs.y * textrow_size);
+    terminal[idx] = chrx;
+    terminal_attr[idx] = (textbgcolor << 4) | (textfgcolor & 0x0f);
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize, false);
     tcurs.x++;
     if (tcurs.x > maxTcurs.x) {
@@ -737,6 +741,7 @@ void clearScreen(void) {
     vgaFillScreen(textbgcolor);
     dma_memset(vga_data_array[db_draw], (textbgcolor) | (textbgcolor << 4), txcount, true);
     dma_memset(terminal, ' ', terminal_size, true);
+    dma_memset(terminal_attr, (textbgcolor << 4) | (textfgcolor & 0x0f), terminal_size, true);
 }
 
 
@@ -822,6 +827,40 @@ void handleByte(unsigned char chrx) {
  * values directly.
  */
 sprite_t *sprites[MAXSPRITES];
+
+// Draw-order list: sprites are drawn in draw_order[0..draw_order_count-1].
+// Earlier indices are "below" later indices.
+static int draw_order[MAXSPRITES];
+static int draw_order_count = 0;
+
+static inline bool sprites_overlap(int a, int b) {
+    if (!sprites[a] || !sprites[b]) return false;
+    if (!sprites[a]->bgValid || !sprites[b]->bgValid) return false;
+    return !(sprites[a]->x + sprites[a]->width  <= sprites[b]->x ||
+             sprites[b]->x + sprites[b]->width  <= sprites[a]->x ||
+             sprites[a]->y + sprites[a]->height <= sprites[b]->y ||
+             sprites[b]->y + sprites[b]->height <= sprites[a]->y);
+}
+
+static int draw_order_find(int sn) {
+    for (int i = 0; i < draw_order_count; i++)
+        if (draw_order[i] == sn) return i;
+    return -1;
+}
+
+static void draw_order_remove(int sn) {
+    int idx = draw_order_find(sn);
+    if (idx < 0) return;
+    for (int i = idx; i < draw_order_count - 1; i++)
+        draw_order[i] = draw_order[i + 1];
+    draw_order_count--;
+}
+
+static void draw_order_append(int sn) {
+    if (draw_order_find(sn) >= 0) return;
+    if (draw_order_count < MAXSPRITES)
+        draw_order[draw_order_count++] = sn;
+}
 
 void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sn >= MAXSPRITES)
@@ -1001,6 +1040,74 @@ void drawSprite(uint sn, short x, short y, bool erase) {
     sprites[sn]->x = x;
     sprites[sn]->y = y;
     sprites[sn]->bgValid = true;
+    draw_order_append(sn);
+}
+
+void hideSprite(uint sn) {
+    if (sn >= MAXSPRITES || !sprites[sn]) return;
+    eraseSprite(sn);
+    draw_order_remove(sn);
+}
+
+void moveSprite(uint sn, short x, short y) {
+    if (sn >= MAXSPRITES || !sprites[sn]) return;
+    if (!sprites[sn]->bgValid) {
+        drawSprite(sn, x, y, false);
+        return;
+    }
+
+    // Build the erase set: start with the sprite being moved
+    uint32_t erase_set = 1u << sn;
+
+    // Walk backward through draw order. Any sprite drawn on top of
+    // something in erase_set must also be erased/redrawn.
+    for (int i = draw_order_count - 1; i >= 0; i--) {
+        int s = draw_order[i];
+        if (erase_set & (1u << s)) continue;
+        if (!sprites[s] || !sprites[s]->bgValid) continue;
+        // Check if sprite s overlaps anything in erase_set
+        for (int j = 0; j < draw_order_count; j++) {
+            int es = draw_order[j];
+            if (!(erase_set & (1u << es))) continue;
+            if (sprites_overlap(s, es)) {
+                erase_set |= (1u << s);
+                break;
+            }
+        }
+    }
+
+    // Erase in reverse draw order
+    for (int i = draw_order_count - 1; i >= 0; i--) {
+        int s = draw_order[i];
+        if (erase_set & (1u << s))
+            eraseSprite(s);
+    }
+
+    // Update position of the moved sprite
+    sprites[sn]->x = x;
+    sprites[sn]->y = y;
+
+    // Redraw in forward draw order
+    for (int i = 0; i < draw_order_count; i++) {
+        int s = draw_order[i];
+        if (erase_set & (1u << s))
+            drawSprite(s, sprites[s]->x, sprites[s]->y, false);
+    }
+}
+
+void refreshSprites(void) {
+    // Erase all visible sprites in reverse draw order
+    for (int i = draw_order_count - 1; i >= 0; i--) {
+        int s = draw_order[i];
+        if (sprites[s] && sprites[s]->bgValid)
+            eraseSprite(s);
+    }
+    // Redraw all in forward draw order
+    for (int i = 0; i < draw_order_count; i++) {
+        int s = draw_order[i];
+        if (sprites[s])
+            drawSprite(s, sprites[s]->x, sprites[s]->y, false);
+    }
 }
 
 //
