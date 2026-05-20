@@ -2131,8 +2131,8 @@ LAB_TTY:
     pla
     jmp BASIC_WARM              ; go do warm start
 
-; perform RECT x, y, w, h
-; Draws a rectangle by emitting escape sequence: ESC[Z23;<x>;<y>;<w>;<h>Z
+; perform RECT x, y, w, h, color
+; Draws a rectangle by emitting escape sequence: ESC[Z23;<x>;<y>;<w>;<h>;<color>Z
 
 LAB_RECT:
     jsr LAB_EVNM                ; evaluate x expression (numeric)
@@ -2170,7 +2170,12 @@ LAB_RECT:
     lda Itemph                  ; save h high byte
     pha
 
-    ; Now emit: ESC[Z23;<x>;<y>;<w>;<h>Z
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_GTBY                ; evaluate color expression, get byte in X
+    txa
+    pha                         ; save color
+
+    ; Now emit: ESC[Z23;<x>;<y>;<w>;<h>;<color>Z
     ; Send ESC[Z prefix
     lda #<x_escZ_prefix
     sta CON_SPTR
@@ -2184,14 +2189,11 @@ LAB_RECT:
     lda #'3'
     jsr CON_write_byte
 
-    ; Send ";<x>"
-    lda #';'
-    jsr CON_write_byte
-    ; pull h off to get to x (stack is: h_hi, h_lo, w_hi, w_lo, y_hi, y_lo, x_hi, x_lo)
-    ; Actually stack order (top to bottom): h_hi, h_lo, w_hi, w_lo, y_hi, y_lo, x_hi, x_lo
-    ; We need x first, so let's reorganize - pull all and store
+    ; Pull color (on top of stack)
+    pla
+    sta Z6
 
-    ; Pull h (on top of stack)
+    ; Pull h
     pla                         ; h high byte
     sta R3+1
     pla                         ; h low byte
@@ -2215,7 +2217,9 @@ LAB_RECT:
     pla                         ; x low byte
     sta R0
 
-    ; Output x as decimal
+    ; Send ";<x>"
+    lda #';'
+    jsr CON_write_byte
     jsr LIB_short2str
 
     ; Send ";<y>"
@@ -2243,6 +2247,14 @@ LAB_RECT:
     sta R0
     lda R3+1
     sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<color>"
+    lda #';'
+    jsr CON_write_byte
+    lda Z6
+    sta R0
+    stz R0+1
     jsr LIB_short2str
 
     ; Send final 'Z'

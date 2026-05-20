@@ -619,8 +619,6 @@ void termScrollUp (int rows) {
     rows *= textrow_size;
     dma_memcpy(terminal, terminal + rows, terminal_size - rows, true);
     dma_memset(terminal + terminal_size - rows, ' ', rows, true);
-    dma_memcpy(terminal_attr, terminal_attr + rows, terminal_size - rows, true);
-    dma_memset(terminal_attr + terminal_size - rows, (textbgcolor << 4) | (textfgcolor & 0x0f), rows, true);
     vgaScrollUp(orows * FONTHEIGHT);
     enableCurs(was);
 }
@@ -650,7 +648,6 @@ void writeChar(unsigned char chrx) {
     bool was = enableCurs(false);
     int idx = tcurs.x + (tcurs.y * textrow_size);
     terminal[idx] = chrx;
-    terminal_attr[idx] = (textbgcolor << 4) | (textfgcolor & 0x0f);
     drawChar(tcurs.x * FONTWIDTH, tcurs.y * FONTHEIGHT, chrx, textfgcolor, textbgcolor, textsize, false);
     tcurs.x++;
     if (tcurs.x > maxTcurs.x) {
@@ -741,7 +738,6 @@ void clearScreen(void) {
     vgaFillScreen(textbgcolor);
     dma_memset(vga_data_array[db_draw], (textbgcolor) | (textbgcolor << 4), txcount, true);
     dma_memset(terminal, ' ', terminal_size, true);
-    dma_memset(terminal_attr, (textbgcolor << 4) | (textfgcolor & 0x0f), terminal_size, true);
 }
 
 

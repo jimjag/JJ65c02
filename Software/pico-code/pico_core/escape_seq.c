@@ -38,7 +38,6 @@ static void eraseCells(int row, int col_start, int col_end) {
     int ncols = col_end - col_start + 1;
     int idx = col_start + row * textrow_size;
     dma_memset(terminal + idx, ' ', ncols, true);
-    dma_memset(terminal_attr + idx, (textbgcolor << 4) | (textfgcolor & 0x0f), ncols, true);
     drawFilledRect(col_start * FONTWIDTH, row * FONTHEIGHT, ncols * FONTWIDTH, FONTHEIGHT, textbgcolor, false);
 }
 
@@ -245,10 +244,10 @@ static void esc_sequence_received(void) {
                         multicore_fifo_push_blocking((uint32_t)escP[1]);
                         break;
                     case 2: // Set fg color: Esc[Z2;<color>Z
-                        textfgcolor = convertRGB332(escP[1]);
+                        textfgcolor = escP[1] & 0x0f;
                         break;
                     case 3: // Set bg color: Esc[Z3;<color>Z
-                        textbgcolor = convertRGB332(escP[1]);
+                        textbgcolor = escP[1] & 0x0f;
                         break;
                     case 4: // VRAM copy: Esc[Z4;<x1>;<y1>;<x2>;<y2>;<len>Z
                         start = (escP[2] * SCREENWIDTH + escP[1]) >> 1;
@@ -314,8 +313,8 @@ static void esc_sequence_received(void) {
                     case 22: // Draw line: Esc[Z22;<x1>;<y1>;<x2>;<y2>Z
                         drawLine(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
                         break;
-                    case 23: // Draw rect: Esc[Z23;<x>;<y>;<w>;<h>Z
-                        drawRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
+                    case 23: // Draw rect: Esc[Z23;<x>;<y>;<w>;<h>;<color>Z
+                        drawRect(escP[1], escP[2], escP[3], escP[4], escP[5] & 0x0f, false);
                         break;
                     case 24: // Draw filled rect: Esc[Z24;<x>;<y>;<w>;<h>Z
                         drawFilledRect(escP[1], escP[2], escP[3], escP[4], textfgcolor, false);
