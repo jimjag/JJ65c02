@@ -3,12 +3,45 @@
  * Copyright (c) 2021-2024 Jim Jagielski
  */
 /**
- * Graphics demo for beam-chasing VGA architecture.
- * Demonstrates background pixel layer, tilemap, sprites, and text mode.
+ *
+ * HARDWARE CONNECTIONS
+ *  - GPIO 17 ---> VGA Hsync
+ *  - GPIO 18 ---> VGA Vsync
+ *  - GPIO 19 ---> 470 ohm resistor ---> VGA Red
+ *  - GPIO 20 ---> 470 ohm resistor ---> VGA Green
+ *  - GPIO 21 ---> 470 ohm resistor ---> VGA Blue
+ *  - GPIO 22 ---> 1k ohm resistor ---> VGA Intensity (bright)
+ *  - GPIO 15 ---> PS2 Data pin
+ *  - GPIO 16 ---> PS2 Clock pin
+ *  - RP2040 GND ---> VGA GND
+ *  - GPIO 0-6 ---> 7 bit PS/2 Data to VIA
+ *  - GPIO 7-14 ---> 8 Bit Data In from 6502
+ *  - GPIO 26 ---> Data Ready
+ *  - GPIO 27 ---> IRQ/Handshake to VIA for PS/2
+ *  - GPIO 28 ---> audio/sound
+ *
+ * RESOURCES USED
+ *  CORE 0
+ *  - VGA:
+ *  -   PIO state machines 0, 1, and 2 on PIO instance 0
+ *  -   DMA channels 0, 1, 2, and 3
+ *  -   IRQ 0, 1
+ *  -   153.6 kBytes of RAM (for pixel color data)
+ *  - PS2:
+ *  -   PIO state machine 0 on PIO instance 1
+ *  -   IRQ 1
+ *  - MEMIN:
+ *  -   PIO state machine 1 on PIO instance 1
+ *  -   IRQ 0
+ *
+ * CORE 1
+ * - SND:
+ * -   PWM
  */
 
 // Orig version V. Hunter Adams / Cornell
 
+// VGA graphics library
 #include "vga_core.h"
 #include "ps2_keyboard.h"
 #include "pico_synth_ex.h"
@@ -40,6 +73,7 @@ void core1_main() {
     startup_chord();
     while (true) {
         soundTask();
+        //tight_loop_contents();
     }
 }
 
@@ -70,20 +104,20 @@ uint32_t getFreeProgramSpace() {
 }
 
 int main() {
+    //vreg_set_voltage(VREG_VOLTAGE_1_15);
     // rp2350 will run at 300 Mhz at 1.3 volt
+    // vreg_set_voltage (VREG_VOLTAGE_1_30);
     set_sys_clock_khz(300000, true);
+    // Initialize stdio
     stdio_init_all();
 
+    // start core 1 threads
+    //multicore_reset_core1();
     multicore_launch_core1(&core1_main);
 
     // Initialize the VGA screen
     initVGA();
     setFont(0);
-
-    // --- Graphics primitives demo (tile mode with background pixel layer) ---
-    setRenderModeTile();
-    vgaFillScreen(BLACK_INT);
-
     // circle radii
     short circle_r = 0;
     short circle_x = 320;
@@ -99,33 +133,32 @@ int main() {
     short Vline_x = 350;
     // position of horizontal line primitive
     short Hline_y = 250;
+    // Draw some filled rectangles
 
-    // Draw some filled rectangles on background layer
-    drawFilledRect(20, 0, 176+44, 50, BLUE, true);
-    drawFilledRect(250, 0, 176, 50, RED, true);
-    drawFilledRect(435, 0, 176, 50, GREEN, true);
+    drawFilledRect(20, 0, 176+44, 50, BLUE, true); // blue box
+    drawFilledRect(250, 0, 176, 50, RED, true); // red box
+    drawFilledRect(435, 0, 176, 50, GREEN, true); // green box
 
-    // Write some text onto the background layer
+    // Write some text
     setTextColor2(WHITE, BLUE);
     setCursor(22, 0);
     setTextSize(1);
-    drawString((unsigned char *)VERSION_6502);
+    drawString(VERSION_6502);
     setCursor(22, 16);
-    drawString((unsigned char *)"Graphics demo/HA based");
+    drawString("Graphics demo/HA based");
     setCursor(22, 32);
-    drawString((unsigned char *)"JJ65C02");
+    drawString("JJ65C02");
     setCursor(250, 4);
     setTextSize(2);
     setTextColor2(WHITE, RED);
-    drawString((unsigned char *)"Countdown:");
+    drawString("Countdown:");
 
     // Setup a 1Hz timer
     struct repeating_timer timer;
     add_repeating_timer_ms(-999, repeating_timer_callback, NULL, &timer);
 
     while (true) {
-        beamRenderTask();
-
+        // Modify the color chooser
         if (color_index++ == 15) color_index = 0;
 
         // A row of filled circles
@@ -165,19 +198,37 @@ int main() {
             setCursor(440, 4);
             setTextSize(2);
             setTextColor2(WHITE, GREEN);
-            drawString((unsigned char *)timetext);
+            drawString(timetext);
         }
 
+        // A brief nap
         sleep_ms(10);
         if (time_accum < 0) break;
     }
-
-    // --- Scroll and fill demo ---
+    setTextColor2(WHITE, BLACK);
     sleep_ms(1000);
-    vgaFillScreen(BLACK_INT);
+    vgaScrollUp(0);
     sleep_ms(1000);
-
-    // Color palette display
+    termScrollUp(1);
+    sleep_ms(1000);
+    vgaScrollUp(64);
+    sleep_ms(1000);
+    enableSmoothScroll(true);
+    vgaScrollUp(64);
+    sleep_ms(1000);
+    enableSmoothScroll(false);
+    vgaScrollLeft(20);
+    sleep_ms(1000);
+    vgaScrollLeft(20);
+    sleep_ms(1000);
+    enableSmoothScroll(true);
+    vgaScrollLeft(20);
+    sleep_ms(1000);
+    vgaScrollLeft(20);
+    sleep_ms(1000);
+    vgaFillScreen(BLUE);
+    sleep_ms(1000);
+    vgaFillScreen(BLACK);
     char video_buffer[32];
     setTextColor2(WHITE, BLACK);
     setTextSize(1);
@@ -186,41 +237,101 @@ int main() {
             drawFilledRoundRect(i * 110 + 20, 100 + j * 70, 60, 60, 3, i + 4 * j, false);
             setCursor(i * 110 + 20, 100 + j * 70);
             sprintf(video_buffer, "%2d", i + 4 * j);
-            drawString((unsigned char *)video_buffer);
+            drawString(video_buffer);
         }
     }
-    // Color labels
-    setCursor(0 * 110 + 20, 150 + 0 * 70); drawString((unsigned char *)"Black");
-    setCursor(1 * 110 + 20, 150 + 0 * 70); drawString((unsigned char *)"Red");
-    setCursor(2 * 110 + 20, 150 + 0 * 70); drawString((unsigned char *)"Green");
-    setCursor(3 * 110 + 20, 150 + 0 * 70); drawString((unsigned char *)"Yellow");
-    setCursor(0 * 110 + 20, 150 + 1 * 70); drawString((unsigned char *)"Blue");
-    setCursor(1 * 110 + 20, 150 + 1 * 70); drawString((unsigned char *)"Magenta");
-    setCursor(2 * 110 + 20, 150 + 1 * 70); drawString((unsigned char *)"Cyan");
-    setCursor(3 * 110 + 20, 150 + 1 * 70); drawString((unsigned char *)"Light Grey");
-    setCursor(0 * 110 + 20, 150 + 2 * 70); drawString((unsigned char *)"Grey");
-    setCursor(1 * 110 + 20, 150 + 2 * 70); drawString((unsigned char *)"Light Red");
-    setCursor(2 * 110 + 20, 150 + 2 * 70); drawString((unsigned char *)"Light Green");
-    setCursor(3 * 110 + 20, 150 + 2 * 70); drawString((unsigned char *)"Light Yellow");
-    setCursor(0 * 110 + 20, 150 + 3 * 70); drawString((unsigned char *)"Light Blue");
-    setCursor(1 * 110 + 20, 150 + 3 * 70); drawString((unsigned char *)"Light Magenta");
-    setCursor(2 * 110 + 20, 150 + 3 * 70); drawString((unsigned char *)"Light Cyan");
-    setCursor(3 * 110 + 20, 150 + 3 * 70); drawString((unsigned char *)"White");
+    // first row of colors
+    setCursor(0 * 110 + 20, 150 + 0 * 70);
+    drawString("Black");
+    setCursor(1 * 110 + 20, 150 + 0 * 70);
+    drawString("Red");
+    setCursor(2 * 110 + 20, 150 + 0 * 70);
+    drawString("Green");
+    setCursor(3 * 110 + 20, 150 + 0 * 70);
+    drawString("Yellow");
+    // second row of colors
+    setCursor(0 * 110 + 20, 150 + 1 * 70);
+    drawString("Blue");
+    setCursor(1 * 110 + 20, 150 + 1 * 70);
+    drawString("Magenta");
+    setCursor(2 * 110 + 20, 150 + 1 * 70);
+    drawString("Cyan");
+    setCursor(3 * 110 + 20, 150 + 1 * 70);
+    drawString("Light Grey");
+    // third row of colors
+    setCursor(0 * 110 + 20, 150 + 2 * 70);
+    drawString("Grey");
+    setCursor(1 * 110 + 20, 150 + 2 * 70);
+    drawString("Light Red");
+    setCursor(2 * 110 + 20, 150 + 2 * 70);
+    drawString("Light Green");
+    setCursor(3 * 110 + 20, 150 + 2 * 70);
+    drawString("Light Yellow");
+    // fourth row of colors
+    setCursor(0 * 110 + 20, 150 + 3 * 70);
+    drawString("Light Blue");
+    setCursor(1 * 110 + 20, 150 + 3 * 70);
+    drawString("Light Magenta");
+    setCursor(2 * 110 + 20, 150 + 3 * 70);
+    drawString("Light Cyan");
+    setCursor(3 * 110 + 20, 150 + 3 * 70);
+    drawString("White");
+    setFont(1);
+    setCursor(0, 460);
+    drawString("ACM|     1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    setFont(2);
+    setCursor(0, 440);
+    drawString("Toshiba| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    setFont(3);
+    setCursor(0, 420);
+    drawString("Sperry|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    setFont(4);
+    setCursor(0, 400);
+    drawString("Verite|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    setFont(0);
+    setCursor(0, 380);
+    drawString("Sweet16| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
+    sleep_ms(1000);
 
-    // Font showcase
-    setFont(1); setCursor(0, 460);
-    drawString((unsigned char *)"ACM|     1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    setFont(2); setCursor(0, 440);
-    drawString((unsigned char *)"Toshiba| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    setFont(3); setCursor(0, 420);
-    drawString((unsigned char *)"Sperry|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    setFont(4); setCursor(0, 400);
-    drawString((unsigned char *)"Verite|  1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    setFont(0); setCursor(0, 380);
-    drawString((unsigned char *)"Sweet16| 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?#%*&@");
-    sleep_ms(5000);
+    char hex[40];
+    setTxtCursor(60, 20);
+    printString("PS2 test");
+    clearPS2();
+    setTextColor2(GREEN, BLACK);
+    while (true) {
+        char c = ps2GetChar(false);
+        if (c == '\b') break;
+        if (c) {
+            setTxtCursor(60, 22);
+            writeChar(c);
+            sprintf(hex, "0x%02x", c);
+            setTxtCursor(70, 22);
+            printString(hex);
+        }
+    }
+    vgaFillScreen(BLACK);
+    setTextColor(RED);
+    printString("\x1b[Z18;10;10;500;5Z");
+    setTextColor(BLUE);
+    printString("\x1b[Z19;30;30;40;45Z");
+    setTextColor(GREEN);
+    printString("\x1b[Z20;50;50;75;155Z");
+    setTextColor(CYAN);
+    printString("\x1b[Z21;100;100;55Z");
+    setTextColor(YELLOW);
+    printString("\x1b[Z22;200;200;55Z");
+    setTxtCursor(0, 20);
+    setTextColor2(WHITE, BLACK);
+    writeChar('a');
+    enableCurs(true);
+    writeChar('b');
+    while (true) {
+        unsigned char c = ps2GetChar(true);
+        if (c == 'Q') break;
+    }
+    enableCurs(false);
+    vgaFillScreen(BLUE);
 
-    // --- Sprite and tile demo ---
     unsigned char foo2[] = {
         0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0xff, 0xff, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
         0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0xff, 0xff, 0xff, 0xff, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
@@ -234,7 +345,7 @@ int main() {
         0x68, 0x68, 0x68, 0x68, 0x68, 0x00, 0x00, 0x68, 0x68, 0xff, 0xfc, 0xff, 0xfc, 0xff, 0xfc, 0xff, 0xfc, 0xff, 0xfc, 0xff, 0xfc, 0x68, 0x68, 0x00, 0x00, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
         0x68, 0x68, 0x00, 0x00, 0x00, 0x00, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x00, 0x00, 0x00, 0x00, 0x68, 0x68, 0x68, 0x68,
     };
-    unsigned char tile_data[] = {
+    unsigned char tile[] = {
         0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92,
         0x92, 0x92, 0xe0, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0xfc, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92,
         0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92,
@@ -247,94 +358,88 @@ int main() {
         0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0xdb, 0x92, 0xdb, 0x92,
         0x92, 0xe0, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92, 0x92,
     };
-
-    // Fill background with blue, load tile and sprites
-    vgaFillScreen(BLUE_INT);
-    loadTile(1, TILE32_WIDTH, 11, tile_data);
-
-    // Place tiles on the tilemap grid (tile 1 fills the screen)
-    // Tilemap is 40 cols x 30 rows for 16px tiles; our 32px tile spans 2 cols
-    // For simplicity, just fill a portion
-    for (int r = 0; r < 30; r++)
-        for (int c = 0; c < 40; c++)
-            setTilemapCell(c, r, 1);
-
-    // Load sprites
-    for (int i = 0; i < 31; i++)
-        loadSprite(i, SPRITE32_WIDTH, 11, foo2);
-
-    // Show memory info on background layer
     setTextColor2(WHITE, BLUE);
     setTextSize(1);
     setCursor(65, 0);
     sprintf(mem, "TotalHeap: %llu", (int64_t)(uint32_t)getTotalHeap());
-    drawString((unsigned char *)mem);
+    drawString(mem);
     setCursor(65, 16);
     sprintf(mem, "FreeHeap: %llu", (int64_t)(uint32_t)getFreeHeap());
-    drawString((unsigned char *)mem);
+    drawString(mem);
     setCursor(65, 32);
     sprintf(mem, "Chunks: %llu", (int64_t)(uint32_t)getChunks());
-    drawString((unsigned char *)mem);
+    drawString(mem);
     setCursor(65, 48);
     sprintf(mem, "ProgSize: %llu", (int64_t)(uint32_t)getProgramSize());
-    drawString((unsigned char *)mem);
+    drawString(mem);
     setCursor(65, 64);
     sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
-    drawString((unsigned char *)mem);
-
-    // Animate sprites across the screen
+    drawString(mem);
+    sleep_ms(5000);
+    for (int i = 0; i < 31; i++) {
+        loadSprite(i, SPRITE32_WIDTH, 11, foo2);
+    }
+    loadTile(0, TILE32_WIDTH, 11, tile);
+    for (int i = 0; i<640; i+=32) {
+        for (int j = 0; j<480; j +=11) {
+            drawTile(0, i, j);
+        }
+    }
+    setCursor(65, 0);
+    setTextSize(1);
+    setCursor(65, 0);
+    sprintf(mem, "TotalHeap: %llu", (int64_t)(uint32_t)getTotalHeap());
+    drawString(mem);
+    setCursor(65, 16);
+    sprintf(mem, "FreeHeap: %llu", (int64_t)(uint32_t)getFreeHeap());
+    drawString(mem);
+    setCursor(65, 32);
+    sprintf(mem, "Chunks: %llu", (int64_t)(uint32_t)getChunks());
+    drawString(mem);
+    setCursor(65, 48);
+    sprintf(mem, "ProgSize: %llu", (int64_t)(uint32_t)getProgramSize());
+    drawString(mem);
+    setCursor(65, 64);
+    sprintf(mem, "FreeProgSpace: %llu", (int64_t)(uint32_t)getFreeProgramSpace());
+    drawString(mem);
     int y = 2;
     int x0 = 605;
     int y0 = 1;
+    // enableDB();
+    // show2drawDB();
     for (int i = 10; i < 400; i++) {
-        beamRenderTask();
-        moveSprite(0, i, y);
-        for (int j = 1; j < 15; j++)
-            moveSprite(j, (x0 - (j*20)), (y0 + (j*15)));
-        for (int j = 15; j < 31; j++)
-            moveSprite(j, (x0 - (j*10)), (y0 + (j*15)));
+        bool changed = false;
+        drawSprite(0, i, y, true);
+        for (int j = 1; j < 15; j++) {
+            drawSprite(j, (x0 - (j*20)), (y0 + (j*15)), true);
+        }
+        for (int j = 15; j < 31; j++) {
+            drawSprite(j, (x0 - (j*10)), (y0 + (j*15)), true);
+        }
         y++;
         x0--;
         y0++;
-        multicore_fifo_push_blocking(i % 2 ? 'q' : '7');
+        multicore_fifo_push_blocking( i%2 ? 'q' : '7');
+        if (i > 250 && !changed) {
+            multicore_fifo_push_blocking('$');
+            changed = true;
+        }
         sleep_ms(25);
+        // switchDB();
+    }
+    // disableDB();
+    y = 5;
+    for (int i = 0; i > -32; i--) {
+        drawSprite(2, i, y, false);
+        y += 17;
+    }
+    y = 5;
+    for (int i = 608; i < 641; i++) {
+        drawSprite(2, i, y, false);
+        y += 17;
     }
 
-    // --- Switch to text mode for PS2 keyboard test ---
-    setRenderModeText();
-    setTextColor2(WHITE, BLACK);
-    clearScreen();
-    setTxtCursor(0, 0);
-    printString("PS2 keyboard test - press Backspace to exit");
-    setTxtCursor(0, 2);
-    setTextColor2(GREEN, BLACK);
-    clearPS2();
-    enableCurs(true);
     while (true) {
-        beamRenderTask();
-        char c = ps2GetChar(false);
-        if (c == '\b') break;
-        if (c) writeChar(c);
-    }
-    enableCurs(false);
-
-    // --- ESC sequence graphics test (tile mode) ---
-    setRenderModeTile();
-    vgaFillScreen(BLACK_INT);
-    setTextColor(RED_INT);
-    printString("\x1b[Z18;10;10;500;5Z");
-    setTextColor(BLUE_INT);
-    printString("\x1b[Z19;30;30;40;45Z");
-    setTextColor(GREEN_INT);
-    printString("\x1b[Z20;50;50;75;155Z");
-    setTextColor(CYAN_INT);
-    printString("\x1b[Z21;100;100;55Z");
-    setTextColor(YELLOW_INT);
-    printString("\x1b[Z22;200;200;55Z");
-
-    // Wait for 'Q' to exit
-    while (true) {
-        beamRenderTask();
         unsigned char c = ps2GetChar(false);
         if (c == 'Q') break;
         if (c == 0) continue;
