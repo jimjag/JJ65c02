@@ -394,7 +394,9 @@ BASIC_ZP_end     := Decssp1
     token_EXIT
     token_TTY
     token_RECT
-    token_FGCLR
+    token_CIRCLE
+    token_RECTF
+    token_CIRCLEF
 
     ; secondary command tokens, can't start a statement
     token_TAB
@@ -2263,27 +2265,346 @@ LAB_RECT:
 
     rts
 
-; perform FGCLR color
-; Sets foreground color by emitting escape sequence: ESC[Z2;<color>Z
+; perform CIRCLE x, y, r, color
+; Draws a circle by emitting escape sequence: ESC[Z25;<x>;<y>;<r>;<color>Z
 
-LAB_FGCLR:
-    jsr LAB_GTBY                ; evaluate expression, get byte result in X
-    stx R0                      ; save color value before it gets clobbered
+LAB_CIRCLE:
+    jsr LAB_EVNM                ; evaluate x expression (numeric)
+    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
 
-    ; Emit: ESC[Z2;<color>Z
+    lda Itempl                  ; save x low byte
+    pha
+    lda Itemph                  ; save x high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y low byte
+    pha
+    lda Itemph                  ; save y high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate r expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save r low byte
+    pha
+    lda Itemph                  ; save r high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_GTBY                ; evaluate color expression, get byte in X
+    txa
+    pha                         ; save color
+
+    ; Now emit: ESC[Z25;<x>;<y>;<r>;<color>Z
     lda #<x_escZ_prefix
     sta CON_SPTR
     lda #>x_escZ_prefix
     sta CON_SPTR+1
     jsr CON_write_string
 
+    ; Send "25"
     lda #'2'
     jsr CON_write_byte
-    lda #';'
+    lda #'5'
     jsr CON_write_byte
 
-    jsr LIB_byte2str            ; output R0 as decimal
+    ; Pull color
+    pla
+    sta Z6
 
+    ; Pull r
+    pla                         ; r high byte
+    sta R2+1
+    pla                         ; r low byte
+    sta R2
+
+    ; Pull y
+    pla                         ; y high byte
+    sta R1+1
+    pla                         ; y low byte
+    sta R1
+
+    ; Pull x
+    pla                         ; x high byte
+    sta R0+1
+    pla                         ; x low byte
+    sta R0
+
+    ; Send ";<x>"
+    lda #';'
+    jsr CON_write_byte
+    jsr LIB_short2str
+
+    ; Send ";<y>"
+    lda #';'
+    jsr CON_write_byte
+    lda R1
+    sta R0
+    lda R1+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<r>"
+    lda #';'
+    jsr CON_write_byte
+    lda R2
+    sta R0
+    lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<color>"
+    lda #';'
+    jsr CON_write_byte
+    lda Z6
+    sta R0
+    stz R0+1
+    jsr LIB_short2str
+
+    ; Send final 'Z'
+    lda #'Z'
+    jsr CON_write_byte
+
+    rts
+
+; perform RECTF x, y, w, h, color
+; Draws a filled rectangle by emitting escape sequence: ESC[Z24;<x>;<y>;<w>;<h>;<color>Z
+
+LAB_RECTF:
+    jsr LAB_EVNM                ; evaluate x expression (numeric)
+    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
+
+    lda Itempl                  ; save x low byte
+    pha
+    lda Itemph                  ; save x high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y low byte
+    pha
+    lda Itemph                  ; save y high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate w expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save w low byte
+    pha
+    lda Itemph                  ; save w high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate h expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save h low byte
+    pha
+    lda Itemph                  ; save h high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_GTBY                ; evaluate color expression, get byte in X
+    txa
+    pha                         ; save color
+
+    ; Now emit: ESC[Z24;<x>;<y>;<w>;<h>;<color>Z
+    lda #<x_escZ_prefix
+    sta CON_SPTR
+    lda #>x_escZ_prefix
+    sta CON_SPTR+1
+    jsr CON_write_string
+
+    ; Send "24"
+    lda #'2'
+    jsr CON_write_byte
+    lda #'4'
+    jsr CON_write_byte
+
+    ; Pull color
+    pla
+    sta Z6
+
+    ; Pull h
+    pla                         ; h high byte
+    sta R3+1
+    pla                         ; h low byte
+    sta R3
+
+    ; Pull w
+    pla                         ; w high byte
+    sta R2+1
+    pla                         ; w low byte
+    sta R2
+
+    ; Pull y
+    pla                         ; y high byte
+    sta R1+1
+    pla                         ; y low byte
+    sta R1
+
+    ; Pull x
+    pla                         ; x high byte
+    sta R0+1
+    pla                         ; x low byte
+    sta R0
+
+    ; Send ";<x>"
+    lda #';'
+    jsr CON_write_byte
+    jsr LIB_short2str
+
+    ; Send ";<y>"
+    lda #';'
+    jsr CON_write_byte
+    lda R1
+    sta R0
+    lda R1+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<w>"
+    lda #';'
+    jsr CON_write_byte
+    lda R2
+    sta R0
+    lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<h>"
+    lda #';'
+    jsr CON_write_byte
+    lda R3
+    sta R0
+    lda R3+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<color>"
+    lda #';'
+    jsr CON_write_byte
+    lda Z6
+    sta R0
+    stz R0+1
+    jsr LIB_short2str
+
+    ; Send final 'Z'
+    lda #'Z'
+    jsr CON_write_byte
+
+    rts
+
+; perform CIRCLEF x, y, r, color
+; Draws a filled circle by emitting escape sequence: ESC[Z26;<x>;<y>;<r>;<color>Z
+
+LAB_CIRCLEF:
+    jsr LAB_EVNM                ; evaluate x expression (numeric)
+    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
+
+    lda Itempl                  ; save x low byte
+    pha
+    lda Itemph                  ; save x high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate y expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save y low byte
+    pha
+    lda Itemph                  ; save y high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_EVNM                ; evaluate r expression
+    jsr LAB_F2FX                ; convert to integer
+
+    lda Itempl                  ; save r low byte
+    pha
+    lda Itemph                  ; save r high byte
+    pha
+
+    jsr SCAN_COMMA              ; scan for ","
+    jsr LAB_GTBY                ; evaluate color expression, get byte in X
+    txa
+    pha                         ; save color
+
+    ; Now emit: ESC[Z26;<x>;<y>;<r>;<color>Z
+    lda #<x_escZ_prefix
+    sta CON_SPTR
+    lda #>x_escZ_prefix
+    sta CON_SPTR+1
+    jsr CON_write_string
+
+    ; Send "26"
+    lda #'2'
+    jsr CON_write_byte
+    lda #'6'
+    jsr CON_write_byte
+
+    ; Pull color
+    pla
+    sta Z6
+
+    ; Pull r
+    pla                         ; r high byte
+    sta R2+1
+    pla                         ; r low byte
+    sta R2
+
+    ; Pull y
+    pla                         ; y high byte
+    sta R1+1
+    pla                         ; y low byte
+    sta R1
+
+    ; Pull x
+    pla                         ; x high byte
+    sta R0+1
+    pla                         ; x low byte
+    sta R0
+
+    ; Send ";<x>"
+    lda #';'
+    jsr CON_write_byte
+    jsr LIB_short2str
+
+    ; Send ";<y>"
+    lda #';'
+    jsr CON_write_byte
+    lda R1
+    sta R0
+    lda R1+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<r>"
+    lda #';'
+    jsr CON_write_byte
+    lda R2
+    sta R0
+    lda R2+1
+    sta R0+1
+    jsr LIB_short2str
+
+    ; Send ";<color>"
+    lda #';'
+    jsr CON_write_byte
+    lda Z6
+    sta R0
+    stz R0+1
+    jsr LIB_short2str
+
+    ; Send final 'Z'
     lda #'Z'
     jsr CON_write_byte
 
@@ -8217,7 +8538,9 @@ LAB_CTBL:
     .word V_EXIT-1          ; EXIT            new command
     .word LAB_TTY-1         ; TTY             new command
     .word LAB_RECT-1        ; RECT            new command
-    .word LAB_FGCLR-1       ; FGCLR           new command
+    .word LAB_CIRCLE-1      ; CIRCLE          new command
+    .word LAB_RECTF-1       ; RECTF           new command
+    .word LAB_CIRCLEF-1     ; CIRCLEF         new command
 
 ; function pre process routine table
 LAB_FTPL:
@@ -8450,6 +8773,10 @@ LBB_CALL:
       .byte "ALL",token_CALL     ; CALL
 LBB_CHRS:
       .byte "HR$(",token_CHRS    ; CHR$(
+LBB_CIRCLEF:
+      .byte "IRCLEF",token_CIRCLEF ; CIRCLEF
+LBB_CIRCLE:
+      .byte "IRCLE",token_CIRCLE ; CIRCLE
 LBB_CLEAR:
       .byte "LEAR",token_CLEAR   ; CLEAR
 LBB_CONT:
@@ -8488,8 +8815,6 @@ LBB_EXP:
       .byte "XP(",token_EXP      ; EXP(
       .byte $00
 TAB_ASCF:
-LBB_FGCLR:
-      .byte "GCLR",token_FGCLR   ; FGCLR
 LBB_FN:
       .byte "N",token_FN         ; FN
 LBB_FOR:
@@ -8583,6 +8908,8 @@ LBB_PRINT:
 TAB_ASCR:
 LBB_READ:
       .byte "EAD",token_READ     ; READ
+LBB_RECTF:
+      .byte "ECTF",token_RECTF   ; RECTF
 LBB_RECT:
       .byte "ECT",token_RECT     ; RECT
 LBB_REM:
@@ -8762,6 +9089,14 @@ LAB_KEYT:
       .word LBB_EXIT          ; EXIT
       .byte 3,'T'
       .word LBB_TTY           ; TTY
+      .byte 4,'R'
+      .word LBB_RECT          ; RECT
+      .byte 6,'C'
+      .word LBB_CIRCLE        ; CIRCLE
+      .byte 5,'R'
+      .word LBB_RECTF         ; RECTF
+      .byte 7,'C'
+      .word LBB_CIRCLEF       ; CIRCLEF
 
 ; secondary commands (can't start a statement)
       .byte 4,'T'
