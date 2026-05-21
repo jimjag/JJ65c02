@@ -864,10 +864,12 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         return;
     if (width != SPRITE32_WIDTH) width = SPRITE16_WIDTH;
     sprite_t *n = calloc(1, sizeof(sprite_t));
+    if (!n) return;
     bool needFree = false;
     if (!sdata) {
         int chunk = width * height;
         sdata = malloc(chunk);
+        if (!sdata) { free(n); return; }
         for (int i = 0; i < chunk;) {
             unsigned char cx;
             if (!getByte(&cx))
@@ -887,10 +889,6 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
     n->invmask[0][0] = malloc(sizeof(uint64_t) * height);
     n->invmask[0][1] = malloc(sizeof(uint64_t) * height);
-    n->opaque[0][0] = 0;
-    n->opaque[0][1] = 0;
-    n->opaque[1][0] = 0;
-    n->opaque[1][1] = 0;
     n->bgrnd[0] = malloc(sizeof(uint64_t) * height);
     if (width == SPRITE32_WIDTH) {
         n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
@@ -898,6 +896,21 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         n->invmask[1][0] = malloc(sizeof(uint64_t) * height);
         n->invmask[1][1] = malloc(sizeof(uint64_t) * height);
         n->bgrnd[1] = malloc(sizeof(uint64_t) * height);
+    }
+    if (!n->bitmap[0][0] || !n->bitmap[0][1] ||
+        !n->invmask[0][0] || !n->invmask[0][1] || !n->bgrnd[0] ||
+        (width == SPRITE32_WIDTH &&
+         (!n->bitmap[1][0] || !n->bitmap[1][1] ||
+          !n->invmask[1][0] || !n->invmask[1][1] || !n->bgrnd[1]))) {
+        free(n->bitmap[0][0]); free(n->bitmap[0][1]);
+        free(n->invmask[0][0]); free(n->invmask[0][1]);
+        free(n->bgrnd[0]);
+        free(n->bitmap[1][0]); free(n->bitmap[1][1]);
+        free(n->invmask[1][0]); free(n->invmask[1][1]);
+        free(n->bgrnd[1]);
+        if (needFree) free(sdata);
+        free(n);
+        return;
     }
     int chunks = width / SPRITE16_WIDTH;
     for (int i = 0; i < height; i++) {
@@ -1195,11 +1208,13 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
     if (tiles[sn])    // already exists
         return;
     if (width != TILE32_WIDTH) width = TILE16_WIDTH;
-    tile_t *n = malloc(sizeof(tile_t));
+    tile_t *n = calloc(1, sizeof(tile_t));
+    if (!n) return;
     bool needFree = false;
     if (!sdata) {
         int chunk = width * height;
         sdata = malloc(chunk);
+        if (!sdata) { free(n); return; }
         for (int i = 0; i < chunk;) {
             unsigned char cx;
             if (!getByte(&cx))
@@ -1212,9 +1227,17 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
     n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
     n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
     if (width == TILE32_WIDTH) {
-        // 2nd 64bit int
         n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
         n->bitmap[1][1] = malloc(sizeof(uint64_t) * height);
+    }
+    if (!n->bitmap[0][0] || !n->bitmap[0][1] ||
+        (width == TILE32_WIDTH &&
+         (!n->bitmap[1][0] || !n->bitmap[1][1]))) {
+        free(n->bitmap[0][0]); free(n->bitmap[0][1]);
+        free(n->bitmap[1][0]); free(n->bitmap[1][1]);
+        if (needFree) free(sdata);
+        free(n);
+        return;
     }
     int chunks = width / TILE16_WIDTH;
     for (int i = 0; i < height; i++) {
@@ -1229,15 +1252,17 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
             }
             n->bitmap[k][0][i] = bitmap;
         }
-        // We now generate, and store, the image shifted right by 1 pixel, for
-        // when the image starts at an odd X-coord. Why? We store 2 pixels
-        // per byte, so we need to straddle odd x-coords.
+        // Generate the odd-x variant by shifting right by 1 pixel.
+        // The rightmost pixel (MSN of highest chunk) is replaced with
+        // the background fill color (LSN64) so no pixel is lost.
         if (width == TILE32_WIDTH) {
             uint64_t carry;
-            carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
-            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
+            uint64_t bm1 = (n->bitmap[1][0][i] & ~MSN64);
+            carry = (n->bitmap[0][0][i] & MSN64) >> 60;
+            n->bitmap[1][1][i] = (bm1 << 4) | carry;
         }
-        n->bitmap[0][1][i] = (n->bitmap[0][0][i] << 4) | LSN64;
+        uint64_t bm0 = (n->bitmap[0][0][i] & ~MSN64);
+        n->bitmap[0][1][i] = (bm0 << 4) | LSN64;
     }
     n->height = height;
     n->width = width;
@@ -1245,10 +1270,8 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
     if (needFree) free(sdata);
 }
 
-// Tiles must align on a modulo of their width
 void drawTile(uint sn, short x, short y) {
     if (sn >= MAXTILES || !tiles[sn]) return;
-    x &= ~1;
     if (x <= -tiles[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
     uint64_t bitmap[2];
     int shifts = 0;
