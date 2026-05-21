@@ -160,22 +160,26 @@ volatile bool _db_switched = false;
 volatile bool _db_vga_enabled = false;
 // Incremented on every frame boundary (VBlank). Used by waitForVBlank().
 volatile uint32_t _vblank_count = 0;
+static void __time_critical_func(isr_dma_copy_done)(void) {
+    dma_hw->ints1 = 1u << isr_dma_chan;
+    _do_switch = false;
+    _db_switched = true;
+}
+
 static void __time_critical_func(db_vga_ihandler)(void) {
-    // Clear the interrupt request first so the DMA controller does not
-    // immediately re-assert when we re-trigger below.
     dma_hw->ints0 = 1u << vga_chan;
 #if !PICO_RP2040
-    _db_switched = false;
     if (_db_vga_enabled && _do_switch) {
+        _db_switched = false;
+        // Stage vga_chan read address without starting — chain will trigger it
+        dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], false);
         dma_channel_set_read_addr(isr_dma_chan, vga_data_array[db_draw], false);
         dma_channel_set_write_addr(isr_dma_chan, vga_data_array[db_show], false);
         dma_channel_set_trans_count(isr_dma_chan, txcount >> 2, true);
-        dma_channel_wait_for_finish_blocking(isr_dma_chan);
-        _do_switch = false;
-        _db_switched = true;
+        _vblank_count++;
+        return;
     }
 #endif
-    // Re-trigger VGA DMA — show buffer always remains at index 0.
     dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], true);
     _vblank_count++;
 }
@@ -323,15 +327,20 @@ void initVGA(void) {
     isr_dma_chan = dma_claim_unused_channel(true);
 
 #if !PICO_RP2040
-    // Fully pre-configure isr_dma_chan for draw→show copies in the VBlank ISR.
-    // Addresses and config are static; the ISR only sets trans_count to trigger.
+    // Pre-configure isr_dma_chan for draw→show copies triggered from VBlank ISR.
+    // On completion, chain-triggers vga_chan to start the next frame.
     dma_channel_config ci = dma_channel_get_default_config(isr_dma_chan);
     channel_config_set_transfer_data_size(&ci, DMA_SIZE_32);
     channel_config_set_read_increment(&ci, true);
     channel_config_set_write_increment(&ci, true);
+    channel_config_set_chain_to(&ci, vga_chan);
     dma_channel_configure(isr_dma_chan, &ci,
         vga_data_array[0], vga_data_array[1],
         0, false);
+
+    dma_channel_set_irq1_enabled(isr_dma_chan, true);
+    irq_set_exclusive_handler(DMA_IRQ_1, isr_dma_copy_done);
+    irq_set_enabled(DMA_IRQ_1, true);
 #endif
 
     // Channel Zero (sends color data to PIO VGA machine)
