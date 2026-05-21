@@ -8,13 +8,12 @@
 //   - Two 4-bit pixels are packed per byte in vga_data_array[].
 //   - Pixel index P = (SCREENWIDTH * y) + x. Byte index = P >> 1.
 //   - Even-indexed pixel (P & 1 == 0) -> LOW  nibble of the byte.
-//     Update via (byte & BOTTOMMASK 0xF0) | color
+//     Update via (byte & HIGH_NIBBLE_MASK 0xF0) | color
 //   - Odd-indexed pixel  (P & 1 == 1) -> HIGH nibble of the byte.
-//     Update via (byte & TOPMASK 0x0F) | (color << 4)
-//   - Note the mask names are inverted from intuition: TOPMASK keeps
-//     the LOW nibble (clears top so we can write the top); BOTTOMMASK
-//     keeps the HIGH nibble. The PIO scanout reads the byte and emits
-//     the LOW nibble first, then the HIGH nibble.
+//     Update via (byte & LOW_NIBBLE_MASK 0x0F) | (color << 4)
+//   - LOW_NIBBLE_MASK keeps the low nibble (clears high so we can write it);
+//     HIGH_NIBBLE_MASK keeps the high nibble. The PIO scanout emits the LOW
+//     nibble first, then the HIGH nibble.
 //   - Because SCREENWIDTH (640) is even, (P & 1) == (x & 1). Some code
 //     paths (drawVLine) rely on this — revisit if SCREENWIDTH changes.
 //   - dma_memset writes one constant byte; to fill a run of same-color
@@ -32,9 +31,9 @@ static inline void drawPixelFast(int x, int y, unsigned char color) {
     int pixel = SCREENWIDTH * y + x;
     unsigned char *cell = &vga_data_array[db_draw][pixel >> 1];
     if (pixel & 1) {
-        *cell = (*cell & TOPMASK) | (color << 4);
+        *cell = (*cell & LOW_NIBBLE_MASK) | (color << 4);
     } else {
-        *cell = (*cell & BOTTOMMASK) | color;
+        *cell = (*cell & HIGH_NIBBLE_MASK) | color;
     }
 }
 
@@ -60,9 +59,9 @@ void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332) {
     // of the vga data array index, or the second
     // 4 bits? Check, then mask.
     if (pixel & 1) {
-        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & TOPMASK) | (color << 4);
+        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & LOW_NIBBLE_MASK) | (color << 4);
     } else {
-        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & BOTTOMMASK) | (color);
+        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & HIGH_NIBBLE_MASK) | (color);
     }
 }
 
@@ -77,10 +76,10 @@ void drawVLine(int x, int y, int h, unsigned char color, bool colorIsRGB332) {
     int byte = (SCREENWIDTH * y + x) >> 1;
     if (x & 1) {
         for (int i = 0; i < h; i++, byte += scanline_size)
-            buf[byte] = (buf[byte] & TOPMASK) | (color << 4);
+            buf[byte] = (buf[byte] & LOW_NIBBLE_MASK) | (color << 4);
     } else {
         for (int i = 0; i < h; i++, byte += scanline_size)
-            buf[byte] = (buf[byte] & BOTTOMMASK) | color;
+            buf[byte] = (buf[byte] & HIGH_NIBBLE_MASK) | color;
     }
 }
 
@@ -95,7 +94,7 @@ void drawHLine(int x, int y, int w, unsigned char color, bool colorIsRGB332) {
     int pixel = SCREENWIDTH * y + x;
     // Leading odd pixel: writes high nibble
     if (pixel & 1) {
-        buf[pixel >> 1] = (buf[pixel >> 1] & TOPMASK) | (color << 4);
+        buf[pixel >> 1] = (buf[pixel >> 1] & LOW_NIBBLE_MASK) | (color << 4);
         pixel++;
         w--;
     }
@@ -108,7 +107,7 @@ void drawHLine(int x, int y, int w, unsigned char color, bool colorIsRGB332) {
     }
     // Trailing pixel: writes low nibble
     if (w == 1) {
-        buf[pixel >> 1] = (buf[pixel >> 1] & BOTTOMMASK) | color;
+        buf[pixel >> 1] = (buf[pixel >> 1] & HIGH_NIBBLE_MASK) | color;
     }
 }
 
@@ -924,15 +923,15 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
                 cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];  // Read in the RGB332 value
                 cx = convertRGB332(cx);                           // And convert it
                 if (cx != TRANSPARENT_INT) {
-                    invmask |= TOPMASK;
-                    bitmap |= (TOPMASK & cx);
+                    invmask |= LOW_NIBBLE_MASK;
+                    bitmap |= (LOW_NIBBLE_MASK & cx);
                 }
             }
             n->bitmap[k][0][i] = bitmap;
             n->invmask[k][0][i] = invmask;
             // For opaque row detection, all nibbles must be 0xF
-            if (invmask == UINT64_MAX && i < 32)
-                n->opaque[k][0] |= (1u << i);
+            if (invmask == UINT64_MAX && i < 64)
+                n->opaque[k][0] |= ((uint64_t)1 << i);
         }
         // We now generate, and store, the image shifted right by 1 pixel, for
         // when the image starts at an odd X-coord. Why? We store 2 pixels
@@ -956,8 +955,8 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
             n->bitmap[1][1][i] = (bm1 << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
             carry = (n->invmask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted invmask[0]
             n->invmask[1][1][i] = (im1 << 4) | carry;
-            if (n->invmask[1][1][i] == UINT64_MAX && i < 32)
-                n->opaque[1][1] |= (1u << i);
+            if (n->invmask[1][1][i] == UINT64_MAX && i < 64)
+                n->opaque[1][1] |= ((uint64_t)1 << i);
         }
         // For chunk[0], clear the rightmost pixel before shifting so it
         // is guaranteed transparent when shifted out (16-wide) or into
@@ -966,8 +965,8 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         uint64_t im0 = (n->invmask[0][0][i] & ~MSN64);
         n->bitmap[0][1][i] = (bm0 << 4);       // low nibble = 0 (transparent)
         n->invmask[0][1][i] = (im0 << 4);      // low nibble = 0 (transparent in invmask)
-        if (n->invmask[0][1][i] == UINT64_MAX && i < 32)
-            n->opaque[0][1] |= (1u << i);
+        if (n->invmask[0][1][i] == UINT64_MAX && i < 64)
+            n->opaque[0][1] |= ((uint64_t)1 << i);
     }
     n->bgValid = false;
     n->height = height;
@@ -997,7 +996,11 @@ void eraseSprite(uint sn) {
 void drawSprite(uint sn, short x, short y, bool erase) {
     if (sn >= MAXSPRITES || !sprites[sn]) return;
     if (erase) eraseSprite(sn);
-    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) return;
+    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) {
+        sprites[sn]->x = x;
+        sprites[sn]->y = y;
+        return;
+    }
     uint64_t newScreen;
     uint64_t bgrnd, invmask[2], bitmap[2];
     int yend = y + sprites[sn]->height;
@@ -1067,7 +1070,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
             memcpy(&bgrnd, &vga_data_array[db_draw][pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
             // Fast path: fully opaque row — skip masking entirely
-            if (j < 32 && !shifts && (sprites[sn]->opaque[k][oddeven] & (1u << j))) {
+            if (j < 64 && !shifts && (sprites[sn]->opaque[k][oddeven] & ((uint64_t)1 << j))) {
                 newScreen = bitmap[k];
             } else {
                 newScreen = bgrnd ^ ((bgrnd ^ bitmap[k]) & invmask[k]);
@@ -1106,11 +1109,12 @@ void moveSprite(uint sn, short x, short y) {
     short sw = sprites[sn]->width;
     short sh = sprites[sn]->height;
 
-    // Fast path: no overlap at source AND no higher-z overlap at destination.
+    // Fast path: no higher-z overlap at source AND no higher-z overlap at destination.
+    // Only higher-z sprites matter at source: lower-z sprites are stored in sn->bgrnd
+    // and restore correctly without a full erase/redraw cycle.
     bool has_src_overlap = false;
-    for (int i = 0; i < draw_order_count; i++) {
+    for (int i = sn_idx + 1; i < draw_order_count; i++) {
         int s = draw_order[i];
-        if (s == (int)sn) continue;
         if (sprites_overlap(s, sn)) {
             has_src_overlap = true;
             break;
@@ -1135,6 +1139,11 @@ void moveSprite(uint sn, short x, short y) {
     // Seed with sn, add source overlaps and dest overlaps,
     // then compute transitive closure (any sprite that overlaps
     // something already in the set must also be included).
+    //
+    // (uint64_t)1 rather than 1u: sprite numbers run 0..(MAXSPRITES-1).
+    // If MAXSPRITES is ever raised above 32, shifting a 32-bit 1u by 32+
+    // is UB in C. uint64_t keeps this safe up to 63 sprites without
+    // requiring any other changes here.
     uint64_t erase_set = (uint64_t)1 << sn;
 
     // Add higher-z sprites that overlap sn's destination
@@ -1248,7 +1257,7 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
                 bitmap <<= 4;
                 cx = sdata[j + (i * width) + (k * TILE16_WIDTH)];  // Read in the RGB332 value
                 cx = convertRGB332(cx);                           // And convert it
-                bitmap |= (TOPMASK & cx);
+                bitmap |= (LOW_NIBBLE_MASK & cx);
             }
             n->bitmap[k][0][i] = bitmap;
         }

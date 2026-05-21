@@ -92,8 +92,10 @@ static const char ansi_pallet[] = {
 };
 
 // Bit masks for drawPixel routine - RGBIRGBI
-#define TOPMASK 0b00001111
-#define BOTTOMMASK 0b11110000
+// LOW_NIBBLE_MASK: keeps the low nibble (clears high nibble so we can write it)
+// HIGH_NIBBLE_MASK: keeps the high nibble (clears low nibble so we can write it)
+#define LOW_NIBBLE_MASK  0b00001111
+#define HIGH_NIBBLE_MASK 0b11110000
 #define ESC 0x1b
 
 #define LSN64 0x0f
@@ -113,10 +115,10 @@ static const char ansi_pallet[] = {
 #define SPRITE32_WIDTH 32  // "" ""
 #define MAXSPRITES 32
 typedef struct {
-    uint64_t *bitmap[2][2];   // [# of 64bit values][odd/even]
+    uint64_t *bitmap[2][2];   // [chunk index][odd/even x-coord variant][row]
     uint64_t *invmask[2][2];  // inverted mask: opaque nibble=0xF, transparent=0x0
     uint64_t *bgrnd[2];
-    uint32_t opaque[2][2];    // bit j=1 → row j is fully opaque (supports up to 32 rows)
+    uint64_t opaque[2][2];    // bit j=1 → row j is fully opaque (supports up to 64 rows)
     short x;
     short y;
     unsigned char height;
@@ -129,7 +131,7 @@ typedef struct {
 #define TILE32_WIDTH 32  // "" ""
 #define MAXTILES 32
 typedef struct {
-    uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
+    uint64_t *bitmap[2][2];  // [chunk index][odd/even x-coord variant][row]
     short x;
     short y;
     unsigned char height;
