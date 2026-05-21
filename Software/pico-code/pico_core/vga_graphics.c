@@ -735,7 +735,6 @@ static void printChar(unsigned char chrx) {
 }
 
 void clearScreen(void) {
-    vgaFillScreen(textbgcolor);
     dma_memset(vga_data_array[db_draw], (textbgcolor) | (textbgcolor << 4), txcount, true);
     dma_memset(terminal, ' ', terminal_size, true);
 }
@@ -864,7 +863,7 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sprites[sn])    // already exists
         return;
     if (width != SPRITE32_WIDTH) width = SPRITE16_WIDTH;
-    sprite_t *n = malloc(sizeof(sprite_t));
+    sprite_t *n = calloc(1, sizeof(sprite_t));
     bool needFree = false;
     if (!sdata) {
         int chunk = width * height;
@@ -976,7 +975,7 @@ void eraseSprite(uint sn) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * SPRITE16_WIDTH));
-            dma_memcpy(&vga_data_array[db_draw][pixel >> 1], &sprites[sn]->bgrnd[k][j], 8, true);
+            memcpy(&vga_data_array[db_draw][pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
         }
     }
     sprites[sn]->bgValid = false;
@@ -1052,7 +1051,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
         }
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
-            dma_memcpy(&bgrnd, &vga_data_array[db_draw][pixel >> 1], 8, true);
+            memcpy(&bgrnd, &vga_data_array[db_draw][pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
             // Fast path: fully opaque row — skip masking entirely
             if (j < 32 && !shifts && (sprites[sn]->opaque[k][oddeven] & (1u << j))) {
@@ -1060,7 +1059,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
             } else {
                 newScreen = bgrnd ^ ((bgrnd ^ bitmap[k]) & invmask[k]);
             }
-            dma_memcpy(&vga_data_array[db_draw][pixel >> 1], &newScreen, 8, true);
+            memcpy(&vga_data_array[db_draw][pixel >> 1], &newScreen, 8);
         }
     }
     sprites[sn]->x = x;
@@ -1123,13 +1122,13 @@ void moveSprite(uint sn, short x, short y) {
     // Seed with sn, add source overlaps and dest overlaps,
     // then compute transitive closure (any sprite that overlaps
     // something already in the set must also be included).
-    uint32_t erase_set = 1u << sn;
+    uint64_t erase_set = (uint64_t)1 << sn;
 
     // Add higher-z sprites that overlap sn's destination
     for (int i = sn_idx + 1; i < draw_order_count; i++) {
         int s = draw_order[i];
         if (sprites[s] && sprites[s]->bgValid && dest_overlaps_sprite(x, y, sw, sh, s))
-            erase_set |= (1u << s);
+            erase_set |= ((uint64_t)1 << s);
     }
 
     // Transitive closure: keep adding sprites that overlap anything
@@ -1139,13 +1138,13 @@ void moveSprite(uint sn, short x, short y) {
         changed = false;
         for (int i = 0; i < draw_order_count; i++) {
             int s = draw_order[i];
-            if (erase_set & (1u << s)) continue;
+            if (erase_set & ((uint64_t)1 << s)) continue;
             if (!sprites[s] || !sprites[s]->bgValid) continue;
             for (int j = 0; j < draw_order_count; j++) {
                 int es = draw_order[j];
-                if (!(erase_set & (1u << es))) continue;
+                if (!(erase_set & ((uint64_t)1 << es))) continue;
                 if (sprites_overlap(s, es)) {
-                    erase_set |= (1u << s);
+                    erase_set |= ((uint64_t)1 << s);
                     changed = true;
                     break;
                 }
@@ -1156,7 +1155,7 @@ void moveSprite(uint sn, short x, short y) {
     // Erase in reverse draw order
     for (int i = draw_order_count - 1; i >= 0; i--) {
         int s = draw_order[i];
-        if (erase_set & (1u << s))
+        if (erase_set & ((uint64_t)1 << s))
             eraseSprite(s);
     }
 
@@ -1167,7 +1166,7 @@ void moveSprite(uint sn, short x, short y) {
     // Redraw all affected sprites in forward draw order
     for (int i = 0; i < draw_order_count; i++) {
         int s = draw_order[i];
-        if (erase_set & (1u << s))
+        if (erase_set & ((uint64_t)1 << s))
             drawSprite(s, sprites[s]->x, sprites[s]->y, false);
     }
 }
@@ -1308,7 +1307,7 @@ void drawTile(uint sn, short x, short y) {
 
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * TILE16_WIDTH));
-            dma_memcpy(&vga_data_array[db_draw][pixel >> 1], &bitmap[k], 8, true);
+            memcpy(&vga_data_array[db_draw][pixel >> 1], &bitmap[k], 8);
         }
     }
     tiles[sn]->x = x;

@@ -48,6 +48,7 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 // Our assembled programs:
 // pioasm converts foo.pio to foo.pio.h
