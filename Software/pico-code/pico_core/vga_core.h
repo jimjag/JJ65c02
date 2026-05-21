@@ -113,9 +113,10 @@ static const char ansi_pallet[] = {
 #define SPRITE32_WIDTH 32  // "" ""
 #define MAXSPRITES 32
 typedef struct {
-    uint64_t *bitmap[2][2];  // [# of 64bit values][odd/even]
-    uint64_t *mask[2][2];
+    uint64_t *bitmap[2][2];   // [# of 64bit values][odd/even]
+    uint64_t *invmask[2][2];  // inverted mask: opaque nibble=0xF, transparent=0x0
     uint64_t *bgrnd[2];
+    uint32_t opaque[2][2];    // bit j=1 → row j is fully opaque (supports up to 32 rows)
     short x;
     short y;
     unsigned char height;

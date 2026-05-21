@@ -877,47 +877,50 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         }
         needFree = true;
     }
-    // NOW CREATE bitmap, mask, etc... for this sprite
+    // NOW CREATE bitmap, invmask, etc... for this sprite
     // (which was designed to be at an even X-coordinate)
     // and its odd X-coord twin.
     //
-    // 1st or ONLY 64bit int
+    // invmask: opaque nibble = 0xF, transparent nibble = 0x0
+    // opaque[k][oe]: bit i = 1 if row i is fully opaque (no transparency)
     //
-    // NOTE: Mask is inverse black/white
-    //
-    // TODO: Change mask to bit-values and create the uint64_t from it when we display,
-    //       to save some space
     n->bitmap[0][0] = malloc(sizeof(uint64_t) * height);
     n->bitmap[0][1] = malloc(sizeof(uint64_t) * height);
-    n->mask[0][0] = malloc(sizeof(uint64_t) * height);
-    n->mask[0][1] = malloc(sizeof(uint64_t) * height);
+    n->invmask[0][0] = malloc(sizeof(uint64_t) * height);
+    n->invmask[0][1] = malloc(sizeof(uint64_t) * height);
+    n->opaque[0][0] = 0;
+    n->opaque[0][1] = 0;
+    n->opaque[1][0] = 0;
+    n->opaque[1][1] = 0;
     n->bgrnd[0] = malloc(sizeof(uint64_t) * height);
     if (width == SPRITE32_WIDTH) {
-        // 2nd 64bit int
         n->bitmap[1][0] = malloc(sizeof(uint64_t) * height);
         n->bitmap[1][1] = malloc(sizeof(uint64_t) * height);
-        n->mask[1][0] = malloc(sizeof(uint64_t) * height);
-        n->mask[1][1] = malloc(sizeof(uint64_t) * height);
+        n->invmask[1][0] = malloc(sizeof(uint64_t) * height);
+        n->invmask[1][1] = malloc(sizeof(uint64_t) * height);
         n->bgrnd[1] = malloc(sizeof(uint64_t) * height);
     }
     int chunks = width / SPRITE16_WIDTH;
     for (int i = 0; i < height; i++) {
         for (int k = 0; k < chunks; k++) {
-            uint64_t mask = 0;
+            uint64_t invmask = 0;
             uint64_t bitmap = 0;
             unsigned char cx;
             for (int j = SPRITE16_WIDTH - 1; j >= 0; j--) {
-                mask <<= 4;
+                invmask <<= 4;
                 bitmap <<= 4;
                 cx = sdata[j + (i * width) + (k * SPRITE16_WIDTH)];  // Read in the RGB332 value
                 cx = convertRGB332(cx);                           // And convert it
-                if (cx == TRANSPARENT_INT) {
-                    mask |= TOPMASK;
+                if (cx != TRANSPARENT_INT) {
+                    invmask |= TOPMASK;
+                    bitmap |= (TOPMASK & cx);
                 }
-                bitmap |= (TOPMASK & cx);
             }
             n->bitmap[k][0][i] = bitmap;
-            n->mask[k][0][i] = mask;
+            n->invmask[k][0][i] = invmask;
+            // For opaque row detection, all nibbles must be 0xF
+            if (invmask == UINT64_MAX && i < 32)
+                n->opaque[k][0] |= (1u << i);
         }
         // We now generate, and store, the image shifted right by 1 pixel, for
         // when the image starts at an odd X-coord. Why? We store 2 pixels
@@ -929,15 +932,30 @@ void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
         //       which would balloon the size of the bitmap display
         //       memory allocation. Trade-offs.
         //
+        // Generate the odd-x variant by shifting right by 1 pixel.
+        // The rightmost pixel (MSN of highest chunk) is shifted out;
+        // force it to transparent in the odd variant so no visible
+        // pixel is lost. We do NOT mutate the even-x base data.
         if (width == SPRITE32_WIDTH) {
             uint64_t carry;
+            uint64_t bm1 = (n->bitmap[1][0][i] & ~MSN64); // clear rightmost pixel
+            uint64_t im1 = (n->invmask[1][0][i] & ~MSN64); // mark it transparent (clear invmask MSN)
             carry = (n->bitmap[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted bitmap[0]; this is what will be shifted out
-            n->bitmap[1][1][i] = (n->bitmap[1][0][i] << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
-            carry = (n->mask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted mask[0]
-            n->mask[1][1][i] = (n->mask[1][0][i] << 4) | carry;
+            n->bitmap[1][1][i] = (bm1 << 4) | carry; // now shift bitmap[1] and fold in bitmap[0] shifted out 4 bits
+            carry = (n->invmask[0][0][i] & MSN64) >> 60; // "top" 4 bits of unshifted invmask[0]
+            n->invmask[1][1][i] = (im1 << 4) | carry;
+            if (n->invmask[1][1][i] == UINT64_MAX && i < 32)
+                n->opaque[1][1] |= (1u << i);
         }
-        n->bitmap[0][1][i] = (n->bitmap[0][0][i] << 4) | LSN64;
-        n->mask[0][1][i] = (n->mask[0][0][i] << 4) | LSN64;
+        // For chunk[0], clear the rightmost pixel before shifting so it
+        // is guaranteed transparent when shifted out (16-wide) or into
+        // the carry position (32-wide, already handled above).
+        uint64_t bm0 = (n->bitmap[0][0][i] & ~MSN64);
+        uint64_t im0 = (n->invmask[0][0][i] & ~MSN64);
+        n->bitmap[0][1][i] = (bm0 << 4);       // low nibble = 0 (transparent)
+        n->invmask[0][1][i] = (im0 << 4);      // low nibble = 0 (transparent in invmask)
+        if (n->invmask[0][1][i] == UINT64_MAX && i < 32)
+            n->opaque[0][1] |= (1u << i);
     }
     n->bgValid = false;
     n->height = height;
@@ -965,10 +983,11 @@ void eraseSprite(uint sn) {
 }
 
 void drawSprite(uint sn, short x, short y, bool erase) {
+    if (sn >= MAXSPRITES || !sprites[sn]) return;
     if (erase) eraseSprite(sn);
     if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) return;
-    uint64_t maskedScreen, newScreen;
-    uint64_t bgrnd, mask[2], bitmap[2];
+    uint64_t newScreen;
+    uint64_t bgrnd, invmask[2], bitmap[2];
     int yend = y + sprites[sn]->height;
     int shifts = 0;
     bool shift_right = true;
@@ -987,50 +1006,60 @@ void drawSprite(uint sn, short x, short y, bool erase) {
     int j = 0;
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
-        // Yes, this does take time and so one could argue that these
-        // should be part of the stored sprite data (ala the odd/even
-        // variants). But (1) that is a lot of space and (2) this is
-        // only a factor when the sprite intersects with the left or
-        // right border, which is rare (and in most cases never even
-        // happens). So keep for now.
-        //
-        // We could likely do away with the looping for the
-        // nibble shifts at some point...
-        mask[0] = sprites[sn]->mask[0][oddeven][j];
+        invmask[0] = sprites[sn]->invmask[0][oddeven][j];
         bitmap[0] = sprites[sn]->bitmap[0][oddeven][j];
         if (sprites[sn]->width == SPRITE32_WIDTH) {
-            mask[1] = sprites[sn]->mask[1][oddeven][j];
+            invmask[1] = sprites[sn]->invmask[1][oddeven][j];
             bitmap[1] = sprites[sn]->bitmap[1][oddeven][j];
         }
-        uint64_t carry[2];
-        for (int i = 0; i < shifts; i++) {
+        // Shift invmask and bitmap when sprite overlaps screen edge.
+        // For invmask, shifted-in nibbles are 0x0 (transparent).
+        if (shifts > 0) {
+            int shift_bits = shifts * 4;
             if (shift_right) {
-                if (sprites[sn]->width == SPRITE32_WIDTH) {
-                    carry[0] = (bitmap[0] & MSN64) >> 60;
-                    bitmap[1] = (bitmap[1] << 4) | carry[0];
-                    carry[1] = (mask[0] & MSN64) >> 60;
-                    mask[1] = (mask[1] << 4) | carry[1];
+                if (sprites[sn]->width == SPRITE32_WIDTH && shift_bits >= 64) {
+                    int sb = shift_bits - 64;
+                    bitmap[1] = sb ? (bitmap[0] << sb) : bitmap[0];
+                    invmask[1] = sb ? (invmask[0] << sb) : invmask[0];
+                    bitmap[0] = 0;
+                    invmask[0] = 0;
+                } else if (sprites[sn]->width == SPRITE32_WIDTH) {
+                    bitmap[1] = (bitmap[1] << shift_bits) | (bitmap[0] >> (64 - shift_bits));
+                    invmask[1] = (invmask[1] << shift_bits) | (invmask[0] >> (64 - shift_bits));
+                    bitmap[0] = (bitmap[0] << shift_bits);
+                    invmask[0] = (invmask[0] << shift_bits);
+                } else {
+                    bitmap[0] = (bitmap[0] << shift_bits);
+                    invmask[0] = (invmask[0] << shift_bits);
                 }
-                bitmap[0] = (bitmap[0] << 4) | LSN64;
-                mask[0] = (mask[0] << 4) | LSN64;
             } else {
-                carry[0] = carry[1] = MSN64;
-                if (sprites[sn]->width == SPRITE32_WIDTH) {
-                    carry[0] = (bitmap[1] & LSN64) << 60;
-                    bitmap[1] = (bitmap[1] >> 4) | MSN64;
-                    carry[1] = (mask[1] & LSN64) << 60;
-                    mask[1] = (mask[1] >> 4) | MSN64;
+                if (sprites[sn]->width == SPRITE32_WIDTH && shift_bits >= 64) {
+                    int sb = shift_bits - 64;
+                    bitmap[0] = sb ? (bitmap[1] >> sb) : bitmap[1];
+                    invmask[0] = sb ? (invmask[1] >> sb) : invmask[1];
+                    bitmap[1] = 0;
+                    invmask[1] = 0;
+                } else if (sprites[sn]->width == SPRITE32_WIDTH) {
+                    bitmap[0] = (bitmap[0] >> shift_bits) | (bitmap[1] << (64 - shift_bits));
+                    invmask[0] = (invmask[0] >> shift_bits) | (invmask[1] << (64 - shift_bits));
+                    bitmap[1] = (bitmap[1] >> shift_bits);
+                    invmask[1] = (invmask[1] >> shift_bits);
+                } else {
+                    bitmap[0] = (bitmap[0] >> shift_bits);
+                    invmask[0] = (invmask[0] >> shift_bits);
                 }
-                bitmap[0] = (bitmap[0] >> 4) | carry[0];
-                mask[0] = (mask[0] >> 4) | carry[1];
             }
         }
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
             dma_memcpy(&bgrnd, &vga_data_array[db_draw][pixel >> 1], 8, true);
             sprites[sn]->bgrnd[k][j] = bgrnd;
-            maskedScreen = mask[k] & bgrnd;
-            newScreen = maskedScreen | (~mask[k] & bitmap[k]);
+            // Fast path: fully opaque row — skip masking entirely
+            if (j < 32 && !shifts && (sprites[sn]->opaque[k][oddeven] & (1u << j))) {
+                newScreen = bitmap[k];
+            } else {
+                newScreen = bgrnd ^ ((bgrnd ^ bitmap[k]) & invmask[k]);
+            }
             dma_memcpy(&vga_data_array[db_draw][pixel >> 1], &newScreen, 8, true);
         }
     }
@@ -1219,6 +1248,8 @@ void loadTile(uint sn, short width, short height, unsigned char *sdata) {
 
 // Tiles must align on a modulo of their width
 void drawTile(uint sn, short x, short y) {
+    if (sn >= MAXTILES || !tiles[sn]) return;
+    x &= ~1;
     if (x <= -tiles[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -tiles[sn]->height) return;
     uint64_t bitmap[2];
     int shifts = 0;
@@ -1243,21 +1274,35 @@ void drawTile(uint sn, short x, short y) {
         if (tiles[sn]->width == TILE32_WIDTH) {
             bitmap[1] = tiles[sn]->bitmap[1][oddeven][j];
         }
-        uint64_t carry[2];
-        for (int i = 0; i < shifts; i++) {
+        if (shifts > 0) {
+            int shift_bits = shifts * 4;
             if (shift_right) {
-                if (tiles[sn]->width == TILE32_WIDTH) {
-                    carry[0] = (bitmap[0] & MSN64) >> 60;
-                    bitmap[1] = (bitmap[1] << 4) | carry[0];
+                if (tiles[sn]->width == TILE32_WIDTH && shift_bits >= 64) {
+                    int sb = shift_bits - 64;
+                    bitmap[1] = sb ? ((bitmap[0] << sb) | (((uint64_t)1 << sb) - 1)) : bitmap[0];
+                    bitmap[0] = UINT64_MAX;
+                } else if (tiles[sn]->width == TILE32_WIDTH) {
+                    uint64_t fill = ((uint64_t)1 << shift_bits) - 1;
+                    bitmap[1] = (bitmap[1] << shift_bits) | (bitmap[0] >> (64 - shift_bits));
+                    bitmap[0] = (bitmap[0] << shift_bits) | fill;
+                } else {
+                    uint64_t fill = ((uint64_t)1 << shift_bits) - 1;
+                    bitmap[0] = (bitmap[0] << shift_bits) | fill;
                 }
-                bitmap[0] = (bitmap[0] << 4) | LSN64;
             } else {
-                carry[0] = carry[1] = MSN64;
-                if (tiles[sn]->width == TILE32_WIDTH) {
-                    carry[0] = (bitmap[1] & LSN64) << 60;
-                    bitmap[1] = (bitmap[1] >> 4) | MSN64;
+                if (tiles[sn]->width == TILE32_WIDTH && shift_bits >= 64) {
+                    int sb = shift_bits - 64;
+                    uint64_t hi1 = sb ? ~(((uint64_t)1 << (64 - sb)) - 1) : 0;
+                    bitmap[0] = (bitmap[1] >> sb) | hi1;
+                    bitmap[1] = UINT64_MAX;
+                } else if (tiles[sn]->width == TILE32_WIDTH) {
+                    uint64_t hi_fill = ~(((uint64_t)1 << (64 - shift_bits)) - 1);
+                    bitmap[0] = (bitmap[0] >> shift_bits) | (bitmap[1] << (64 - shift_bits));
+                    bitmap[1] = (bitmap[1] >> shift_bits) | hi_fill;
+                } else {
+                    uint64_t hi_fill = ~(((uint64_t)1 << (64 - shift_bits)) - 1);
+                    bitmap[0] = (bitmap[0] >> shift_bits) | hi_fill;
                 }
-                bitmap[0] = (bitmap[0] >> 4) | carry[0];
             }
         }
 

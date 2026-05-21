@@ -5,12 +5,13 @@
 Each sprite stores:
 
 - `bitmap[chunk][oddeven][row]` -- pre-shifted sprite pixels (uint64_t per scanline chunk)
-- `mask[chunk][oddeven][row]` -- transparency mask (inverse: 0xF = transparent nibble)
+- `invmask[chunk][oddeven][row]` -- inverted transparency mask (0xF = opaque nibble, 0x0 = transparent nibble)
+- `opaque[chunk][oddeven]` -- uint32_t bitmask; bit j=1 means row j is fully opaque (no transparent pixels)
 - `bgrnd[chunk][row]` -- saved background pixels captured at draw time
 - `x`, `y` -- current screen position
 - `bgValid` -- whether `bgrnd` holds valid data that can be restored
 
-**drawSprite** composites onto the framebuffer: reads screen -> saves to `bgrnd` -> applies `(screen & mask) | (~mask & bitmap)` -> writes back.
+**drawSprite** composites onto the framebuffer: reads screen -> saves to `bgrnd` -> applies `bgrnd ^ ((bgrnd ^ bitmap) & invmask)` -> writes back. For fully opaque rows (all invmask nibbles = 0xF), the bitmap is written directly without masking.
 
 **eraseSprite** restores `bgrnd` to the framebuffer, effectively "unpainting" the sprite.
 
