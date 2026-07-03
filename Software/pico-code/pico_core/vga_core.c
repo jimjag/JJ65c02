@@ -170,6 +170,11 @@ static void __time_critical_func(isr_dma_copy_done)(void) {
     dma_hw->ints1 = 1u << isr_dma_chan;
     _do_switch = false;
     _db_switched = true;
+    // The draw→show copy has finished (and the chain has already restarted
+    // scanout), so the draw buffer is safe to touch again. Bump the frame
+    // counter HERE — not when the copy was kicked off — so waitForVBlank()
+    // reflects present-complete rather than present-start.
+    _vblank_count++;
 }
 
 static void __time_critical_func(db_vga_ihandler)(void) {
@@ -182,7 +187,9 @@ static void __time_critical_func(db_vga_ihandler)(void) {
         dma_channel_set_read_addr(isr_dma_chan, vga_data_array[db_draw], false);
         dma_channel_set_write_addr(isr_dma_chan, vga_data_array[db_show], false);
         dma_channel_set_trans_count(isr_dma_chan, txcount >> 2, true);
-        _vblank_count++;
+        // Copy is now in flight (~256µs). _vblank_count is bumped by
+        // isr_dma_copy_done() when it finishes, so waitForVBlank() blocks
+        // until the present has actually completed — not until it started.
         return;
     }
 #endif
