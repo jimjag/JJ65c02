@@ -70,20 +70,25 @@
 int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have 2 pixels per byte)
 
 // The RP2040 lacks enough memory for double buffering.
-// On RP2350 the two buffers are placed in separate named sections so the
-// custom linker script (memmap_vga_rp2350.ld) can pin them to different
-// SRAM bank groups.  Buffer 0 (show) lands in SRAM4/5; buffer 1 (draw)
-// lands in SRAM6/7.  The show buffer is always the one scanned out by the
+// On RP2350 two buffers live in ordinary .bss (zero-initialized at boot,
+// no flash cost).  Buffer 0 (show) is always the one scanned out by the
 // PIO DMA.  When double-buffering is enabled the VBlank handler copies the
 // draw buffer into the show buffer (~256µs via word-DMA, well within the
-// ~1,440µs blanking interval).  Separate banks ensure this copy and the
-// pixel DMA never contend on the same bus.  On RP2040 a single buffer is
-// used (no DB).
+// ~1,440µs blanking interval).  RP2350 main SRAM is word-striped across
+// its eight banks, so the copy and the pixel DMA are spread across banks
+// automatically — and the copy runs during blanking, when the show buffer
+// isn't being scanned anyway.  On RP2040 a single buffer is used (no DB).
+//
+// (Earlier revisions placed these in named sections intended for a custom
+// linker script that pinned each buffer to its own SRAM bank group.  The
+// script was never added, so the sections were linked as orphans: no bank
+// pinning, ~300KB of zero padding in the flash image, and no zero-init at
+// boot.  Plain .bss is smaller and actually initialized.)
 #if PICO_RP2040
 unsigned char __attribute__((aligned(4))) vga_data_array[1][(SCREENWIDTH * SCREENHEIGHT) / 2];
 #else
-unsigned char __attribute__((aligned(4), section(".vga_show_buf"))) vga_buf0[(SCREENWIDTH * SCREENHEIGHT) / 2];
-unsigned char __attribute__((aligned(4), section(".vga_draw_buf"))) vga_buf1[(SCREENWIDTH * SCREENHEIGHT) / 2];
+static unsigned char __attribute__((aligned(4))) vga_buf0[(SCREENWIDTH * SCREENHEIGHT) / 2];
+static unsigned char __attribute__((aligned(4))) vga_buf1[(SCREENWIDTH * SCREENHEIGHT) / 2];
 // Pointer array indexed by db_show / db_draw — same call-site syntax as before.
 // Initialised from address constants so the compiler places it in .rodata (flash).
 // Two pointer reads at 60 Hz from flash is negligible; the buffers themselves are in RAM.
@@ -425,8 +430,17 @@ void initVGA(void) {
 //      the whole post-head range so the call returns truly asynchronously.
 // Static fill words/bytes outlive the stack frame so the DMA source remains
 // valid after this function returns in the non-blocking case.
+// Below this many bytes the DMA channel setup + completion overhead costs
+// more than just doing the operation on the CPU (e.g. drawHLine middles,
+// eraseCells).  Small requests complete synchronously regardless of 'block'.
+#define DMA_MIN_XFER 64
+
 void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool block) {
     if (num == 0) return;
+    if (num < DMA_MIN_XFER) {
+        memset(dest, val, num);
+        return;
+    }
 
     uint8_t *d = (uint8_t *)dest;
 
@@ -475,6 +489,13 @@ void __not_in_flash_func(dma_memset)(void *dest, uint8_t val, size_t num, bool b
 
 void __not_in_flash_func(dma_memcpy)(void *dest, const void *src, size_t num, bool block) {
     if (num == 0) return;
+    if (num < DMA_MIN_XFER) {
+        // memmove, not memcpy: some callers (VRAM copy Esc[Z4, scrolls)
+        // pass overlapping ranges, which the incrementing DMA handled
+        // correctly for src > dest; memmove is safe for all overlaps.
+        memmove(dest, src, num);
+        return;
+    }
 
     uint8_t *d = (uint8_t *)dest;
     const uint8_t *s = (const uint8_t *)src;

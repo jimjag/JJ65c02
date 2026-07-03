@@ -139,9 +139,13 @@ typedef struct {
 } tile_t;
 
 // Cursor position
+// NOTE: These must be explicitly signed. Plain char is UNSIGNED on
+// arm-none-eabi-gcc, which made every "tcurs.x < 0" check dead code and
+// let backspace at column 0 wrap to 255 and index past the end of
+// terminal[].
 typedef struct scrpos {
-    char x;
-    char y;
+    signed char x;
+    signed char y;
 } scrpos;
 
 // GPIO pins to VIA chip

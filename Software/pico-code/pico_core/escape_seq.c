@@ -357,11 +357,15 @@ static bool collect_sequence(unsigned char chrx) {
     } else if (chrx=='z' && esc_parameter_count==0) {
         hex_entry = true;  // nop
     } else if (hex_entry && isxdigit(chrx)) {
-        escP[esc_parameter_count] <<= 4;
-        if (isdigit(chrx)) {
-            escP[esc_parameter_count] |= chrx - '0';
-        } else {
-            escP[esc_parameter_count] |= toupper(chrx) - 'A' + 10;
+        // esc_parameter_count can legally equal MAX_ESC_PARAMS after a
+        // trailing ';' — ignore further digits (as the decimal path does)
+        if (esc_parameter_count < MAX_ESC_PARAMS) {
+            escP[esc_parameter_count] <<= 4;
+            if (isdigit(chrx)) {
+                escP[esc_parameter_count] |= chrx - '0';
+            } else {
+                escP[esc_parameter_count] |= toupper(chrx) - 'A' + 10;
+            }
         }
     } else if (isdigit(chrx)) {
         // parameter value

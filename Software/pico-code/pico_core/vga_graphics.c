@@ -27,9 +27,12 @@ void vgaFillScreen(unsigned char color) {
 
 // Caller must guarantee 0 <= x < SCREENWIDTH, 0 <= y < SCREENHEIGHT,
 // and color != TRANSPARENT_INT. No range or transparency checks.
-static inline void drawPixelFast(int x, int y, unsigned char color) {
+// Takes the draw buffer as a parameter so loops fetch vga_data_array[db_draw]
+// once instead of per pixel (db_draw is volatile, so the compiler can't
+// hoist that load itself).
+static inline void drawPixelFast(unsigned char *buf, int x, int y, unsigned char color) {
     int pixel = SCREENWIDTH * y + x;
-    unsigned char *cell = &vga_data_array[db_draw][pixel >> 1];
+    unsigned char *cell = &buf[pixel >> 1];
     if (pixel & 1) {
         *cell = (*cell & LOW_NIBBLE_MASK) | (color << 4);
     } else {
@@ -58,10 +61,13 @@ void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332) {
     // Is this pixel stored in the first 4 bits
     // of the vga data array index, or the second
     // 4 bits? Check, then mask.
+    // (cell pointer fetched once: db_draw is volatile and vga_data_array
+    // lives in flash, so indexing it twice costs two reloads)
+    unsigned char *cell = &vga_data_array[db_draw][pixel >> 1];
     if (pixel & 1) {
-        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & LOW_NIBBLE_MASK) | (color << 4);
+        *cell = (*cell & LOW_NIBBLE_MASK) | (color << 4);
     } else {
-        vga_data_array[db_draw][pixel >> 1] = (vga_data_array[db_draw][pixel >> 1] & HIGH_NIBBLE_MASK) | (color);
+        *cell = (*cell & HIGH_NIBBLE_MASK) | (color);
     }
 }
 
@@ -246,21 +252,22 @@ void drawCircle(int x0, int y0, int r, unsigned char color, bool colorIsRGB332) 
     bool inside = (r >= 0) && (x0 - r >= 0) && (x0 + r < SCREENWIDTH) &&
                   (y0 - r >= 0) && (y0 + r < SCREENHEIGHT);
     if (inside) {
-        drawPixelFast(x0, y0 + r, color);
-        drawPixelFast(x0, y0 - r, color);
-        drawPixelFast(x0 + r, y0, color);
-        drawPixelFast(x0 - r, y0, color);
+        unsigned char *buf = vga_data_array[db_draw];
+        drawPixelFast(buf, x0, y0 + r, color);
+        drawPixelFast(buf, x0, y0 - r, color);
+        drawPixelFast(buf, x0 + r, y0, color);
+        drawPixelFast(buf, x0 - r, y0, color);
         while (x < y) {
             if (f >= 0) { y--; ddF_y += 2; f += ddF_y; }
             x++; ddF_x += 2; f += ddF_x;
-            drawPixelFast(x0 + x, y0 + y, color);
-            drawPixelFast(x0 - x, y0 + y, color);
-            drawPixelFast(x0 + x, y0 - y, color);
-            drawPixelFast(x0 - x, y0 - y, color);
-            drawPixelFast(x0 + y, y0 + x, color);
-            drawPixelFast(x0 - y, y0 + x, color);
-            drawPixelFast(x0 + y, y0 - x, color);
-            drawPixelFast(x0 - y, y0 - x, color);
+            drawPixelFast(buf, x0 + x, y0 + y, color);
+            drawPixelFast(buf, x0 - x, y0 + y, color);
+            drawPixelFast(buf, x0 + x, y0 - y, color);
+            drawPixelFast(buf, x0 - x, y0 - y, color);
+            drawPixelFast(buf, x0 + y, y0 + x, color);
+            drawPixelFast(buf, x0 - y, y0 + x, color);
+            drawPixelFast(buf, x0 + y, y0 - x, color);
+            drawPixelFast(buf, x0 - y, y0 - x, color);
         }
         return;
     }
@@ -406,6 +413,52 @@ void drawFilledRect(int x, int y, int w, int h, unsigned char color, bool isColo
     }
 }
 
+// Fast opaque glyph blitter for the common case: size 1, glyph fully on
+// screen, background drawn (bg != fg and not transparent).  Writes the 4
+// packed bytes of each font row directly instead of 128 bounds-checked
+// drawPixel calls.  Assumes FONTWIDTH == 8.
+//
+// pair[k] is the packed byte for a 2-pixel pair: k bit0 = left pixel set
+// (low nibble), k bit1 = right pixel set (high nibble).  For each output
+// byte the two relevant font bits are at bit7 (left) and bit6 (right) of
+// 'line' after shifting, giving k = ((line>>7)&1) | ((line>>5)&2).
+static void drawCharFast(int x, int y, unsigned char chrx, unsigned char color, unsigned char bg) {
+    const unsigned char *glyph = font + (chrx * FONTHEIGHT);
+    unsigned char *row = &vga_data_array[db_draw][(SCREENWIDTH * y + x) >> 1];
+    unsigned char pair[4];
+    pair[0] = bg | (bg << 4);
+    pair[1] = color | (bg << 4);
+    pair[2] = bg | (color << 4);
+    pair[3] = color | (color << 4);
+    if (!(x & 1)) {
+        for (int py = 0; py < FONTHEIGHT; py++, row += scanline_size) {
+            unsigned line = glyph[py];
+            row[0] = pair[((line >> 7) & 1) | ((line >> 5) & 2)];
+            line <<= 2;
+            row[1] = pair[((line >> 7) & 1) | ((line >> 5) & 2)];
+            line <<= 2;
+            row[2] = pair[((line >> 7) & 1) | ((line >> 5) & 2)];
+            line <<= 2;
+            row[3] = pair[((line >> 7) & 1) | ((line >> 5) & 2)];
+        }
+    } else {
+        // Odd x: glyph pixel 0 is the high nibble of row[0] and glyph
+        // pixel 7 is the low nibble of row[4]; the other nibble of each
+        // edge byte belongs to a neighboring cell and is preserved.
+        for (int py = 0; py < FONTHEIGHT; py++, row += scanline_size) {
+            unsigned line = glyph[py];
+            row[0] = (row[0] & LOW_NIBBLE_MASK) | (((line & 0x80) ? color : bg) << 4);
+            unsigned l2 = line << 1;  // bit7 = glyph pixel 1
+            row[1] = pair[((l2 >> 7) & 1) | ((l2 >> 5) & 2)];
+            l2 <<= 2;
+            row[2] = pair[((l2 >> 7) & 1) | ((l2 >> 5) & 2)];
+            l2 <<= 2;
+            row[3] = pair[((l2 >> 7) & 1) | ((l2 >> 5) & 2)];
+            row[4] = (row[4] & HIGH_NIBBLE_MASK) | ((line & 0x01) ? color : bg);
+        }
+    }
+}
+
 // Draw a character
 void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
               unsigned char size, bool colorIsRGB332) {
@@ -417,6 +470,16 @@ void drawChar(int x, int y, unsigned char chrx, unsigned char color, char bg,
         return;
     if (colorIsRGB332) color = convertRGB332(color);
     if (color == TRANSPARENT_INT) return;
+    // Fast path: fully on screen, default size, opaque background.
+    // (bg == color means "transparent background" by convention, and a
+    // TRANSPARENT_INT bg must fall through so drawPixel can skip it.)
+    if (size == 1 && FONTWIDTH == 8 &&
+        (unsigned char)bg != color && (unsigned char)bg != TRANSPARENT_INT &&
+        x >= 0 && y >= 0 &&
+        x + FONTWIDTH <= SCREENWIDTH && y + FONTHEIGHT <= SCREENHEIGHT) {
+        drawCharFast(x, y, chrx, color, (unsigned char)bg);
+        return;
+    }
     for (py = 0; py < FONTHEIGHT; py++) {
         unsigned char line;
         line = pgm_read_byte(font + (chrx * FONTHEIGHT) + py);
@@ -663,7 +726,7 @@ void writeChar(unsigned char chrx) {
 
 // Print the text character provided, handling special chars
 static void printChar(unsigned char chrx) {
-    char x,y;
+    signed char x,y;
     switch (chrx) {
         // Handle "special" characters.
         case '\n':
@@ -983,11 +1046,12 @@ void eraseSprite(uint sn) {
     int yend = sprites[sn]->y + sprites[sn]->height;
     int j = 0;
     int chunks = sprites[sn]->width / SPRITE16_WIDTH;
+    unsigned char *buf = vga_data_array[db_draw];
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * SPRITE16_WIDTH));
-            memcpy(&vga_data_array[db_draw][pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
+            memcpy(&buf[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
         }
     }
     sprites[sn]->bgValid = false;
@@ -1019,6 +1083,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
     }
     int oddeven = x & 0x1;
     int j = 0;
+    unsigned char *buf = vga_data_array[db_draw];
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         invmask[0] = sprites[sn]->invmask[0][oddeven][j];
@@ -1067,7 +1132,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
         }
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
-            memcpy(&bgrnd, &vga_data_array[db_draw][pixel >> 1], 8);
+            memcpy(&bgrnd, &buf[pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
             // Fast path: fully opaque row — skip masking entirely
             if (j < 64 && !shifts && (sprites[sn]->opaque[k][oddeven] & ((uint64_t)1 << j))) {
@@ -1075,7 +1140,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
             } else {
                 newScreen = bgrnd ^ ((bgrnd ^ bitmap[k]) & invmask[k]);
             }
-            memcpy(&vga_data_array[db_draw][pixel >> 1], &newScreen, 8);
+            memcpy(&buf[pixel >> 1], &newScreen, 8);
         }
     }
     sprites[sn]->x = x;
@@ -1299,6 +1364,7 @@ void drawTile(uint sn, short x, short y) {
     int yend = y + tiles[sn]->height;
     int chunks = tiles[sn]->width / TILE16_WIDTH;
     int j = 0;
+    unsigned char *buf = vga_data_array[db_draw];
     for (int y1 = y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         bitmap[0] = tiles[sn]->bitmap[0][oddeven][j];
@@ -1339,7 +1405,7 @@ void drawTile(uint sn, short x, short y) {
 
         for (int k = 0; k < chunks; k++) {
             int pixel = ((SCREENWIDTH * y1) + x + (k * TILE16_WIDTH));
-            memcpy(&vga_data_array[db_draw][pixel >> 1], &bitmap[k], 8);
+            memcpy(&buf[pixel >> 1], &bitmap[k], 8);
         }
     }
     tiles[sn]->x = x;

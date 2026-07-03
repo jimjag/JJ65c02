@@ -12,11 +12,13 @@ set(JJ65C02_PICO_PATH ${PROJECT_SOURCE_DIR})
 # Initialize the SDK
 pico_sdk_init()
 
-# Add multi example
-add_subdirectory(pico_core)
-
+# Compile options must be set BEFORE add_subdirectory() or they
+# don't apply to the targets defined there.
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
         -Wno-unused-function # we have some for the docs that aren't called
         -Wno-maybe-uninitialized
         )
+
+# Add multi example
+add_subdirectory(pico_core)
