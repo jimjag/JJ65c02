@@ -157,25 +157,37 @@ void conInTask(void);
 
 // Double-buffering API (RP2350 only; no-ops on RP2040)
 //
-// Model: The show buffer (index 0) is ALWAYS the one scanned out by the PIO
-// DMA.  When DB is enabled, all drawing goes to the draw buffer (index 1).
-// Calling switchDB() sets a flag; at the next VBlank the IRQ handler copies
-// the draw buffer into the show buffer (during the ~1.4ms blanking interval).
-// Because draw→show is a copy (not a pointer swap), the draw buffer retains
-// its contents and can be incrementally updated for the next frame.
+// db_show indexes the buffer scanned out by the PIO DMA; db_draw indexes the
+// one the CPU draws into. switchDB() requests a present at the next VBlank.
+// Two present strategies are available via setDBSwap():
 //
-// Recommended animation loop:
+//   Copy mode (DEFAULT): the IRQ handler copies the draw buffer into the show
+//   buffer during blanking (~256µs). The draw buffer keeps its contents, so
+//   it can be updated incrementally across frames. Best for terminal/sprite
+//   workloads that change only part of the screen.
 //
+//   Swap mode: the IRQ handler flips db_show/db_draw and re-points the pixel
+//   DMA at the just-drawn buffer — a zero-copy pointer swap. The draw buffer
+//   then holds a two-frames-old image, so callers MUST fully redraw each
+//   frame. Best for animation/games that repaint the whole screen; also
+//   avoids the copy path's present-completion race (see below).
+//
+// Recommended animation loop (either mode):
+//
+//   setDBSwap(true);           // opt into pointer-swap (omit for copy mode)
 //   enableDB();                // both buffers start identical
 //
 //   while (true) {
 //       // ... draw next frame into vga_data_array[db_draw] ...
-//       switchDB();           // request draw→show copy at next VBlank
-//       waitForVBlank();      // block until copy completes
+//       switchDB();           // request present at next VBlank
+//       waitForVBlank();      // block until the present has completed
 //   }
 //
-// show2drawDB() is available if you need to re-seed the draw buffer from
-// the show buffer (e.g. after disabling DB temporarily).
+// waitForVBlank() blocks until the present has actually completed in BOTH
+// modes: in copy mode it returns after the draw→show copy finishes (not when
+// it starts), and in swap mode after the pointer flip. So it is safe to draw
+// into vga_data_array[db_draw] as soon as it returns. show2drawDB() re-seeds
+// the draw buffer from the show buffer if you need a clean base.
 void enableDB(void);
 void disableDB(void);
 void show2drawDB(void);
@@ -183,6 +195,8 @@ void switchDB(void);
 void waitForVBlank(void);
 bool getDBEnabled(void);
 bool getDBSwitched(void);
+void setDBSwap(bool swap);   // false = copy mode (default), true = pointer swap
+bool getDBSwap(void);
 
 // Graphics functions
 void drawPixel(int x, int y, unsigned char color, bool colorIsRGB332);

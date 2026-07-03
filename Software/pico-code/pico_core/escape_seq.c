@@ -270,7 +270,9 @@ static void esc_sequence_received(void) {
                     case 9: // Switch double buffer: Esc[Z9Z
                         switchDB();
                         break;
-                    case 10: // Enable double buffering: Esc[Z10Z
+                    case 10: // Enable double buffering: Esc[Z10;<mode>Z
+                             // mode 1 = pointer-swap, 0/absent = copy (default)
+                        setDBSwap(escP[1] == 1);
                         enableDB();
                         break;
                     case 11: // Disable double buffering: Esc[Z11Z

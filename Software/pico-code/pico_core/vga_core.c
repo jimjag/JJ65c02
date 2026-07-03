@@ -71,13 +71,24 @@ int txcount = (SCREENWIDTH * SCREENHEIGHT) / 2; // Total pixels/2 (since we have
 
 // The RP2040 lacks enough memory for double buffering.
 // On RP2350 two buffers live in ordinary .bss (zero-initialized at boot,
-// no flash cost).  Buffer 0 (show) is always the one scanned out by the
-// PIO DMA.  When double-buffering is enabled the VBlank handler copies the
-// draw buffer into the show buffer (~256µs via word-DMA, well within the
-// ~1,440µs blanking interval).  RP2350 main SRAM is word-striped across
-// its eight banks, so the copy and the pixel DMA are spread across banks
-// automatically — and the copy runs during blanking, when the show buffer
-// isn't being scanned anyway.  On RP2040 a single buffer is used (no DB).
+// no flash cost).  db_show indexes the buffer currently scanned out by the
+// PIO DMA; db_draw indexes the one the CPU renders into.  There are two
+// present strategies (see setDBSwap):
+//
+//   Copy mode (default): db_show stays fixed and, at VBlank, the handler
+//   copies the draw buffer into the show buffer (~256µs via word-DMA, well
+//   within the ~1,440µs blanking interval).  The draw buffer keeps its
+//   contents, so callers can update incrementally across frames.
+//
+//   Swap mode: at VBlank the handler swaps db_show/db_draw and re-points the
+//   pixel DMA at the just-drawn buffer — zero per-frame copy.  The draw
+//   buffer then holds a two-frames-old image, so callers must fully redraw
+//   each frame.  Best for animation/games that repaint the whole screen.
+//
+// RP2350 main SRAM is word-striped across its eight banks, so in copy mode
+// the copy and the pixel DMA spread across banks automatically — and the
+// copy runs during blanking, when the show buffer isn't being scanned
+// anyway.  On RP2040 a single buffer is used (no DB).
 //
 // (Earlier revisions placed these in named sections intended for a custom
 // linker script that pinned each buffer to its own SRAM bank group.  The
@@ -164,6 +175,7 @@ volatile int db_draw = 0;
 volatile bool _do_switch = false;
 volatile bool _db_switched = false;
 volatile bool _db_vga_enabled = false;
+volatile bool _db_swap_mode = false;   // false = copy draw→show; true = pointer swap
 // Incremented on every frame boundary (VBlank). Used by waitForVBlank().
 volatile uint32_t _vblank_count = 0;
 static void __time_critical_func(isr_dma_copy_done)(void) {
@@ -181,6 +193,24 @@ static void __time_critical_func(db_vga_ihandler)(void) {
     dma_hw->ints0 = 1u << vga_chan;
 #if !PICO_RP2040
     if (_db_vga_enabled && _do_switch) {
+        if (_db_swap_mode) {
+            // Pointer-swap present: the just-drawn buffer becomes the show
+            // buffer and the old show buffer becomes the new draw buffer.
+            // No frame copy — just re-point the pixel DMA at the new show
+            // buffer via the same restart path used every non-DB frame
+            // (so trans_count reloads on the trigger exactly as usual).
+            // The swap is instantaneous here, so bumping _vblank_count is a
+            // true present-complete signal — unlike the copy path, which
+            // returns while the ~256µs copy is still in flight.
+            int prev_show = db_show;
+            db_show = db_draw;
+            db_draw = prev_show;
+            dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], true);
+            _do_switch = false;
+            _db_switched = true;
+            _vblank_count++;
+            return;
+        }
         _db_switched = false;
         // Stage vga_chan read address without starting — chain will trigger it
         dma_channel_set_read_addr(vga_chan, vga_data_array[db_show], false);
@@ -211,16 +241,38 @@ void enableDB(void) {
 #endif
 }
 void disableDB(void) {
+    _do_switch = false;
     _db_vga_enabled = false;
-    // When disabling, ensure show buffer has the latest draw content,
-    // then point both indices at the show buffer.
-    dma_memcpy(vga_data_array[0], vga_data_array[db_draw], txcount, true);
+    // Collapse to a single buffer (index 0) holding the most recent frame.
+    if (_db_swap_mode) {
+        // Swap mode: the latest complete frame is the one on screen now.
+        // If it isn't already buffer 0, clone it there; the seamless switch
+        // back to buffer 0 then shows identical content (no tear).
+        if (db_show != 0)
+            dma_memcpy(vga_data_array[0], vga_data_array[db_show], txcount, true);
+    } else {
+        // Copy mode: the draw buffer holds the most recent (possibly
+        // incremental) content — preserve it in buffer 0.
+        dma_memcpy(vga_data_array[0], vga_data_array[db_draw], txcount, true);
+    }
     db_show = 0;
     db_draw = 0;
 }
 // Get the current state of the Double Buffering
 bool getDBEnabled(void) {
     return _db_vga_enabled;
+}
+// Select the present strategy (see the buffer-layout comment above).
+// Copy mode (default, swap=false) preserves the draw buffer for incremental
+// updates. Swap mode (swap=true) does a zero-copy pointer flip but leaves the
+// draw buffer two frames stale, so callers must fully redraw each frame (or
+// reseed with show2drawDB()). Set before enableDB() or between switches; the
+// mode is read by the handler at the next switch.
+void setDBSwap(bool swap) {
+    _db_swap_mode = swap;
+}
+bool getDBSwap(void) {
+    return _db_swap_mode;
 }
 // Copy the currently showing buffer to the drawing buffer.
 // Under the new model the switchDB handler copies draw→show, so after a
