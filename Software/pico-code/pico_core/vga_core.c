@@ -409,8 +409,12 @@ void initVGA(void) {
 #endif
 
     // Channel Zero (sends color data to PIO VGA machine)
+    // 32-bit transfers: each moves one word (4 packed bytes = 8 pixels) into
+    // the scanline TX FIFO, which autopulls it 8 nibbles at a time. This is 4x
+    // fewer DMA transactions (and FIFO writes) than byte-at-a-time feeding,
+    // freeing bus bandwidth for the CPU during active scanout.
     dma_channel_config c0 = dma_channel_get_default_config(vga_chan);    // default configs
-    channel_config_set_transfer_data_size(&c0, DMA_SIZE_8); // 8-bit txfers
+    channel_config_set_transfer_data_size(&c0, DMA_SIZE_32); // 32-bit txfers (4 bytes / 8 pixels each)
     channel_config_set_read_increment(&c0, true);           // yes read incrementing
     channel_config_set_write_increment(&c0, false);         // no write incrementing
     channel_config_set_dreq(&c0, DREQ_PIO0_TX2);            // DREQ_PIO0_TX2 pacing (FIFO)
@@ -420,7 +424,7 @@ void initVGA(void) {
         &c0,                            // The configuration we just created
         &pio->txf[scanline_sm],         // write address (SCANLINE PIO TX FIFO)
         vga_data_array[0],              // The initial read address (pixel color array)
-        txcount,                        // Number of transfers; in this case each is 1 byte.
+        txcount >> 2,                   // Number of transfers; each is one 32-bit word
         false                           // Don't start immediately.
     );
 

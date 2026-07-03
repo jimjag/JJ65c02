@@ -4,20 +4,33 @@
 ; Program name
 .program scanline
 
-pull block 					; Pull from FIFO to OSR (only once)
-mov y, osr 					; Copy value from OSR to y scratch register
+; Pixel data is fed by DMA as 32-bit words (4 packed bytes = 8 pixels). The
+; OSR is refilled by AUTOPULL (threshold 32, see scanline_program_init) every
+; 8 nibble-OUTs, so there is no explicit per-pixel-pair pull in the inner loop:
+; one word DMA transfer now delivers 8 pixels where a byte used to deliver 2,
+; cutting the feed DMA's transaction count 4x.  The inner loop still emits
+; 2 pixels per iteration and runs SCANLINE_ACTIVE+1 (=320) times, so the
+; per-scanline cycle budget and the SCANLINE_ACTIVE constant are unchanged.
+
+pull block 					; Load the loop count (SCANLINE_ACTIVE) into the OSR
+mov y, osr 					; ...and stash it in y
+out null, 32				; Flush the count out of the OSR so the first colorout
+							; OUT triggers an autopull of the first pixel word
 .wrap_target
 
 set pins, 0 				; Zero RGB pins in blanking
 mov x, y 					; Initialize counter variable
 
-wait 1 irq 1 [3]			; Wait for vsync active mode (starts 5 cycles after execution)
+wait 1 irq 1 [4]			; Wait for vsync active mode. [4] (was [3]) absorbs the
+							; one cycle the removed inner 'pull' used to take, so the
+							; first pixel lands on exactly the same clock as before.
 
 colorout:
-	pull block				; Pull color value
-	out pins, 4	[4]			; Push out to pins (first pixel)
-	out pins, 4	[2]			; Push out to pins (next pixel)
-	jmp x-- colorout		; Stay here thru horizontal active mode
+	out pins, 4	[4]			; First pixel (5 cycles). Autopull refills the OSR from
+							; the FIFO on every 8th nibble (once per 4 iterations).
+	out pins, 4	[3]			; Next pixel (4 cycles; +1 vs before to reclaim the
+							; cycle freed by dropping the explicit pull)
+	jmp x-- colorout		; Stay here thru horizontal active mode (1 cycle)
 
 .wrap
 
@@ -27,6 +40,10 @@ static inline void scanline_program_init(PIO pio, uint sm, uint offset, uint pin
     pio_sm_config c = scanline_program_get_default_config(offset);
     sm_config_set_set_pins(&c, pin, 4);
     sm_config_set_out_pins(&c, pin, 4);
+    // Feed 32-bit words and autopull-refill the OSR every 32 bits shifted.
+    // shift_right = true keeps the low nibble (even/left pixel) emitted first,
+    // matching the vga_data_array 2-pixels-per-byte packing.
+    sm_config_set_out_shift(&c, true, true, 32);
     float div = clock_get_hz(clk_sys) / freq;
     sm_config_set_clkdiv(&c, div);
     pio_gpio_init(pio, pin);
