@@ -882,6 +882,30 @@ void handleByte(unsigned char chrx) {
  *
  * And YES, things would be much easier if the RP2040 SDK supported 128bit
  * values directly.
+ *
+ * KNOWN LIMITATION (odd X): a sprite drawn at an odd X-coordinate loses its
+ * rightmost column. The odd-X variant is the even-X bitmap shifted right one
+ * pixel, which pushes the last column out of the top 64-bit chunk with nowhere
+ * to store it, so it is forced transparent. In practice sprites carry a
+ * transparent border column, so this is invisible; if it matters, keep sprites
+ * on even X-coordinates. (A previous "spill" attempt to render that column was
+ * reverted — it wrote a pixel one byte past the sprite's chunk, which an
+ * adjacent odd-X sprite's word could alias, corrupting overlap bookkeeping.)
+ *
+ * API CONTRACT (see SPRITE_LOGIC.md for the full flow):
+ *  - moveSprite() is the safe way to reposition; it handles overlap-aware
+ *    erase/redraw and z-order. It also correctly brings a sprite back from
+ *    off-screen or from hideSprite() UNDER any higher sprite it now overlaps.
+ *  - drawSprite() always restores its previously-saved background first when
+ *    the new footprint overlaps the old one (or when erase=true), so it can
+ *    never smear its own pixels into the saved background.
+ *  - hideSprite() unpaints (overlap-aware, no hole in higher sprites) but KEEPS
+ *    the sprite's z-order slot; re-showing it returns it to the same layer.
+ *  - freeSprite() releases a sprite (overlap-aware, so it leaves no hole in
+ *    higher sprites). loadSprite() on an occupied slot replaces (frees + reloads).
+ *  - sprites[sn]->x is the TRUE position; a partially-off-screen sprite renders
+ *    at a clamped position but keeps its true X, so redraws never teleport it
+ *    to the edge. Overlap tests use the clamped render footprint (clamp_drawx).
  */
 sprite_t *sprites[MAXSPRITES];
 
@@ -890,11 +914,25 @@ sprite_t *sprites[MAXSPRITES];
 static int draw_order[MAXSPRITES];
 static int draw_order_count = 0;
 
+// Horizontal clamp: the X a sprite is actually RENDERED at. sprites[sn]->x is
+// the true (possibly off-screen) position, but a partially-off-screen sprite is
+// drawn — and its bgrnd captured — at a clamped, byte-aligned position spanning
+// [clamp, clamp+width). Overlap tests MUST use this clamped footprint (not the
+// true bbox), or two sprites whose real written pixels overlap can be missed,
+// leaving a stale background. (Y is never clamped: off-screen rows are skipped,
+// and a sprite fully off top/bottom has bgValid==false and is excluded anyway.)
+static inline int clamp_drawx(int x, int width) {
+    int maxx = SCREENWIDTH - width;
+    return x < 0 ? 0 : (x > maxx ? maxx : x);
+}
+
 static inline bool sprites_overlap(int a, int b) {
     if (!sprites[a] || !sprites[b]) return false;
     if (!sprites[a]->bgValid || !sprites[b]->bgValid) return false;
-    return !(sprites[a]->x + sprites[a]->width  <= sprites[b]->x ||
-             sprites[b]->x + sprites[b]->width  <= sprites[a]->x ||
+    int ax = clamp_drawx(sprites[a]->x, sprites[a]->width);
+    int bx = clamp_drawx(sprites[b]->x, sprites[b]->width);
+    return !(ax + sprites[a]->width  <= bx ||
+             bx + sprites[b]->width  <= ax ||
              sprites[a]->y + sprites[a]->height <= sprites[b]->y ||
              sprites[b]->y + sprites[b]->height <= sprites[a]->y);
 }
@@ -919,11 +957,60 @@ static void draw_order_append(int sn) {
         draw_order[draw_order_count++] = sn;
 }
 
+// Overlap-aware erase/redraw helpers, shared by moveSprite/hideSprite/freeSprite.
+//
+// A correct incremental update of a region can't just erase one sprite: erasing
+// it restores its saved background over any HIGHER sprite drawn on top of it.
+// The safe primitive is "erase a set top-first, then redraw it bottom-first".
+// overlap_closure() grows a seed set to every sprite that (transitively)
+// overlaps it, so no higher sprite is ever half-erased.
+
+// (uint64_t not 1u: sprite numbers run 0..MAXSPRITES-1; a 32-bit shift by >=32
+// would be UB. uint64_t stays safe up to 63 sprites.)
+static uint64_t overlap_closure(uint64_t set) {
+    bool changed;
+    do {
+        changed = false;
+        for (int i = 0; i < draw_order_count; i++) {
+            int s = draw_order[i];
+            if (set & ((uint64_t)1 << s)) continue;
+            if (!sprites[s] || !sprites[s]->bgValid) continue;
+            for (int j = 0; j < draw_order_count; j++) {
+                int es = draw_order[j];
+                if (!(set & ((uint64_t)1 << es))) continue;
+                if (sprites_overlap(s, es)) {
+                    set |= ((uint64_t)1 << s);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+    } while (changed);
+    return set;
+}
+
+static void erase_set_top_first(uint64_t set) {
+    for (int i = draw_order_count - 1; i >= 0; i--) {
+        int s = draw_order[i];
+        if (set & ((uint64_t)1 << s))
+            eraseSprite(s);
+    }
+}
+
+static void redraw_set_bottom_first(uint64_t set) {
+    for (int i = 0; i < draw_order_count; i++) {
+        int s = draw_order[i];
+        if ((set & ((uint64_t)1 << s)) && sprites[s])
+            drawSprite(s, sprites[s]->x, sprites[s]->y, false);
+    }
+}
+
 void loadSprite(uint sn, short width, short height, unsigned char *sdata) {
     if (sn >= MAXSPRITES)
         return;
-    if (sprites[sn])    // already exists
-        return;
+    if (sprites[sn])    // replacing an existing sprite: unpaint + free it first
+        freeSprite(sn);
+    if (height < 1) return;
     if (width != SPRITE32_WIDTH) width = SPRITE16_WIDTH;
     sprite_t *n = calloc(1, sizeof(sprite_t));
     if (!n) return;
@@ -1043,14 +1130,23 @@ void eraseSprite(uint sn) {
     // Restore background (original screen)
     if (!sprites[sn]->bgValid)
         return;
+    // sprites[sn]->x is the TRUE (possibly off-screen) position. bgrnd was
+    // captured at the horizontally-clamped draw position, so re-derive that
+    // same clamp here — otherwise a partially-off-screen sprite would restore
+    // at the wrong column (or off the end of the scanline).
+    int width = sprites[sn]->width;
+    int maxx = SCREENWIDTH - width;
+    int drawX = sprites[sn]->x;
+    if (drawX > maxx) drawX = maxx;
+    else if (drawX < 0) drawX = 0;
     int yend = sprites[sn]->y + sprites[sn]->height;
     int j = 0;
-    int chunks = sprites[sn]->width / SPRITE16_WIDTH;
+    int chunks = width / SPRITE16_WIDTH;
     unsigned char *buf = vga_data_array[db_draw];
     for (int y1 = sprites[sn]->y; y1 < yend; y1++, j++) {
         if (y1 < 0 || y1 >= SCREENHEIGHT) continue;
         for (int k = 0; k < chunks; k++) {
-            int pixel = ((SCREENWIDTH * y1) + sprites[sn]->x + (k * SPRITE16_WIDTH));
+            int pixel = ((SCREENWIDTH * y1) + drawX + (k * SPRITE16_WIDTH));
             memcpy(&buf[pixel >> 1], &sprites[sn]->bgrnd[k][j], 8);
         }
     }
@@ -1059,10 +1155,30 @@ void eraseSprite(uint sn) {
 
 void drawSprite(uint sn, short x, short y, bool erase) {
     if (sn >= MAXSPRITES || !sprites[sn]) return;
-    if (erase) eraseSprite(sn);
-    if (x <= -sprites[sn]->width || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sprites[sn]->height) {
+    short sw = sprites[sn]->width;
+    short sh = sprites[sn]->height;
+    // Restore any previously-saved background before capturing a new one.
+    // We MUST do this when the new footprint overlaps the current (still
+    // painted) one, or drawSprite would snapshot the sprite's OWN pixels as
+    // "background" and a later erase would smear them. Callers can also force
+    // it with erase=true. eraseSprite() self-guards on bgValid, so this is a
+    // no-op for a fresh/undrawn sprite. Compare the clamped render footprints
+    // (see clamp_drawx), not the true bboxes.
+    int ndx = clamp_drawx(x, sw), odx = clamp_drawx(sprites[sn]->x, sw);
+    if (sprites[sn]->bgValid &&
+        (erase ||
+         !(ndx + sw <= odx || odx + sw <= ndx ||
+           y + sh <= sprites[sn]->y || sprites[sn]->y + sh <= y)))
+        eraseSprite(sn);
+    if (x <= -sw || x >= SCREENWIDTH || y >= SCREENHEIGHT || y <= -sh) {
+        // Fully off-screen: nothing is painted at these coords. Clear bgValid
+        // so a later eraseSprite() can't write outside the true footprint
+        // (its x has no horizontal clamp). Keep the draw-order slot so the
+        // sprite returns to the same z-layer when it comes back on-screen.
+        sprites[sn]->bgValid = false;
         sprites[sn]->x = x;
         sprites[sn]->y = y;
+        draw_order_append(sn);
         return;
     }
     uint64_t newScreen;
@@ -1072,16 +1188,21 @@ void drawSprite(uint sn, short x, short y, bool erase) {
     bool shift_right = true;
     int maxx = SCREENWIDTH - sprites[sn]->width;
     int chunks = sprites[sn]->width / SPRITE16_WIDTH;
+    // Render from a clamped copy (dx) but keep x as the TRUE position: it is
+    // what we store in sprites[sn]->x and what overlap tests and later redraws
+    // use. Storing the clamped value here would teleport a partially-off-screen
+    // sprite to the screen edge on the next redraw/refresh.
+    int dx = x;
     // Handle moving off screen left or right
-    if (x > maxx) {
-        shifts = x - maxx;
-        x = maxx;
-    } else if (x < 0) {
-        shifts = -x;
-        x = 0;
+    if (dx > maxx) {
+        shifts = dx - maxx;
+        dx = maxx;
+    } else if (dx < 0) {
+        shifts = -dx;
+        dx = 0;
         shift_right = false;
     }
-    int oddeven = x & 0x1;
+    int oddeven = dx & 0x1;
     int j = 0;
     unsigned char *buf = vga_data_array[db_draw];
     for (int y1 = y; y1 < yend; y1++, j++) {
@@ -1131,7 +1252,7 @@ void drawSprite(uint sn, short x, short y, bool erase) {
             }
         }
         for (int k = 0; k < chunks; k++) {
-            int pixel = ((SCREENWIDTH * y1) + x + (k * SPRITE16_WIDTH));
+            int pixel = ((SCREENWIDTH * y1) + dx + (k * SPRITE16_WIDTH));
             memcpy(&bgrnd, &buf[pixel >> 1], 8);
             sprites[sn]->bgrnd[k][j] = bgrnd;
             // Fast path: fully opaque row — skip masking entirely
@@ -1151,48 +1272,92 @@ void drawSprite(uint sn, short x, short y, bool erase) {
 
 void hideSprite(uint sn) {
     if (sn >= MAXSPRITES || !sprites[sn]) return;
-    eraseSprite(sn);
-    draw_order_remove(sn);
+    if (!sprites[sn]->bgValid) return;   // already unpainted
+    // Overlap-aware unpaint: erasing sn alone would restore its background over
+    // any higher sprite on top of it. Erase sn plus everything overlapping it
+    // (top-first), then redraw the survivors (bottom-first). sn KEEPS its
+    // draw-order slot (just bgValid=false) so re-showing it via
+    // drawSprite/moveSprite returns it to the same z-layer.
+    uint64_t set = overlap_closure((uint64_t)1 << sn);
+    erase_set_top_first(set);
+    set &= ~((uint64_t)1 << sn);         // sn stays hidden; rebuild the rest
+    redraw_set_bottom_first(set);
+}
+
+// Free everything a sprite owns and drop it from the draw order. Safe to call
+// on an empty slot. After this the slot can be re-used by loadSprite().
+//
+// Removal is OVERLAP-AWARE: simply erasing sn would restore its saved
+// background over any higher sprite drawn on top of it, punching a hole. So we
+// erase sn plus the transitive set of sprites overlapping it (reverse z-order),
+// drop sn, then redraw the survivors (forward z-order) so overlaps rebuild
+// correctly — the same closure moveSprite uses.
+void freeSprite(uint sn) {
+    if (sn >= MAXSPRITES || !sprites[sn]) return;
+
+    if (sprites[sn]->bgValid) {
+        // Overlap-aware removal (see the helpers above): erase sn + everything
+        // overlapping it top-first, drop sn from the draw order, redraw the rest.
+        uint64_t set = overlap_closure((uint64_t)1 << sn);
+        erase_set_top_first(set);
+        set &= ~((uint64_t)1 << sn);
+        draw_order_remove(sn);
+        redraw_set_bottom_first(set);
+    } else {
+        // Not currently painted: nothing to unpaint, just release the z-slot.
+        draw_order_remove(sn);
+    }
+
+    sprite_t *s = sprites[sn];
+    sprites[sn] = NULL;   // clear the slot before freeing so nothing re-enters
+    free(s->bitmap[0][0]); free(s->bitmap[0][1]);
+    free(s->invmask[0][0]); free(s->invmask[0][1]);
+    free(s->bgrnd[0]);
+    free(s->bitmap[1][0]); free(s->bitmap[1][1]);
+    free(s->invmask[1][0]); free(s->invmask[1][1]);
+    free(s->bgrnd[1]);
+    free(s);
 }
 
 static inline bool dest_overlaps_sprite(short x, short y, short w, short h, int s) {
     if (!sprites[s] || !sprites[s]->bgValid) return false;
-    return !(x + w  <= sprites[s]->x ||
-             sprites[s]->x + sprites[s]->width  <= x ||
+    int dx = clamp_drawx(x, w);                                  // dest render X
+    int sx = clamp_drawx(sprites[s]->x, sprites[s]->width);      // s's render X
+    return !(dx + w  <= sx ||
+             sx + sprites[s]->width  <= dx ||
              y + h <= sprites[s]->y ||
              sprites[s]->y + sprites[s]->height <= y);
 }
 
 void moveSprite(uint sn, short x, short y) {
     if (sn >= MAXSPRITES || !sprites[sn]) return;
-    if (!sprites[sn]->bgValid) {
+
+    int sn_idx = draw_order_find(sn);
+    if (sn_idx < 0) {
+        // Never drawn yet: it gets appended on top, so there is no higher
+        // sprite to composite under — a plain draw is correct.
         drawSprite(sn, x, y, false);
         return;
     }
-
-    int sn_idx = draw_order_find(sn);
     short sw = sprites[sn]->width;
     short sh = sprites[sn]->height;
 
-    // Fast path: no higher-z overlap at source AND no higher-z overlap at destination.
-    // Only higher-z sprites matter at source: lower-z sprites are stored in sn->bgrnd
-    // and restore correctly without a full erase/redraw cycle.
+    // Fast path: no higher-z overlap at source AND no higher-z overlap at
+    // destination. Only higher-z sprites matter at source: lower-z sprites are
+    // stored in sn->bgrnd and restore correctly without a full erase/redraw.
+    // (When sn is currently unpainted — hidden or returning from off-screen —
+    // sprites_overlap is false at the source, so only the destination check
+    // applies: sn must be rebuilt UNDER any higher sprite it now lands beneath,
+    // which the full path below handles. This is the fix for the old
+    // "!bgValid -> plain draw" shortcut that painted over higher sprites.)
     bool has_src_overlap = false;
     for (int i = sn_idx + 1; i < draw_order_count; i++) {
-        int s = draw_order[i];
-        if (sprites_overlap(s, sn)) {
-            has_src_overlap = true;
-            break;
-        }
+        if (sprites_overlap(draw_order[i], sn)) { has_src_overlap = true; break; }
     }
     if (!has_src_overlap) {
         bool has_dest_higher = false;
         for (int i = sn_idx + 1; i < draw_order_count; i++) {
-            int s = draw_order[i];
-            if (dest_overlaps_sprite(x, y, sw, sh, s)) {
-                has_dest_higher = true;
-                break;
-            }
+            if (dest_overlaps_sprite(x, y, sw, sh, draw_order[i])) { has_dest_higher = true; break; }
         }
         if (!has_dest_higher) {
             drawSprite(sn, x, y, true);
@@ -1200,75 +1365,44 @@ void moveSprite(uint sn, short x, short y) {
         }
     }
 
-    // Full path: build the complete erase/redraw set.
-    // Seed with sn, add source overlaps and dest overlaps,
-    // then compute transitive closure (any sprite that overlaps
-    // something already in the set must also be included).
-    //
-    // (uint64_t)1 rather than 1u: sprite numbers run 0..(MAXSPRITES-1).
-    // If MAXSPRITES is ever raised above 32, shifting a 32-bit 1u by 32+
-    // is UB in C. uint64_t keeps this safe up to 63 sprites without
-    // requiring any other changes here.
-    uint64_t erase_set = (uint64_t)1 << sn;
-
-    // Add higher-z sprites that overlap sn's destination
+    // Full path: seed with sn plus the higher-z sprites overlapping the
+    // destination, take the transitive closure (which also pulls in source
+    // overlaps via sn when it is painted), erase top-first, move sn, redraw
+    // bottom-first so every layer is rebuilt in z-order.
+    uint64_t set = (uint64_t)1 << sn;
     for (int i = sn_idx + 1; i < draw_order_count; i++) {
         int s = draw_order[i];
-        if (sprites[s] && sprites[s]->bgValid && dest_overlaps_sprite(x, y, sw, sh, s))
-            erase_set |= ((uint64_t)1 << s);
+        if (dest_overlaps_sprite(x, y, sw, sh, s))
+            set |= ((uint64_t)1 << s);
     }
-
-    // Transitive closure: keep adding sprites that overlap anything
-    // already in the set until stable.
-    bool changed;
-    do {
-        changed = false;
-        for (int i = 0; i < draw_order_count; i++) {
-            int s = draw_order[i];
-            if (erase_set & ((uint64_t)1 << s)) continue;
-            if (!sprites[s] || !sprites[s]->bgValid) continue;
-            for (int j = 0; j < draw_order_count; j++) {
-                int es = draw_order[j];
-                if (!(erase_set & ((uint64_t)1 << es))) continue;
-                if (sprites_overlap(s, es)) {
-                    erase_set |= ((uint64_t)1 << s);
-                    changed = true;
-                    break;
-                }
-            }
-        }
-    } while (changed);
-
-    // Erase in reverse draw order
-    for (int i = draw_order_count - 1; i >= 0; i--) {
-        int s = draw_order[i];
-        if (erase_set & ((uint64_t)1 << s))
-            eraseSprite(s);
-    }
-
-    // Update position of the moved sprite
+    set = overlap_closure(set);
+    erase_set_top_first(set);
     sprites[sn]->x = x;
     sprites[sn]->y = y;
-
-    // Redraw all affected sprites in forward draw order
-    for (int i = 0; i < draw_order_count; i++) {
-        int s = draw_order[i];
-        if (erase_set & ((uint64_t)1 << s))
-            drawSprite(s, sprites[s]->x, sprites[s]->y, false);
-    }
+    redraw_set_bottom_first(set);
 }
 
 void refreshSprites(void) {
-    // Erase all visible sprites in reverse draw order
-    for (int i = draw_order_count - 1; i >= 0; i--) {
-        int s = draw_order[i];
-        if (sprites[s] && sprites[s]->bgValid)
-            eraseSprite(s);
-    }
-    // Redraw all in forward draw order
+    // Snapshot which sprites are currently painted BEFORE we erase anything.
+    // Only these get redrawn — hidden sprites (hideSprite) and off-screen ones
+    // have bgValid==false and must stay unpainted, even though they keep their
+    // draw-order slot for z-ordering. (uint64_t: MAXSPRITES may exceed 32.)
+    uint64_t visible = 0;
     for (int i = 0; i < draw_order_count; i++) {
         int s = draw_order[i];
-        if (sprites[s])
+        if (sprites[s] && sprites[s]->bgValid)
+            visible |= ((uint64_t)1 << s);
+    }
+    // Erase the visible set in reverse draw order (top first)
+    for (int i = draw_order_count - 1; i >= 0; i--) {
+        int s = draw_order[i];
+        if (visible & ((uint64_t)1 << s))
+            eraseSprite(s);
+    }
+    // Redraw the same set in forward draw order (bottom first)
+    for (int i = 0; i < draw_order_count; i++) {
+        int s = draw_order[i];
+        if ((visible & ((uint64_t)1 << s)) && sprites[s])
             drawSprite(s, sprites[s]->x, sprites[s]->y, false);
     }
 }

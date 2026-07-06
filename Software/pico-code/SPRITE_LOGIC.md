@@ -6,7 +6,7 @@ Each sprite stores:
 
 - `bitmap[chunk][oddeven][row]` -- pre-shifted sprite pixels (uint64_t per scanline chunk)
 - `invmask[chunk][oddeven][row]` -- inverted transparency mask (0xF = opaque nibble, 0x0 = transparent nibble)
-- `opaque[chunk][oddeven]` -- uint32_t bitmask; bit j=1 means row j is fully opaque (no transparent pixels)
+- `opaque[chunk][oddeven]` -- uint64_t bitmask; bit j=1 means row j is fully opaque (no transparent pixels)
 - `bgrnd[chunk][row]` -- saved background pixels captured at draw time
 - `x`, `y` -- current screen position
 - `bgValid` -- whether `bgrnd` holds valid data that can be restored
@@ -15,7 +15,13 @@ Each sprite stores:
 
 **eraseSprite** restores `bgrnd` to the framebuffer, effectively "unpainting" the sprite.
 
-The z-order is maintained in `draw_order[]` -- lower indices are below higher indices.
+The z-order is maintained in `draw_order[]` -- lower indices are below higher indices. A sprite keeps its slot for its whole lifetime (added on first draw, removed only by `freeSprite`), so hiding/off-screen/on-screen transitions never disturb layering.
+
+### Known limitation: odd-X rightmost column
+
+Pixels are packed 2-per-byte, so a 16- or 32-wide sprite is stored as one/two 64-bit chunks plus an odd-X variant shifted right one pixel. On an **odd-X** draw the sprite's rightmost column would land in the framebuffer byte just past the last chunk -- unreachable by the fixed 8-byte chunk writes -- so it is dropped (forced transparent). In practice sprites carry a transparent border column, so this is invisible; if the last column matters, keep sprites on **even** X-coordinates.
+
+(A "spill" mechanism that rendered that column by writing one pixel past the chunk was implemented and then reverted: that extra pixel's byte could be aliased by an *adjacent* odd-X sprite's word, and because the overlap test keys off logical bounding boxes it missed the dependency -- corrupting the neighbor's saved background. The dropped column is the safe behavior.)
 
 ---
 
@@ -148,3 +154,52 @@ The VBlank copy (draw→show) is performed by a dedicated ISR DMA channel during
 | RP2350, tear-free needed, many sprites | Double-buffer Option B (persistent draw buf + `moveSprite`) |
 
 Option B is the sweet spot for RP2350 -- it gives tear-free display with the same incremental update cost as single-buffer mode.  Because `switchDB()` copies draw→show (rather than swapping pointers), the draw buffer is never replaced and `bgrnd` remains valid across frames.  `moveSprite`'s overlap logic keeps backgrounds correct without needing a per-frame `show2drawDB()` copy.
+
+---
+
+## API Contract & Invariants
+
+The whole scheme rests on `bgrnd` always describing exactly what is under a
+sprite's current `(x, y)`. The functions enforce this so callers don't have to
+juggle it manually:
+
+- **`moveSprite(sn, x, y)` is the preferred way to move a sprite.** It picks a
+  fast path (lone sprite over static background) or a full path (transitive
+  overlap closure, erase top-down, redraw bottom-up) and keeps every affected
+  sprite's `bgrnd` correct. It also correctly **brings a sprite back** from
+  off-screen or from `hideSprite()` UNDER any higher sprite it now overlaps
+  (the old `!bgValid → plain draw` shortcut painted it on top -- fixed by
+  routing everything except a brand-new sprite through the overlap-aware path).
+- **`drawSprite(sn, x, y, erase)` self-protects.** It restores its previously
+  saved background *before* capturing a new one whenever the new footprint
+  overlaps the old (or when `erase=true`). This makes the classic footgun --
+  re-drawing a moving sprite each frame with `erase=false` -- safe: it can no
+  longer snapshot its own pixels as "background." Non-overlapping repeated
+  draws still act as stamps (each leaves a copy), matching the old behavior.
+- **Partially-off-screen sprites keep their TRUE position.** A sprite drawn at,
+  say, `x = -5` renders at a clamped position but stores `x = -5`, so a later
+  `moveSprite`/`refreshSprites` redraw puts it back where it belongs instead of
+  teleporting it to the screen edge. Because the *rendered* footprint spans
+  `[clamp(x), clamp(x)+width)` rather than the true bbox, the overlap tests key
+  off that clamped footprint (`clamp_drawx`) so no real pixel overlap is missed.
+- **Fully off-screen is a safe state.** When a draw target is entirely
+  off-screen, `bgValid` is cleared but the draw-order slot is kept; the next
+  on-screen `moveSprite` composites it back at its z-layer.
+- **`hideSprite(sn)` keeps z-order and is overlap-aware.** It unpaints the
+  sprite (erasing + rebuilding any higher sprite it was under, so no hole) but
+  retains its draw-order slot, so re-showing it (via `drawSprite`/`moveSprite`)
+  returns it to the same layer. `refreshSprites()` only repaints sprites that
+  were actually visible when it was called, so hidden sprites stay hidden.
+- **`freeSprite(sn)` releases a sprite** with an **overlap-aware** unpaint
+  (erases sn plus the transitive set of sprites overlapping it, drops sn, then
+  redraws the survivors -- the same closure `moveSprite`/`hideSprite` use), so
+  it leaves no hole in a higher sprite, then frees all buffers and drops the
+  draw-order slot. Calling **`loadSprite` on an occupied slot replaces** it.
+- **Odd-X sprites drop their rightmost column** (see the Known-limitation note
+  in the Core Mechanism section); keep sprites on even X if that column matters.
+
+Erasing must still happen in **reverse z-order** and redrawing in **forward
+z-order** -- `moveSprite`/`hideSprite`/`freeSprite`/`refreshSprites` all do this
+via the shared `overlap_closure` / `erase_set_top_first` /
+`redraw_set_bottom_first` helpers. If you hand-roll a sequence of
+`eraseSprite`/`drawSprite` calls, respect that ordering.

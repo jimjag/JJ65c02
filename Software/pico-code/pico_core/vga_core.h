@@ -243,6 +243,7 @@ void enableSmoothScroll(bool flag);
 
 void drawSprite(uint sn, short x, short y, bool erase);
 void loadSprite(uint sn, short width, short height, unsigned char *sdata);
+void freeSprite(uint sn);
 void eraseSprite(uint sn);
 void moveSprite(uint sn, short x, short y);
 void hideSprite(uint sn);
