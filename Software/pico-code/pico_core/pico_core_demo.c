@@ -42,6 +42,14 @@
 // Orig version V. Hunter Adams / Cornell
 
 // VGA graphics library
+#ifdef HOST_SIM
+// Host SDL simulation: the Pico SDK, PS/2 driver and sound synth are replaced
+// by the shims in sim/pico_shim.h (see sim/README.md).
+#include "../sim/pico_shim.h"
+#include "vga_core.h"
+#include <stdio.h>
+#include <stdlib.h>
+#else
 #include "vga_core.h"
 #include "ps2_keyboard.h"
 #include "pico_synth_ex.h"
@@ -53,6 +61,7 @@
 #include "hardware/dma.h"
 #include "pico/multicore.h"
 #include "hardware/vreg.h"
+#endif
 
 // Some globals for storing timer information
 volatile int time_accum = 12;
@@ -77,8 +86,20 @@ void core1_main() {
     }
 }
 
+#ifndef HOST_SIM
 #include <malloc.h>
+#endif
 
+#ifdef HOST_SIM
+// No Pico flash/heap layout on the host; report zeros so the demo's heap-stat
+// panels still render (glibc mallinfo and the RP2040 linker symbols are absent
+// on macOS).
+uint32_t getTotalHeap(void)       { return 0; }
+uint32_t getFreeHeap(void)        { return 0; }
+uint32_t getChunks(void)          { return 0; }
+uint32_t getProgramSize(void)     { return 0; }
+uint32_t getFreeProgramSpace(void){ return 0; }
+#else
 uint32_t getTotalHeap(void) {
     extern char __StackLimit, __bss_end__;
     return &__StackLimit  - &__bss_end__;
@@ -102,8 +123,16 @@ uint32_t getProgramSize(void) {
 uint32_t getFreeProgramSpace() {
     return PICO_FLASH_SIZE_BYTES - getProgramSize();
 }
+#endif
 
-int main() {
+#ifdef HOST_SIM
+// The SDL viewer owns the process main thread (macOS requires the Cocoa event
+// loop there) and runs this on a worker thread instead.
+int demo_main()
+#else
+int main()
+#endif
+{
     //vreg_set_voltage(VREG_VOLTAGE_1_15);
     // rp2350 will run at 300 Mhz at 1.3 volt
     // vreg_set_voltage (VREG_VOLTAGE_1_30);

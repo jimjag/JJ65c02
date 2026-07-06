@@ -43,11 +43,13 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#ifndef HOST_SIM
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "pico/multicore.h"
 #include "pico_synth_ex.h"
 #include "pico/platform.h"
+#endif // HOST_SIM (SDL simulation supplies these via sim/pico_shim.h)
 
 // TODO: Consider, *gasp* racing the beam!
 
