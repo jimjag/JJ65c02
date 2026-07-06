@@ -7,6 +7,11 @@
 
 #include <stdio.h>
 #include <math.h>
+#ifdef HOST_SIM
+// Host SDL simulation: hardware (PWM/IRQ/GPIO/clock/multicore) is replaced by
+// sim/pico_shim.h + the SDL audio callback. The DSP below is unchanged.
+#include "../sim/pico_shim.h"
+#else
 #include "pico/stdlib.h"
 #include "pico/float.h"
 #include "hardware/gpio.h"
@@ -14,6 +19,7 @@
 #include "hardware/pwm.h"
 #include "hardware/clocks.h"
 #include "pico/multicore.h"
+#endif
 #include "pico_synth_ex_presets.h"
 #include "pico_synth_ex_tables.h"
 
@@ -23,7 +29,9 @@ static volatile uint8_t current_preset = 0;
 static volatile uint8_t current_voice = 0;
 static volatile uint8_t previous_voice = 0;
 
+#ifndef HOST_SIM
 static void pwm_irq_handler();
+#endif
 static void set_sound(uint8_t preset);
 static void load_sound(uint8_t voice, uint8_t preset);
 
@@ -173,14 +181,17 @@ static inline Q14 LFO_process(uint8_t id) {
 static volatile uint16_t Voice_lifetime[4]; // How long the voice lasts
 
 //////// PWM audio output block ///////////////////////
+#ifndef HOST_SIM   // PWM state is unused on the host (SDL audio replaces it)
 static uint8_t PWMA_L_SLICE;
 static uint8_t PWMA_L_CHAN;
 
 int PWMA_CYCLE; // PWM cycle
+#endif
 
 
 void initSOUND(void) {
     reset_presets();
+#ifndef HOST_SIM
     PWMA_CYCLE = (clock_get_hz(clk_sys) / FS);
     PWMA_L_SLICE = pwm_gpio_to_slice_num(PWMA_L_GPIO);
     PWMA_L_CHAN = pwm_gpio_to_channel(PWMA_L_GPIO);
@@ -191,15 +202,20 @@ void initSOUND(void) {
     pwm_set_irq_enabled(PWMA_L_SLICE, true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_irq_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
+#endif
+    // Host: the SDL audio device (opened in sim_sdl.c) pulls samples via
+    // synth_render_s16() below; no PWM/IRQ needed.
     set_sound(0);
 
 }
 
+#ifndef HOST_SIM
 static inline void PWMA_process(Q28 audio_in) {
     int32_t level_int32 = (audio_in >> 18) + (PWMA_CYCLE / 2);
     uint16_t level = (level_int32 > 0) * level_int32;
     pwm_set_chan_level(PWMA_L_SLICE, PWMA_L_CHAN, level);
 }
+#endif
 
 //////// Interrupt handler and main function ////////////
 static volatile uint16_t voice_gate[4]; // gate control value (per voice)
@@ -217,6 +233,7 @@ static inline Q28 process_voice(uint8_t id) {
     return amp_out;
 }
 
+#ifndef HOST_SIM
 static void pwm_irq_handler() {
     pwm_clear_irq(PWMA_L_SLICE);
 
@@ -227,6 +244,21 @@ static void pwm_irq_handler() {
     voice_out[3] = process_voice(3);
     PWMA_process((voice_out[0] + voice_out[1] + voice_out[2] + voice_out[3]) >> 2);
 }
+#else
+// Host equivalent of the 44.1 kHz PWM interrupt: called by the SDL audio
+// callback to fill `frames` mono samples. Same per-sample DSP as the IRQ, then
+// Q28 -> S16 with headroom (the mix is already averaged over 4 voices).
+void synth_render_s16(int16_t *out, int frames) {
+    for (int i = 0; i < frames; i++) {
+        Q28 mix = (process_voice(0) + process_voice(1)
+                 + process_voice(2) + process_voice(3)) >> 2;
+        int32_t s = mix >> 14;                 // ~matches the PWM output level
+        if (s > 32767)  s = 32767;
+        if (s < -32768) s = -32768;
+        out[i] = (int16_t)s;
+    }
+}
+#endif
 
 static void set_sound(uint8_t preset) {
     if (preset < 0 || preset > (NUM_PRESETS - 1)) return;

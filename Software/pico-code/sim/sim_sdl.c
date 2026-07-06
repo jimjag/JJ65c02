@@ -54,10 +54,17 @@ static void *demo_thread(void *arg) {
     return NULL;   // demo returned; window stays open until closed by the user
 }
 
+// SDL audio thread pulls mono S16 samples from the synth (pico_synth_ex.c),
+// which is driven by note/preset commands the demo sends over the FIFO.
+static void audio_cb(void *ud, Uint8 *stream, int len) {
+    (void)ud;
+    synth_render_s16((int16_t *)stream, len / (int)sizeof(int16_t));
+}
+
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
@@ -76,6 +83,20 @@ int main(int argc, char **argv) {
         ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
         SCREEN_W, SCREEN_H);
     if (!tex) { fprintf(stderr, "CreateTexture: %s\n", SDL_GetError()); return 1; }
+
+    // Open the audio device (mono S16 @ 44.1 kHz, matching the synth's FS).
+    SDL_AudioSpec want, have;
+    SDL_zero(want);
+    want.freq     = 44100;
+    want.format   = AUDIO_S16SYS;
+    want.channels = 1;
+    want.samples  = 1024;
+    want.callback = audio_cb;
+    SDL_AudioDeviceID adev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    if (adev == 0)
+        fprintf(stderr, "audio disabled: %s\n", SDL_GetError());
+    else
+        SDL_PauseAudioDevice(adev, 0);   // start pulling samples
 
     SDL_StartTextInput();
 
@@ -102,10 +123,12 @@ int main(int argc, char **argv) {
             case SDL_KEYDOWN:                   // keys SDL_TEXTINPUT won't give us
                 switch (e.key.keysym.sym) {
                 case SDLK_RETURN:
-                case SDLK_KP_ENTER:   sim_feed_key('\r'); break;
-                case SDLK_BACKSPACE:  sim_feed_key('\b'); break;
-                case SDLK_TAB:        sim_feed_key('\t'); break;
-                case SDLK_ESCAPE:     running = false;    break;  // ESC = quit app
+                case SDLK_KP_ENTER:   sim_feed_key('\r');   break;
+                case SDLK_BACKSPACE:  sim_feed_key('\b');   break;
+                case SDLK_TAB:        sim_feed_key('\t');   break;
+                // ESC is a console key (starts ANSI sequences); send it to the
+                // demo, don't quit. Quit via the window close button / Cmd+Q.
+                case SDLK_ESCAPE:     sim_feed_key(0x1b);   break;
                 default: break;
                 }
                 break;
@@ -129,6 +152,7 @@ int main(int argc, char **argv) {
     }
 
     SDL_StopTextInput();
+    if (adev) SDL_CloseAudioDevice(adev);
     SDL_DestroyTexture(tex);
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);

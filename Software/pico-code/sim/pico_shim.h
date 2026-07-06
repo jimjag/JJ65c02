@@ -35,9 +35,13 @@ void sleep_us(uint64_t us);
 bool set_sys_clock_khz(uint32_t khz, bool required);
 void stdio_init_all(void);
 
-// ---- pico/multicore (silent stubs) ----
-void multicore_launch_core1(void (*entry)(void));
-void multicore_fifo_push_blocking(uint32_t data);
+// ---- pico/multicore ----
+// core1 runs on a host thread; the FIFO is a small host ring (core0 pushes
+// note/preset commands, core1's soundTask drains them).
+void     multicore_launch_core1(void (*entry)(void));
+void     multicore_fifo_push_blocking(uint32_t data);
+bool     multicore_fifo_rvalid(void);
+uint32_t multicore_fifo_pop_blocking(void);
 
 // ---- repeating timer (host pthread) ----
 struct repeating_timer {
@@ -56,10 +60,15 @@ unsigned char ps2GetChar(bool auto_print);
 // Called from the SDL main thread to enqueue a decoded ASCII byte.
 void          sim_feed_key(unsigned char c);
 
-// ---- sound synth: silent stubs ----
+// ---- sound synth ----
+// initSOUND/soundTask/startup_chord/beep are the REAL functions from
+// pico_synth_ex.c (compiled into the sim). synth_render_s16 is a host-only
+// entry point (also in pico_synth_ex.c under HOST_SIM) that the SDL audio
+// callback calls to pull `frames` mono S16 samples at 44.1 kHz.
 void initSOUND(void);
 void soundTask(void);
 void startup_chord(void);
 void beep(void);
+void synth_render_s16(int16_t *out, int frames);
 
 #endif // SIM_PICO_SHIM_H

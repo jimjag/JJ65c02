@@ -1,5 +1,7 @@
 jj65c02-sim
 _sim_dump
+_probe
 *.dSYM/
 out.bmp
 out.png
+chord.wav

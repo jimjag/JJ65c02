@@ -25,7 +25,8 @@ renderer headlessly and compares pixel arrays.
 
 In the window: type on the keyboard to feed the demo's PS/2 input (it reaches
 input-wait stages — press **Backspace** to leave the first "PS2 test", **Q** to
-advance the later ones). **Esc** or closing the window quits.
+advance the later ones). **Esc** is delivered to the demo as a console key (it
+does not quit). To quit, close the window or press **Cmd+Q**.
 
 ## How it works — the compile-time flag
 
@@ -50,23 +51,40 @@ before, so the firmware build is unaffected.
   `vga_core.c` normally owns, `dma_memset/memcpy`→`memset/memmove`,
   `getByte`/DB/cursor stubs, a host `initVGA`, then `#include`s the real
   `vga_graphics.c`. Also implements the SDK shims: host timing, a pthread
-  repeating timer (drives the countdown), silent multicore/sound stubs, and the
-  PS/2 input ring the viewer feeds.
+  repeating timer (drives the countdown), a host inter-core FIFO ring, running
+  `core1_main` on a thread, and the PS/2 input ring the viewer feeds.
 - **`sim_sdl.c`** — owns the process main thread (required for the macOS event
   loop): creates the window, runs `demo_main` on a worker thread, and each frame
   expands the 4bpp framebuffer through the 16-colour palette into an ARGB
-  texture. Decodes keyboard events into the PS/2 ring.
+  texture. Opens an SDL audio device whose callback pulls samples from the synth,
+  and decodes keyboard events into the PS/2 ring.
 - **`pico_shim.h`** — the Pico SDK surface the demo/header need on the host
   (`uint`, flash macros, `sleep_ms`, `repeating_timer`, multicore/PS2/sound
   prototypes).
 - **`sim_dump.c`** — headless BMP snapshot harness for CI / SSH (no display).
+- **`sim_audio_probe.c`** — headless audio harness: runs the synth's startup
+  chord, reports peak/RMS, and writes `chord.wav` (no audio device needed).
 
 The palette RGB values are exactly the "Regular RGB" comments beside each case
 in `vga_core.c`'s `convertRGB332()`.
 
+## Sound
+
+The Pico's sound synth (`pico_synth_ex.c` — 4-voice, 44.1 kHz fixed-point) is
+emulated too. Its DSP is portable; only the PWM output, the 44.1 kHz interrupt,
+and the inter-core FIFO are hardware, so under `HOST_SIM`:
+
+- an SDL audio device (mono S16 @ 44.1 kHz) replaces the PWM output — its
+  callback runs the same `process_voice()` DSP the PWM interrupt did,
+- `core1_main` runs on a thread and drains a host FIFO ring the demo pushes
+  note/preset commands to.
+
+You get the startup chord and the note/preset events the demo fires during the
+sprite animation. Verify headlessly with `./build.sh` then
+`cc -DHOST_SIM sim_audio_probe.c ../pico_core/pico_synth_ex.c -lm -o _probe && ./_probe`.
+
 ## Scope / limitations (baseline)
 
-- Sound is silent (core1 synth is stubbed; the demo's sound events are dropped).
 - No double-buffering (the demo doesn't use it); the viewer scans the single
   draw buffer, so fast full-screen changes can tear slightly.
 - macOS/Apple-silicon only by design — SDL2 makes it portable, but only this

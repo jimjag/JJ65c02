@@ -144,13 +144,51 @@ void sleep_us(uint64_t us) {
 bool set_sys_clock_khz(uint32_t khz, bool required) { (void)khz; (void)required; return true; }
 void stdio_init_all(void) {}
 
-// Silent: core1 (sound + PS/2 poll) is not run; PS/2 comes from SDL instead.
-void multicore_launch_core1(void (*entry)(void))   { (void)entry; }
-void multicore_fifo_push_blocking(uint32_t data)   { (void)data; }
-void beep(void)          {}
-void initSOUND(void)     {}
-void soundTask(void)     {}
-void startup_chord(void) {}
+// core1 (PS/2 init + sound synth) runs on a host thread. initSOUND/soundTask/
+// startup_chord/beep are the REAL functions from pico_synth_ex.c.
+static void *core1_trampoline(void *entry) {
+    ((void (*)(void))entry)();     // runs core1_main: initSOUND + startup_chord + soundTask loop
+    return NULL;
+}
+void multicore_launch_core1(void (*entry)(void)) {
+    pthread_t th;
+    if (pthread_create(&th, NULL, core1_trampoline, (void *)entry) == 0)
+        pthread_detach(th);
+}
+
+// Inter-core FIFO: core0 (demo/escape) pushes note/preset command bytes, core1's
+// soundTask() drains them.
+#define FIFO_RING 256
+static uint32_t        fifo[FIFO_RING];
+static volatile int    fifo_r = 0, fifo_w = 0;
+static pthread_mutex_t fifo_mx = PTHREAD_MUTEX_INITIALIZER;
+
+void multicore_fifo_push_blocking(uint32_t data) {
+    pthread_mutex_lock(&fifo_mx);
+    int nw = (fifo_w + 1) % FIFO_RING;
+    if (nw != fifo_r) { fifo[fifo_w] = data; fifo_w = nw; }   // drop on overflow
+    pthread_mutex_unlock(&fifo_mx);
+}
+bool multicore_fifo_rvalid(void) {
+    pthread_mutex_lock(&fifo_mx);
+    bool has = (fifo_r != fifo_w);
+    pthread_mutex_unlock(&fifo_mx);
+    if (!has) usleep(500);        // core1_main polls this in a tight loop; throttle
+    return has;
+}
+uint32_t multicore_fifo_pop_blocking(void) {
+    for (;;) {
+        pthread_mutex_lock(&fifo_mx);
+        if (fifo_r != fifo_w) {
+            uint32_t v = fifo[fifo_r];
+            fifo_r = (fifo_r + 1) % FIFO_RING;
+            pthread_mutex_unlock(&fifo_mx);
+            return v;
+        }
+        pthread_mutex_unlock(&fifo_mx);
+        usleep(500);              // block until a command arrives
+    }
+}
 
 // ---- host repeating timer ----
 struct rt_arg {

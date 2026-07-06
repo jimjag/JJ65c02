@@ -479,4 +479,5 @@ int main()
         if (c == 0) continue;
         multicore_fifo_push_blocking((uint32_t)c);
     }
+    return 0;
 }
