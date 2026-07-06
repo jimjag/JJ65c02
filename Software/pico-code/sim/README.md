@@ -2,7 +2,7 @@
 
 Runs the **real firmware demo** (`../pico_core/pico_core_demo.c`) on the
 development machine, drawing into a host copy of the Pico's 640×480 4bpp
-framebuffer and presenting it in an SDL2 window. Nothing is emulated at the
+framebuffer and presenting it in an SDL3 window. Nothing is emulated at the
 instruction level — the *actual* VGA rendering code that runs on the Pico
 (`vga_graphics.c` + `escape_seq.c`) is compiled and run here unchanged.
 
@@ -12,7 +12,7 @@ renderer headlessly and compares pixel arrays.
 ## Requirements
 
 - macOS on Apple silicon (baseline target).
-- SDL2 via MacPorts: `sudo port install libsdl2` (installs under `/opt/local`).
+- SDL3 via MacPorts: `sudo port install libsdl3` (installs under `/opt/local`).
   Override the location with `SDL_PREFIX=/some/prefix ./build.sh` if needed.
 
 ## Build & run
@@ -133,5 +133,5 @@ sprite animation. Verify headlessly with `./build.sh` then
 
 - No double-buffering (the demo doesn't use it); the viewer scans the single
   draw buffer, so fast full-screen changes can tear slightly.
-- macOS/Apple-silicon only by design — SDL2 makes it portable, but only this
+- macOS/Apple-silicon only by design — SDL3 makes it portable, but only this
   target is set up/tested.

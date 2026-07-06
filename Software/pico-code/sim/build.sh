@@ -1,8 +1,8 @@
 #!/bin/sh
-# Build the JJ65c02 VGA simulation (SDL2 viewer running the real
+# Build the JJ65c02 VGA simulation (SDL3 viewer running the real
 # pico_core_demo.c against a host framebuffer). macOS / Apple silicon baseline.
 #
-# SDL2 is provided by MacPorts under /opt/local. Override SDL_PREFIX / CC to
+# SDL3 is provided by MacPorts under /opt/local. Override SDL_PREFIX / CC to
 # taste. The firmware build (CMake) is unaffected — this never defines HOST_SIM
 # there.
 #
@@ -35,7 +35,7 @@ CFLAGS="-DHOST_SIM -O2 -g -Wall -Wextra \
   -Wno-unused-parameter -Wno-pointer-sign -Wno-constant-conversion \
   -Wno-static-in-inline -Wno-unused-function"
 INCS="-I${SDL_PREFIX}/include"
-LIBS="-L${SDL_PREFIX}/lib -lSDL2 -lpthread"
+LIBS="-L${SDL_PREFIX}/lib -lSDL3 -lpthread"
 
 # sim_platform.c #includes vga_fonts.c + vga_graphics.c (+ escape_seq.c), so the
 # renderer is not listed as a separate translation unit here. pico_synth_ex.c
@@ -57,7 +57,7 @@ if [ "$1" = "dump" ]; then
     exec ./_sim_dump "${2:-2}" out.bmp
 fi
 
-echo "cc  $OUT  (SDL2 at ${SDL_PREFIX})"
+echo "cc  $OUT  (SDL3 at ${SDL_PREFIX})"
 $CC $CFLAGS $INCS sim_sdl.c sim_platform.c "$SOURCE" "$SYNTH" "$LINK" $LIBS -o "$OUT"
 echo "built ./$OUT"
 

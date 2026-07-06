@@ -26,7 +26,7 @@ Display mode renders the 128×48 test framebuffer live as sprites are drawn,
 moved, hidden and freed — the edge-clip test sweeps a sprite across the screen,
 and the differential sim shows the sprites shuffling. It reuses the SDL
 emulator's palette (`../../sim/vga_palette.h`) via `test_display.c`, builds
-**without** ASan, and links SDL2 (MacPorts `/opt/local`; override `SDL_PREFIX`).
+**without** ASan, and links SDL3 (MacPorts `/opt/local`; override `SDL_PREFIX`).
 Close the window or press **Esc** to skip ahead. The headless default remains
 the correctness authority; the display hooks (`TD_*` in `host_env.c`) compile to
 nothing there.

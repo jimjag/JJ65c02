@@ -19,7 +19,7 @@
 #
 # Display mode reuses the SDL emulator's palette (../../sim/vga_palette.h) and
 # renders the 128x48 test framebuffer live as sprites are drawn/moved/hidden. It
-# builds WITHOUT ASan and links SDL2; the headless default stays the correctness
+# builds WITHOUT ASan and links SDL3; the headless default stays the correctness
 # authority. Close the window (or press Esc) to skip ahead.
 set -e
 cd "$(dirname "$0")"
@@ -42,8 +42,8 @@ cat host_env.c _extracted.c sim.c    > _sim.c
 if [ "$1" = "display" ] || [ "$1" = "--display" ]; then
     SDL_PREFIX="${SDL_PREFIX:-/opt/local}"
     DFLAGS="-O2 -g -w -DTEST_DISPLAY -I${SDL_PREFIX}/include"
-    DLIBS="-L${SDL_PREFIX}/lib -lSDL2"
-    echo "building SDL display build (SDL2 at ${SDL_PREFIX})"
+    DLIBS="-L${SDL_PREFIX}/lib -lSDL3"
+    echo "building SDL display build (SDL3 at ${SDL_PREFIX})"
     $CC $DFLAGS _repros.c test_display.c $DLIBS -o _repros_disp
     $CC $DFLAGS _sim.c    test_display.c $DLIBS -o _sim_disp
     rc=0

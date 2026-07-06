@@ -8,7 +8,7 @@
 // emulator uses (../../sim/vga_palette.h). Single-threaded: the test's main()
 // thread drives the ops and calls td_frame() to present, which is fine on macOS
 // since that IS the process main thread.
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -27,23 +27,23 @@ static int           closed = 0;   // user closed the window -> stop presenting
 static void pump(void) {
     SDL_Event e;
     while (SDL_PollEvent(&e))
-        if (e.type == SDL_QUIT ||
-            (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
+        if (e.type == SDL_EVENT_QUIT ||
+            (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
             closed = 1;
 }
 
 void td_open(int w, int h, int scale, const char *title) {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) return;
+    if (!SDL_Init(SDL_INIT_VIDEO)) return;
     g_w = w; g_h = h;
-    win = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                           w * scale, h * scale, 0);
+    win = SDL_CreateWindow(title, w * scale, h * scale, 0);
     if (!win) return;
-    ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+    ren = SDL_CreateRenderer(win, NULL);
     if (!ren) return;
-    SDL_RenderSetLogicalSize(ren, w, h);
+    SDL_SetRenderLogicalPresentation(ren, w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX);
     tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
                             SDL_TEXTUREACCESS_STREAMING, w, h);
     if (!tex) return;
+    SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
     rgba = malloc((size_t)w * h * sizeof(uint32_t));
     ok = (rgba != NULL);
 }
@@ -61,7 +61,7 @@ int td_frame(const unsigned char *fb) {
     }
     SDL_UpdateTexture(tex, NULL, rgba, g_w * (int)sizeof(uint32_t));
     SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, tex, NULL, NULL);
+    SDL_RenderTexture(ren, tex, NULL, NULL);
     SDL_RenderPresent(ren);
     return 1;
 }

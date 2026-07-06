@@ -1,4 +1,4 @@
-// SDL2 viewer for the JJ65c02 VGA simulation (macOS / Apple silicon baseline).
+// SDL3 viewer for the JJ65c02 VGA simulation (macOS / Apple silicon baseline).
 //
 // Owns the process main thread (required for a Cocoa/SDL event loop on macOS):
 // creates the 640x480 window, runs the real pico_core_demo.c on a worker
@@ -8,7 +8,7 @@
 //
 // Build with -DHOST_SIM. See build.sh / README.md.
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -43,50 +43,60 @@ static void *demo_thread(void *arg) {
 }
 
 // SDL audio thread pulls mono S16 samples from the synth (pico_synth_ex.c),
-// which is driven by note/preset commands the demo sends over the FIFO.
-static void audio_cb(void *ud, Uint8 *stream, int len) {
-    (void)ud;
-    synth_render_s16((int16_t *)stream, len / (int)sizeof(int16_t));
+// which is driven by note/preset commands the demo sends over the FIFO. SDL3's
+// callback is a pull: fill `amount` bytes on demand and push them into the
+// stream. `amount` is a byte count that can exceed one render chunk, so loop.
+static void audio_cb(void *ud, SDL_AudioStream *stream, int amount, int total) {
+    (void)ud; (void)total;
+    int16_t buf[512];               // 1024 bytes per render chunk
+    while (amount > 0) {
+        int chunk = amount < (int)sizeof(buf) ? amount : (int)sizeof(buf);
+        synth_render_s16(buf, chunk / (int)sizeof(int16_t));
+        SDL_PutAudioStreamData(stream, buf, chunk);
+        amount -= chunk;
+    }
 }
 
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
     SDL_Window *win = SDL_CreateWindow(
         "JJ65c02 VGA simulation",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        SCREEN_W * SCALE, SCREEN_H * SCALE, SDL_WINDOW_ALLOW_HIGHDPI);
+        SCREEN_W * SCALE, SCREEN_H * SCALE, SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (!win) { fprintf(stderr, "CreateWindow: %s\n", SDL_GetError()); return 1; }
 
-    SDL_Renderer *ren = SDL_CreateRenderer(
-        win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Renderer *ren = SDL_CreateRenderer(win, NULL);
     if (!ren) { fprintf(stderr, "CreateRenderer: %s\n", SDL_GetError()); return 1; }
-    SDL_RenderSetLogicalSize(ren, SCREEN_W, SCREEN_H);   // crisp integer upscale
+    SDL_SetRenderVSync(ren, 1);                          // vsync paces the loop
+    SDL_SetRenderLogicalPresentation(ren, SCREEN_W, SCREEN_H,
+                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
     SDL_Texture *tex = SDL_CreateTexture(
         ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
         SCREEN_W, SCREEN_H);
     if (!tex) { fprintf(stderr, "CreateTexture: %s\n", SDL_GetError()); return 1; }
+    SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST); // crisp integer upscale
 
-    // Open the audio device (mono S16 @ 44.1 kHz, matching the synth's FS).
-    SDL_AudioSpec want, have;
+    // Open the audio device (mono S16 @ 44.1 kHz, matching the synth's FS). In
+    // SDL3 the stream is bound to the default playback device and pulls via
+    // audio_cb; there's no separate spec-negotiation out-param.
+    SDL_AudioSpec want;
     SDL_zero(want);
     want.freq     = 44100;
-    want.format   = AUDIO_S16SYS;
+    want.format   = SDL_AUDIO_S16;
     want.channels = 1;
-    want.samples  = 1024;
-    want.callback = audio_cb;
-    SDL_AudioDeviceID adev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (adev == 0)
+    SDL_AudioStream *astream = SDL_OpenAudioDeviceStream(
+        SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &want, audio_cb, NULL);
+    if (!astream)
         fprintf(stderr, "audio disabled: %s\n", SDL_GetError());
     else
-        SDL_PauseAudioDevice(adev, 0);   // start pulling samples
+        SDL_ResumeAudioStreamDevice(astream);   // start pulling samples
 
-    SDL_StartTextInput();
+    SDL_StartTextInput(win);
 
     // Run the real demo on a worker thread; SDL stays on the main thread.
     pthread_t demo_tid;
@@ -101,15 +111,15 @@ int main(int argc, char **argv) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 running = false;
                 break;
-            case SDL_TEXTINPUT:                 // printable ASCII
+            case SDL_EVENT_TEXT_INPUT:          // printable ASCII
                 for (const char *s = e.text.text; *s; s++)
                     feed_key((unsigned char)*s);
                 break;
-            case SDL_KEYDOWN:                   // keys SDL_TEXTINPUT won't give us
-                switch (e.key.keysym.sym) {
+            case SDL_EVENT_KEY_DOWN:            // keys text input won't give us
+                switch (e.key.key) {
                 case SDLK_RETURN:
                 case SDLK_KP_ENTER:   feed_key('\r');   break;
                 case SDLK_BACKSPACE:  feed_key('\b');   break;
@@ -135,12 +145,12 @@ int main(int argc, char **argv) {
 
         SDL_UpdateTexture(tex, NULL, rgba, SCREEN_W * (int)sizeof(uint32_t));
         SDL_RenderClear(ren);
-        SDL_RenderCopy(ren, tex, NULL, NULL);
+        SDL_RenderTexture(ren, tex, NULL, NULL);
         SDL_RenderPresent(ren);                 // vsync paces the loop (~60 Hz)
     }
 
-    SDL_StopTextInput();
-    if (adev) SDL_CloseAudioDevice(adev);
+    SDL_StopTextInput(win);
+    if (astream) SDL_DestroyAudioStream(astream);
     SDL_DestroyTexture(tex);
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
