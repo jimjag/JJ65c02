@@ -25,6 +25,10 @@
 
 #define IO_GETCHAR    VIA1_PORTA
 
+// Path to the Pico VGA/Sound sim's unix socket, or NULL to run standalone.
+// Set from main.c's -p option; consumed by init_io().
+extern const char *picolink_path;
+
 void init_io();
 void finish_io();
 void handle_io(cpu *m);

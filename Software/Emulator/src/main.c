@@ -18,6 +18,7 @@ void usage() {
     printf("  -b ADDR the base address at which code will be loaded (in hex, default B000)\n");
     printf("  -s run as fast as possible (sprint)\n");
     printf("  -f run fast\n");
+    printf("  -p PATH connect to the JJ65c02 Pico VGA/Sound sim at unix socket PATH\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
     bool fast = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:sf")) != -1) {
+    while ((c = getopt(argc, argv, "hb:sfp:")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -44,8 +45,12 @@ int main(int argc, char *argv[]) {
             fast=true;
             break;
 
+        case 'p':
+            picolink_path = optarg;
+            break;
+
         case '?':
-            if (optopt == 'b') {
+            if (optopt == 'b' || optopt == 'p') {
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
             }
             usage();

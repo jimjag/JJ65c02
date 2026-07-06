@@ -39,6 +39,15 @@
  * -   PWM
  */
 
+#ifdef HOST_SIM
+// Host SDL simulation: the Pico SDK, PS/2 driver and sound synth are replaced
+// by the shims in sim/pico_shim.h (see sim/README.md). This is the same file
+// the RP2350 runs; only the hardware layer differs.
+#include "../sim/pico_shim.h"
+#include "vga_core.h"
+#include <stdio.h>
+#include <stdlib.h>
+#else
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
@@ -48,6 +57,7 @@
 #include "vga_core.h"
 #include "ps2_keyboard.h"
 #include "pico_synth_ex.h"
+#endif
 
 void core1_main() {
     initPS2();
@@ -61,7 +71,14 @@ void core1_main() {
     }
 }
 
-int main() {
+#ifdef HOST_SIM
+// The SDL viewer owns the process main thread (macOS requires the Cocoa event
+// loop there) and runs this on a worker thread instead of main().
+int demo_main()
+#else
+int main()
+#endif
+{
     // rp2350 will run at 300 Mhz at 1.3 volt
     // vreg_set_voltage (VREG_VOLTAGE_1_30);
     //vreg_set_voltage(VREG_VOLTAGE_1_15);
@@ -72,6 +89,11 @@ int main() {
     // start core 1 threads
     //multicore_reset_core1();
     multicore_launch_core1(&core1_main);
+#ifdef HOST_SIM
+    // Bring up the unix-socket listener; the x65c02 emulator connects and its
+    // $A800 writes start arriving as the 6502 byte stream (see sim/sim_link.c).
+    sim_link_start(NULL);
+#endif
     // Initialize the VGA screen and PS/2 interface
     initVGA();
     //initPS2();

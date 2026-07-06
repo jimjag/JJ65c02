@@ -29,6 +29,13 @@ int demo_main(void);
 
 // Colour index -> ARGB is shared with the sprite-test display; see vga_palette.h.
 
+// Decoded keys go into the PS/2 input ring, exactly as on hardware. In demo
+// mode the demo drains it via ps2GetChar; in console mode core1's ps2Task drains
+// it and ships each byte to the emulator over the socket (see sim_link.c).
+static void feed_key(unsigned char c) {
+    sim_feed_key(c);
+}
+
 static void *demo_thread(void *arg) {
     (void)arg;
     demo_main();
@@ -99,17 +106,17 @@ int main(int argc, char **argv) {
                 break;
             case SDL_TEXTINPUT:                 // printable ASCII
                 for (const char *s = e.text.text; *s; s++)
-                    sim_feed_key((unsigned char)*s);
+                    feed_key((unsigned char)*s);
                 break;
             case SDL_KEYDOWN:                   // keys SDL_TEXTINPUT won't give us
                 switch (e.key.keysym.sym) {
                 case SDLK_RETURN:
-                case SDLK_KP_ENTER:   sim_feed_key('\r');   break;
-                case SDLK_BACKSPACE:  sim_feed_key('\b');   break;
-                case SDLK_TAB:        sim_feed_key('\t');   break;
-                // ESC is a console key (starts ANSI sequences); send it to the
-                // demo, don't quit. Quit via the window close button / Cmd+Q.
-                case SDLK_ESCAPE:     sim_feed_key(0x1b);   break;
+                case SDLK_KP_ENTER:   feed_key('\r');   break;
+                case SDLK_BACKSPACE:  feed_key('\b');   break;
+                case SDLK_TAB:        feed_key('\t');   break;
+                // ESC is a console key (starts ANSI sequences); send it on,
+                // don't quit. Quit via the window close button / Cmd+Q.
+                case SDLK_ESCAPE:     feed_key(0x1b);   break;
                 default: break;
                 }
                 break;

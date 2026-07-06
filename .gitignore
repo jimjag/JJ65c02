@@ -3,4 +3,24 @@ Private
 **/.idea/
 **/.vscode/
 ./Software/pico-code/build/
+./Software/pico-code/build-demo/
 ./Software/pico-code/cmake-build-debug/
+./Software/pico-code/pico-sdk/
+./Software/pico-code/sim/jj65c02-sim
+./Software/pico-code/sim/_sim_dump
+
+# Build outputs
+./Software/Emulator/x65c02
+./Software/minios/src/objs/
+./Software/minios/src/sobjs/
+./Software/minios/src/minios
+./Software/minios/src/minios.bin
+./Software/minios/src/minios.rom
+./Software/minios/src/minios.lib
+./Software/minios/src/minios.map
+./Software/minios/src/minios.lbl
+./Software/minios/src/sim
+./Software/minios/src/sim.bin
+./Software/minios/src/sim-minios.rom
+./Software/minios/src/sim-minios.map
+./Software/minios/src/sim-minios.lbl

@@ -88,10 +88,46 @@ void dma_memcpy(void *dest, const void *src, size_t num, bool block) {
     memmove(dest, src, num);
 }
 
-// No 6502 byte stream in the simulation.
+// ----------------------------------------------------------------------
+//  6502 byte stream. On hardware, bytes the 6502 writes to the Pico arrive
+//  via the memin PIO + readMem ISR into a ring; getByte() drains it. Here the
+//  same ring is fed by sim_link.c (a unix socket to the x65c02 emulator), so
+//  getByte() keeps the exact firmware semantics (vga_core.c:329).
+//
+//  Producer: sim_feed_6502_byte() (socket reader thread).
+//  Consumer: getByte() -> conInTask() -> handleByte().
+// ----------------------------------------------------------------------
+#define IN6502_RING 8192
+static unsigned char   in6502buf[IN6502_RING];
+static volatile int    in6502_r = 0, in6502_w = 0;
+static pthread_mutex_t  in6502_mx = PTHREAD_MUTEX_INITIALIZER;
+
+void sim_feed_6502_byte(unsigned char c) {
+    pthread_mutex_lock(&in6502_mx);
+    int nw = (in6502_w + 1) % IN6502_RING;
+    if (nw != in6502_r) { in6502buf[in6502_w] = c; in6502_w = nw; }  // drop on overflow
+    pthread_mutex_unlock(&in6502_mx);
+}
+
 bool getByte(unsigned char *ascii) {
-    (void)ascii;
-    return false;
+    bool has = false;
+    pthread_mutex_lock(&in6502_mx);
+    if (in6502_r != in6502_w) {
+        *ascii = in6502buf[in6502_r];
+        in6502_r = (in6502_r + 1) % IN6502_RING;
+        has = true;
+    }
+    pthread_mutex_unlock(&in6502_mx);
+    return has;
+}
+
+// The firmware's consume-and-render task lives in vga_core.c, which the sim
+// does not compile; reproduce its three lines here (vga_core.c:342-347).
+void conInTask(void) {
+    unsigned char ascii;
+    if (getByte(&ascii)) {
+        handleByte(ascii);
+    }
 }
 
 // Cursor enable — ported verbatim from vga_core.c:160. drawChar is declared by

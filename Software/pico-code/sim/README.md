@@ -28,6 +28,52 @@ input-wait stages — press **Backspace** to leave the first "PS2 test", **Q** t
 advance the later ones). **Esc** is delivered to the demo as a console key (it
 does not quit). To quit, close the window or press **Cmd+Q**.
 
+## Content source: graphics demo vs. the 6502 emulator
+
+`SIM_SOURCE` selects which firmware entry point provides `demo_main`/`core1_main`
+(the build compiles exactly one):
+
+| `SIM_SOURCE` | Source file | What runs |
+|--------------|-------------|-----------|
+| `demo` (default) | `../pico_core/pico_core_demo.c` | the self-contained graphics animation |
+| `console` | `../pico_core/pico_6502.c` | **the real RP2350 console firmware** — renders the byte stream a 6502 writes to the Pico |
+
+In `console` mode the sim is driven by the **x65c02 emulator** (`../../Emulator`)
+over a Unix domain socket, standing in for the physical bus between the 6502 SBC
+and the RP2350 support chip:
+
+- every byte the emulated 6502 writes to `$A800` (`PICO_ADDR`) is sent to the
+  sim, which feeds it into the real firmware's `getByte()` → `handleByte()` and
+  renders it (text, ANSI/VT100 escapes, graphics primitives, sound commands);
+- PS/2 keys typed in the SDL window are drained by the firmware's `core1_main`
+  (`ps2Task`) and shipped back over the socket, where the emulator injects them
+  into the emulated VIA — exactly as physical keyboard bytes arrive.
+
+`pico_6502.c` is the *same file* the RP2350 runs; under `-DHOST_SIM` only its
+hardware layer is swapped (a handful of `#ifdef HOST_SIM` guards, matching how
+`pico_core_demo.c` was adapted). The firmware CMake build is unaffected.
+
+```sh
+# 1. build + launch the sim in console mode (creates the socket, opens window)
+SIM_SOURCE=console ./build.sh run
+
+# 2. in another shell, build the sim ROM and connect the emulator to it
+( cd ../../minios/src && make sim )                      # -> sim-minios.rom
+../../Emulator/x65c02 -s -b b000 -p /tmp/jj65c02.sock \
+    ../../minios/src/sim-minios.rom
+```
+
+The socket path defaults to `/tmp/jj65c02.sock`; override with the `SIM_SOCKET`
+env var on the sim and the matching `-p PATH` on the emulator. The emulator needs
+`-s` (sprint) or `-f` (fast); its default STEP mode blocks waiting for keypresses.
+Launch order is forgiving — the emulator retries the connection briefly, and the
+sim renders nothing until the 6502 starts writing.
+
+Headless verification (no display) works too:
+`SIM_SOURCE=console ./build.sh dump 3` builds the snapshot harness, which starts
+the listener; connect the emulator while it runs and it captures the rendered
+boot screen to `out.bmp`.
+
 ## How it works — the compile-time flag
 
 `vga_graphics.c` is pure framebuffer drawing; `vga_core.c` is all the RP2040/

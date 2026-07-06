@@ -60,6 +60,26 @@ unsigned char ps2GetChar(bool auto_print);
 // Called from the SDL main thread to enqueue a decoded ASCII byte.
 void          sim_feed_key(unsigned char c);
 
+// ---- 6502 byte stream (the x65c02 emulator standing in for the 6502) ----
+// The socket reader thread (sim_link.c) enqueues bytes the emulated 6502 wrote
+// to the Pico ($A800); getByte()/conInTask() drain and render them, exactly as
+// the memin PIO + readMem ISR + conInTask do on hardware.
+void sim_feed_6502_byte(unsigned char c);
+bool getByte(unsigned char *ascii);
+void conInTask(void);
+// Host stand-in for ps2_keyboard.c's ps2Task (which the sim doesn't compile):
+// drains the PS/2 ring and ships bytes to the emulator. Called by
+// pico_6502.c's core1_main under HOST_SIM.
+void ps2Task(bool auto_print);
+
+// ---- Pico VGA/Sound sim link (unix socket to the x65c02 emulator) ----
+// Start the listener on `path` (NULL => use the SIM_SOCKET env var, else a
+// default). The reader thread feeds sim_feed_6502_byte(); sim_link_send_key()
+// ships a PS/2 byte back to the emulator. No-ops if the socket never connects.
+void sim_link_start(const char *path);
+void sim_link_send_key(unsigned char c);
+void sim_link_stop(void);
+
 // ---- sound synth ----
 // initSOUND/soundTask/startup_chord/beep are the REAL functions from
 // pico_synth_ex.c (compiled into the sim). synth_render_s16 is a host-only
