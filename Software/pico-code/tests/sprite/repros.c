@@ -29,6 +29,7 @@ static void ref_paint(unsigned char *out, vis_t *v, int n){
 static void check(const char *name, vis_t *v, int n){
     unsigned char ref[FBYTES]; ref_paint(ref, v, n);
     tests++;
+    if(n>0){ TD_FRAME(); TD_DELAY(45); }   // show composited states (no-op if headless)
     if(memcmp(fb,ref,FBYTES)==0){ printf("  PASS  %s\n", name); return; }
     fails++;
     int fp=-1; for(int p=0;p<SCREENWIDTH*SCREENHEIGHT;p++) if(gp(p)!=((p&1)?(ref[p>>1]>>4)&0xF:ref[p>>1]&0xF)){fp=p;break;}
@@ -164,14 +165,16 @@ static void test_move_zorder(void){
 }
 
 int main(void){
-    test_edge();
-    test_oddx_limitation();
-    test_clamp_teleport();
-    test_bringback();
-    test_hide_hole();
-    test_free_hole();
-    test_move_zorder();
+    TD_OPEN("sprite tests: scenario repros");
+    test_edge();            TD_DELAY(700);
+    test_oddx_limitation(); TD_DELAY(700);
+    test_clamp_teleport();  TD_DELAY(700);
+    test_bringback();       TD_DELAY(700);
+    test_hide_hole();       TD_DELAY(700);
+    test_free_hole();       TD_DELAY(700);
+    test_move_zorder();     TD_DELAY(700);
     printf(fails ? "\n*** %d/%d SCENARIO CHECKS FAILED ***\n" : "\nALL %d SCENARIO CHECKS PASSED\n",
            fails ? fails : tests);
+    TD_CLOSE();
     return fails ? 1 : 0;
 }

@@ -15,6 +15,22 @@ logic can be exercised far more exhaustively than on-device.
 CC=gcc ./run.sh     # pick a compiler (default: cc)
 ```
 
+### Watching the tests (SDL display)
+
+```sh
+./run.sh display        # same tests, shown live in an SDL window
+./run.sh display 5000   # ...with a 5000-iteration sim (default 2000)
+```
+
+Display mode renders the 128×48 test framebuffer live as sprites are drawn,
+moved, hidden and freed — the edge-clip test sweeps a sprite across the screen,
+and the differential sim shows the sprites shuffling. It reuses the SDL
+emulator's palette (`../../sim/vga_palette.h`) via `test_display.c`, builds
+**without** ASan, and links SDL2 (MacPorts `/opt/local`; override `SDL_PREFIX`).
+Close the window or press **Esc** to skip ahead. The headless default remains
+the correctness authority; the display hooks (`TD_*` in `host_env.c`) compile to
+nothing there.
+
 Exit status is non-zero if anything fails. Everything builds with
 AddressSanitizer + UBSan.
 

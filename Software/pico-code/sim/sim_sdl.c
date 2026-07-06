@@ -15,6 +15,7 @@
 #include <pthread.h>
 
 #include "pico_shim.h"
+#include "vga_palette.h"   // vga_palette_argb[16]
 
 // Provided by sim_platform.c.
 extern unsigned char *const vga_data_array[2];
@@ -26,27 +27,7 @@ int demo_main(void);
 #define SCREEN_H 480
 #define SCALE    2                 // window is SCALE x the 640x480 logical size
 
-// Internal colour index -> RGB. These are exactly the "Regular RGB" values
-// documented next to each case in vga_core.c's convertRGB332() (BLACK..WHITE).
-// Packed 0xAARRGGBB for SDL_PIXELFORMAT_ARGB8888.
-static const uint32_t palette[16] = {
-    0xFF000000, // 0  BLACK
-    0xFFC00000, // 1  RED
-    0xFF00C000, // 2  GREEN
-    0xFFC0C000, // 3  YELLOW
-    0xFF0000C0, // 4  BLUE
-    0xFFC000C0, // 5  MAGENTA
-    0xFF00C0C0, // 6  CYAN
-    0xFFC0C0C0, // 7  LIGHT_GREY
-    0xFF808080, // 8  GREY
-    0xFFFF0000, // 9  LIGHT_RED
-    0xFF00FF00, // 10 LIGHT_GREEN
-    0xFFFFFF00, // 11 LIGHT_YELLOW
-    0xFF0080FF, // 12 LIGHT_BLUE
-    0xFFFF00FF, // 13 LIGHT_MAGENTA
-    0xFF00FFFF, // 14 LIGHT_CYAN
-    0xFFFFFFFF, // 15 WHITE
-};
+// Colour index -> ARGB is shared with the sprite-test display; see vga_palette.h.
 
 static void *demo_thread(void *arg) {
     (void)arg;
@@ -141,8 +122,8 @@ int main(int argc, char **argv) {
         const unsigned char *fb = vga_data_array[db_show];
         for (int i = 0; i < SCREEN_W * SCREEN_H / 2; i++) {
             unsigned char b = fb[i];
-            rgba[i * 2]     = palette[b & 0x0F];
-            rgba[i * 2 + 1] = palette[(b >> 4) & 0x0F];
+            rgba[i * 2]     = vga_palette_argb[b & 0x0F];
+            rgba[i * 2 + 1] = vga_palette_argb[(b >> 4) & 0x0F];
         }
 
         SDL_UpdateTexture(tex, NULL, rgba, SCREEN_W * (int)sizeof(uint32_t));

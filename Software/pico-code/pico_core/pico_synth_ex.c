@@ -266,7 +266,7 @@ static void set_sound(uint8_t preset) {
 }
 
 static void load_sound(uint8_t voice, uint8_t preset) {
-    printf("loading preset %d\n", preset);
+    // printf("loading preset %d\n", preset);
     octave_shift[voice] =       presets[preset].octave_shift;
     Osc_waveform[voice] =       presets[preset].Osc_waveform;
     Filter_cutoff[voice] =      presets[preset].Filter_cutoff;

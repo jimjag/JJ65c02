@@ -4,4 +4,6 @@ _sim.c
 _repros.c
 _sim
 _repros
+_sim_disp
+_repros_disp
 *.dSYM/

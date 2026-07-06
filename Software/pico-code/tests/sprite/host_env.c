@@ -62,4 +62,23 @@ void refreshSprites(void);
 static unsigned char convertRGB332(unsigned char c){ return (c<=15)?c:TRANSPARENT_INT; }
 static bool getByte(unsigned char *c){ (void)c; return false; }
 
+// -------- optional SDL display (built only with -DTEST_DISPLAY; see run.sh) ----
+// The test drivers wrap their operations with these so the framebuffer can be
+// watched live. Headless builds compile them out to nothing.
+#ifdef TEST_DISPLAY
+void td_open(int w, int h, int scale, const char *title);
+int  td_frame(const unsigned char *fb);
+void td_delay(int ms);
+void td_close(void);
+#define TD_OPEN(title) td_open(SCREENWIDTH, SCREENHEIGHT, 8, (title))
+#define TD_FRAME()     td_frame(fb)
+#define TD_DELAY(ms)   td_delay(ms)
+#define TD_CLOSE()     td_close()
+#else
+#define TD_OPEN(title) ((void)0)
+#define TD_FRAME()     ((void)0)
+#define TD_DELAY(ms)   ((void)0)
+#define TD_CLOSE()     ((void)0)
+#endif
+
 // ================= REAL CODE (extracted from vga_graphics.c) =================

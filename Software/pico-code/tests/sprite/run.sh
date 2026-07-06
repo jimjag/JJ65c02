@@ -10,10 +10,17 @@
 #   _repros  - hand-verifiable single-scenario tests (repros.c)
 #   _sim     - long randomised differential simulation (sim.c)
 #
-# Both are compiled with AddressSanitizer + UBSan. Exit non-zero on any failure.
+# Default build: AddressSanitizer + UBSan, headless. Exit non-zero on failure.
 #
-#   ./run.sh                 # repros + default-length sim
+#   ./run.sh                 # repros + default-length sim (headless, ASan)
 #   ./run.sh 200000          # repros + 200k-iteration sim
+#   ./run.sh display         # SDL build: watch the tests run in a window
+#   ./run.sh display 5000    # ...with a 5000-iteration sim (default 2000)
+#
+# Display mode reuses the SDL emulator's palette (../../sim/vga_palette.h) and
+# renders the 128x48 test framebuffer live as sprites are drawn/moved/hidden. It
+# builds WITHOUT ASan and links SDL2; the headless default stays the correctness
+# authority. Close the window (or press Esc) to skip ahead.
 set -e
 cd "$(dirname "$0")"
 
@@ -28,10 +35,27 @@ sed -n "${A},$((B-1))p" "$SRC" > _extracted.c
 echo "extracted sprite subsystem: lines ${A}..$((B-1)) of $SRC"
 
 CC="${CC:-cc}"
-CFLAGS="-O2 -g -fsanitize=address,undefined -w"
-
 cat host_env.c _extracted.c repros.c > _repros.c
 cat host_env.c _extracted.c sim.c    > _sim.c
+
+# ---- optional SDL display mode: watch the tests run (no ASan) ----
+if [ "$1" = "display" ] || [ "$1" = "--display" ]; then
+    SDL_PREFIX="${SDL_PREFIX:-/opt/local}"
+    DFLAGS="-O2 -g -w -DTEST_DISPLAY -I${SDL_PREFIX}/include"
+    DLIBS="-L${SDL_PREFIX}/lib -lSDL2"
+    echo "building SDL display build (SDL2 at ${SDL_PREFIX})"
+    $CC $DFLAGS _repros.c test_display.c $DLIBS -o _repros_disp
+    $CC $DFLAGS _sim.c    test_display.c $DLIBS -o _sim_disp
+    rc=0
+    echo; echo "=== scenario repros (display) ==="
+    ./_repros_disp || rc=1
+    echo; echo "=== differential simulation (display) ==="
+    ./_sim_disp "${2:-2000}" || rc=1    # fewer iterations so it stays watchable
+    exit $rc
+fi
+
+# ---- default: headless, ASan/UBSan (the correctness authority) ----
+CFLAGS="-O2 -g -fsanitize=address,undefined -w"
 $CC $CFLAGS -o _repros _repros.c
 $CC $CFLAGS -o _sim    _sim.c
 

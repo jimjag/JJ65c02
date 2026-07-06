@@ -95,6 +95,7 @@ static void verify(void){    checks++;
     clean_repaint();                                    // ground truth (same renderer)
     int diff = memcmp(inc,clean,FBYTES)!=0;
     memcpy(fb,inc,FBYTES); restore();                   // put incremental state back
+    TD_FRAME(); TD_DELAY(3);                             // watch it (no-op if headless)
     if(diff){
         cleanfails++;
         if(cleanfails==1){
@@ -153,6 +154,7 @@ int main(int argc, char **argv){
     long iters = argc>1 ? atol(argv[1]) : 60000;
     for(int i=0;i<FBYTES;i++) base[i]=(unsigned char)((i*11+3)&0xFF);
     memcpy(fb,base,FBYTES);
+    TD_OPEN("sprite tests: differential simulation");
 
     // Phase 1: load NS sprites (objects only, not yet drawn).
     for(int sn=0; sn<NS; sn++){
@@ -200,5 +202,6 @@ int main(int argc, char **argv){
 
     printf(cleanfails ? "\n*** %d DIVERGENCE(S) ***\n" : "\nALL %d CHECKS PASSED (incremental == cleanRepaint)\n",
            cleanfails ? cleanfails : checks);
+    TD_CLOSE();
     return cleanfails ? 1 : 0;
 }
