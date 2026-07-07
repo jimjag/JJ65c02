@@ -16,7 +16,8 @@ void usage() {
     printf("usage: x65c02 [OPTION]... FILE\n");
     printf("options:\n");
     printf("  -b ADDR the base address at which code will be loaded (in hex, default B000)\n");
-    printf("  -s run as fast as possible (sprint)\n");
+    printf("  -n run as fast as possible (non-stop)\n");
+    printf("  -s run almost as fast as possible (sprint)\n");
     printf("  -f run fast\n");
     printf("  -p PATH connect to the JJ65c02 Pico VGA/Sound sim at unix socket PATH\n");
 }
@@ -25,9 +26,10 @@ int main(int argc, char *argv[]) {
     int base_addr = 0xb000;
     bool sprint = false;
     bool fast = false;
+    bool non_stop = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:sfp:")) != -1) {
+    while ((c = getopt(argc, argv, "hb:snfp:")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -43,6 +45,10 @@ int main(int argc, char *argv[]) {
 
         case 'f':
             fast=true;
+            break;
+
+        case 'n':
+            non_stop=true;
             break;
 
         case 'p':
@@ -73,6 +79,9 @@ int main(int argc, char *argv[]) {
     int b;
     int i = base_addr;
     cpu *m = new_cpu();
+    if (non_stop) {
+      m->clock_mode = CLOCK_NON_STOP;
+    }
     if (sprint) {
       m->clock_mode = CLOCK_SPRINT;
     }

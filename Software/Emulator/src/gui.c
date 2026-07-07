@@ -150,7 +150,7 @@ void update_gui(cpu *m) {
       m->sr & 0x02 ? 'Z' : '-',
       m->sr & 0x01 ? 'C' : '-',
       m->cycle);
-    mvwprintw(wnd_monitor_content, 3, 0, "Clock mode: %s", m->clock_mode == CLOCK_SPRINT ? "SPRINT" : m->clock_mode == CLOCK_FAST ? "FAST  " : m->clock_mode == CLOCK_SLOW ? "SLOW  " : "STEP  ");
+    mvwprintw(wnd_monitor_content, 3, 0, "Clock mode: %s", m->clock_mode == CLOCK_NON_STOP ? "NONSTP" : m->clock_mode == CLOCK_SPRINT ? "SPRINT" : m->clock_mode == CLOCK_FAST ? "FAST  " : m->clock_mode == CLOCK_SLOW ? "SLOW  " : "STEP  ");
     wrefresh(wnd_monitor_content);
 
     // populate memory monitor
@@ -169,8 +169,16 @@ void update_gui(cpu *m) {
     wrefresh(wnd_memory_content);
     wrefresh(wnd_terminal_content);
 
-
-    if (m->clock_mode == CLOCK_SPRINT && input_cycle_skip < CYCLES_SKIP)
+    // NON_STOP runs the CPU with no throttling and, unlike SPRINT, never polls
+    // the keyboard (SPRINT still calls getch() once every CYCLES_SKIP loops).
+    // Consequently, while in NON_STOP mode no key input is read: Esc (shutdown)
+    // and the F5-F8 mode-switch keys are ignored, so the emulator can only be
+    // stopped by a STP opcode or Ctrl-C, and the mode cannot be changed from the
+    // keyboard. NON_STOP is therefore a one-way, command-line-only (-n) mode.
+    if (m->clock_mode == CLOCK_NON_STOP) {
+      ;
+    }
+    else if (m->clock_mode == CLOCK_SPRINT && input_cycle_skip < CYCLES_SKIP)
     {
       input_cycle_skip++;
     } else {
