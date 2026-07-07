@@ -27,7 +27,7 @@
 ; that need to be updated for *your* system
 ;=====================================================================
 
-; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.13j
+; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.14j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
@@ -77,6 +77,8 @@
 ;              and rs-232 TTY
 ;      5.13j   Removed the "Memory size" query. We know the start and
 ;              end of RAM, so just use that.
+;      5.14j   Added the following graphics commands: RECT, CIRCLE,
+;              RECTF, CIRCLEF, and PLOT
 
 .segment "ZEROPAGE"
 ;
@@ -9534,9 +9536,9 @@ NMI_CODE:
 .segment "RODATA"
 
 LAB_mess:
-    .asciiz "\r\n6502 EhBASIC ver 2.22p5.13j [C]old/[W]arm ?" ; sign on string
+    .asciiz "\r\n6502 EhBASIC ver 2.22p5.14j [C]old/[W]arm ?" ; sign on string
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.13j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.14j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"
