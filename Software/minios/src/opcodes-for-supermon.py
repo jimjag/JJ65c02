@@ -46,6 +46,10 @@ def mode_to_num(mode_str):
         return 13
     elif mode_str == 'INZP':
         return 14
+    elif mode_str == 'ZPREL':      # BBRn/BBSn: $zp,$rel two-operand form
+        return 15
+    elif mode_str == 'INAX':       # JMP ($nnnn,X) indirect absolute,X
+        return 16
     else:
         return 0
 
@@ -100,65 +104,59 @@ def main():
         for i in range(0, 256):
             f.write(f'{hex(i):4}:  {opcodes[i]}:   {hex(int(ohash[i],2)):6}   {modename[i]:4}  [{hex(modeindex[i])}]\n')
 
-        f.write('\n\nMNEML:\n')
-        counter = 0
+        # ordered list of first-seen opcodes -> index positions in MNEML/MNEMR
+        unique_ops = []
         seen = {}
-        idx = 0
-        comments = []
         for i in range(0, 256):
             if opcodes[i] not in seen:
-                seen[opcodes[i]] = idx
-                idx += 1
-            else:
-                continue
-            if counter == 0:
-                f.write('    .byte ')
-                comments = []
-            counter += 1
-            n = hex(int(ohash[i],2))
-            if n == '0x0':
-                n = '00'
-            else:
-                n = n[2:4]
-            f.write(f'${n}{' ' if counter == 8 else ','}')
-            comments.append(opcodes[i])
-            if counter == 8:
+                seen[opcodes[i]] = len(unique_ops)
+                unique_ops.append(i)
+        last = len(unique_ops) - 1
+
+        def write_mnem(nyb_lo, nyb_hi):
+            counter = 0
+            comments = []
+            for pos, i in enumerate(unique_ops):
+                if counter == 0:
+                    f.write('    .byte ')
+                    comments = []
+                counter += 1
+                n = hex(int(ohash[i],2))
+                n = '00' if n == '0x0' else n[nyb_lo:nyb_hi]
+                # comma between bytes; space before the row comment; nothing
+                # after the very last byte so the output pastes into ca65 cleanly
+                if counter == 8:
+                    sep = ' '
+                elif pos == last:
+                    sep = ''
+                else:
+                    sep = ','
+                f.write(f'${n}{sep}')
+                comments.append(opcodes[i])
+                if counter == 8:
+                    f.write(f'   ; {' '.join(comments)}\n')
+                    counter = 0
+            if counter != 0:
                 f.write(f'   ; {' '.join(comments)}\n')
-                counter = 0
-        f.write(f'   ; {' '.join(comments)}\n')
+
+        f.write('\n\nMNEML:\n')
+        write_mnem(2, 4)
 
         f.write('\n;\nMNEMR:\n')
-        counter = 0
-        seen = {}
-        idx = 0
-        comments = []
-        for i in range(0, 256):
-            if opcodes[i] not in seen:
-                seen[opcodes[i]] = idx
-                idx += 1
-            else:
-                continue
-            if counter == 0:
-                f.write('    .byte ')
-                comments = []
-            counter += 1
-            n = hex(int(ohash[i],2))
-            if n == '0x0':
-                n = '00'
-            else:
-                n = n[4:6]
-            f.write(f'${n}{' ' if counter == 8 else ','}')
-            comments.append(opcodes[i])
-            if counter == 8:
-                f.write(f'   ; {' '.join(comments)}\n')
-                counter = 0
-        f.write(f'   ; {' '.join(comments)}\n')
+        write_mnem(4, 6)
 
+        # RMBn/SMBn/BBRn/BBSn carry a bit-7 flag so the disassembler knows to
+        # append the bit-number digit; the flag is masked off before indexing
+        # MNEML/MNEMR.
+        bitops = {'RMB', 'SMB', 'BBR', 'BBS'}
         f.write('\n;\nIDX_NAME:\n')
         for i in range(0, 256, 16):
             f.write('    .byte ')
             for j in range(16):
-                f.write(f'${hex(seen[opcodes[i+j]])[2:].zfill(2)}{'\n' if j == 15 else ','}')
+                nidx = seen[opcodes[i+j]]
+                if opcodes[i+j] in bitops:
+                    nidx |= 0x80
+                f.write(f'${hex(nidx)[2:].zfill(2)}{'\n' if j == 15 else ','}')
 
         f.write('\n;\nIDX_MODE2:\n')
         for i in range(0, 256, 16):

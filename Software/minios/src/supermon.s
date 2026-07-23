@@ -20,7 +20,9 @@ ENABLE_ASSEMBLER = 1
 ; * The e'X'it command returns to the miniOS main menu
 ; * The input routine handles ^h as backspace and lower case letters
 ;   are converted to upper case
-; * 65c02 opcodes added
+; * Full WDC65C02 opcode set, in BOTH the disassembler and the assembler,
+;   including the 4-char bit instructions RMBn/SMBn/BBRn/BBSn and the
+;   BBRn/BBSn "$zp,$target" two-operand form.
 
 ; -----------------------------------------------------------------------------
 ; variables
@@ -42,7 +44,8 @@ INDIG   := DIGCNT+1         ; numeric value of single digit
 NUMBIT  := INDIG+1          ; numeric base of input
 STASH   := NUMBIT+1         ; 2-byte temp storage
 U0AA0   := STASH+2          ; work buffer
-U0AAE   := U0AA0+10         ; end of work buffer
+U0AAE   := U0AA0+12         ; end of work buffer (fits the longest operand
+                            ; template "($0000,X)" = 2 mnemonic + 9 operand bytes)
 STAGE   := U0AAE+1          ; staging buffer for filename, search, etc.
 ESTAGE  := STAGE+30         ; end of staging buffer
 INBUFF  := ESTAGE+1         ; 40-character input buffer
@@ -68,6 +71,10 @@ DISPMEM_BPL      := U9F+1   ; number of bytes per line to display in DISPMEM
 DISPMEM_BPL_LOG2 := DISPMEM_BPL+1    ; log 2 of DISPMEM_BPL
 BITDIG  := DISPMEM_BPL_LOG2+1   ; ASCII '0'..'7' for RMBn/SMBn/BBRn/BBSn 4th char,
                                 ; or 0 if current opcode is not a bit instruction
+ASMBIT  := BITDIG+1             ; assembler: bit digit 0-7 parsed from a 4-char
+                                ; mnemonic (RMB5 etc.), or $FF if none was typed.
+                                ; Separate from BITDIG, which INSTXX rewrites for
+                                ; every candidate opcode during the match scan.
 
 ; temporary pointers
 TMP0    := R0; BITDIG+1            ; used to return input, often holds end address - 2 bytes
@@ -491,6 +498,8 @@ AERROR:
 ASSEM:
     bcs AERROR                  ; error if no address given
     jsr COPY12                  ; copy address to TMP2
+    lda #$FF                    ; no bit digit parsed yet (RMBn/SMBn/BBRn/BBSn)
+    sta ASMBIT
 AGET1:
     ldx #0
     stx U0AA0+1                 ; clear byte that mnemonic gets shifted into
@@ -507,6 +516,20 @@ ALMOR:
     inx
     cpx #3                      ; have we read 3 characters yet?
     bne AGET2                   ; if not, get next character
+
+; peek at a possible 4th char: a bit digit 0-7 for RMBn/SMBn/BBRn/BBSn. If it
+; is a digit, capture it in ASMBIT and consume it; otherwise back up one char so
+; the operand parser sees it (mirrors the disassembler's BITDIG handling).
+ABITDG:
+    jsr GETCHR                  ; get the char following the 3-letter mnemonic
+    sec
+    sbc #'0'                    ; convert ASCII to numeric
+    cmp #8                      ; is it 0-7?
+    bcs @notbit                 ; no: not a bit digit, restore position
+    sta ASMBIT                  ; yes: remember the bit number
+    bra ASQEEZ
+@notbit:
+    dec CHRPNT                  ; put the non-digit char back for the operand scan
 
 ; compress mnemonic into two bytes
 ASQEEZ:
@@ -528,6 +551,13 @@ ASHIFT:
 
 ; parse operand
 AOPRND:
+    lda ASMBIT                  ; was a bit digit typed (RMBn/SMBn/BBRn/BBSn)?
+    cmp #$FF
+    beq @normal                 ; no: ordinary operand parsing
+    jsr FINDBBR                 ; a bit family: is it the two-operand BBR/BBS?
+    bcc @normal                 ; no (RMB/SMB): normal path, Phase-3 folds the digit
+    jmp ABITREL                 ; yes: assemble the "$zp,$target" form specially
+@normal:
     ldx #2                      ; mnemonic is in first two bytes so start at third
 ASCAN:
     lda DIGCNT                  ; did we find address digits last time?
@@ -566,7 +596,7 @@ AFORM1:
     inx                         ; move to next byte in buffer
     cpx #U0AAE-U0AA0            ; is instruction buffer full?
     bcc ASCAN                   ; if not, keep scanning
-    bcs AERROR                  ; error if buffer is full
+    jmp AERROR                  ; error if buffer is full
 
 ; find matching opcode
 AESCAN:
@@ -577,13 +607,11 @@ ATRYOP:
     ldx #0
     stx U9F                     ; reset index into work buffer
     lda OPCODE
-    jsr INSTXX                  ; look up instruction format for current opcode
+    jsr INSTXX                  ; look up instruction format for current opcode;
+                                ;   returns A = flag-stripped MNEML/MNEMR index
     ldx ACMD                    ; save addressing command for later
     stx STORE+1
-    tax                         ; use current opcode as index
-    lda IDX_NAME, x
-    and #$7F                    ; strip bit-instruction flag before MNEM* indexing
-    tax
+    tax                         ; use the returned name index directly
     lda MNEMR,X                 ; check right byte of compressed mnemonic
     jsr CHEKOP
     lda MNEML,X                 ; check left byte of compressed mnemonic
@@ -627,8 +655,33 @@ TRYBRAN:
 
 ; convert branches to relative address
 ABRAN:
+    ; Reconcile the matched opcode with any bit digit typed (RMBn/SMBn). The
+    ; generic matcher finds the family's base opcode (RMB0/SMB0); fold the digit
+    ; into opcode bits 4-6, which is how WDC encodes the bit number.
+    ldx OPCODE
+    lda IDX_NAME,x              ; name index of the matched opcode
+    bmi @bitfam                 ; bit 7 set => RMBn/SMBn/BBRn/BBSn family
+    lda ASMBIT                  ; not a bit family: a stray digit (e.g. "NOP5")
+    cmp #$FF                    ;   is an error
+    bne @biterr
+    bra @foldok
+@bitfam:
+    lda ASMBIT                  ; a bit family requires a digit ("RMB" alone bad)
+    cmp #$FF
+    beq @biterr
+    asl A                       ; digit << 4 -> opcode bits 4-6
+    asl A
+    asl A
+    asl A
+    ora OPCODE
+    sta OPCODE
+@foldok:
     ldy LENGTH                  ; get number of bytes in operand
     beq A1BYTE                  ; if none, just output the opcode
+    bra @nobiterr
+@biterr:
+    jmp SERROR
+@nobiterr:
     lda STORE+1                 ; otherwise check the address format
     cmp #$9D                    ; is it a relative branch?
     bne OBJPUT                  ; if not, skip relative branch calculation
@@ -706,6 +759,88 @@ ADLOOP:
 SERROR:
     jmp ERROR                   ; handle error
 
+; -----------------------------------------------------------------------------
+; FINDBBR - is the typed mnemonic the two-operand BBR/BBS family?
+;   Scans opcodes for one whose addressing mode is the zp,rel sentinel ($02)
+;   AND whose packed name matches what the user typed (U0AA0/U0AA0+1). Only BBR
+;   and BBS use mode $02, so a match uniquely identifies the family and its base
+;   opcode (BBR0=$0F, BBS0=$8F). Deriving the base by scan avoids hardcoding
+;   packed-name constants that regenerating the tables could renumber.
+;   Returns: carry set + OPCODE = base opcode if BBR/BBS; carry clear otherwise.
+;   (U0AA0[0] holds the byte compared against MNEMR, U0AA0[1] against MNEML,
+;   matching the order ATRYOP uses.)
+FINDBBR:
+    lda #0
+    sta OPCODE
+@loop:
+    lda OPCODE
+    jsr INSTXX                  ; A = name index; sets ACMD
+    ldx ACMD
+    cpx #$02                    ; zp,rel sentinel => BBR/BBS candidate
+    bne @next
+    tax                         ; name index
+    lda MNEMR,x
+    cmp U0AA0                   ; right byte of typed mnemonic
+    bne @next
+    lda MNEML,x
+    cmp U0AA0+1                 ; left byte of typed mnemonic
+    bne @next
+    sec                         ; found: OPCODE holds the base opcode
+    rts
+@next:
+    inc OPCODE
+    bne @loop
+    clc                         ; not BBR/BBS (e.g. RMB/SMB)
+    rts
+
+; -----------------------------------------------------------------------------
+; ABITREL - assemble BBRn/BBSn "$zp,$target" (opcode, zp byte, signed rel offset)
+;   On entry: OPCODE = base opcode (from FINDBBR), ASMBIT = bit number 0-7,
+;   CHRPNT at the operand text, TMP2 = address of this instruction.
+ABITREL:
+    lda ASMBIT                  ; fold the bit number into opcode bits 4-6
+    asl a
+    asl a
+    asl a
+    asl a
+    ora OPCODE
+    sta OPCODE
+    jsr GETPAR                  ; first operand: the zero-page byte -> TMP0
+    bcs SERROR                  ; none given => error
+    lda TMP0
+    ldy #1
+    sta (TMP2),y                ; store zp byte at offset 1
+    jsr GETPAR                  ; second operand: the branch target -> TMP0
+    bcs SERROR                  ; none given => error
+    lda TMP2                    ; STASH = TMP2 + 3 (PC after this 3-byte inst)
+    clc
+    adc #3
+    sta STASH
+    lda TMP2+1
+    adc #0
+    sta STASH+1
+    sec                         ; rel16 = target - STASH  (A=high, X=low)
+    lda TMP0
+    sbc STASH
+    tax
+    lda TMP0+1
+    sbc STASH+1
+    beq @poshi                  ; high byte 0: forward branch
+    cmp #$FF                    ; high byte $FF: backward branch
+    bne SERROR                  ; anything else is out of range
+    txa                         ; backward: low byte must have bit 7 set
+    bpl SERROR                  ;   (< -128 otherwise)
+    bmi @relok
+@poshi:
+    txa                         ; forward: low byte must have bit 7 clear
+    bmi SERROR                  ;   (> 127 otherwise)
+@relok:
+    txa                         ; the signed 8-bit offset
+    ldy #2
+    sta (TMP2),y                ; store rel at offset 2
+    ldy #0                      ; A1BYTE stores OPCODE at (TMP2),0
+    jmp A1BYTE                  ; emit opcode + shared CRLF/DISLIN/advance tail
+
 
 DOADDR:
     jsr ASCTWO                  ; CONVERT BYTE IN AC INTO HEX DIGITS
@@ -731,8 +866,10 @@ CHEKOP:
     pla                         ;   on the stack because we're starting over
 BUMPOP:
     inc OPCODE                  ; check the next opcode
-    beq SERROR                  ; error if we tried every opcode and none fit
+    beq SERROR2                 ; error if we tried every opcode and none fit
     jmp ATRYOP                  ; start over with new opcode
+SERROR2:
+    jmp ERROR                   ; nearby trampoline (SERROR out of branch range)
 OPOK:
     inc U9F                     ; opcode matches so far; check the next criteria
     ldx SAVX                    ; restore X
@@ -1451,6 +1588,7 @@ MODE2:  .byte $00   ; 000 000    00                  0   error
         .byte $9D   ; 100 111    01      $0000*      D   relative
         .byte $49   ; 010 010    01      ($00)       E   zp-indirect
         .byte $02   ; 000 000    10      $00,$rrrr** F   zp,rel (BBR/BBS)
+        .byte $5A   ; 010 110    10      ($0000,X)   10  indirect absolute,X (JMP)
 
 ; *  relative is special-cased so format bits don't match
 ; ** zp,rel format byte is a sentinel ($02): length=2 for the byte-hex dump,
@@ -1477,7 +1615,7 @@ MNEML:
     .byte $a3,$29,$ae,$18,$19,$ae,$ae,$69    ; SMB DEY TXA BBS BCC TYA TXS LDY
     .byte $69,$69,$a8,$a8,$19,$23,$ad,$24    ; LDA LDX TAY TAX BCS CLV TSX CPY
     .byte $23,$53,$29,$c0,$1b,$23,$8a,$a5    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $24,$53,$7c,$19,$a1,$8b,$a0        ; CPX INX NOP BEQ SED PLX SBC
+    .byte $24,$a0,$53,$7c,$19,$a1,$8b        ; CPX SBC INX NOP BEQ SED PLX
 
 ;
 MNEMR:
@@ -1489,7 +1627,7 @@ MNEMR:
     .byte $86,$b4,$44,$e8,$08,$84,$68,$74    ; SMB DEY TXA BBS BCC TYA TXS LDY
     .byte $44,$72,$b4,$b2,$28,$6e,$32,$74    ; LDA LDX TAY TAX BCS CLV TSX CPY
     .byte $a2,$f4,$b2,$94,$cc,$4a,$72,$62    ; CMP INY DEX WAI BNE CLD PHX STP
-    .byte $72,$f2,$22,$a4,$8a,$72,$c8        ; CPX INX NOP BEQ SED PLX SBC
+    .byte $72,$c8,$f2,$22,$a4,$8a,$72        ; CPX SBC INX NOP BEQ SED PLX
 
 ;
 ; Entries with bit 7 set ($80) are bit-test/manipulation instructions
@@ -1510,11 +1648,12 @@ IDX_NAME:
     .byte $34,$30,$30,$02,$2f,$30,$31,$a8,$35,$30,$36,$02,$2f,$30,$31,$ab  ; $B0-$BF  SMB3/BBS3
     .byte $37,$38,$02,$02,$37,$38,$13,$a8,$39,$38,$3a,$3b,$37,$38,$13,$ab  ; $C0-$CF  SMB4/BBS4
     .byte $3c,$38,$38,$02,$02,$38,$13,$a8,$3d,$38,$3e,$3f,$02,$38,$13,$ab  ; $D0-$DF  SMB5/BBS5
-    .byte $40,$46,$02,$02,$40,$46,$0b,$a8,$41,$46,$42,$02,$40,$46,$0b,$ab  ; $E0-$EF  SMB6/BBS6
-    .byte $43,$46,$46,$02,$02,$46,$0b,$a8,$44,$46,$45,$02,$02,$46,$0b,$ab  ; $F0-$FF  SMB7/BBS7
+    .byte $40,$41,$02,$02,$40,$41,$0b,$a8,$42,$41,$43,$02,$40,$41,$0b,$ab  ; $E0-$EF  SMB6/BBS6
+    .byte $44,$41,$41,$02,$02,$41,$0b,$a8,$45,$41,$46,$02,$02,$41,$0b,$ab  ; $F0-$FF  SMB7/BBS7
 
 ;
-; Low nibble $F (BBR0..BBR7 / BBS0..BBS7) uses mode $F (zp,rel)
+; Low nibble $F (BBR0..BBR7 / BBS0..BBS7) uses mode $F (zp,rel).
+; JMP ($nnnn,X) ($7C) uses mode $10 (indirect absolute,X).
 IDX_MODE2:
     .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$f
     .byte $d,$7,$e,$0,$2,$8,$8,$2,$4,$a,$5,$0,$3,$9,$9,$f
@@ -1523,7 +1662,7 @@ IDX_MODE2:
     .byte $4,$6,$0,$0,$0,$2,$2,$2,$4,$1,$5,$0,$3,$3,$3,$f
     .byte $d,$7,$e,$0,$0,$8,$8,$2,$4,$a,$4,$0,$0,$9,$9,$f
     .byte $4,$6,$0,$0,$2,$2,$2,$2,$4,$1,$5,$0,$b,$3,$3,$f
-    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$4,$0,$9,$9,$9,$f
+    .byte $d,$7,$e,$0,$8,$8,$8,$2,$4,$a,$4,$0,$10,$9,$9,$f
     .byte $d,$6,$0,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$f
     .byte $d,$7,$e,$0,$8,$8,$c,$2,$4,$a,$4,$0,$3,$9,$9,$f
     .byte $1,$6,$1,$0,$2,$2,$2,$2,$4,$1,$4,$0,$3,$3,$3,$f
