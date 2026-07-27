@@ -198,14 +198,14 @@ LIB_reset_serbuf:
 ;================================================================================
 
 LIB_flush_ps2buf:
-    ldx #80
+    ldx #$80
 @flush:
     stz INPUT_BUFFER,x
     inx
     bne @flush
 LIB_reset_ps2buf:
     pha
-    lda #80
+    lda #$80
     sta PS2IN_WPTR
     sta PS2IN_RPTR
     pla
