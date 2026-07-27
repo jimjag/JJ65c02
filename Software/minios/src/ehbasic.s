@@ -350,9 +350,18 @@ IrqBase:         .res 3         ; IRQ handler enabled/setup/triggered flags
 ;               .res 1          ; IRQ handler addr low byte
 ;               .res 1          ; IRQ handler addr high byte
 
+BASIC_ZP_end     := IrqBase+2
+
+; The number-to-decimal-string buffer used to live here with only 2 bytes
+; reserved, but FAC1_TO_STR writes up to ~17 bytes from Decss (sign, digits,
+; decimal point, exponent, trailing null), silently spilling past the end of
+; the ZEROPAGE segment. Every access is LDA/STA abs,Y (no zp,Y mode exists)
+; or a #</#> pointer load, so the buffer costs nothing to keep out of zero
+; page. It now lives in SYSRAM, honestly sized.
+.segment "SYSRAM"
 Decss:           .res 1         ; number to decimal string start
-Decssp1:         .res 1         ; number to decimal string start - Was 16?!
-BASIC_ZP_end     := Decssp1
+Decssp1:         .res 19        ; number to decimal string buffer
+.segment "ZEROPAGE"
 
 ; token values needed for BASIC
 ; primary command tokens (can start a statement)
