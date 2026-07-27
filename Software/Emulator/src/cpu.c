@@ -16,6 +16,7 @@ cpu * new_cpu() {
     memset(m->mem, 0x00, MEMORY_SIZE);
     m->cycle = 0;
     m->terminal = NULL;
+    m->shutdown = false;
     return m;
 }
 

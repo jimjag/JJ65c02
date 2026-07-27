@@ -50,6 +50,13 @@
 #define MEMORY_ORIGINX (TRACE_ORIGINX) + (TRACE_WIDTH)
 #define MEMORY_ORIGINY (TERMINAL_ORIGINY) + (TERMINAL_HEIGHT)
 
+// The layout above is fixed-size, so it simply does not fit in a small
+// terminal. The memory pane's bottom edge sets the minimum height and the
+// terminal pane's right edge sets the minimum width; derive both from the
+// pane geometry so they cannot drift out of sync with it.
+#define GUI_MIN_LINES ((MEMORY_ORIGINY) + (MEMORY_HEIGHT))
+#define GUI_MIN_COLS  ((TERMINAL_ORIGINX) + (TERMINAL_WIDTH))
+
 #define CYCLES_SKIP 100
 
 uint8_t io_supports_paint;
@@ -68,8 +75,40 @@ WINDOW *wnd_trace_content = NULL;
 WINDOW *wnd_memory = NULL;
 WINDOW *wnd_memory_content = NULL;
 
+// newwin() does not bounds-check a pane against the screen: a window placed
+// past the last row is created happily and then silently clipped at refresh
+// time. The size check in init_gui() is what catches an undersized terminal;
+// this wrapper only covers the remaining case of an allocation failure, which
+// would otherwise leave a NULL window whose every mvwprintw()/wrefresh()
+// quietly returns ERR.
+static WINDOW *new_pane(int height, int width, int originy, int originx,
+                        const char *what) {
+    WINDOW *win = newwin(height, width, originy, originx);
+    if (win == NULL) {
+        endwin();
+        fprintf(stderr,
+                "x65c02: could not create the %s pane (%dx%d at row %d, col %d).\n",
+                what, height, width, originy, originx);
+        exit(EXIT_FAILURE);
+    }
+    return win;
+}
+
 void init_gui(cpu *m) {
     initscr();
+
+    // initscr() has now worked out the screen size, so check it before
+    // laying anything out.
+    if (LINES < GUI_MIN_LINES || COLS < GUI_MIN_COLS) {
+        endwin();
+        fprintf(stderr,
+                "x65c02: terminal is %dx%d, but the GUI needs at least %dx%d"
+                " (rows x cols).\n"
+                "Resize the window, or set LINES/COLUMNS when running headless.\n",
+                LINES, COLS, GUI_MIN_LINES, GUI_MIN_COLS);
+        exit(EXIT_FAILURE);
+    }
+
     cbreak();
     noecho();
     nodelay(stdscr, TRUE);
@@ -86,14 +125,14 @@ void init_gui(cpu *m) {
         }
     }
 
-    wnd_terminal = newwin(TERMINAL_HEIGHT, TERMINAL_WIDTH, TERMINAL_ORIGINY, TERMINAL_ORIGINX);
-    wnd_terminal_content = newwin(TERMINAL_ROWS, TERMINAL_COLS, TERMINAL_ORIGINY+1, TERMINAL_ORIGINX+1);
-    wnd_monitor = newwin(MONITOR_HEIGHT, MONITOR_WIDTH, MONITOR_ORIGINY, MONITOR_ORIGINX);
-    wnd_monitor_content = newwin(MONITOR_ROWS, MONITOR_COLS, MONITOR_ORIGINY+1, MONITOR_ORIGINX+1);
-    wnd_trace = newwin(TRACE_HEIGHT, TRACE_WIDTH, TRACE_ORIGINY, TRACE_ORIGINX);
-    wnd_trace_content = newwin(TRACE_ROWS, TRACE_COLS, TRACE_ORIGINY+1, TRACE_ORIGINX+1);
-    wnd_memory = newwin(MEMORY_HEIGHT, MEMORY_WIDTH, MEMORY_ORIGINY, MEMORY_ORIGINX);
-    wnd_memory_content = newwin(MEMORY_ROWS, MEMORY_COLS, MEMORY_ORIGINY+1, MEMORY_ORIGINX+1);
+    wnd_terminal = new_pane(TERMINAL_HEIGHT, TERMINAL_WIDTH, TERMINAL_ORIGINY, TERMINAL_ORIGINX, "terminal");
+    wnd_terminal_content = new_pane(TERMINAL_ROWS, TERMINAL_COLS, TERMINAL_ORIGINY+1, TERMINAL_ORIGINX+1, "terminal content");
+    wnd_monitor = new_pane(MONITOR_HEIGHT, MONITOR_WIDTH, MONITOR_ORIGINY, MONITOR_ORIGINX, "CPU monitor");
+    wnd_monitor_content = new_pane(MONITOR_ROWS, MONITOR_COLS, MONITOR_ORIGINY+1, MONITOR_ORIGINX+1, "CPU monitor content");
+    wnd_trace = new_pane(TRACE_HEIGHT, TRACE_WIDTH, TRACE_ORIGINY, TRACE_ORIGINX, "bus trace");
+    wnd_trace_content = new_pane(TRACE_ROWS, TRACE_COLS, TRACE_ORIGINY+1, TRACE_ORIGINX+1, "bus trace content");
+    wnd_memory = new_pane(MEMORY_HEIGHT, MEMORY_WIDTH, MEMORY_ORIGINY, MEMORY_ORIGINX, "memory");
+    wnd_memory_content = new_pane(MEMORY_ROWS, MEMORY_COLS, MEMORY_ORIGINY+1, MEMORY_ORIGINX+1, "memory content");
     scrollok(wnd_trace_content, TRUE);
     scrollok(wnd_terminal_content, TRUE);
     clearok(wnd_terminal_content, TRUE);

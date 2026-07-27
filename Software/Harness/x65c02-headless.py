@@ -70,8 +70,12 @@ def main() -> int:
         steps = [ln.rstrip("\n") for ln in f
                  if ln.strip() and not ln.lstrip().startswith("#")]
 
+    # The emulator's GUI is a fixed-size layout needing at least 60 rows by
+    # 120 columns. Anything shorter does not fail, it just silently clips the
+    # bottom of the memory pane out of the transcript (at 50 rows only 23 of
+    # its 32 dump rows survive), so keep LINES at or above the minimum.
     os.environ.setdefault("TERM", "xterm-256color")
-    os.environ["LINES"] = "50"
+    os.environ["LINES"] = "60"
     os.environ["COLUMNS"] = "132"
 
     master, slave = pty.openpty()
