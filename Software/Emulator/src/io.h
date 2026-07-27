@@ -29,6 +29,12 @@
 // Set from main.c's -p option; consumed by init_io().
 extern const char *picolink_path;
 
+// Path to tee every byte the 6502 writes to $A800 to, or NULL for no tee.
+// Set from main.c's -o option; consumed by init_io(). The ncurses Terminal pane
+// is unreadable in a captured pty (differential redraw rewrites in place), so
+// this is the only way a scripted run can see what a program actually printed.
+extern const char *conlog_path;
+
 void init_io();
 void finish_io();
 void handle_io(cpu *m);

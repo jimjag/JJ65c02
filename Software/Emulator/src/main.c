@@ -20,6 +20,7 @@ void usage() {
     printf("  -s run almost as fast as possible (sprint)\n");
     printf("  -f run fast\n");
     printf("  -p PATH connect to the JJ65c02 Pico VGA/Sound sim at unix socket PATH\n");
+    printf("  -o PATH tee every console byte ($A800 writes) to PATH\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
     bool non_stop = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:snfp:")) != -1) {
+    while ((c = getopt(argc, argv, "hb:snfp:o:")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -55,8 +56,12 @@ int main(int argc, char *argv[]) {
             picolink_path = optarg;
             break;
 
+        case 'o':
+            conlog_path = optarg;
+            break;
+
         case '?':
-            if (optopt == 'b' || optopt == 'p') {
+            if (optopt == 'b' || optopt == 'p' || optopt == 'o') {
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
             }
             usage();

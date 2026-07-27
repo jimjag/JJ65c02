@@ -64,6 +64,9 @@ def main() -> int:
                     help="hard wall-clock limit; emulator is killed after this")
     ap.add_argument("--char-delay", type=float, default=0.05,
                     help="pause between keystrokes; raise if keys get dropped")
+    ap.add_argument("--console", default=None,
+                    help="write everything the ROM prints to the console here "
+                         "(emulator -o); the readable channel for program output")
     args = ap.parse_args()
 
     with open(args.script) as f:
@@ -79,7 +82,11 @@ def main() -> int:
     os.environ["COLUMNS"] = "132"
 
     master, slave = pty.openpty()
-    p = subprocess.Popen([EMU, f"-{args.speed}", args.rom],
+    cmd = [EMU, f"-{args.speed}"]
+    if args.console:
+        cmd += ["-o", args.console]
+    cmd.append(args.rom)
+    p = subprocess.Popen(cmd,
                          stdin=slave, stdout=slave,
                          stderr=subprocess.DEVNULL, close_fds=True)
     os.close(slave)

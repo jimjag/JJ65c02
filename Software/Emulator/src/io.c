@@ -15,12 +15,23 @@
 // Set via -p PATH in main.c; NULL disables the Pico sim link.
 const char *picolink_path = NULL;
 
+// Set via -o PATH in main.c; NULL disables the console tee.
+const char *conlog_path = NULL;
+static FILE *conlog = NULL;
+
 void init_io() {
     picolink_init(picolink_path);
+    if (conlog_path != NULL) {
+        conlog = fopen(conlog_path, "w");
+    }
 }
 
 void finish_io() {
     picolink_close();
+    if (conlog != NULL) {
+        fclose(conlog);
+        conlog = NULL;
+    }
 }
 
 void handle_io(cpu *m) {
@@ -59,6 +70,12 @@ void handle_io(cpu *m) {
   if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
     uint16_t addr = m->dirty_mem_addr;
     if (addr == IO_PUTCHAR) {
+      // Tee the byte before anything else so the log is the same whether or not
+      // a Pico sim is attached, and is flushed in case the run is SIGKILLed.
+      if (conlog != NULL) {
+        fputc(m->mem[addr], conlog);
+        fflush(conlog);
+      }
       // Forward every byte the 6502 writes to $A800 to the Pico sim, which
       // renders it via the real firmware. When no sim is attached, fall back to
       // the local ncurses terminal so the emulator remains usable standalone.

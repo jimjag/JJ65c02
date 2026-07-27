@@ -8,6 +8,7 @@ TUI output, and writes an ANSI-stripped transcript for grepping.
 
 ```
 ./x65c02-headless.py ROM SCRIPT -o transcript.txt [--raw raw.bin]
+                     [--console console.txt]
                      [--speed s|f|n] [--boot SECS] [--deadline SECS]
                      [--char-delay SECS]
 ```
@@ -21,7 +22,46 @@ Run it from the repository root so the relative ROM paths below work.
 | `--deadline SECS` | hard wall-clock limit; the emulator is killed after this |
 | `--char-delay SECS` | pause between keystrokes |
 | `--raw FILE` | also save the unmodified pty bytes |
+| `--console FILE` | everything the ROM printed, in order (emulator `-o`) |
 | `-o FILE` | ANSI-stripped transcript (default `transcript.txt`) |
+
+## Use `--console` to read program output
+
+`--console` is the option to reach for first. It passes the emulator's `-o`
+flag, which tees every byte the 6502 writes to `$A800` straight to a file.
+That file is what the ROM actually printed — plain text, in order, no escape
+soup, kilobytes instead of megabytes:
+
+```
+ Testing RAM... FAIL
+7. Run EhBASIC Interpreter
+6502 EhBASIC ver 2.22p5.14j [C]old/[W]arm ?
+39679 Bytes free
+Ready
+PRINT 1/3
+ .333333
+```
+
+It also captures the `ESC[Z..Z` graphics sequences the ROM sends to the Pico,
+so `RECT 10,20,30,40,5` is checkable as `^[[Z23;10;20;30;40;5Z`.
+
+Use it instead of grepping the ncurses transcript for anything a program
+printed. The Terminal pane is subject to the differential-redraw problem below
+and is effectively unreadable; `--console` is not, because it taps the I/O
+write before ncurses ever sees it. Reserve the transcript for questions about
+the *GUI* — pane layout, the memory dump, the bus trace.
+
+Two things to know when scripting a session:
+
+- **Use `--speed n` (non-stop) or `s` (sprint) for anything that types.** In
+  `f` (fast) the emulator sleeps 5 ms per instruction, so EhBASIC's cold-start
+  RAM sizing never finishes and the `[C]old/[W]arm ?` prompt eats every key you
+  send. The comment in `gui.c` says NON_STOP "never polls the keyboard", which
+  is true of the *GUI* keys (Esc, F5-F8) but not of typing: `handle_io()` calls
+  `getch()` on every instruction in every mode, so scripted input works in `-n`.
+- **Supermon pre-fills the next `A <addr>` prompt after each assembly.** Do not
+  type the `A <addr>` yourself on continuation lines; send just the instruction,
+  or every other line errors with `?`.
 
 Exit status is 0 if the script ran to completion, 1 if the emulator died
 early or the deadline was hit. The closing line also prints `emulator ok`
