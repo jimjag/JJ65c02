@@ -239,17 +239,24 @@ LIB_have_ps2data:
 ;================================================================================
 ;
 ;   LIB_short2str - Convert and print the 2 byte value at R0 to Ascii number (eg: "2562")
+;   LIB_byte2str  - Convert and print the 1 byte value at R0 to Ascii number (eg: "254")
 ;
+;   A byte is just a short with a zero high byte, so LIB_byte2str clears it and
+;   falls straight through.  Keeping one conversion here rather than two near
+;   copies means there is only one place to get the digit handling right.
 ;   ————————————————————————————————————
-;   Preparatory Ops: R0
+;   Preparatory Ops: R0 (LIB_short2str: R0 and R0+1)
 ;
 ;   Returned Values: none
 ;
-;   Destroys:        .A, .X, .Y
+;   Destroys:        .A, .X, .Y, Z0, Z1, Z2, R0
 ;   ————————————————————————————————————
 ;
 ;================================================================================
 
+LIB_byte2str:
+    stz R0+1                    ; high byte of a 1 byte value is always zero
+                                ; and fall through
 LIB_short2str:
     sed
     stz Z2
@@ -275,7 +282,7 @@ LIB_short2str:
 
     lda Z2          ; 10k place
     and #%00001111
-    adc #'0'
+    ora #'0'
     cmp #'0'
     bne @w10000
     ldy #1          ; We have skipped a zero
@@ -290,7 +297,7 @@ LIB_short2str:
     lsr
     lsr
     lsr
-    adc #'0'
+    ora #'0'
     cpy #1          ; Are we still checking for starting 0s?
     bne @w1000
     cmp #'0'
@@ -302,7 +309,7 @@ LIB_short2str:
 @hund:
     pla             ; 100s place
     and #%00001111
-    adc #'0'
+    ora #'0'
     cpy #1          ; Still??
     bne @w100
     cmp #'0'
@@ -318,7 +325,7 @@ LIB_short2str:
     lsr
     lsr
     lsr
-    adc #'0'
+    ora #'0'
     cpy #1          ; C'mon!
     bne @w10
     cmp #'0'
@@ -329,73 +336,7 @@ LIB_short2str:
 @ones:
     pla             ; 1s place
     and #%00001111
-    adc #'0'        ; Write no matter what
-    jmp CON_write_byte
-    ;rts
-
-;================================================================================
-;
-;   LIB_byte2str - Convert and print the 1 byte value at R0 to Ascii number (eg: "254")
-;
-;   ————————————————————————————————————
-;   Preparatory Ops: R0
-;
-;   Returned Values: none
-;
-;   Destroys:        .A, .X, .Y, Z0, Z1
-;   ————————————————————————————————————
-;
-;================================================================================
-
-LIB_byte2str:
-    sed
-    stz Z1
-    stz Z0
-    stz R0+1
-    ldx #8
-    ldy #0          ; Our skipped starting 0s flag
-@loop:
-    asl R0          ; Shift out one bit
-    rol R0+1
-    lda Z0          ; And add into result
-    adc Z0
-    sta Z0
-    lda Z1          ; propagating any carry
-    adc Z1
-    sta Z1
-    dex             ; And repeat for next bit
-    bne @loop
-    cld             ; Back to binary
-
-    lda Z1             ; 100s place
-    and #%00001111
-    adc #'0'
-    cmp #'0'
-    bne @w100
-    ldy #1
-    bra @tens
-@w100:
-    jsr CON_write_byte
-
-@tens:
-    lda Z0          ; 10s place
-    pha
-    lsr
-    lsr
-    lsr
-    lsr
-    adc #'0'
-    cpy #1          ; C'mon!
-    bne @w10
-    cmp #'0'
-    beq @ones
-@w10:
-    jsr CON_write_byte
-
-@ones:
-    pla             ; 1s place
-    and #%00001111
-    adc #'0'        ; Write no matter what
+    ora #'0'        ; Write no matter what
     jmp CON_write_byte
     ;rts
 

@@ -2136,613 +2136,168 @@ LAB_TTY:
     pla
     jmp BASIC_WARM              ; go do warm start
 
-; perform RECT x, y, w, h, color
-; Draws a rectangle by emitting escape sequence: ESC[Z23;<x>;<y>;<w>;<h>;<color>Z
-
-LAB_RECT:
-    jsr LAB_EVNM                ; evaluate x expression (numeric)
-    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
-
-    lda Itempl                  ; save x low byte
-    pha
-    lda Itemph                  ; save x high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save y low byte
-    pha
-    lda Itemph                  ; save y high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate w expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save w low byte
-    pha
-    lda Itemph                  ; save w high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate h expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save h low byte
-    pha
-    lda Itemph                  ; save h high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_GTBY                ; evaluate color expression, get byte in X
-    txa
-    pha                         ; save color
-
-    ; Now emit: ESC[Z23;<x>;<y>;<w>;<h>;<color>Z
-    ; Send ESC[Z prefix
-    lda #<x_escZ_prefix
-    sta CON_SPTR
-    lda #>x_escZ_prefix
-    sta CON_SPTR+1
-    jsr CON_write_string
-
-    ; Send "23"
-    lda #'2'
-    jsr CON_write_byte
-    lda #'3'
-    jsr CON_write_byte
-
-    ; Pull color (on top of stack)
-    pla
-    sta Z6
-
-    ; Pull h
-    pla                         ; h high byte
-    sta R3+1
-    pla                         ; h low byte
-    sta R3
-
-    ; Pull w
-    pla                         ; w high byte
-    sta R2+1
-    pla                         ; w low byte
-    sta R2
-
-    ; Pull y
-    pla                         ; y high byte
-    sta R1+1
-    pla                         ; y low byte
-    sta R1
-
-    ; Pull x
-    pla                         ; x high byte
-    sta R0+1
-    pla                         ; x low byte
-    sta R0
-
-    ; Send ";<x>"
-    lda #';'
-    jsr CON_write_byte
-    jsr LIB_short2str
-
-    ; Send ";<y>"
-    lda #';'
-    jsr CON_write_byte
-    lda R1
-    sta R0
-    lda R1+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<w>"
-    lda #';'
-    jsr CON_write_byte
-    lda R2
-    sta R0
-    lda R2+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<h>"
-    lda #';'
-    jsr CON_write_byte
-    lda R3
-    sta R0
-    lda R3+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<color>"
-    lda #';'
-    jsr CON_write_byte
-    lda Z6
-    sta R0
-    stz R0+1
-    jsr LIB_short2str
-
-    ; Send final 'Z'
-    lda #'Z'
-    jsr CON_write_byte
-
-    rts
-
-; perform CIRCLE x, y, r, color
-; Draws a circle by emitting escape sequence: ESC[Z25;<x>;<y>;<r>;<color>Z
-
-LAB_CIRCLE:
-    jsr LAB_EVNM                ; evaluate x expression (numeric)
-    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
-
-    lda Itempl                  ; save x low byte
-    pha
-    lda Itemph                  ; save x high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save y low byte
-    pha
-    lda Itemph                  ; save y high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate r expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save r low byte
-    pha
-    lda Itemph                  ; save r high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_GTBY                ; evaluate color expression, get byte in X
-    txa
-    pha                         ; save color
-
-    ; Now emit: ESC[Z25;<x>;<y>;<r>;<color>Z
-    lda #<x_escZ_prefix
-    sta CON_SPTR
-    lda #>x_escZ_prefix
-    sta CON_SPTR+1
-    jsr CON_write_string
-
-    ; Send "25"
-    lda #'2'
-    jsr CON_write_byte
-    lda #'5'
-    jsr CON_write_byte
-
-    ; Pull color
-    pla
-    sta Z6
-
-    ; Pull r
-    pla                         ; r high byte
-    sta R2+1
-    pla                         ; r low byte
-    sta R2
-
-    ; Pull y
-    pla                         ; y high byte
-    sta R1+1
-    pla                         ; y low byte
-    sta R1
-
-    ; Pull x
-    pla                         ; x high byte
-    sta R0+1
-    pla                         ; x low byte
-    sta R0
-
-    ; Send ";<x>"
-    lda #';'
-    jsr CON_write_byte
-    jsr LIB_short2str
-
-    ; Send ";<y>"
-    lda #';'
-    jsr CON_write_byte
-    lda R1
-    sta R0
-    lda R1+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<r>"
-    lda #';'
-    jsr CON_write_byte
-    lda R2
-    sta R0
-    lda R2+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<color>"
-    lda #';'
-    jsr CON_write_byte
-    lda Z6
-    sta R0
-    stz R0+1
-    jsr LIB_short2str
-
-    ; Send final 'Z'
-    lda #'Z'
-    jsr CON_write_byte
-
-    rts
-
-; perform RECTF x, y, w, h, color
-; Draws a filled rectangle by emitting escape sequence: ESC[Z24;<x>;<y>;<w>;<h>;<color>Z
-
-LAB_RECTF:
-    jsr LAB_EVNM                ; evaluate x expression (numeric)
-    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
-
-    lda Itempl                  ; save x low byte
-    pha
-    lda Itemph                  ; save x high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save y low byte
-    pha
-    lda Itemph                  ; save y high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate w expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save w low byte
-    pha
-    lda Itemph                  ; save w high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate h expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save h low byte
-    pha
-    lda Itemph                  ; save h high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_GTBY                ; evaluate color expression, get byte in X
-    txa
-    pha                         ; save color
-
-    ; Now emit: ESC[Z24;<x>;<y>;<w>;<h>;<color>Z
-    lda #<x_escZ_prefix
-    sta CON_SPTR
-    lda #>x_escZ_prefix
-    sta CON_SPTR+1
-    jsr CON_write_string
-
-    ; Send "24"
-    lda #'2'
-    jsr CON_write_byte
-    lda #'4'
-    jsr CON_write_byte
-
-    ; Pull color
-    pla
-    sta Z6
-
-    ; Pull h
-    pla                         ; h high byte
-    sta R3+1
-    pla                         ; h low byte
-    sta R3
-
-    ; Pull w
-    pla                         ; w high byte
-    sta R2+1
-    pla                         ; w low byte
-    sta R2
-
-    ; Pull y
-    pla                         ; y high byte
-    sta R1+1
-    pla                         ; y low byte
-    sta R1
-
-    ; Pull x
-    pla                         ; x high byte
-    sta R0+1
-    pla                         ; x low byte
-    sta R0
-
-    ; Send ";<x>"
-    lda #';'
-    jsr CON_write_byte
-    jsr LIB_short2str
-
-    ; Send ";<y>"
-    lda #';'
-    jsr CON_write_byte
-    lda R1
-    sta R0
-    lda R1+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<w>"
-    lda #';'
-    jsr CON_write_byte
-    lda R2
-    sta R0
-    lda R2+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<h>"
-    lda #';'
-    jsr CON_write_byte
-    lda R3
-    sta R0
-    lda R3+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<color>"
-    lda #';'
-    jsr CON_write_byte
-    lda Z6
-    sta R0
-    stz R0+1
-    jsr LIB_short2str
-
-    ; Send final 'Z'
-    lda #'Z'
-    jsr CON_write_byte
-
-    rts
-
-; perform CIRCLEF x, y, r, color
-; Draws a filled circle by emitting escape sequence: ESC[Z26;<x>;<y>;<r>;<color>Z
-
-LAB_CIRCLEF:
-    jsr LAB_EVNM                ; evaluate x expression (numeric)
-    jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
-
-    lda Itempl                  ; save x low byte
-    pha
-    lda Itemph                  ; save x high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save y low byte
-    pha
-    lda Itemph                  ; save y high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate r expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save r low byte
-    pha
-    lda Itemph                  ; save r high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_GTBY                ; evaluate color expression, get byte in X
-    txa
-    pha                         ; save color
-
-    ; Now emit: ESC[Z26;<x>;<y>;<r>;<color>Z
-    lda #<x_escZ_prefix
-    sta CON_SPTR
-    lda #>x_escZ_prefix
-    sta CON_SPTR+1
-    jsr CON_write_string
-
-    ; Send "26"
-    lda #'2'
-    jsr CON_write_byte
-    lda #'6'
-    jsr CON_write_byte
-
-    ; Pull color
-    pla
-    sta Z6
-
-    ; Pull r
-    pla                         ; r high byte
-    sta R2+1
-    pla                         ; r low byte
-    sta R2
-
-    ; Pull y
-    pla                         ; y high byte
-    sta R1+1
-    pla                         ; y low byte
-    sta R1
-
-    ; Pull x
-    pla                         ; x high byte
-    sta R0+1
-    pla                         ; x low byte
-    sta R0
-
-    ; Send ";<x>"
-    lda #';'
-    jsr CON_write_byte
-    jsr LIB_short2str
-
-    ; Send ";<y>"
-    lda #';'
-    jsr CON_write_byte
-    lda R1
-    sta R0
-    lda R1+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<r>"
-    lda #';'
-    jsr CON_write_byte
-    lda R2
-    sta R0
-    lda R2+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<color>"
-    lda #';'
-    jsr CON_write_byte
-    lda Z6
-    sta R0
-    stz R0+1
-    jsr LIB_short2str
-
-    ; Send final 'Z'
-    lda #'Z'
-    jsr CON_write_byte
-
-    rts
-
-; perform PLOT x1, y1, x2, y2, color
-; Draws a line by emitting escape sequence: ESC[Z22;<x1>;<y1>;<x2>;<y2>;<color>Z
+; perform RECT / RECTF / CIRCLE / CIRCLEF / PLOT
+;
+; The five graphics commands are the same command with different numbers:
+; each evaluates a few 16-bit coordinates followed by a colour byte and sends
+;
+;       ESC [ Z <cmd> ; <arg> ; ... ; <colour> Z
+;
+; to the Pico.  They differ only in the command number and in how many
+; coordinates they take, so each entry point loads those two values and hands
+; over to GRA_EMIT.
+;
+;   PLOT    x1, y1, x2, y2, colour     ESC[Z22;x1;y1;x2;y2;colourZ
+;   RECT    x,  y,  w,  h,  colour     ESC[Z23;x;y;w;h;colourZ
+;   RECTF   x,  y,  w,  h,  colour     ESC[Z24;x;y;w;h;colourZ
+;   CIRCLE  x,  y,  r,      colour     ESC[Z25;x;y;r;colourZ
+;   CIRCLEF x,  y,  r,      colour     ESC[Z26;x;y;r;colourZ
 
 LAB_PLOT:
-    jsr LAB_EVNM                ; evaluate x1 expression (numeric)
+    ldx #4                      ; x1, y1, x2, y2
+    lda #GRA_C_PLOT
+    bra GRA_EMIT
+
+LAB_RECT:
+    ldx #4                      ; x, y, w, h
+    lda #GRA_C_RECT
+    bra GRA_EMIT
+
+LAB_RECTF:
+    ldx #4                      ; x, y, w, h
+    lda #GRA_C_RECTF
+    bra GRA_EMIT
+
+LAB_CIRCLE:
+    ldx #3                      ; x, y, r
+    lda #GRA_C_CIRCLE
+    bra GRA_EMIT
+
+LAB_CIRCLEF:
+    ldx #3                      ; x, y, r
+    lda #GRA_C_CIRCLEF
+    bra GRA_EMIT
+
+; Command numbers, as the literal digit pairs that go on the wire.
+GRA_C_PLOT    = 0
+GRA_C_RECT    = 2
+GRA_C_RECTF   = 4
+GRA_C_CIRCLE  = 6
+GRA_C_CIRCLEF = 8
+
+GRA_CMDTAB:
+    .byte "22"                  ; PLOT
+    .byte "23"                  ; RECT
+    .byte "24"                  ; RECTF
+    .byte "25"                  ; CIRCLE
+    .byte "26"                  ; CIRCLEF
+
+; Zero page scratch.  Z3-Z6 are safe to hold state across LAB_EVNM: EhBASIC
+; keeps to its own page ($32-$C9), LIB_short2str only touches Z0-Z2, and
+; neither interrupt handler uses the Z registers at all.
+GRA_CMD := Z3                   ; offset into GRA_CMDTAB
+GRA_CNT := Z4                   ; argument count, then argument count in bytes
+GRA_IDX := Z5                   ; argument counter, then R0-R3 byte offset
+GRA_COL := Z6                   ; colour byte
+
+;================================================================================
+;
+;   GRA_EMIT - evaluate a graphics command's arguments and send its escape
+;              sequence to the Pico
+;
+;   ————————————————————————————————————
+;   Preparatory Ops: .A is the command's offset into GRA_CMDTAB, .X the count
+;                    of 16-bit arguments (at most 4, they are held in R0-R3)
+;
+;   Returned Values: none
+;
+;   Destroys:        .A, .X, .Y, Z0-Z6, R0-R3
+;   ————————————————————————————————————
+;
+;   Every argument is evaluated before any output is sent, so a syntax error
+;   part way along the argument list cannot leave a half-written escape
+;   sequence on the wire.  Evaluated arguments wait on the hardware stack
+;   rather than in R0-R3, because evaluating a later argument is free to use
+;   the zero page scratch registers itself.
+;
+;   The command number goes out as literal digits from GRA_CMDTAB rather than
+;   through LIB_short2str, so the two-digit form the Pico expects does not
+;   depend on how the number formatter treats leading zeros.
+;
+;================================================================================
+
+GRA_EMIT:
+    sta GRA_CMD
+    stx GRA_CNT
+
+    stz GRA_IDX                 ; read the coordinate arguments
+@arg:
+    lda GRA_IDX
+    beq @first                  ; the first one has no comma in front of it
+    jsr SCAN_COMMA              ; scan for ","
+@first:
+    jsr LAB_EVNM                ; evaluate expression (numeric)
     jsr LAB_F2FX                ; convert to integer in Itempl/Itemph
-
-    lda Itempl                  ; save x1 low byte
+    lda Itempl                  ; park it on the hardware stack, low byte first
     pha
-    lda Itemph                  ; save x1 high byte
+    lda Itemph
     pha
+    inc GRA_IDX
+    lda GRA_IDX
+    cmp GRA_CNT
+    bne @arg
 
     jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y1 expression
-    jsr LAB_F2FX                ; convert to integer
+    jsr LAB_GTBY                ; evaluate colour expression, byte in .X
+    stx GRA_COL
 
-    lda Itempl                  ; save y1 low byte
-    pha
-    lda Itemph                  ; save y1 high byte
-    pha
+; everything has been evaluated, so from here on nothing can fail
 
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate x2 expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save x2 low byte
-    pha
-    lda Itemph                  ; save x2 high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_EVNM                ; evaluate y2 expression
-    jsr LAB_F2FX                ; convert to integer
-
-    lda Itempl                  ; save y2 low byte
-    pha
-    lda Itemph                  ; save y2 high byte
-    pha
-
-    jsr SCAN_COMMA              ; scan for ","
-    jsr LAB_GTBY                ; evaluate color expression, get byte in X
-    txa
-    pha                         ; save color
-
-    ; Now emit: ESC[Z22;<x1>;<y1>;<x2>;<y2>;<color>Z
-    lda #<x_escZ_prefix
+    lda #<x_escZ_prefix         ; send "ESC[Z"
     sta CON_SPTR
     lda #>x_escZ_prefix
     sta CON_SPTR+1
     jsr CON_write_string
 
-    ; Send "22"
-    lda #'2'
+    ldx GRA_CMD                 ; send the two digits of the command number
+    lda GRA_CMDTAB,x            ; (CON_write_byte preserves .X)
     jsr CON_write_byte
-    lda #'2'
+    lda GRA_CMDTAB+1,x
     jsr CON_write_byte
 
-    ; Pull color (on top of stack)
-    pla
-    sta Z6
+    asl GRA_CNT                 ; count arguments in bytes from here on
+    ldx GRA_CNT                 ; unwind them into R0-R3.  They come back off
+@pop:                           ; the stack in reverse order, which is exactly
+    pla                         ; the order needed to fill R0-R3 from the top
+    dex                         ; down
+    sta R0,x
+    bne @pop
 
-    ; Pull y2
-    pla                         ; y2 high byte
-    sta R3+1
-    pla                         ; y2 low byte
-    sta R3
-
-    ; Pull x2
-    pla                         ; x2 high byte
-    sta R2+1
-    pla                         ; x2 low byte
-    sta R2
-
-    ; Pull y1
-    pla                         ; y1 high byte
-    sta R1+1
-    pla                         ; y1 low byte
-    sta R1
-
-    ; Pull x1
-    pla                         ; x1 high byte
-    sta R0+1
-    pla                         ; x1 low byte
+    stz GRA_IDX                 ; send ";<arg>" for each argument in turn
+@send:
+    lda #';'
+    jsr CON_write_byte
+    ldx GRA_IDX                 ; copy this argument down to R0 for
+    lda R0+1,x                  ; LIB_short2str.  Only arguments that have
+    sta R0+1                    ; already been sent get overwritten
+    lda R0,x
     sta R0
-
-    ; Send ";<x1>"
-    lda #';'
-    jsr CON_write_byte
     jsr LIB_short2str
+    inc GRA_IDX
+    inc GRA_IDX
+    lda GRA_IDX
+    cmp GRA_CNT
+    bne @send
 
-    ; Send ";<y1>"
-    lda #';'
+    lda #';'                    ; send ";<colour>"
     jsr CON_write_byte
-    lda R1
-    sta R0
-    lda R1+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<x2>"
-    lda #';'
-    jsr CON_write_byte
-    lda R2
-    sta R0
-    lda R2+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<y2>"
-    lda #';'
-    jsr CON_write_byte
-    lda R3
-    sta R0
-    lda R3+1
-    sta R0+1
-    jsr LIB_short2str
-
-    ; Send ";<color>"
-    lda #';'
-    jsr CON_write_byte
-    lda Z6
+    lda GRA_COL
     sta R0
     stz R0+1
     jsr LIB_short2str
 
-    ; Send final 'Z'
-    lda #'Z'
-    jsr CON_write_byte
-
-    rts
+    lda #'Z'                    ; and close the sequence
+    jmp CON_write_byte
 
 ; perform REM, skip (rest of) line
 
