@@ -317,12 +317,19 @@ Sendl           = Asptl         ; BASIC pointer temp low byte
 Sendh           = Aspth         ; BASIC pointer temp low byte
 
 ; the following locations are bulk initialized from ZP_INC_BPNTRL at INIT_COPY_ZP_LOOP
+; This whole 28-byte region holds a copy of the ZP_INC_BPNTRL..StrTab
+; subroutine, executed in page zero. Bpntrl/Bpntrh are not standalone
+; variables: they are the operand bytes of the "lda $FFFF" instruction at
+; LAB_GBYT, and the 19 bytes after Bpntrh hold the tail of the routine
+; (the cmp/sbc/rts sequence). Do not shrink Bpntrh: the .assert at
+; INIT_COPY_ZP_LOOP checks that this region exactly fits the routine.
 LAB_IGBY:        .res 6         ; get next BASIC byte subroutine
 
 LAB_GBYT:        .res 1         ; get current BASIC byte subroutine
 Bpntrl:          .res 1         ; BASIC execute (get byte) pointer low byte
-Bpntrh:          .res 20        ; BASIC execute (get byte) pointer high byte
-                                ; plus extra space - should be just .res 1 ???
+Bpntrh:          .res 20        ; BASIC execute (get byte) pointer high byte,
+                                ; then 19 more bytes of copied subroutine code
+ZP_SUBR_end:
 ; end of get BASIC char subroutine
 ; end bulk initialize from ZP_INC_BPNTRL at INIT_COPY_ZP_LOOP
 
@@ -537,7 +544,10 @@ INIT_COPY_PG2_LOOP:
     lda #$4C                    ; code for JMP
     sta Fnxjmp                  ; save for jump vector for functions
 
-; copy block from ZP_INC_BPNTRL to $00BC - $00D7
+; copy the get-BASIC-byte subroutine into page zero at LAB_IGBY.
+; The reserved ZP region must exactly fit the routine; if this assert
+; fires, resize Bpntrh so the region is StrTab-ZP_INC_BPNTRL bytes.
+.assert (StrTab - ZP_INC_BPNTRL) = (ZP_SUBR_end - LAB_IGBY), error, "ZP copy of ZP_INC_BPNTRL routine does not fit its reserved space"
     ldx #StrTab-ZP_INC_BPNTRL   ; set byte count
 INIT_COPY_ZP_LOOP:
     lda ZP_INC_BPNTRL-1,X       ; get byte from table
