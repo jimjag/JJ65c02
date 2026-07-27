@@ -1,12 +1,37 @@
 #include "emu.h"
 
+#include <signal.h>
 #include <stdio.h>
+#include <string.h>
 #include "functions.h"
 #include "opcodes.h"
 #include "gui.h"
 #include "io.h"
 
 #define NEXT_BYTE(cpu) (read_next_byte((cpu), pc_offset++))
+
+static volatile sig_atomic_t sigint_caught = 0;
+
+static void on_sigint(int sig) {
+    (void) sig;
+    sigint_caught = 1;
+}
+
+bool emu_interrupted(void) {
+    return sigint_caught != 0;
+}
+
+static void catch_sigint(void) {
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof sa);
+    sa.sa_handler = on_sigint;
+    sigemptyset(&sa.sa_mask);
+    // deliberately no SA_RESTART: a blocking call must return so the flag can
+    // be noticed
+    sa.sa_flags = 0;
+    sigaction(SIGINT, &sa, NULL);
+}
 
 void main_loop(cpu *m) {
     uint8_t opcode;
@@ -25,6 +50,7 @@ void main_loop(cpu *m) {
     // after we move to the next instruction
     int8_t branch_offset = 0;
 
+    catch_sigint();
     init_gui(m);
     init_io();
 
@@ -72,14 +98,18 @@ void main_loop(cpu *m) {
         m->cycle+=translate_opcode_cycles(opcode);
 
         do {
+            if (emu_interrupted()) {
+                m->shutdown = true;
+            }
             // update IO data
             handle_io(m);
             update_gui(m);
             // clear dirty memory flag immediately so that subsequent runs don't
             // redo whatever I/O operation is associated with the dirty memaddr
             m->emu_flags &= ~EMU_FLAG_DIRTY;
+            // ...and drop out of a WAI that no interrupt is going to end
         } while ((m->emu_flags & EMU_FLAG_WAIT_FOR_INTERRUPT) &&
-                 !m->interrupt_waiting);
+                 !m->interrupt_waiting && !m->shutdown);
 
         if (m->interrupt_waiting && !get_flag(m, FLAG_INTERRUPT)) {
             STACK_PUSH(m, (m->pc & 0xFF00) >> 8);

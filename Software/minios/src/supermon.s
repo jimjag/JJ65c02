@@ -6,6 +6,7 @@
 .include "console.inc"
 
 .importzp BASIC_ZP_start
+.importzp BASIC_ZP_end
 .export SUPER_main
 ENABLE_ASSEMBLER = 1
 ; ********************************************************
@@ -75,6 +76,17 @@ ASMBIT  := BITDIG+1             ; assembler: bit digit 0-7 parsed from a 4-char
                                 ; mnemonic (RMB5 etc.), or $FF if none was typed.
                                 ; Separate from BITDIG, which INSTXX rewrites for
                                 ; every candidate opcode during the match scan.
+ASMZP   := ASMBIT+1             ; assembler: first operand of the BBRn/BBSn
+                                ; "$zp,$target" form, held until the second operand
+                                ; has parsed so an error can't leave a partly
+                                ; written instruction in memory.
+ASTKSP  := ASMZP+1              ; assembler: stack pointer on entry to the opcode
+                                ; match loop, so CHEKOP can abandon a candidate
+                                ; from whatever depth it was called at.
+
+ZPTOP   := ASTKSP               ; last byte supermon claims; keep this pointing at
+                                ; the final definition above so the guard below
+                                ; still means something.
 
 ; temporary pointers
 TMP0    := R0; BITDIG+1            ; used to return input, often holds end address - 2 bytes
@@ -89,6 +101,12 @@ OUTCH   = MN_IOVW_c            ; output a character (like CHROUT)
 ; set up origin
 
 .segment "CODE"
+
+; supermon's zero page overlays the window EhBASIC owns, so growing the chain
+; above silently corrupts BASIC variables instead of failing the build. Catch it
+; here. The test has to be a *link-time* assertion: BASIC_ZP_end is an imported
+; symbol and so is not a constant expression at assembly time.
+.assert ZPTOP <= BASIC_ZP_end, lderror, "supermon zero page overruns EhBASIC's ZP window"
 
 ;:
 ; -----------------------------------------------------------------------------
@@ -517,10 +535,31 @@ ALMOR:
     cpx #3                      ; have we read 3 characters yet?
     bne AGET2                   ; if not, get next character
 
-; peek at a possible 4th char: a bit digit 0-7 for RMBn/SMBn/BBRn/BBSn. If it
-; is a digit, capture it in ASMBIT and consume it; otherwise back up one char so
-; the operand parser sees it (mirrors the disassembler's BITDIG handling).
+; peek at a possible 4th char: a bit digit 0-7 for RMBn/SMBn/BBRn/BBSn. If it is
+; a digit, capture it in ASMBIT and consume it; otherwise back up one char so the
+; operand parser sees it (mirrors the disassembler's BITDIG handling).
+;
+; Check the mnemonic before consuming anything, though: only RMB/SMB/BBR/BBS take
+; a 4th character, and they are the only mnemonics whose 2nd letter is M or B
+; *and* whose 3rd is B, R or S. Without the gate a mnemonic typed without a
+; separating space - say "JMP1234" - loses its leading operand digit to the
+; bit-number scan below. (The letters are tested rather than the packed name so
+; regenerating the opcode tables cannot invalidate this.)
 ABITDG:
+    lda MNEMW+1                 ; 2nd letter: M (RMB/SMB) or B (BBR/BBS)
+    cmp #'M'
+    beq @third
+    cmp #'B'
+    bne ASQEEZ                  ; not a bit mnemonic; leave the char for the operand
+@third:
+    lda MNEMW+2                 ; 3rd letter: B (RMB/SMB) or R/S (BBR/BBS)
+    cmp #'B'
+    beq @bitmn
+    cmp #'R'
+    beq @bitmn
+    cmp #'S'
+    bne ASQEEZ                  ; not a bit mnemonic; leave the char for the operand
+@bitmn:
     jsr GETCHR                  ; get the char following the 3-letter mnemonic
     sec
     sbc #'0'                    ; convert ASCII to numeric
@@ -601,6 +640,10 @@ AFORM1:
 ; find matching opcode
 AESCAN:
     stx STORE                   ; save number of bytes in assembly buffer
+    tsx                         ; remember how deep the stack is here: CHEKOP
+    stx ASTKSP                  ;   abandons a candidate by jumping back to ATRYOP
+                                ;   and must undo however many frames it was called
+                                ;   through to get there
     ldx #0                      ; start at opcode $00 and check every one until
     stx OPCODE                  ;   we find one that matches our criteria
 ATRYOP:
@@ -805,11 +848,21 @@ ABITREL:
     asl a
     ora OPCODE
     sta OPCODE
+                                ; LENGTH is deliberately not set here. A1BYTE's
+                                ; tail reads it for BUMPAD2, but only after its
+                                ; jsr DISLIN, and DISLIN's own jsr INSTXX rewrites
+                                ; LENGTH from the opcode just stored at (TMP2) - so
+                                ; it is 2 by recomputation, not by inheritance from
+                                ; whatever FINDBBR's last INSTXX call left behind.
+                                ; Setting it explicitly costs 4 bytes and the ROM
+                                ; has none spare; if that changes, set it.
     jsr GETPAR                  ; first operand: the zero-page byte -> TMP0
     bcs SERROR                  ; none given => error
     lda TMP0
-    ldy #1
-    sta (TMP2),y                ; store zp byte at offset 1
+    sta ASMZP                   ; hold it. Nothing is written through (TMP2) until
+                                ;   both operands have parsed and the branch is in
+                                ;   range, so an error can no longer leave the zp
+                                ;   byte stored against a half-built instruction
     jsr GETPAR                  ; second operand: the branch target -> TMP0
     bcs SERROR                  ; none given => error
     lda TMP2                    ; STASH = TMP2 + 3 (PC after this 3-byte inst)
@@ -835,8 +888,11 @@ ABITREL:
     txa                         ; forward: low byte must have bit 7 clear
     bmi SERROR                  ;   (> 127 otherwise)
 @relok:
+    lda ASMZP                   ; both operands are good; now commit them
+    ldy #1
+    sta (TMP2),y                ; store zp byte at offset 1
     txa                         ; the signed 8-bit offset
-    ldy #2
+    iny
     sta (TMP2),y                ; store rel at offset 2
     ldy #0                      ; A1BYTE stores OPCODE at (TMP2),0
     jmp A1BYTE                  ; emit opcode + shared CRLF/DISLIN/advance tail
@@ -862,8 +918,12 @@ CHEKOP:
     ldx U9F                     ; get current index into work buffer
     cmp U0AA0,X                 ; check whether this opcode matches the buffer
     beq OPOK                    ;   matching so far, check the next criteria
-    pla                         ; didn't match, so throw away return address
-    pla                         ;   on the stack because we're starting over
+    ldx ASTKSP                  ; didn't match, so unwind to the depth ATRYOP runs
+    txs                         ;   at and start over. Popping a fixed two bytes
+                                ;   was only right for ATRYOP's direct calls; via
+                                ;   CHEK2B's inner jsr it stranded CHEK2B's own
+                                ;   return address, and ERROR never resets the
+                                ;   stack, so the leak survived back to the prompt
 BUMPOP:
     inc OPCODE                  ; check the next opcode
     beq SERROR2                 ; error if we tried every opcode and none fit

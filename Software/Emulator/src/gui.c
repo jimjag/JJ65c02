@@ -6,6 +6,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
+#include "emu.h"
 #include "gui.h"
 #include "io.h"
 
@@ -175,6 +176,8 @@ void update_gui(cpu *m) {
     // and the F5-F8 mode-switch keys are ignored, so the emulator can only be
     // stopped by a STP opcode or Ctrl-C, and the mode cannot be changed from the
     // keyboard. NON_STOP is therefore a one-way, command-line-only (-n) mode.
+    // Ctrl-C is caught in emu.c and routed to m->shutdown, so it still exits
+    // through finish_io()/finish_gui() the way Esc does in the other modes.
     if (m->clock_mode == CLOCK_NON_STOP) {
       ;
     }
@@ -196,7 +199,14 @@ void update_gui(cpu *m) {
           read = getch();
           break;
         case CLOCK_STEP:
-          while ((read = getch()) == ERR);
+          // this wait is the one place the emulator sits indefinitely, so it
+          // has to notice Ctrl-C itself rather than leave it to the main loop
+          while ((read = getch()) == ERR) {
+            if (emu_interrupted()) {
+              m->shutdown = true;
+              return;
+            }
+          }
           do_step = true;
           break;
       }
