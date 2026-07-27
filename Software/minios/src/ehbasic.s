@@ -358,6 +358,10 @@ BASIC_ZP_end     := IrqBase+2
 ; the ZEROPAGE segment. Every access is LDA/STA abs,Y (no zp,Y mode exists)
 ; or a #</#> pointer load, so the buffer costs nothing to keep out of zero
 ; page. It now lives in SYSRAM, honestly sized.
+;
+; SCAN_SRCHC_STR decides whether a string must be copied out to string space by
+; testing its pointer's high byte against this buffer's page, so that test has
+; to keep naming Decss if the buffer ever moves again.
 .segment "SYSRAM"
 Decss:           .res 1         ; number to decimal string start
 Decssp1:         .res 19        ; number to decimal string buffer
@@ -4659,7 +4663,15 @@ SCAN_STR_SAVE_END:
 ;      CMP   #>Ram_base        ; compare with start of program memory
 ;      BCS   LAB_RTST          ; branch if not in utility area
 ; *** with
-    beq LAB_MVST                ; fix STR$() using page zero via FAC1_TO_STR_STR
+    cmp #>Decss                 ; fix STR$() using the Decss scratch buffer.
+    beq LAB_MVST                ;   This tests the page Decss lives in, so it has
+                                ;   to follow Decss when the buffer moves: it was
+                                ;   a bare beq (against a zero high byte) for as
+                                ;   long as Decss was in page zero. Get it wrong
+                                ;   and STR$ returns a pointer into the shared
+                                ;   scratch buffer instead of a copy in string
+                                ;   space, so the next conversion overwrites a
+                                ;   string the program is still holding.
     cmp #>Ibuffs                ; compare with location of input buffer page
     bne LAB_RTST                ; branch if not in utility area
 LAB_MVST:
