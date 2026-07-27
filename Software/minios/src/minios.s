@@ -80,7 +80,6 @@ main:                           ; boot routine, first thing loaded
     cld
     ; null out our status "register"
     stz MINIOS_STATUS
-    stz MSTKP                   ; empty the mini extra stack
 
     ; Check RAM - since this is at boot time, we can also check the
     ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)
@@ -91,6 +90,9 @@ main:                           ; boot routine, first thing loaded
     sta Z1
     jsr MINIOS_test_ram_core
 .ENDIF
+    ; Nothing in SYSRAM may be initialized above this line: the RAM test
+    ; walks all of RAM0 and leaves every byte of it rewritten.
+    stz MSTKP                   ; empty the mini extra stack
     lda #8
     sta CLK_SPD                 ; Assume a 8Mhz clock to start
 
