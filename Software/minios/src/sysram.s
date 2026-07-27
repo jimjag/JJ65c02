@@ -19,8 +19,8 @@
 .exportzp R1
 .exportzp R2
 .exportzp R3
-.exportzp MSTK
-.exportzp MSTKP
+.export MSTK
+.export MSTKP
 .exportzp MINIOS_STATUS
 .exportzp ACIA_SPTR
 .exportzp CON_SPTR
@@ -76,10 +76,6 @@ R1:     .res 2
 R2:     .res 2
 R3:     .res 2
 
-; Mini Extra Stack - In ZP for speed but it doesn't matter
-MSTK:    .res 16
-MSTKP:   .res 1
-
 ; The below are for the interface to the Pi Pico graphics. We re-use
 ; space for those commands that don't share variables
 GX0 :=          R0      ; X0 coordinate
@@ -112,6 +108,11 @@ SYSMEM_ZP_end := XMODEM_pend + 1   ; Everything after here is allocated
 .segment "SYSRAM"
 
 INPUT_BUFFER:   .res 256    ; Used for both Serial (0x00-0x7f) and PS/2 input (0x80-0xff)
+
+; Mini Extra Stack - accessed only via LIB_MSTK_PUSH/PULL (absolute,Y),
+; so it gains nothing from zero page; kept here to preserve ZP headroom
+MSTK:           .res 16
+MSTKP:          .res 1
 CLK_SPD:        .res 1      ; Clock speed, in MHz
 BANK_NUM:       .res 1      ; Current RAM bank number in use
 PICO_DATA:      .res 1      ; data _from_ the Pi Pico

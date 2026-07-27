@@ -80,6 +80,7 @@ main:                           ; boot routine, first thing loaded
     cld
     ; null out our status "register"
     stz MINIOS_STATUS
+    stz MSTKP                   ; empty the mini extra stack
 
     ; Check RAM - since this is at boot time, we can also check the
     ; RAM set aside for SYSRAM (RAM0 in the cc65 config file)

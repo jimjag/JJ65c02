@@ -13,8 +13,8 @@ _SYSRAM_INC_ = 1
 .importzp R1
 .importzp R2
 .importzp R3
-.importzp MSTK
-.importzp MSTKP
+.import MSTK
+.import MSTKP
 .importzp MINIOS_STATUS
 .importzp ACIA_SPTR
 .importzp CON_SPTR
