@@ -977,6 +977,12 @@ LAB_INLN:
 ; $08 as delete key (BACKSPACE on standard keyboard)
 DELETE_LAST_CHAR:
     jsr LAB_PRNA                ; go print the character
+; the [BACKSPACE] only moved the cursor, so erase the character it went over.
+; both go out through V_OUTP, LAB_PRNA would count the space as a column
+    lda #' '                    ; space, erasing the character
+    jsr V_OUTP                  ; output it
+    lda #$08                    ; [BACKSPACE], back over the space
+    jsr V_OUTP                  ; output it
     dex                         ; decrement the buffer counter (delete)
       .byte $2C                 ; make LDX into BIT abs
 
@@ -1300,10 +1306,14 @@ FLUSH_STACK_CLR_CONT:
     pla                         ; pull return address low byte
     tax                         ; copy return address low byte
     pla                         ; pull return address high byte
+; an interrupt taken here pushes over the address forged below it, so the RTS
+; returns to the interrupted PC instead of the caller
+    sei                         ; no interrupt over the saved return address
     stx LAB_SKFE                ; save to cleared stack
     sta LAB_SKFF                ; save to cleared stack
     ldx #$FD                    ; new stack pointer
     txs                         ; reset stack
+    cli                         ; pushes now land below the saved address
     lda #$00                    ; clear byte
 ;*** fix p2: no longer necessary as the continue pointer is saved anyway
 ;      STA   Cpntrh            ; clear continue pointer high byte
