@@ -9079,6 +9079,10 @@ LAB_load:
     sta XMODEM_pstart+1
     sta Smemh
     jsr XMODEM_recv
+    bcc @loaded
+    jsr DO_NEW_CLEAR            ; Failed or aborted: leave an empty program
+    jmp REBUILD_LINE_CHAIN
+@loaded:
     lda XMODEM_pstart           ; Now adjust where the program ends and vars begin
     sta Svarl
     lda XMODEM_pstart+1

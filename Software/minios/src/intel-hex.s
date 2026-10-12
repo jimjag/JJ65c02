@@ -27,7 +27,7 @@ LOADINTEL:
     ldx #$00                    ; Zero in X for use in Indexed Indirect addressing
     stz CRCCHECK                ; If CRCCHECK=0, all is good
 @INTELLINE:
-    jsr TTY_read_char           ; Get char
+    jsr TTY_read_char_blk       ; Get char (wait for one)
     sta IN,y                    ; Store it
     iny                         ; Next
     cmp #TTY_char_ESC           ; Escape ?

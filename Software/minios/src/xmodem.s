@@ -152,6 +152,9 @@ XMODEM_send:
 ;   Preparatory Ops: Load address must be stored in XMODEM_pstart,XMODEM_pstart+1
 ;
 ;   Returned Values: Ending address-1 stored in XMODEM_pstart,XMODEM_pstart+1
+;                    C clear on success; C set on failure or abort, with
+;                    .A = error code ($FE aborted, $FD/$FC bad block header,
+;                    $FB out of RAM)
 ;   ————————————————————————————————————
 ;
 ;================================================================================
@@ -178,9 +181,9 @@ XMODEM_recv:
 @GotByte1:
     cmp #TTY_char_ESC           ; quitting?
     bne @CheckSOH               ; no
-    lda #$FE                    ; Error code in "A" of desired
-    ;sta $1000                   ; XXX DEBUGGING
-    rts                         ; YES - do BRK or change to RTS if desired
+    lda #$FE                    ; aborted
+    sec
+    rts
 @CheckSOH:
     cmp #TTY_char_SOH           ; Start of block?
     beq @BegBlk                 ; yes
@@ -204,23 +207,22 @@ XMODEM_recv:
     lda YMBUF,x                 ; get block # from buffer
     cmp BLKNO                   ; compare to expected block #
     beq @GoodBlk1               ; matched!
-    ACIA_writeln XM_error_msg   ; Unexpected block number - abort
- ;   LCD_writeln XM_error_msg    ; Unexpected block number - abort
-    jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
-    lda #$FD                    ; put error code in "A" if desired
-    ;sta $1000                   ; XXX DEBUGGING
-    rts                         ; unexpected block # - fatal error - BRK or RTS
+    inc                         ; the previous block again?
+    cmp BLKNO
+    bne @BadBlkNo
+    lda #TTY_char_ACK           ; sender missed our ACK: ACK again, drop the data
+    jsr ACIA_write_byte
+    jmp @StartBlk
+@BadBlkNo:
+    lda #$FD                    ; unexpected block # - fatal error
+    jmp @Fail
 @GoodBlk1:
     eor #$ff                    ; 1's comp of block #
     inx
     cmp YMBUF,x                 ; compare with expected 1's comp of block #
     beq @GoodBlk2               ; matched!
-    ACIA_writeln XM_error_msg   ; Unexpected block number - abort
- ;   LCD_writeln XM_error_msg    ; Unexpected block number - abort
-    jsr LIB_flush_serbuf        ; mismatched - flush buffer and then do BRK
-    lda #$FC                    ; put error code in "A" if desired
-    ;sta $1000                   ; XXX DEBUGGING
-    rts                         ; bad 1's comp of block#
+    lda #$FC                    ; bad 1's comp of block#
+    jmp @Fail
 @GoodBlk2:
     jsr CalcCRC                 ; calc CRC
     lda YMBUF,y                 ; get hi CRC from buffer
@@ -248,6 +250,20 @@ XMODEM_recv:
     jmp @StartBlk
 
 @GoodCRC:
+    lda #<PROGRAM_END           ; room for another 128 bytes below PROGRAM_END?
+    sec
+    sbc XMODEM_pstart
+    tax
+    lda #>PROGRAM_END
+    sbc XMODEM_pstart+1
+    bcc @NoRoom
+    bne @Room
+    cpx #128
+    bcs @Room
+@NoRoom:
+    lda #$FB
+    jmp @Fail
+@Room:
     ldx #$02
 @CopyBlk:
     ldy #$00                    ; set offset to zero
@@ -276,6 +292,15 @@ XMODEM_recv:
     ACIA_writeln XM_success_msg
     lda #30
     jsr LIB_delay100ms
+    clc
+    rts
+
+@Fail:
+    pha
+    ACIA_writeln XM_error_msg
+    jsr LIB_flush_serbuf
+    pla
+    sec
     rts
 
 @BadByte:

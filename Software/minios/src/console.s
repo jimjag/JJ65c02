@@ -92,57 +92,6 @@ CON_read_byte_blk:
 
 ;================================================================================
 ;
-;   CON_readln - read up to $USER_BUFFLEN chars from serial input and store in buffer
-;              NOTE: We do NOT echo any rec'd chars back to the console
-;
-;   ————————————————————————————————————
-;   Preparatory Ops: .A is Lo Address of buffer; .X is high; .Y is size of buffer
-;
-;   Returned Values: none
-;
-;   Destroys:        .A, .Y
-;   ————————————————————————————————————
-;
-;================================================================================
-
-;
-CON_readln:
-    sta USER_INPUT_PTR          ; Lo address
-    stx USER_INPUT_PTR+1        ; Hi address
-    sty USER_BUFFLEN
-    jsr CON_reset_user_input
-    dec USER_BUFFLEN
-    ldy #$00                    ; Counter used for tracking where we are in buffer
-@read_next:
-    jsr CON_read_byte
-@enter_pressed:
-    cmp #TTY_char_CR             ; User pressed enter?
-    beq @read_done               ; Yes, don't save the CR
-    cmp #TTY_char_BS
-    beq @is_backspace
-    cmp #TTY_char_DEL
-    bne @save_char
-@is_backspace:
-    cpy #$00                     ; Already at the start of the buffer?
-    beq @read_next               ; Yep
-    dey                          ; Back up a position in our buffer, need to check for $00
-    lda #TTY_char_NULL
-    sta (USER_INPUT_PTR),y       ; Delete the character in our buffer
-    bra @read_next               ; Get the next character
-@save_char:
-    sta (USER_INPUT_PTR),y       ; And save it
-    cpy USER_BUFFLEN             ; Our char buffer full? (incl null)
-    beq @read_done               ; Yes, get out of here
-    iny                          ; Otherwise, move to the next position in the buffer
-    bra @read_next               ; And read the next key
-@read_done:
-    iny                          ; Add a NULL in the next position
-    lda #TTY_char_NULL
-    sta (USER_INPUT_PTR),y       ; Make sure the last char is null
-    rts
-
-;================================================================================
-;
 ;   CON_reset_user_input - clean out console input buffer
 ;
 ;   ————————————————————————————————————

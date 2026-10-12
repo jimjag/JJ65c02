@@ -37,7 +37,8 @@ TTY_setup_term:
 
 ;================================================================================
 ;
-;   TTY_read - read up to $80 chars from serial input and store in buffer:
+;   TTY_readln - read a line from serial input into a buffer of .Y bytes (>= 2),
+;   leaving room for the terminating NUL:
 ;
 ;   ————————————————————————————————————
 ;   Preparatory Ops: .A is Lo Address of buffer; .X is high; .Y is size of buffer
@@ -54,8 +55,9 @@ TTY_readln:
     sta USER_INPUT_PTR          ; Lo address
     stx USER_INPUT_PTR+1        ; Hi address
     sty USER_BUFFLEN
+    dec USER_BUFFLEN            ; last valid index
     jsr TTY_reset_user_input
-    dec USER_BUFFLEN
+    dec USER_BUFFLEN            ; last index that may hold a char (NUL follows)
     ldy #$00                    ; Counter used for tracking where we are in buffer
 @read_next:
     jsr ACIA_read_byte_blk

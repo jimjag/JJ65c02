@@ -168,13 +168,13 @@ MINIOS_main_menu:
     bra @start                  ; should we have an invalid option, restart
 
 @xmodem_load:                   ; load program and go back into menu
-    jsr @do_xmodem_load
+    jsr MINIOS_xmodem_load
     jmp @start
 @ihex_load:                     ; load program and go back into menu
-    jsr @do_ihex_load
+    jsr MINIOS_ihex_load
     jmp @start
 @run:                           ; run a program already loaded
-    jsr @do_run
+    jsr MINIOS_execute
     jmp @start
 @go_wozmon:                     ; start up WOZMON
     jsr WOZMON
@@ -196,15 +196,6 @@ MINIOS_main_menu:
     ;jmp @start
 @about:                         ; start the about routine
     CON_writeln about
-    jmp @start
-@do_xmodem_load:                ; orchestration of program loading
-    jsr MINIOS_xmodem_load      ; call the bootloaders programming routine
-    jmp @start
-@do_ihex_load:                  ; orchestration of program loading
-    jsr MINIOS_ihex_load        ; call the bootloaders programming routine
-    jmp @start
-@do_run:                        ; orchestration of running a program
-    jsr MINIOS_execute
     jmp @start
 
 ;================================================================================

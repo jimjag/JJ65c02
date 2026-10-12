@@ -44,27 +44,21 @@
 ;================================================================================
 
 LIB_bin_to_hex:
-    phy
-    ldy #$ff                                    ; state for output switching #TODO
     pha                                         ; save A for LSD
     lsr
     lsr
     lsr
     lsr                                         ; MSD to LSD position
-    jsr @to_hex                                 ; output hex digit, using internal recursion
+    jsr @nibble
+    tax                                         ; MSN to .X
     pla                                         ; restore A
-@to_hex:
+@nibble:
     and #%00001111                              ; mask LSD for hex print
     ora #'0'                                    ; add '0'
     cmp #'9'+1                                  ; is it a decimal digit?
-    bcc @output                                 ; yes! output it
-    adc #6                                      ; add offset for letter A-F
-@output:
-    iny                                         ; set switch for second nibble processing
-    bne @return                                 ; did we process second nibble already? yes
-    tax                                         ; no
-@return:
-    ply
+    bcc @done                                   ; yes!
+    adc #6                                      ; carry set: adds 7 for letter A-F
+@done:
     rts
 
 ;================================================================================
