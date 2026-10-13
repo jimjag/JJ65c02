@@ -106,7 +106,7 @@ than a slow start.
   `SIM_SOURCE=console`, so it runs the real console firmware (`pico_6502.c`).
 - Each test gets its own socket in a short `/tmp/jjXXXX` directory (pytest's
   temp path exceeds macOS's 104-byte `sun_path`) via `SIM_SOCKET`,
-  and the emulator connects with `-p`. Nothing uses `/tmp/jj65c02.sock`.
+  and the emulator connects with `-p`. Nothing uses `/tmp/jj6502.sock`.
 - `sim_dump.c` today sleeps for a fixed time and dumps once. It gains
   dump-on-demand: on `SIGUSR1` it writes the BMP and keeps running. The file is
   sim-only, so the firmware build is unaffected.

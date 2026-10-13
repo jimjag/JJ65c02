@@ -27,7 +27,7 @@
 ; that need to be updated for *your* system
 ;=====================================================================
 
-; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ65c02, $ver 2.22p5.14j
+; Enhanced BASIC to assemble under 6502 ca65 assembler for JJ6502, $ver 2.22p5.14j
 
 ; $E7E1 $E7CF $E7C6 $E7D3 $E7D1 $E7D5 $E7CF $E81E $E825
 
@@ -541,7 +541,7 @@ Stack_floor       = 16          ; bytes left free on stack for background interr
 ; BASIC cold start entry point
 ; new page 2 initialisation, copy block to ccflag on
 BASIC_COLD:
-    rmb3 MINIOS_STATUS          ; comment out if not JJ65c02
+    rmb3 MINIOS_STATUS          ; comment out if not JJ6502
     stz UseTTY
     ldy #PG2_TABE-PG2_TABS-1    ; byte count-1
 INIT_COPY_PG2_LOOP:
@@ -9138,7 +9138,7 @@ NMI_CODE:
 LAB_mess:
     .asciiz "\r\n6502 EhBASIC ver 2.22p5.14j [C]old/[W]arm ?" ; sign on string
 LAB_SMSG:
-    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.14j\r\nhttps://github.com/jimjag/JJ65c02\r\n"
+    .asciiz " Bytes free\r\nEnhanced BASIC 2.22p5.14j\r\nhttps://github.com/jimjag/JJ6502\r\n"
 ERR_NF:  .asciiz "NEXT without FOR"
 ERR_SN:  .asciiz "Syntax"
 ERR_RG:  .asciiz "RETURN without GOSUB"

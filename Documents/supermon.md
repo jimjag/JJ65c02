@@ -29,7 +29,7 @@ The most visible changes from earlier versions of SUPERMON are:
   - disk status and commands (@);
   - looser (easier) syntax.
 
-This version is a port of that port to the JJ65C02 system. This involved:
+This version is a port of that port to the JJ6502 system. This involved:
 
 - removing the disk status and other related commands
 - port to the ca65 assembler syntax

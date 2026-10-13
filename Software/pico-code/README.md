@@ -1,7 +1,7 @@
 
-# JJ65c02: The RP2040/RP2350 Console Chip
+# JJ6502: The RP2040/RP2350 Console Chip
 
-`pico_core` serves as the core code for the rp2040/rp2350 Pi Pico support chip for the JJ65c02 SBC. It performs 4 main functions:
+`pico_core` serves as the core code for the rp2040/rp2350 Pi Pico support chip for the JJ6502 SBC. It performs 4 main functions:
 
 * Interfaces with a PS/2 keyboard for console input
 * Outputs VGA at 640x480, 4-bit color
@@ -12,7 +12,7 @@
 
 2 __GPIO__ pins are used on the Pi Pico for the PS/2 data and clock signals. Data is
 read and serialized using a __PIO__ state machine. This data is then fed into the
-VGA/terminal subsystem (if desired) as well as sent to the JJ65c02 system using 7 pins on
+VGA/terminal subsystem (if desired) as well as sent to the JJ6502 system using 7 pins on
 the VIA chip and one pin for the data handshake. In general, we expect the 6502 to echo back
 any characters rec'd/sent from the PS/2 system.
 
@@ -191,7 +191,7 @@ Double buffering can be used to minimize flickering if using the Pi Pico2 (RP235
 
 Using double buffering is normally not needed, as the VGA system is extremely fast. However, if you are experiencing flickering or performance issues, double buffering can be a useful technique to mitigate these issues.
 
-Double buffering in JJ65c02 is completely user-controlled, allowing for unparalleled flexibility. This means that you can choose when to switch between buffers, enabling you to optimize performance for your specific use case. In general the logic is as follows:
+Double buffering in JJ6502 is completely user-controlled, allowing for unparalleled flexibility. This means that you can choose when to switch between buffers, enabling you to optimize performance for your specific use case. In general the logic is as follows:
  * Enable double buffering via `enableDB()` or the ANSI Escape `ESC[za;Z`.
  * At the beginning of the animation loop call `show2drawDB()` (or `ESC[z8;Z)`) to copy the current displayed buffer to the drawing buffer (if desired; you can also blank out the drawing buffer and start from scratch if you wish). Any graphics generated after this will be drawn to the drawing buffer.
  * At the end of the loop, signal the VGA system to switch buffers via `switchDB()` (or `ESC[z9;Z`). At the end of the current frame, the drawing and display buffers will be swapped.

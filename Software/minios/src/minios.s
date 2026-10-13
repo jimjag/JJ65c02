@@ -29,18 +29,18 @@
 
 ;================================================================================
 ;
-;                                    "JJ65c02"
+;                                    "JJ6502"
 ;                                    _________
 ;
 ;   miniOS: OS Menu, RAM bootloader/viewer (r/o) w/ Console and serial/tty connection support
 ;
-;   Jim Jagielski for the JJ65c02 Hobby Breadboard Project
-;      ==> https://github.com/jimjag/JJ65c02
+;   Jim Jagielski for the JJ6502 Hobby Breadboard Project
+;      ==> https://github.com/jimjag/JJ6502
 ;
 ;================================================================================
 
 ;--------
-; Assumed memory map (based on the JJ65c02): (see jj65c02.cfg)
+; Assumed memory map (based on the JJ6502): (see jj6502.cfg)
 ;    $0000 - $7fff      RAM: 40k
 ;      . $0000 - $00ff      RAM: Zero Page
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1
@@ -502,9 +502,9 @@ ISR:
 logo:
     .asciiz "     _     _  __  ____   ____ ___ ____\r\n    | |   | |/ /_| ___| / ___/ _ \\___ \\\r\n _  | |_  | | '_ \\___ \\| |  | | | |__) |\r\n| |_| | |_| | (_) |__) | |__| |_| / __/\r\n \\___/ \\___/ \\___/____/ \\____\\___/_____|\r\n"
 message_welcome:
-    .asciiz "      JJ65c02\r\n   miniOS v2.0.0\r\n"
+    .asciiz "      JJ6502\r\n   miniOS v2.0.0\r\n"
 message_welcomeacia:
-    .asciiz "      JJ65c02\r\n  miniOS v2.0.0 ACIA-enabled\r\n"
+    .asciiz "      JJ6502\r\n  miniOS v2.0.0 ACIA-enabled\r\n"
 message_readybasic:
     .asciiz "\r\n Starting EhBASIC\r\n"
 xmodem_readyload:
@@ -526,7 +526,7 @@ message_fail:
 menu_items:
     .asciiz "1. Load RAM Image (via XMODEM) to @0400\r\n2. Load RAM Image (via Intel HEX)\r\n3. Run Prog Loaded @0400\r\n4. Clear RAM\r\n5. Test RAM\r\n6. WOZMON\r\n7. Run EhBASIC Interpreter\r\n8. Run MilliForth\r\n9. Run Supermon+\r\nA. About"
 about:
-    .asciiz "\r\nhttps://github.com/jimjag/JJ65c02"
+    .asciiz "\r\nhttps://github.com/jimjag/JJ6502"
 clock_spd:
     .asciiz "    Clock Mhz: "
 

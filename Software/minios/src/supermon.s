@@ -29,7 +29,7 @@ ENABLE_ASSEMBLER = 1
 ; variables
 .segment "ZEROPAGE"
 
-; for JJ65c02, we re-use ZP memory allocated by EhBASIC. You can
+; for JJ6502, we re-use ZP memory allocated by EhBASIC. You can
 ; use whatever ZP memory you have available.
 
 UseTTY  := BASIC_ZP_start   ; If and when we add TTY command to allow I/O
@@ -113,7 +113,7 @@ OUTCH   = MN_IOVW_c            ; output a character (like CHROUT)
 ; initial entry point
 
 SUPER_main:
-    smb3 MINIOS_STATUS          ; comment out if not JJ65c02
+    smb3 MINIOS_STATUS          ; comment out if not JJ6502
     ldy #MSG4-MSGBAS            ; display banner
     jsr SNDMSG
     lda SUPAD

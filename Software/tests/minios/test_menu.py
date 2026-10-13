@@ -20,7 +20,7 @@ def test_invalid_key_redraws_the_menu(menu, key):
 
 def test_about_prints_the_project_url_then_the_menu(menu):
     out = menu.press(b"A", MENU).decode("latin-1")
-    assert out.startswith("\r\nhttps://github.com/jimjag/JJ65c02\r\n1. Load RAM")
+    assert out.startswith("\r\nhttps://github.com/jimjag/JJ6502\r\n1. Load RAM")
 
 
 # Stop at the first output line: the emulator is too slow for the ROM's cycle-counted delay loops.

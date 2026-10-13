@@ -6,7 +6,7 @@ Private
 ./Software/pico-code/build-demo/
 ./Software/pico-code/cmake-build-debug/
 ./Software/pico-code/pico-sdk/
-./Software/pico-code/sim/jj65c02-sim
+./Software/pico-code/sim/jj6502-sim
 ./Software/pico-code/sim/_sim_dump
 
 # Build outputs

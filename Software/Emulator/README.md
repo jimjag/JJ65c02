@@ -25,7 +25,7 @@ The emulator shows a hex dump of memory, and you can move around that visible me
 To exit the emulator, hit the ***ESC*** key.
 
 ### Limitations
-* The emulator assumes the layout and memory map of the JJ65c02 platform.
+* The emulator assumes the layout and memory map of the JJ6502 platform.
 
 ## Thanks
 Thanks to haldean and all other contributors for the original x6502 project!

@@ -33,7 +33,7 @@ Read from the ROM sources and the built `sim-minios.lbl`/`.map`, **not yet run**
 | Program | Enter | Banner (ends at) | Typed CR echoes as | Idle marker |
 | --- | --- | --- | --- | --- |
 | Wozmon | `6` | `"\r\nWelcome to EWOZMON 1.0.\r\n]"` | `\r\n` | send BS: expect `\x08\r\n` |
-| MilliForth | `8` | `"\r\nMilliForth for JJ65c02\r\nok> "` | `\r` only | count `"\r\nok> "` prompts |
+| MilliForth | `8` | `"\r\nMilliForth for JJ6502\r\nok> "` | `\r` only | count `"\r\nok> "` prompts |
 | Supermon+ | `9` | `"\r\n\r\nSUPERMON+ @ $E786 \r\n\r\n   PC  SR AC XR YR SP   V1.2+\r\n; 0000 00 00 00 00 00 \r\n"` (address varies per build) | `\r` only | send BS: expect `\x08` |
 
 - **Wozmon:** no prompt after a line. Input is upper-cased before the echo, so `a` echoes `A`. `Q` anywhere quits (echoes `Q`, returns to the menu). `R` is `jmp`, so a stored routine ending in `RTS` lands in the **menu**. Examine `0500` + CR prints `"\r\n0500: XX\r\n"` after the echo; store `0500: A9 41` prints the *old* byte the same way; block `0500.0505` prints `"\r\n0500: b0 b1 ... b5\r\n"` (new `"\r\nADDR:"` every 16 bytes).
@@ -404,7 +404,7 @@ class WozmonSession(_Program):
 
 class ForthSession(_Program):
     key = b"8"
-    banner_pattern = b"MilliForth for JJ65c02\r\nok> "
+    banner_pattern = b"MilliForth for JJ6502\r\nok> "
     echo_for = staticmethod(_cr_only_echo)
     PROMPT = b"\r\nok> "
 
@@ -580,7 +580,7 @@ def test_invalid_key_redraws_the_menu(menu, key):
 
 def test_about_prints_the_project_url_then_the_menu(menu):
     out = menu.press(b"A", MENU).decode("latin-1")
-    assert out.startswith("\r\nhttps://github.com/jimjag/JJ65c02\r\n1. Load RAM")
+    assert out.startswith("\r\nhttps://github.com/jimjag/JJ6502\r\n1. Load RAM")
 
 
 def test_clear_ram_reports_and_returns(menu):
@@ -684,7 +684,7 @@ SCRATCH = "s@ s@ +"
 
 
 def test_banner(forth):
-    assert forth.banner == "\r\nMilliForth for JJ65c02\r\nok> "
+    assert forth.banner == "\r\nMilliForth for JJ6502\r\nok> "
 
 
 def test_s_at_pushes_0022(forth):

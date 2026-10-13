@@ -176,7 +176,7 @@ int main()
     setCursor(22, 16);
     drawString("Graphics demo/HA based");
     setCursor(22, 32);
-    drawString("JJ65C02");
+    drawString("JJ6502");
     setCursor(250, 4);
     setTextSize(2);
     setTextColor2(WHITE, RED);

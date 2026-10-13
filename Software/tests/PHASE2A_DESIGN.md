@@ -147,7 +147,7 @@ where one was used. Time is the typed line only.
 | --- | --- | --- | --- |
 | Menu | `Z` | menu text ending `A. About\r\nOK> ` | |
 | Menu | `a` | same menu | |
-| Menu | `A` | `\r\nhttps://github.com/jimjag/JJ65c02\r\n1. Load RAM Image ...` | |
+| Menu | `A` | `\r\nhttps://github.com/jimjag/JJ6502\r\n1. Load RAM Image ...` | |
 | Wozmon | `6` | `\r\nWelcome to EWOZMON 1.0.\r\n]` | |
 | Wozmon | `0500: A9 41 8D 00 A8 60` | `\r\n0500: 00\r\n\x08\r\n` | 0.6-0.7 s |
 | Wozmon | `0500` | `\r\n0500: A9\r\n\x08\r\n` | 0.1 s |
@@ -156,7 +156,7 @@ where one was used. Time is the typed line only.
 | Wozmon | `0500R` (clean routine) | `\r\n0500: A9A\r\n1. Load RAM ...OK> ` | 0.2 s |
 | Wozmon | `Q` | `Q\r\n1. Load RAM ... OK> ` | |
 | Wozmon | `0500: 60`, `0500R` | `\r\n0500: 60\r\n1. Load RAM ... OK> ` | |
-| MilliForth | `8` | `\r\nMilliForth for JJ65c02\r\nok> ` | |
+| MilliForth | `8` | `\r\nMilliForth for JJ6502\r\nok> ` | |
 | MilliForth | `s@ .` | `\r\nok> `, ` 0022\r\nok> ` | 0.1 s |
 | MilliForth | `.S` | `S0496 01  0022\r\nok> ` | 0.1 s |
 | MilliForth | `s@ s@ .S` | 2 x `\r\nok> `, `S0492 03  0022 0022 0022\r\nok> ` | 0.2 s |

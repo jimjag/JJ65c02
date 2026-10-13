@@ -1,12 +1,12 @@
 #!/bin/sh
-# Build the JJ65c02 VGA simulation (SDL3 viewer running the real
+# Build the JJ6502 VGA simulation (SDL3 viewer running the real
 # pico_core_demo.c against a host framebuffer). macOS / Apple silicon baseline.
 #
 # SDL3 is provided by MacPorts under /opt/local. Override SDL_PREFIX / CC to
 # taste. The firmware build (CMake) is unaffected — this never defines HOST_SIM
 # there.
 #
-#   ./build.sh          # build ./jj65c02-sim (SDL viewer, graphics demo)
+#   ./build.sh          # build ./jj6502-sim (SDL viewer, graphics demo)
 #   ./build.sh run      # build, then launch it
 #   ./build.sh dump-build # build the headless harness without running it
 #   ./build.sh dump [s] # build+run the headless BMP snapshot harness (no SDL);
@@ -15,7 +15,7 @@
 # Content source (which .c provides demo_main + core1_main):
 #   SIM_SOURCE=demo     # (default) pico_core_demo.c — the graphics animation
 #   SIM_SOURCE=console  # sim_console.c — render the byte stream from the x65c02
-#                       # emulator (start jj65c02-sim, then: x65c02 -p <socket>)
+#                       # emulator (start jj6502-sim, then: x65c02 -p <socket>)
 # e.g.  SIM_SOURCE=console ./build.sh run
 set -e
 cd "$(dirname "$0")"
@@ -23,7 +23,7 @@ cd "$(dirname "$0")"
 CC="${CC:-cc}"
 SDL_PREFIX="${SDL_PREFIX:-/opt/local}"
 SIM_SOURCE="${SIM_SOURCE:-demo}"
-OUT=jj65c02-sim
+OUT=jj6502-sim
 
 # -Wall -Wextra for our sim code, minus categories inherent to reusing the
 # firmware source as-is (not sim bugs; "fixing" them means changing firmware

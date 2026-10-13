@@ -7,18 +7,18 @@ _MINIOS_INC_ = 1
 
 ;================================================================================
 ;
-;                                    "JJ65c02"
+;                                    "JJ6502"
 ;                                    _________
 ;
 ;   miniOS: RAM bootloader and viewer (r/o) w/ serial connection support
 ;
-;   Jim Jagielski for the JJ65c02 Hobby Breadboard Project
-;      ==> https://github.com/jimjag/JJ65c02
+;   Jim Jagielski for the JJ6502 Hobby Breadboard Project
+;      ==> https://github.com/jimjag/JJ6502
 ;
 ;================================================================================
 
 ;--------
-; Assumed memory map (based on the JJ65c02):
+; Assumed memory map (based on the JJ6502):
 ;    $0000 - $9fff      RAM: 40k
 ;      . $0000 - $00ff      RAM: Zero Page / we use $00-$03
 ;      . $0100 - $01ff      RAM: Stack pointer (sp) / Page 1

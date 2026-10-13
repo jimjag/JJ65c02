@@ -3,7 +3,7 @@
  _  | |_  | | '_ \___ \| |  | | | |__) |
 | |_| | |_| | (_) |__) | |__| |_| / __/
  \___/ \___/ \___/____/ \____\___/_____|
-      JJ65c02
+      JJ6502
    miniOS v2.0.0
     Clock Mhz: 8
 
@@ -24,6 +24,6 @@ OK>
 6502 EhBASIC ver 2.22p5.14j [C]old/[W]arm ?
 39679 Bytes free
 Enhanced BASIC 2.22p5.14j
-https://github.com/jimjag/JJ65c02
+https://github.com/jimjag/JJ6502
 
 Ready

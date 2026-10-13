@@ -21,7 +21,7 @@ wheels = [
 ]
 
 [[package]]
-name = "jj65c02-tests"
+name = "jj6502-tests"
 version = "0"
 source = { virtual = "." }
 

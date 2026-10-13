@@ -12,7 +12,7 @@ Two processes, connected by a byte pipe in each direction — faithful to the
 real two-chip hardware (6502 SBC ⟷ RP2350).
 
 ```
-  ┌─ x65c02 (Emulator/) ────────┐         ┌─ jj65c02-sim (pico-code/sim/) ─┐
+  ┌─ x65c02 (Emulator/) ────────┐         ┌─ jj6502-sim (pico-code/sim/) ─┐
   │  ncurses debugger + CPU     │         │  SDL 640×480 window + renderer  │
   │                             │         │                                 │
   │  sta $A800  ──────────────────pipe A──────▶ getByte() ring ─▶ handleByte│
@@ -42,7 +42,7 @@ The whole system already funnels through the exact seams we need:
   the simulation." Right beside it is a working ring-buffer template — the PS/2
   keyboard feed (`sim_feed_key()` + `ps2GetChar()`, `sim_platform.c:222-249`).
 - **miniOS ships a sim build target.** `make sim` (`minios/src/Makefile`) uses
-  `jj65c02-sim.cfg` + `-D SIM=1`, which strips the ACIA and VIA-IFR interrupt
+  `jj6502-sim.cfg` + `-D SIM=1`, which strips the ACIA and VIA-IFR interrupt
   checks so the ISR jumps straight to `VIA_ihandler` (reads `$A021`) — exactly
   the minimal VIA behavior the emulator can satisfy.
 
@@ -111,13 +111,13 @@ connected.
 ### Phase 4 — Build & run glue
 - `build.sh:36-47`: swap `$DEMO` for `pico_6502.c` in console mode; add
   `sim_link.c` to the link line.
-- Launch: start `jj65c02-sim` (creates socket, opens window), then
-  `./x65c02 -b b000 -p /tmp/jj65c02.sock sim`.
+- Launch: start `jj6502-sim` (creates socket, opens window), then
+  `./x65c02 -b b000 -p /tmp/jj6502.sock sim`.
 
 ## 5. Validation
 
 - Phase 1: point emulator at a byte-logging socket; boot miniOS; confirm the logo
-  / `"JJ65c02 miniOS v2.0.0"` / menu text arrive as a byte stream.
+  / `"JJ6502 miniOS v2.0.0"` / menu text arrive as a byte stream.
 - Phase 2/3: run both; the miniOS boot screen and menu render in the SDL window.
 - Sound: trigger `ESC[Z1;<code>Z` or `\a`; confirm audio (SDL device or
   `sim_audio_probe.c`).

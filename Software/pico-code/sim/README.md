@@ -1,4 +1,4 @@
-# JJ65c02 VGA simulation (macOS / Apple silicon)
+# JJ6502 VGA simulation (macOS / Apple silicon)
 
 Runs the **real firmware demo** (`../pico_core/pico_core_demo.c`) on the
 development machine, drawing into a host copy of the Pico's 640×480 4bpp
@@ -18,7 +18,7 @@ renderer headlessly and compares pixel arrays.
 ## Build & run
 
 ```sh
-./build.sh run          # build ./jj65c02-sim and launch the window
+./build.sh run          # build ./jj6502-sim and launch the window
 ./build.sh              # build only
 ./build.sh dump 2       # headless: render the demo 2s to out.bmp (no display)
 ```
@@ -59,11 +59,11 @@ SIM_SOURCE=console ./build.sh run
 
 # 2. in another shell, build the sim ROM and connect the emulator to it
 ( cd ../../minios/src && make sim )                      # -> sim-minios.rom
-../../Emulator/x65c02 -s -b b000 -p /tmp/jj65c02.sock \
+../../Emulator/x65c02 -s -b b000 -p /tmp/jj6502.sock \
     ../../minios/src/sim-minios.rom
 ```
 
-The socket path defaults to `/tmp/jj65c02.sock`; override with the `SIM_SOCKET`
+The socket path defaults to `/tmp/jj6502.sock`; override with the `SIM_SOCKET`
 env var on the sim and the matching `-p PATH` on the emulator. The emulator needs
 `-s` (sprint) or `-f` (fast); its default STEP mode blocks waiting for keypresses.
 Launch order is forgiving — the emulator retries the connection briefly, and the

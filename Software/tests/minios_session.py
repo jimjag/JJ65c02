@@ -114,7 +114,7 @@ class WozmonSession(_Program):
 
 class ForthSession(_Program):
     key = b"8"
-    banner_pattern = b"MilliForth for JJ65c02\r\nok> "
+    banner_pattern = b"MilliForth for JJ6502\r\nok> "
     echo_for = staticmethod(_cr_only_echo)
     PROMPT = b"\r\nok> "
 

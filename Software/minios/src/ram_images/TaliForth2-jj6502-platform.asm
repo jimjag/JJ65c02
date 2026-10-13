@@ -1,4 +1,4 @@
-; JJ65c02 configuration
+; JJ6502 configuration
 ; This version: 26. Jun 2025
 
         ; 65C02 processor (Tali will not compile on older 6502)
@@ -146,7 +146,7 @@ kernel_kbhit:
 ; in your compiled binary.   Here we inject the build date into the kernel_id:
 
 s_kernel_id:
-        .text "Tali Forth 2 default kernel for the JJ65C02 platform ", TODAY, AscLF, 0
+        .text "Tali Forth 2 default kernel for the JJ6502 platform ", TODAY, AscLF, 0
 
 
 ; =====================================================================

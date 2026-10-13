@@ -1,4 +1,4 @@
-Name     JJ65C02 ;
+Name     JJ6502 ;
 PartNo   00 ;
 Date     10/6/2023 ;
 Revision 01 ;
@@ -11,7 +11,7 @@ Device   p22v10 ;
 /*
   Create JED file: WinCUPL
   Serial Number for WinCUPL: 60008009
-  Program PLD: minipro -p ATF22V10CQZ -w ./JJ65C02.jed
+  Program PLD: minipro -p ATF22V10CQZ -w ./JJ6502.jed
 */
 
 /* Pin Map: ATF22V10C

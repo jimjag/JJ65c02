@@ -1,4 +1,4 @@
-LDCFG = jj65c02.cfg
+LDCFG = jj6502.cfg
 LDMAP = hello_world_scroll.map
 LBL = hello_world_scroll.lbl
 TARGET = hello_world_scroll

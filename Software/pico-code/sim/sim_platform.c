@@ -1,4 +1,4 @@
-// Host platform layer for the JJ65c02 VGA simulation (macOS / Apple silicon).
+// Host platform layer for the JJ6502 VGA simulation (macOS / Apple silicon).
 //
 // This translation unit stands in for everything the firmware's vga_core.c
 // normally supplies to the *portable* renderer in vga_graphics.c:

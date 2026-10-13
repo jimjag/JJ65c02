@@ -1,4 +1,4 @@
-# History and Changelog for the JJ65c02 Project
+# History and Changelog for the JJ6502 Project
 
 ## Intro
 
@@ -155,7 +155,7 @@ But there's so, so much more I want to do...
 ### Oct 20, 2021
 
 Over the last week or so, I've been focusing mostly on the hardware
-aspects of the JJ65c02 project. As noted below, this included some
+aspects of the JJ6502 project. As noted below, this included some
 modifications to the address decoder and chip select circuits. Once
 I was happy with that, I decided to make the transition from breadboard
 to wirewrap.
@@ -185,7 +185,7 @@ expansion.
 ### Oct 17, 2021
 
 Again considering design considerations which would allow
-the JJ65c02 to run as fast as possible, without major alterations
+the JJ6502 to run as fast as possible, without major alterations
 to the BE6502 concept, I've started looking again at the chip
 select decoder logic. This is, after all, the slowest path,
 after the very slow ROM speed (150ns). The propagation delays
@@ -322,7 +322,7 @@ SEGMENTS {
 
 Even though I don't ever expect to move to using PCBs, wirewrapping is the next and likely final step, I decided to play around with designing and laying
 out the design. Kicad makes it easy and the opensource `Freerouting` tool does a pretty good job auto-routing the traces. After all was said and done, I started
-rethinking whether or not one day I may just try implementing JJ65c02 on a PCB.
+rethinking whether or not one day I may just try implementing JJ6502 on a PCB.
 
 --
 
@@ -358,7 +358,7 @@ wired in. The main reason was that it supported `IRQ` notices, whereas
 the more recent `W65C51` chip is known to be broken in that regard.
 So whereas you can use `IRQ` to know when various buffers are ready with
 the `R6551`, you need to simply poll-and-wait with the newer one.
-But I really want to see how fast I can reliably run the `JJ65c02`
+But I really want to see how fast I can reliably run the `JJ6502`
 and the older chip is limited to 2Mhz, whereas the newer one can
 go as fast as the `65c02`.
 
@@ -476,7 +476,7 @@ a 20x4. The extra space will come in handy.
 
 ### Sept 8, 2021
 
-Decide to put everything up on [Github](https://github.com/jimjag/JJ65c02).
+Decide to put everything up on [Github](https://github.com/jimjag/JJ6502).
 
 --
 

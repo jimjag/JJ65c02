@@ -1,4 +1,4 @@
-// Unix-domain socket link between the JJ65c02 VGA/Sound simulation and the
+// Unix-domain socket link between the JJ6502 VGA/Sound simulation and the
 // x65c02 emulator (../../Emulator), standing in for the physical bus between
 // the RP2350 support chip and the 6502 SBC.
 //
@@ -24,7 +24,7 @@
 
 #include "pico_shim.h"
 
-#define SIM_SOCKET_DEFAULT "/tmp/jj65c02.sock"
+#define SIM_SOCKET_DEFAULT "/tmp/jj6502.sock"
 
 static int             listen_fd = -1;
 static volatile int    conn_fd   = -1;   // current emulator connection, or -1

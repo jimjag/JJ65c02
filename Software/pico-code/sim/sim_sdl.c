@@ -1,4 +1,4 @@
-// SDL3 viewer for the JJ65c02 VGA simulation (macOS / Apple silicon baseline).
+// SDL3 viewer for the JJ6502 VGA simulation (macOS / Apple silicon baseline).
 //
 // Owns the process main thread (required for a Cocoa/SDL event loop on macOS):
 // creates the 640x480 window, runs the real pico_core_demo.c on a worker
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     SDL_Window *win = SDL_CreateWindow(
-        "JJ65c02 VGA simulation",
+        "JJ6502 VGA simulation",
         SCREEN_W * SCALE, SCREEN_H * SCALE, SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (!win) { fprintf(stderr, "CreateWindow: %s\n", SDL_GetError()); return 1; }
 

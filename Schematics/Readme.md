@@ -1,5 +1,5 @@
 
-# JJ65c02 : jimjag's 65c02 Breadboard Computer
+# JJ6502 : jimjag's 65c02 Breadboard Computer
 
 Based on [Ben Eaters 6502 Computer](https://eater.net/6502), aka BE6502, this is my own take on his system, following in the long trend of others who have found inspiration and fun due to Ben's work.
 
@@ -43,7 +43,7 @@ The design I came up with requires the use of the ATF22V10C PLD for decoding. Wi
 
 This allows for a pretty sizable ROM-based loader and even OS, as well as extremely large (for a 6502) RAM-based code.
 
-Because of this, Ben's code will not run unmodified on the JJ65c02, but the changes are minimal. And easy.
+Because of this, Ben's code will not run unmodified on the JJ6502, but the changes are minimal. And easy.
 
 ### 65C02
 Ben's design, of course, also uses the 65C02, in fact, the WDC65C02. However his code doesn't use any of the newer opcodes which this later version of the chip provides (like **PHY**). I've decided that as long as we are using the newer chip, we should take not only hardware but software advantage of that. This means, for example, that whatever assembler you use must honor the 65C02 opcode set. For `vasm`, this means you'll need to assemble with `vasm6502_oldstyle -wdc02 -dotdir -Fbin`

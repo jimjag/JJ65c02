@@ -19,7 +19,7 @@ void usage() {
     printf("  -n run as fast as possible (non-stop)\n");
     printf("  -s run almost as fast as possible (sprint)\n");
     printf("  -f run fast\n");
-    printf("  -p PATH connect to the JJ65c02 Pico VGA/Sound sim at unix socket PATH\n");
+    printf("  -p PATH connect to the JJ6502 Pico VGA/Sound sim at unix socket PATH\n");
     printf("  -o PATH tee every console byte ($A800 writes) to PATH\n");
 }
 

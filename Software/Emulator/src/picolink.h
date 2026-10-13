@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// picolink connects the emulator to the JJ65c02 Pico VGA/Sound host simulation
+// picolink connects the emulator to the JJ6502 Pico VGA/Sound host simulation
 // (../pico-code/sim) over a Unix domain socket, standing in for the physical
 // bus between the 6502 SBC and the RP2350 support chip.
 //

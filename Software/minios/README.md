@@ -1,7 +1,7 @@
 
-## JJ65c02: The miniOS
+## JJ6502: The miniOS
 
-`miniOS` is a minimalist minios/ROM OS for the JJ65c02. Even so, it includes some pretty useful functionality:
+`miniOS` is a minimalist minios/ROM OS for the JJ6502. Even so, it includes some pretty useful functionality:
 
 1. __Load__ externally assembled __programs__ into RAM via RS232 serial connection.
 2. __Run__ programs that were previously loaded into RAM.
@@ -32,7 +32,7 @@ ca65 -t none --cpu w65c02 -U -I ./include -o objs/ehbasic.o ehbasic.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/wozmon.o wozmon.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/intel-hex.o intel-hex.s
 ca65 -t none --cpu w65c02 -U -I ./include -o objs/milliforth.o milliforth.s
-ld65 -C ./jj65c02.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o objs/milliforth.o
+ld65 -C ./jj6502.cfg -v -Ln minios.lbl -vm -m minios.map -o minios objs/minios.o objs/sysram.o objs/via.o objs/lib.o objs/acia.o objs/tty.o objs/console.o objs/xmodem.o objs/ehbasic.o objs/wozmon.o objs/intel-hex.o objs/milliforth.o
 Opened `minios.bin'...
   Dumping 'RAM'
     Writing 'BSS'
@@ -100,7 +100,7 @@ Without a doubt, EhBASIC is the largest consumer of zeropage memory. However, yo
 
 ### 2. Allocated RAM
 
-The miniOS also allocates some RAM. In the `jj65c02.cfg`
+The miniOS also allocates some RAM. In the `jj6502.cfg`
 file this is set-aside as `RAM0` and is typically refered to as `SYSRAM`.
 Your programs are free to use `PROG`, `BSS`, `HEAP` and `RWDATA` as needed. (_*NOTE*_: `CODE` is ROM space)
 
@@ -109,7 +109,7 @@ Your programs are free to use `PROG`, `BSS`, `HEAP` and `RWDATA` as needed. (_*N
 As mentioned, one of the main functions of miniOS is as a bootloader,
 which allows you to download/transfer your own pre-assembled code to
 RAM and run it from there. This uses the `W65c51` ACIA chip and the
-`MAX232` TTL-Serial converter card on the `JJ65c02` board.
+`MAX232` TTL-Serial converter card on the `JJ6502` board.
 
 The serial connection is hardcoded as 19200 baud, 8 data bits, 1 stop
 bit, no parity with H/W flow control. This is commonly refered to as `19200-8N1`. Good choices for rs232/vt100 terminals  are `picocom` with `sz` for Mac and Linux, or `ZOC` for Mac.
@@ -120,7 +120,7 @@ To transfer binary code to the board, we offer 2 options: The XMODEM protocol or
 ### XMODEM
 
 To initiate the transfer, connect your "tty" machine (the serial/terminal
-program) to the `JJ65c02` and power up the board. You should see a Welcome
+program) to the `JJ6502` and power up the board. You should see a Welcome
 message on the tty's terminal window. If you don't, check your serial
 settings. You do ***not*** need a null modem connection.
 
@@ -159,16 +159,16 @@ To make it easier, since most of the time 3rd party programs just need to know h
 ## Build and Install the PLD Image
 
 We use the `ATF22V10C` PLD to handle our address logic. First you'll
-need to use `WinCUPL` to compile the `JJ65C02.PLD` file to the `.jed`
+need to use `WinCUPL` to compile the `JJ6502.PLD` file to the `.jed`
 image format expected by the chip. Once you do that, copy over the
 image to the chip using `minipro`
 
 ```
-minipro -p ATF22V10C -w ./JJ65C02.jed
+minipro -p ATF22V10C -w ./JJ6502.jed
 ```
 or
 ```
-minipro -p ATF22V10CQZ -w ./JJ65C02.jed
+minipro -p ATF22V10CQZ -w ./JJ6502.jed
 ```
 A pre-built version of the `JED` file is available in the repo. We've also provided a copy of `WinCUPL` as well.
 

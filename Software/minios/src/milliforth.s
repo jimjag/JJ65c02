@@ -726,7 +726,7 @@ addwx:
 ; extras
 ;----------------------------------------------------------------------
 ; ( -- ) ae tty forth
-; ** This is JJ65C02 specific **
+; ** This is JJ6502 specific **
 def_word "tty", "tty", 0
     lda #(MINIOS_ACIA_ENABLED_FLAG)
     bit MINIOS_STATUS
@@ -1444,4 +1444,4 @@ jump:
 .segment "RODATA"
 
 FORTH_welcome:
-    .asciiz "\r\nMilliForth for JJ65c02" ; sign on string
+    .asciiz "\r\nMilliForth for JJ6502" ; sign on string

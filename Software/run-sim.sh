@@ -4,7 +4,7 @@
 set -e
 cd "$(dirname "$0")"
 
-SOCK=/tmp/jj65c02.sock
+SOCK=/tmp/jj6502.sock
 LINES=60
 COLUMNS=120
 export LINES
@@ -13,7 +13,7 @@ export COLUMNS
 # Build before launching, so compile time is not part of the wait below.
 SIM_SOURCE=console ./pico-code/sim/build.sh
 
-./pico-code/sim/jj65c02-sim &
+./pico-code/sim/jj6502-sim &
 SIM_PID=$!
 trap 'kill "$SIM_PID" 2>/dev/null' EXIT
 

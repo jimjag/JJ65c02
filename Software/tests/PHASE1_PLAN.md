@@ -23,7 +23,7 @@ dependencies beyond pytest.
 - Emulator pty is `LINES=60`, `COLUMNS=132`. Never lower `LINES`.
 - Program output is read from the `-o` console log only, never the pty.
 - The emulator ignores SIGTERM: always SIGKILL.
-- No test uses `/tmp/jj65c02.sock`.
+- No test uses `/tmp/jj6502.sock`.
 - Edits under `pico-code/` touch only `sim/` files; nothing in `pico_core/`.
 - BASIC text typed by tests is upper case ASCII.
 - Comments: none by default; one line for a non-obvious why.
@@ -107,7 +107,7 @@ from the EhBASIC source; do not paste the observed value in as the expectation.
 
 ```toml
 [project]
-name = "jj65c02-tests"
+name = "jj6502-tests"
 version = "0"
 requires-python = ">=3.11"
 
@@ -1606,7 +1606,7 @@ def test_emulator_and_sim_connect_and_snapshot(sim_basic):
 def test_socket_path_is_short_and_private(sim_basic):
     sim, _ = sim_basic
     assert len(str(sim.socket)) < 100
-    assert str(sim.socket) != "/tmp/jj65c02.sock"
+    assert str(sim.socket) != "/tmp/jj6502.sock"
 
 
 def test_nothing_survives_teardown():
