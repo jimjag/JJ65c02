@@ -4,6 +4,7 @@ Program output is read from the emulator's -o console log, never from the pty.
 """
 import os
 import pty
+import signal
 import subprocess
 import threading
 import time
@@ -151,11 +152,19 @@ class EmulatorSession:
             return
         self._closed = True
         if self.alive:
-            try:
-                os.write(self._master, b"\x1b")
-                self._proc.wait(timeout=1.0)
-            except (OSError, subprocess.TimeoutExpired):
-                pass
+            # Non-stop mode never reads ESC, so SIGINT asks for the shutdown;
+            # the shutdown screen then waits for any key.
+            self._proc.send_signal(signal.SIGINT)
+            deadline = time.monotonic() + 1.0
+            while time.monotonic() < deadline:
+                try:
+                    os.write(self._master, b"\x1b")
+                    self._proc.wait(timeout=0.05)
+                    break
+                except subprocess.TimeoutExpired:
+                    pass
+                except OSError:
+                    break
         self._proc.kill()
         self._proc.wait()
         # Join first so pty_bytes is complete when the caller reads it.
