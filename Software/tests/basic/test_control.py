@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_for_step_and_reverse(basic):
     assert basic.run("""
         10 FOR I=10 TO 1 STEP -3
@@ -70,13 +67,31 @@ def test_inc_dec(basic):
     """) == " 2 8\n"
 
 
-@pytest.mark.xfail(strict=True, reason="LAB_SWAP takes its type-mismatch "
-                   "branch (bpl SwapErr) when the two types match")
-def test_swap(basic):
+def test_swap_numeric(basic):
     assert basic.run("""
         10 A=1:B=9:SWAP A,B
         20 PRINT A;B
     """) == " 9 1\n"
+
+
+def test_swap_string(basic):
+    assert basic.run("""
+        10 A$="X":B$="YZ":SWAP A$,B$
+        20 PRINT A$;B$;LEN(A$)
+    """) == "YZX 2\n"
+
+
+def test_swap_array_elements(basic):
+    assert basic.run("""
+        10 DIM C(2):C(0)=1:C(1)=2:SWAP C(0),C(1)
+        20 PRINT C(0);C(1)
+    """) == " 2 1\n"
+
+
+def test_swap_mixed_types_is_a_type_mismatch(basic):
+    assert basic.run("""
+        10 A=5:B$="HELLO":SWAP A,B$
+    """) == "\nType mismatch Error in line 10"
 
 
 def test_list_round_trips_a_line(basic):
