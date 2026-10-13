@@ -135,9 +135,12 @@ class EmulatorSession:
         self._mark = start + len(expected)
 
     def type_text(self, text: str, echo_timeout: float = 5.0,
-                  retries: int = 0) -> None:
+                  retries: int = 0, echo_for=None) -> None:
         for ch in text:
-            echo = b"\r\n" if ch == "\r" else ch.encode("ascii")
+            if echo_for is not None:
+                echo = echo_for(ch)
+            else:
+                echo = b"\r\n" if ch == "\r" else ch.encode("ascii")
             for attempt in range(retries + 1):
                 self.send(ch.encode("ascii"))
                 try:

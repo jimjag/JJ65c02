@@ -25,5 +25,7 @@ while True:
         continue
     if mode == "late":
         time.sleep(1.2)
-    echo = b"\r\n" if b == b"\r" else b
+    echo = b if mode == "cr-only" else (b"\r\n" if b == b"\r" else b)
+    if mode == "upper":
+        echo = echo.upper()
     log.write(echo * 2 if mode == "dup" else echo)

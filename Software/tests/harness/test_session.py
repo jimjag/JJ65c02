@@ -143,3 +143,25 @@ def test_cli_survives_the_emulator_dying_during_a_send(tmp_path, monkeypatch):
             capture_output=True, text=True, timeout=60)
         assert "Traceback" not in r.stderr, r.stderr
         assert r.returncode == 1
+
+
+def test_cr_only_echo_is_a_mismatch_by_default(tmp_path, monkeypatch):
+    monkeypatch.setenv("FAKE_EMU_MODE", "cr-only")
+    with EmulatorSession("unused.rom", tmp_path / "c.txt", emulator=FAKE) as s:
+        s.wait_for(b"BOOT\r\n", 5)
+        with pytest.raises(EchoMismatch):
+            s.type_text("A\r")
+
+
+def test_echo_for_accepts_a_bare_cr(tmp_path, monkeypatch):
+    monkeypatch.setenv("FAKE_EMU_MODE", "cr-only")
+    with EmulatorSession("unused.rom", tmp_path / "c.txt", emulator=FAKE) as s:
+        s.wait_for(b"BOOT\r\n", 5)
+        s.type_text("A\r", echo_for=lambda c: c.encode())
+
+
+def test_echo_for_accepts_an_upper_cased_echo(tmp_path, monkeypatch):
+    monkeypatch.setenv("FAKE_EMU_MODE", "upper")
+    with EmulatorSession("unused.rom", tmp_path / "c.txt", emulator=FAKE) as s:
+        s.wait_for(b"BOOT\r\n", 5)
+        s.type_text("ab", echo_for=lambda c: c.upper().encode())
