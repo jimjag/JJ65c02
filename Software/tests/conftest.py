@@ -4,6 +4,9 @@ from pathlib import Path
 
 import pytest
 
+from basic_session import BasicSession
+from x65c02_session import EmulatorSession
+
 SOFTWARE = Path(__file__).resolve().parent.parent
 CA65_HINT = ("If ca65 cannot open 'generic.mac': "
              "export CA65_INC=/Users/jim/src/6502/cc65/asminc")
@@ -33,3 +36,46 @@ def emulator_bin():
     emu = SOFTWARE / "Emulator"
     _build(["./build"], emu)
     return str(emu / "x65c02")
+
+
+def _booted(rom, emulator_bin, directory):
+    emu = EmulatorSession(rom, directory / "console.txt", emulator=emulator_bin)
+    try:
+        b = BasicSession(emu)
+        b.boot()
+    except BaseException:
+        emu.close()
+        raise
+    return b
+
+
+@pytest.fixture(scope="module")
+def _basic_holder(rom, emulator_bin, tmp_path_factory):
+    holder = {}
+
+    def get():
+        b = holder.get("b")
+        if b is None or b.broken or not b.emu.alive:
+            if b is not None:
+                b.emu.close()
+            holder["b"] = b = _booted(rom, emulator_bin,
+                                      tmp_path_factory.mktemp("basic"))
+        return b
+
+    yield get
+    if "b" in holder:
+        holder["b"].emu.close()
+
+
+@pytest.fixture
+def basic(_basic_holder):
+    b = _basic_holder()
+    b.new()
+    return b
+
+
+@pytest.fixture
+def fresh_basic(rom, emulator_bin, tmp_path):
+    b = _booted(rom, emulator_bin, tmp_path)
+    yield b
+    b.emu.close()
