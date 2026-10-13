@@ -24,3 +24,8 @@ Private
 ./Software/minios/src/sim-minios.rom
 ./Software/minios/src/sim-minios.map
 ./Software/minios/src/sim-minios.lbl
+
+# Python test suite
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
