@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <string.h>
 #include <pthread.h>
 #include "pico_shim.h"
 
@@ -58,7 +60,29 @@ static void write_bmp(const char *path) {
     fclose(f);
 }
 
+// Signals are blocked before the firmware thread exists so every thread
+// inherits the mask and only sigwait() here ever sees them.
+static int serve(const char *out) {
+    sigset_t set;
+    int sig;
+    char tmp[1024];
+    pthread_t th;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    sigaddset(&set, SIGTERM);
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
+    pthread_create(&th, NULL, demo_thread, NULL);
+    snprintf(tmp, sizeof tmp, "%s.tmp", out);
+    for (;;) {
+        if (sigwait(&set, &sig) != 0 || sig == SIGTERM) return 0;
+        write_bmp(tmp);
+        if (rename(tmp, out) != 0) { perror("rename"); return 1; }
+    }
+}
+
 int main(int argc, char **argv) {
+    if (argc > 2 && strcmp(argv[1], "serve") == 0) return serve(argv[2]);
     int secs = argc > 1 ? atoi(argv[1]) : 2;
     const char *out = argc > 2 ? argv[2] : "out.bmp";
     pthread_t th;

@@ -8,6 +8,7 @@
 #
 #   ./build.sh          # build ./jj65c02-sim (SDL viewer, graphics demo)
 #   ./build.sh run      # build, then launch it
+#   ./build.sh dump-build # build the headless harness without running it
 #   ./build.sh dump [s] # build+run the headless BMP snapshot harness (no SDL);
 #                       # renders the demo for [s] seconds (default 2) to out.bmp
 #
@@ -51,9 +52,10 @@ LINK="sim_link.c"   # unix-socket bridge to the x65c02 emulator (inert until use
 echo "source: $SIM_SOURCE ($SOURCE)"
 
 # Headless snapshot harness — no SDL, no display needed.
-if [ "$1" = "dump" ]; then
+if [ "$1" = "dump" ] || [ "$1" = "dump-build" ]; then
     echo "cc  _sim_dump  (headless)"
     $CC $CFLAGS sim_dump.c sim_platform.c "$SOURCE" "$SYNTH" "$LINK" -lpthread -o _sim_dump
+    [ "$1" = "dump-build" ] && exit 0
     exec ./_sim_dump "${2:-2}" out.bmp
 fi
 
