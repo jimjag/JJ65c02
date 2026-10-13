@@ -124,3 +124,22 @@ def test_late_echo_is_waited_for_not_retyped(tmp_path, monkeypatch):
         assert s.tail().endswith(b"BOOT\r\nRU")
     finally:
         s.close()
+
+
+def test_cli_survives_the_emulator_dying_during_a_send(tmp_path, monkeypatch):
+    import subprocess
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    script = tmp_path / "s.txt"
+    script.write_text("0.0 !" + "x" * 20000 + "\n")
+    monkeypatch.setenv("FAKE_EMU_MODE", "die")
+    monkeypatch.setenv("X65C02", str(Path(__file__).with_name("fake_emu.py")))
+    for _ in range(3):
+        r = subprocess.run(
+            [sys.executable, str(root / "Harness" / "x65c02-headless.py"),
+             "rom", str(script), "-o", str(tmp_path / "t.txt"),
+             "--char-delay", "0", "--boot", "0.2"],
+            capture_output=True, text=True, timeout=60)
+        assert "Traceback" not in r.stderr, r.stderr
+        assert r.returncode == 1

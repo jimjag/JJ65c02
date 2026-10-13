@@ -93,7 +93,10 @@ def main() -> int:
         for ch in text.replace("\\r", "\r").replace("\\e", "\x1b"):
             if not session.alive:
                 break
-            session.send(ch.encode())
+            try:
+                session.send(ch.encode())
+            except OSError:
+                break
             pause(args.char_delay)
         pause(float(delay))
     if not session.alive:
