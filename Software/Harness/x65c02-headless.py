@@ -23,19 +23,13 @@ finished or the hard deadline was hit.
 """
 import argparse
 import os
-import pty
 import re
-import select
 import signal
-import subprocess
 import sys
+import tempfile
 import time
 
-# Sibling of this directory: Software/Harness -> Software/Emulator/x65c02.
-# Override with $X65C02 to test a binary built elsewhere.
-EMU = os.environ.get("X65C02") or os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "Emulator", "x65c02")
+from x65c02_session import EmulatorSession, default_emulator
 
 ANSI_RE = re.compile(
     rb"\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[()][0-9A-Za-z]|\x1b[=>]"
@@ -73,90 +67,48 @@ def main() -> int:
         steps = [ln.rstrip("\n") for ln in f
                  if ln.strip() and not ln.lstrip().startswith("#")]
 
-    # The emulator's GUI is a fixed-size layout needing at least 60 rows by
-    # 120 columns. Anything shorter does not fail, it just silently clips the
-    # bottom of the memory pane out of the transcript (at 50 rows only 23 of
-    # its 32 dump rows survive), so keep LINES at or above the minimum.
-    os.environ.setdefault("TERM", "xterm-256color")
-    os.environ["LINES"] = "60"
-    os.environ["COLUMNS"] = "132"
+    console = args.console
+    scratch = None
+    if console is None:
+        scratch = tempfile.NamedTemporaryFile(suffix=".console", delete=False)
+        scratch.close()
+        console = scratch.name
 
-    master, slave = pty.openpty()
-    cmd = [EMU, f"-{args.speed}"]
-    if args.console:
-        cmd += ["-o", args.console]
-    cmd.append(args.rom)
-    p = subprocess.Popen(cmd,
-                         stdin=slave, stdout=slave,
-                         stderr=subprocess.DEVNULL, close_fds=True)
-    os.close(slave)
-
-    collected = bytearray()
+    session = EmulatorSession(args.rom, console, emulator=default_emulator(),
+                              speed=args.speed, keep_pty=True)
     deadline = time.time() + args.deadline
-    alive = True
 
-    def pump(duration: float) -> None:
-        nonlocal alive
+    def pause(duration: float) -> None:
         end = min(time.time() + duration, deadline)
-        while alive and time.time() < end:
-            r, _, _ = select.select([master], [], [], 0.1)
-            if master in r:
-                try:
-                    data = os.read(master, 65536)
-                except OSError:
-                    alive = False
-                    return
-                if not data:
-                    alive = False
-                    return
-                collected.extend(data)
-            if p.poll() is not None:
-                alive = False
-
-    def send(text: str) -> None:
-        nonlocal alive
-        for ch in text:
-            if not alive:
-                return
-            try:
-                os.write(master, ch.encode())
-            except OSError:
-                alive = False
-                return
-            pump(args.char_delay)
+        while session.alive and time.time() < end:
+            time.sleep(0.02)
 
     status = 0
-    pump(args.boot)
+    pause(args.boot)
     for step in steps:
-        if not alive or time.time() >= deadline:
+        if not session.alive or time.time() >= deadline:
             status = 1
             break
         delay, _, text = step.partition(" ")
-        send(text.replace("\\r", "\r").replace("\\e", "\x1b"))
-        pump(float(delay))
-    if not alive:
+        for ch in text.replace("\\r", "\r").replace("\\e", "\x1b"):
+            if not session.alive:
+                break
+            session.send(ch.encode())
+            pause(args.char_delay)
+        pause(float(delay))
+    if not session.alive:
         status = 1
 
-    # ESC asks the emulator to exit cleanly; it ignores SIGTERM, so
-    # follow up with SIGKILL regardless.
-    if alive:
-        try:
-            os.write(master, b"\x1b")
-        except OSError:
-            pass
-        pump(1.0)
-    try:
-        p.kill()
-    except OSError:
-        pass
-    p.wait()
-    os.close(master)
+    session.close()
+    collected = bytes(session.pty_bytes)
+    if scratch is not None:
+        os.unlink(console)
 
     if args.raw:
         with open(args.raw, "wb") as f:
-            f.write(bytes(collected))
+            f.write(collected)
     with open(args.out, "w") as f:
-        f.write(clean(bytes(collected)))
+        f.write(clean(collected))
     print(f"captured {len(collected)} raw bytes -> {args.out}"
           f" (emulator {'ok' if status == 0 else 'DIED EARLY'})")
     return status
