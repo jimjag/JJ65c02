@@ -39,10 +39,13 @@ log. The Phase 1 `EmulatorSession` works unchanged.
 
 ## State reset between tests
 
-Re-entering from the menu resets each program, so there is no `NEW` equivalent:
-`FORTH_main` re-initialises the dictionary, `WOZMON` and `SUPER_main` start
-clean, judging from the entry points. Confirmed for Forth by measurement (see
-Measured results, item 3); Supermon registers are not reset on re-entry.
+Re-entering from the menu resets MilliForth: `FORTH_main` re-initialises the
+dictionary, so there is no `NEW` equivalent (measured, Measured results item
+3). Wozmon is not measured for re-entry beyond RAM contents surviving.
+Supermon+ does **not** reset its saved registers: after `; 0500 00 11 22 33 FF`,
+`X` and re-entry, both the banner register line and `R` still show
+`; 0500 00 11 22 33 FF ` (measured, transcripts below). Supermon tests must not
+assume a zero register line on entry.
 
 ## What is tested
 
@@ -190,3 +193,5 @@ where one was used. Time is the typed line only.
 | Supermon+ | bare CR | `\r\n\x08` | |
 | Supermon+ | `A 0500 XYZ` | `?\r\n\r\n\x08` | |
 | Supermon+ | `X` | `... About\r\nOK> ` | |
+| Supermon+ | `; 0500 00 11 22 33 FF`, `R`, `X`, re-enter `9` | banner register line `; 0500 00 11 22 33 FF \r\n` (not reset) | |
+| Supermon+ | `R` after re-entry | `\r\n   PC  SR AC XR YR SP   V1.2+\r\n; 0500 00 11 22 33 FF \r\n\x08` | |
