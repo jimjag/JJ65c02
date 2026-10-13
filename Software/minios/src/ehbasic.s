@@ -5575,7 +5575,7 @@ LAB_SWAP:
     jsr LAB_GVAR                ; get var2 address (pointer in Cvaral/h)
     pla                         ; pull var1 data type flag
     eor Dtypef                  ; compare with var2 data type
-    bpl SwapErr                 ; exit if not both the same type
+    bmi SwapErr                 ; exit if not both the same type
 
     ldy #$03                    ; four bytes to swap (either value or descriptor+1)
 SwapLp:
