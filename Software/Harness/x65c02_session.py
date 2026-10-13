@@ -119,6 +119,33 @@ class EmulatorSession:
         self._mark = end
         return out
 
+    def expect_exact(self, expected: bytes, timeout: float) -> None:
+        start = self._mark
+        try:
+            self._poll(lambda: len(self._buf) - start >= len(expected),
+                       f"echo {expected!r}", timeout)
+        except EmulatorTimeout:
+            if len(self._buf) == start:
+                raise
+        got = bytes(self._buf[start:start + len(expected)])
+        if got != expected:
+            raise EchoMismatch(f"typed {expected!r}, console shows {got!r}; "
+                               f"console tail: {self.tail()!r}")
+        self._mark = start + len(expected)
+
+    def type_text(self, text: str, echo_timeout: float = 1.0,
+                  retries: int = 1) -> None:
+        for ch in text:
+            echo = b"\r\n" if ch == "\r" else ch.encode("ascii")
+            for attempt in range(retries + 1):
+                self.send(ch.encode("ascii"))
+                try:
+                    self.expect_exact(echo, echo_timeout)
+                    break
+                except EmulatorTimeout:
+                    if attempt == retries:
+                        raise
+
     def close(self) -> None:
         if self._closed:
             return

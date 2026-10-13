@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from x65c02_session import EmulatorExited, EmulatorSession, EmulatorTimeout
+from x65c02_session import (EchoMismatch, EmulatorExited, EmulatorSession,
+                            EmulatorTimeout)
 
 FAKE = str(Path(__file__).with_name("fake_emu.py"))
 
@@ -70,3 +71,46 @@ def test_pty_output_is_kept_only_on_request(tmp_path):
     with EmulatorSession("unused.rom", tmp_path / "b.txt", emulator=FAKE,
                          keep_pty=True) as s:
         assert s.pty_bytes is not None
+
+
+def _mode_session(tmp_path, monkeypatch, mode):
+    monkeypatch.setenv("FAKE_EMU_MODE", mode)
+    s = EmulatorSession("unused.rom", tmp_path / "c.txt", emulator=FAKE)
+    s.wait_for(b"BOOT\r\n", 5)
+    return s
+
+
+def test_type_text_confirms_every_character(session):
+    session.wait_for(b"BOOT\r\n", 5)
+    session.type_text("PRINT 1\r")
+    assert session.tail().endswith(b"PRINT 1\r\n")
+    with pytest.raises(EmulatorTimeout):
+        session.wait_for(b"1", 0.2)          # mark is past the whole echo
+
+
+def test_dropped_key_is_resent_once(tmp_path, monkeypatch):
+    s = _mode_session(tmp_path, monkeypatch, "drop-first")
+    try:
+        s.type_text("PLOT", echo_timeout=0.3)
+        assert s.tail().endswith(b"BOOT\r\nPLOT")
+    finally:
+        s.close()
+
+
+def test_key_never_echoed_fails_naming_the_character(tmp_path, monkeypatch):
+    s = _mode_session(tmp_path, monkeypatch, "mute")
+    try:
+        with pytest.raises(EmulatorTimeout) as e:
+            s.type_text("Q", echo_timeout=0.2)
+        assert "b'Q'" in str(e.value)
+    finally:
+        s.close()
+
+
+def test_wrong_echo_is_a_mismatch_not_a_pass(tmp_path, monkeypatch):
+    s = _mode_session(tmp_path, monkeypatch, "dup")
+    try:
+        with pytest.raises(EchoMismatch):
+            s.type_text("AB", echo_timeout=0.3)
+    finally:
+        s.close()
