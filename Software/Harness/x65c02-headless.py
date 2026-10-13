@@ -84,6 +84,7 @@ def main() -> int:
             time.sleep(0.02)
 
     status = 0
+    died = False
     pause(args.boot)
     for step in steps:
         if not session.alive or time.time() >= deadline:
@@ -96,10 +97,11 @@ def main() -> int:
             try:
                 session.send(ch.encode())
             except OSError:
+                died = True
                 break
             pause(args.char_delay)
         pause(float(delay))
-    if not session.alive:
+    if died or not session.alive:
         status = 1
 
     session.close()
