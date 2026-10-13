@@ -25,3 +25,12 @@ class Bitmap:
     def count(self, rgb: int) -> int:
         return sum(self.pixel(x, y) == rgb
                    for y in range(self.height) for x in range(self.width))
+
+    def bbox(self, rgb: int):
+        """Inclusive (x0, y0, x1, y1) of every pixel equal to rgb, or None."""
+        hits = [(x, y) for y in range(self.height) for x in range(self.width)
+                if self.pixel(x, y) == rgb]
+        if not hits:
+            return None
+        xs, ys = zip(*hits)
+        return min(xs), min(ys), max(xs), max(ys)

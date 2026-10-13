@@ -29,3 +29,11 @@ def test_pixel_addresses_top_left_origin_with_row_padding():
 def test_count():
     b = Bitmap(_bmp(2, 2, [[1, 2], [1, 1]]))
     assert b.count(1) == 3 and b.count(2) == 1 and b.count(9) == 0
+
+
+def test_bbox_is_inclusive_and_none_when_absent():
+    b = Bitmap(_bmp(4, 3, [[0, 0, 0, 0],
+                           [0, 7, 0, 7],
+                           [0, 0, 7, 0]]))
+    assert b.bbox(7) == (1, 1, 3, 2)
+    assert b.bbox(9) is None
