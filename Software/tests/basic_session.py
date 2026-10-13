@@ -21,10 +21,11 @@ class BasicSession:
                     raise
 
     def boot(self) -> None:
-        self.emu.wait_for(b"OK> ", 60)
-        self._key_until(b"7", b"[C]old/[W]arm ?")
-        self._key_until(b"C", b"Bytes free")
-        self.emu.wait_for(PROMPT, 60)
+        out = self.emu.wait_for(b"OK> ", 60)
+        out += self._key_until(b"7", b"[C]old/[W]arm ?")
+        out += self._key_until(b"C", b"Bytes free")
+        out += self.emu.wait_for(PROMPT, 60)
+        self.boot_output = out.decode("latin-1").replace("\r\n", "\n")
 
     def eval(self, statement: str, timeout: float = 10.0) -> str:
         try:
@@ -37,8 +38,9 @@ class BasicSession:
 
     def enter(self, program: str) -> None:
         try:
-            for line in textwrap.dedent(program).strip().splitlines():
-                self.emu.type_text(line.strip() + "\r")
+            for line in textwrap.dedent(program).splitlines():
+                if line.strip():
+                    self.emu.type_text(line.strip() + "\r")
         except EmulatorError:
             self.broken = True
             raise

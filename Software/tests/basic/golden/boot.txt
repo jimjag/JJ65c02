@@ -1,0 +1,29 @@
+     _     _  __  ____   ____ ___ ____
+    | |   | |/ /_| ___| / ___/ _ \___ \
+ _  | |_  | | '_ \___ \| |  | | | |__) |
+| |_| | |_| | (_) |__) | |__| |_| / __/
+ \___/ \___/ \___/____/ \____\___/_____|
+      JJ65c02
+   miniOS v2.0.0
+    Clock Mhz: 8
+
+ Testing RAM... FAIL
+1. Load RAM Image (via XMODEM) to @0400
+2. Load RAM Image (via Intel HEX)
+3. Run Prog Loaded @0400
+4. Clear RAM
+5. Test RAM
+6. WOZMON
+7. Run EhBASIC Interpreter
+8. Run MilliForth
+9. Run Supermon+
+A. About
+OK> 
+ Starting EhBASIC
+
+6502 EhBASIC ver 2.22p5.14j [C]old/[W]arm ?
+39679 Bytes free
+Enhanced BASIC 2.22p5.14j
+https://github.com/jimjag/JJ65c02
+
+Ready

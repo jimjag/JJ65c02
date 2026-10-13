@@ -12,6 +12,26 @@ CA65_HINT = ("If ca65 cannot open 'generic.mac': "
              "export CA65_INC=/Users/jim/src/6502/cc65/asminc")
 
 
+def pytest_addoption(parser):
+    parser.addoption("--update-golden", action="store_true",
+                     help="rewrite tests/basic/golden/*.out from the current ROM")
+
+
+@pytest.fixture
+def golden(request):
+    update = request.config.getoption("--update-golden")
+
+    def check(path, actual: str):
+        if update:
+            path.write_text(actual, newline="")
+            return
+        assert path.exists(), (f"{path.name} has no recorded output; run with "
+                               "--update-golden and review the diff")
+        assert actual == path.read_text(newline="")
+
+    return check
+
+
 def _build(cmd, cwd, hint=""):
     r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
     if r.returncode != 0:
@@ -21,6 +41,9 @@ def _build(cmd, cwd, hint=""):
 
 @pytest.fixture(scope="session")
 def rom():
+    override = os.environ.get("MINIOS_ROM")
+    if override:
+        return Path(override)
     src = SOFTWARE / "minios" / "src"
     _build(["make", "sim"], src, CA65_HINT)
     path = src / "sim-minios.rom"
