@@ -3,6 +3,7 @@
 import getopt
 import os
 import sys
+import time
 import tty
 
 opts = dict(getopt.getopt(sys.argv[1:], "snfo:p:b:")[0])
@@ -22,5 +23,7 @@ while True:
     if drop:
         drop -= 1
         continue
+    if mode == "late":
+        time.sleep(1.2)
     echo = b"\r\n" if b == b"\r" else b
     log.write(echo * 2 if mode == "dup" else echo)

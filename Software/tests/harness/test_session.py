@@ -88,10 +88,10 @@ def test_type_text_confirms_every_character(session):
         session.wait_for(b"1", 0.2)          # mark is past the whole echo
 
 
-def test_dropped_key_is_resent_once(tmp_path, monkeypatch):
+def test_dropped_key_is_resent_when_retries_are_requested(tmp_path, monkeypatch):
     s = _mode_session(tmp_path, monkeypatch, "drop-first")
     try:
-        s.type_text("PLOT", echo_timeout=0.3)
+        s.type_text("PLOT", echo_timeout=0.3, retries=1)
         assert s.tail().endswith(b"BOOT\r\nPLOT")
     finally:
         s.close()
@@ -112,5 +112,15 @@ def test_wrong_echo_is_a_mismatch_not_a_pass(tmp_path, monkeypatch):
     try:
         with pytest.raises(EchoMismatch):
             s.type_text("AB", echo_timeout=0.3)
+    finally:
+        s.close()
+
+
+def test_late_echo_is_waited_for_not_retyped(tmp_path, monkeypatch):
+    # EhBASIC takes about a second to echo the first key after a program line.
+    s = _mode_session(tmp_path, monkeypatch, "late")
+    try:
+        s.type_text("RU")
+        assert s.tail().endswith(b"BOOT\r\nRU")
     finally:
         s.close()

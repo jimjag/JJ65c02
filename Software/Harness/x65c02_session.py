@@ -134,8 +134,8 @@ class EmulatorSession:
                                f"console tail: {self.tail()!r}")
         self._mark = start + len(expected)
 
-    def type_text(self, text: str, echo_timeout: float = 1.0,
-                  retries: int = 1) -> None:
+    def type_text(self, text: str, echo_timeout: float = 5.0,
+                  retries: int = 0) -> None:
         for ch in text:
             echo = b"\r\n" if ch == "\r" else ch.encode("ascii")
             for attempt in range(retries + 1):
