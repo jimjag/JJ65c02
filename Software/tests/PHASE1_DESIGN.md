@@ -57,13 +57,14 @@ Owns one emulator process.
 - Reads program output only from the console file, which the emulator flushes
   per byte (`Emulator/src/io.c`).
 - `send(keys)` writes raw keys. `type_text(text)` confirms each character's
-  echo in the console log before sending the next, and resends a character
-  that was not echoed. Confirmation is per character because the emulator
+  echo in the console log before sending the next; a character that is not
+  echoed fails the call (resending is opt-in via `retries`). Confirmation is per character because the emulator
   holds one pending key: a probe at a fixed 0.2 s per key still lost leading
   characters of three lines out of thirteen.
 - `wait_for(pattern, timeout)` blocks until the pattern appears in output
   produced after the current mark, and returns the matched output.
-- `close()` sends ESC, then SIGKILLs (the emulator ignores SIGTERM).
+- `close()` sends SIGINT, then ESC keys until the emulator exits, then SIGKILLs
+  (the emulator ignores SIGTERM).
 
 Failure modes are distinct exceptions: timeout (carrying the tail of the
 console log) and emulator exit.
@@ -103,7 +104,8 @@ than a slow start.
 
 - The headless sim is `pico-code/sim/_sim_dump` built with
   `SIM_SOURCE=console`, so it runs the real console firmware (`pico_6502.c`).
-- Each test gets its own socket in pytest's temp directory via `SIM_SOCKET`,
+- Each test gets its own socket in a short `/tmp/jjXXXX` directory (pytest's
+  temp path exceeds macOS's 104-byte `sun_path`) via `SIM_SOCKET`,
   and the emulator connects with `-p`. Nothing uses `/tmp/jj65c02.sock`.
 - `sim_dump.c` today sleeps for a fixed time and dumps once. It gains
   dump-on-demand: on `SIGUSR1` it writes the BMP and keeps running. The file is
@@ -142,14 +144,14 @@ screen clear.
 - Fixture teardown kills the emulator and sim and removes the socket, on
   failure as well as success.
 
-## Open items
+## Measured results
 
-Unverified at design time. Each is settled by measurement at the start of
-implementation, before the work that depends on it:
+The three items that were open at design time:
 
-1. `_sim_dump` builds with `SIM_SOURCE=console` and accepts an emulator
-   connection.
-2. Echo-confirmed typing is drop-free in non-stop mode. Fallback: a
-   per-character delay.
-3. Boot-to-`Ready` time. If it is small, the module-scoped `basic` fixture can
-   become function-scoped and `NEW`-based reset can go.
+1. The console firmware builds as `_sim_dump` with `SIM_SOURCE=console`, creates
+   its socket, accepts the emulator, and writes a snapshot on request.
+2. Echo-confirmed typing is lossless: no keys lost in 5/5 runs of 20
+   statements. A fixed per-character delay is not (`--char-delay 0.2` still
+   dropped leading characters).
+3. Boot to `Ready` takes about 3.4 s, but each statement takes about 1.75 s, so
+   the module-scoped `basic` fixture with `NEW`-based reset was kept.

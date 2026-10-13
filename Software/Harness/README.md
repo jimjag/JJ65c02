@@ -25,6 +25,36 @@ Run it from the repository root so the relative ROM paths below work.
 | `--console FILE` | everything the ROM printed, in order (emulator `-o`) |
 | `-o FILE` | ANSI-stripped transcript (default `transcript.txt`) |
 
+## x65c02_session.py
+
+`x65c02_session.py` is the pty driver the CLI and the pytest suite
+(`../tests/README.md`) are built on.
+
+```python
+from x65c02_session import EmulatorSession
+
+with EmulatorSession(rom, "console.txt", speed="n") as emu:
+    emu.wait_for(b"OK> ", 60)               # minios menu
+    emu.send(b"7")
+    emu.wait_for(b"[C]old/[W]arm ?")
+    emu.send(b"C")
+    emu.wait_for(b"Ready\r\n", 60)
+    emu.type_text("PRINT 1/3\r")
+    print(emu.wait_for(b"Ready\r\n"))
+```
+
+- `EmulatorSession(rom, console_path, *, emulator=None, speed="n",
+  socket_path=None, keep_pty=False)`; `emulator` defaults like `$X65C02` above.
+- `send(keys)` writes raw bytes. `wait_for(pattern, timeout=10.0)` reads the
+  console log until `pattern` appears and consumes up to and including it.
+- `type_text(text, echo_timeout=5.0, retries=0)` sends one character at a time
+  and waits for its echo. Use it instead of a per-character delay.
+- `expect_exact(expected, timeout)`, `alive`, `tail(n)`, `pty_bytes`.
+- `close()` is idempotent: SIGINT, then keys until the emulator exits (it
+  ignores SIGTERM and waits for a keypress on its shutdown screen).
+- Exceptions: `EmulatorError` is the base of `EmulatorTimeout`,
+  `EmulatorExited` (carries the console tail) and `EchoMismatch`.
+
 ## Use `--console` to read program output
 
 `--console` is the option to reach for first. It passes the emulator's `-o`
@@ -179,7 +209,7 @@ git show HEAD:Software/Emulator/src/gui.c > $BASE/src/gui.c   # repeat per file
 
 printf '3.0 \n' > /tmp/boot.txt
 ROM=Software/minios/src/sim-minios.rom
-ARGS="--speed s --boot 4 --deadline 20 --char-delay 0.2"
+ARGS="--speed s --boot 4 --deadline 20"
 
 X65C02=$BASE/x65c02 ./Software/Harness/x65c02-headless.py $ROM /tmp/boot.txt \
     -o /tmp/base.txt $ARGS
@@ -212,8 +242,11 @@ real regression.
 - The emulator ignores SIGTERM; the driver always SIGKILLs it on exit.
 - minios menu: 7 = EhBASIC (answer its `[C]old/[W]arm ?` prompt with `C`),
   8 = MilliForth, 9 = Supermon+ (`X` exits to menu).
-- Keys can get dropped if typed too fast; `--char-delay 0.2` is reliable,
-  the 0.05 default is not always.
+- Keys can get dropped if typed too fast, and no fixed `--char-delay` is
+  reliable: `0.2` still lost leading characters (`10 FOR` arrived as `0 FOR`)
+  because the emulator keeps one pending key and overwrites an unserviced one.
+  For anything that must not drop keys use `EmulatorSession.type_text`, which
+  waits for each echo.
 - Transcripts are big — roughly 40 MB of raw pty bytes and 15 MB stripped
   for a 4-second sprint run, dominated by the Bus Trace pane. Budget disk
   space, and prefer `grep -c` over reading them.
