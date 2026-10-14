@@ -1,11 +1,21 @@
 import socket
 import subprocess
+import tempfile
 import threading
+import time
 
 import pytest
 
 from serial_peer import SerialPeer
 from x65c02_session import EmulatorSession, EmulatorTimeout
+
+
+def _wait_until(pred, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    while not pred():
+        if time.monotonic() >= deadline:
+            raise AssertionError("condition not reached")
+        time.sleep(0.005)
 
 
 @pytest.fixture
@@ -39,10 +49,9 @@ def test_unread_does_not_consume(peer):
     c = _connect(peer.path)
     t.join()
     c.sendall(b"hello")
-    assert peer.wait_for(b"hello") == b"hello"
-    c.sendall(b"more")
-    peer.read(4)
-    assert peer.unread() == b""
+    _wait_until(lambda: peer.unread() == b"hello")
+    assert peer.unread() == b"hello"
+    assert peer.read(5) == b"hello"
 
 
 def test_wait_for_times_out_with_the_unread_tail(peer):
@@ -60,19 +69,25 @@ def test_clear_discards_unread_bytes(peer):
     t.start()
     c = _connect(peer.path)
     t.join()
-    c.sendall(b"old")
-    peer.wait_for(b"old")
     c.sendall(b"stale")
-    peer.read(5)
-    c.sendall(b"junk")
-    peer.read(4)
+    _wait_until(lambda: peer.unread() == b"stale")
     peer.clear()
+    assert peer.unread() == b""
     c.sendall(b"new")
     assert peer.wait_for(b"new") == b"new"
 
 
 def test_path_stays_short_enough_for_af_unix(peer):
     assert len(str(peer.path)) < 100
+
+
+def test_failed_setup_removes_its_temp_directory(monkeypatch, tmp_path):
+    base = tmp_path / ("d" * 100)
+    base.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(base))
+    with pytest.raises(ValueError):
+        SerialPeer()
+    assert list(base.iterdir()) == []
 
 
 def test_acia_path_becomes_dash_a(monkeypatch, tmp_path):

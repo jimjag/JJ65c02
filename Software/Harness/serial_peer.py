@@ -16,32 +16,37 @@ from x65c02_session import EmulatorTimeout
 class SerialPeer:
     def __init__(self, path=None):
         self._dir = None
+        self._srv = None
+        self._conn = None
+        self._buf = bytearray()
+        self._mark = 0
+        self._lock = threading.Lock()
         if path is None:
             # AF_UNIX paths are limited to about 104 bytes; pytest's tmp_path can exceed that.
             self._dir = Path(tempfile.mkdtemp(prefix="acia-"))
             path = self._dir / "s"
         self.path = Path(path)
-        if len(str(self.path)) >= 100:
-            raise ValueError(f"socket path too long for AF_UNIX: {self.path}")
-        self.path.unlink(missing_ok=True)
-        self._srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self._srv.bind(str(self.path))
-        self._srv.listen(1)
-        self._conn = None
-        self._buf = bytearray()
-        self._mark = 0
-        self._lock = threading.Lock()
+        try:
+            if len(str(self.path)) >= 100:
+                raise ValueError(f"socket path too long for AF_UNIX: {self.path}")
+            self.path.unlink(missing_ok=True)
+            self._srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self._srv.bind(str(self.path))
+            self._srv.listen(1)
+        except BaseException:
+            self.close()
+            raise
 
     def accept(self, timeout=10.0):
         self._srv.settimeout(timeout)
         self._conn, _ = self._srv.accept()
         self._conn.settimeout(None)
-        threading.Thread(target=self._drain, daemon=True).start()
+        threading.Thread(target=self._drain, args=(self._conn,), daemon=True).start()
 
-    def _drain(self):
+    def _drain(self, conn):
         while True:
             try:
-                data = self._conn.recv(65536)
+                data = conn.recv(65536)
             except OSError:
                 return
             if not data:
@@ -94,7 +99,8 @@ class SerialPeer:
 
     def close(self) -> None:
         self.disconnect()
-        self._srv.close()
+        if self._srv is not None:
+            self._srv.close()
         self.path.unlink(missing_ok=True)
         if self._dir is not None:
             shutil.rmtree(self._dir, ignore_errors=True)
