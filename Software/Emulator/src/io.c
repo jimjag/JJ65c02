@@ -11,6 +11,7 @@
 #include "functions.h"
 #include "opcodes.h"
 #include "picolink.h"
+#include "acia.h"
 
 // Set via -p PATH in main.c; NULL disables the Pico sim link.
 const char *picolink_path = NULL;
@@ -21,6 +22,7 @@ static FILE *conlog = NULL;
 
 void init_io() {
     picolink_init(picolink_path);
+    acia_init(acia_path);
     if (conlog_path != NULL) {
         conlog = fopen(conlog_path, "w");
     }
@@ -28,6 +30,7 @@ void init_io() {
 
 void finish_io() {
     picolink_close();
+    acia_close();
     if (conlog != NULL) {
         fclose(conlog);
         conlog = NULL;
@@ -67,6 +70,8 @@ void handle_io(cpu *m) {
     }
   }
 
+  acia_service(m);
+
   if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
     uint16_t addr = m->dirty_mem_addr;
     if (addr == IO_PUTCHAR) {
@@ -84,6 +89,8 @@ void handle_io(cpu *m) {
       } else if (m->mem[addr] != '\r') {
         wprintw(m->terminal, "%c", m->mem[addr]);
       }
+    } else if (addr == 0xA010) {
+      acia_write(m, addr);
     }
   }
 }

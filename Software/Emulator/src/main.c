@@ -3,6 +3,7 @@
 #include "functions.h"
 #include "io.h"
 #include "gui.h"
+#include "acia.h"
 #include "opcodes.h"
 
 #include <ctype.h>
@@ -21,6 +22,7 @@ void usage() {
     printf("  -f run fast\n");
     printf("  -p PATH connect to the JJ6502 Pico VGA/Sound sim at unix socket PATH\n");
     printf("  -o PATH tee every console byte ($A800 writes) to PATH\n");
+    printf("  -a PATH connect the emulated 6551 ACIA ($A010) to the unix socket PATH\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -30,7 +32,7 @@ int main(int argc, char *argv[]) {
     bool non_stop = false;
 
     int c;
-    while ((c = getopt(argc, argv, "hb:snfp:o:")) != -1) {
+    while ((c = getopt(argc, argv, "hb:snfp:o:a:")) != -1) {
         switch (c) {
         case 'b':
             base_addr = strtol(optarg, NULL, 16);
@@ -60,8 +62,12 @@ int main(int argc, char *argv[]) {
             conlog_path = optarg;
             break;
 
+        case 'a':
+            acia_path = optarg;
+            break;
+
         case '?':
-            if (optopt == 'b' || optopt == 'p' || optopt == 'o') {
+            if (optopt == 'b' || optopt == 'p' || optopt == 'o' || optopt == 'a') {
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
             }
             usage();

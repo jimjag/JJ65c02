@@ -5,12 +5,16 @@
 
 #include "cpu.h"
 #include "gui.h"
+#include "acia.h"
 
 static inline uint8_t read_byte(cpu *m, uint16_t address) {
     static char trace_entry[80];
     sprintf(trace_entry, "Bus addr:%04x mode:r value:%02x\n", address, m->mem[address]);
     trace_emu(trace_entry);
-    return m->mem[address];
+    uint8_t value = m->mem[address];
+    if (address == 0xA010 || address == 0xA011)
+        acia_note_read(address);
+    return value;
 }
 
 static inline uint8_t write_byte(cpu *m, uint16_t address, uint8_t value) {

@@ -2,6 +2,7 @@ import pytest
 
 from minios_session import (ForthSession, MenuSession, SupermonSession,
                             WozmonSession)
+from serial_peer import SerialPeer
 from x65c02_session import EmulatorError, EmulatorSession
 
 
@@ -56,3 +57,26 @@ def _program(cls):
 wozmon = _program(WozmonSession)
 forth = _program(ForthSession)
 supermon = _program(SupermonSession)
+
+
+def _booted_serial(rom, emulator_bin, directory):
+    peer = SerialPeer()
+    emu = EmulatorSession(rom, directory / "console.txt", emulator=emulator_bin,
+                          acia_path=peer.path)
+    try:
+        peer.accept(10.0)
+        m = MenuSession(emu)
+        m.peer = peer
+        m.boot()
+    except BaseException:
+        emu.close()
+        peer.close()
+        raise
+    return m
+
+
+@pytest.fixture
+def serial_menu(rom, emulator_bin, tmp_path):
+    m = _booted_serial(rom, emulator_bin, tmp_path)
+    yield m
+    m.close()

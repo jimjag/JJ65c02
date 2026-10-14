@@ -43,6 +43,12 @@ class MenuSession:
         self.emu = emu
         self.broken = False
         self.boot_output = ""
+        self.peer = None
+
+    def close(self) -> None:
+        self.emu.close()
+        if self.peer is not None:
+            self.peer.close()
 
     def boot(self) -> None:
         self.boot_output = _text(self.emu.wait_for(MENU, 60)).replace("\r\n", "\n")
