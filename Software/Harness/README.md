@@ -47,8 +47,9 @@ with EmulatorSession(rom, "console.txt", speed="n") as emu:
   socket_path=None, keep_pty=False)`; `emulator` defaults like `$X65C02` above.
 - `send(keys)` writes raw bytes. `wait_for(pattern, timeout=10.0)` reads the
   console log until `pattern` appears and consumes up to and including it.
-- `type_text(text, echo_timeout=5.0, retries=0)` sends one character at a time
-  and waits for its echo. Use it instead of a per-character delay.
+- `type_text(text, echo_timeout=5.0, retries=0, echo_for=None)` sends one
+  character at a time and waits for its echo; `echo_for(ch)` returns the bytes to
+  expect (default: `\r\n` for CR, else the character). Use it instead of a per-character delay.
 - `expect_exact(expected, timeout)`, `alive`, `tail(n)`, `pty_bytes`.
 - `close()` is idempotent: SIGINT, then keys until the emulator exits (it
   ignores SIGTERM and waits for a keypress on its shutdown screen).
