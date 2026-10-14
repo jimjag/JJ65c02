@@ -114,8 +114,9 @@ emulated 6551 ACIA (`x65c02 -a PATH`, modelled in `Emulator/src/acia.c`);
 - **Sessions.** `XmodemSession` and `IhexSession` press the menu key, then `L`;
   results appear on the serial line, not the console. `XmodemSession.reply`
   skips the periodic `C` start requests while waiting for ACK/NAK.
-- **Send blocks in one write.** The model delivers a byte every 200 CPU cycles;
-  faster delivery overruns the ROM's 128-byte input ring and the ROM NAKs.
+- **Send blocks in one write.** The model waits at least 200 CPU cycles between
+  bytes (and for the ROM to read the last one); back-to-back delivery overruns
+  the ROM's 128-byte input ring and the ROM NAKs (75 cycles failed, 100 held).
 - **Data checks.** Stored bytes are read back with Wozmon (`dump_ram`) at
   `$0400` or above; a record at `$0000` reports a checksum error even when the
   checksum is right. Out-of-RAM (`$FB`) is not tested: it needs about 300 blocks.

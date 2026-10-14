@@ -10,6 +10,7 @@ def test_a_whole_xmodem_block_in_one_write_is_acked(loader_menu):
     data = bytes(range(128))
     crc = crc16(data)
     loader_menu.press(b"1", b"start: ")
+    loader_menu.peer.clear()
     loader_menu.emu.send(b"L")
     loader_menu.peer.wait_for(b"C", 20)
     loader_menu.peer.send(bytes([1, 1, 254]) + data + bytes([crc >> 8, crc & 255]))
