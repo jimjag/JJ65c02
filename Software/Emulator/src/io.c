@@ -70,8 +70,6 @@ void handle_io(cpu *m) {
     }
   }
 
-  acia_service(m);
-
   if (get_emu_flag(m, EMU_FLAG_DIRTY)) {
     uint16_t addr = m->dirty_mem_addr;
     if (addr == IO_PUTCHAR) {
@@ -93,4 +91,6 @@ void handle_io(cpu *m) {
       acia_write(m, addr);
     }
   }
+
+  acia_service(m);
 }

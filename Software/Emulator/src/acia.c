@@ -22,11 +22,16 @@ const char *acia_path = NULL;
 static int  link_fd = -1;
 static bool rx_full = false;
 static bool irq_flag = false;
+static uint8_t rx_byte = 0;
 
-static void drop_link(void) {
+static void drop_link(cpu *m) {
     if (link_fd >= 0)
         close(link_fd);
     link_fd = -1;
+    rx_full = false;
+    irq_flag = false;
+    if (m != NULL)
+        m->mem[ACIA_STATUS] = ST_TX_EMPTY;
 }
 
 bool acia_init(const char *path) {
@@ -63,7 +68,7 @@ bool acia_active(void) {
 }
 
 void acia_close(void) {
-    drop_link();
+    drop_link(NULL);
 }
 
 void acia_note_read(uint16_t addr) {
@@ -87,12 +92,14 @@ void acia_write(cpu *m, uint16_t addr) {
     for (;;) {
         ssize_t n = send(link_fd, &byte, 1, flags);
         if (n == 1)
-            return;
+            break;
         if (n < 0 && errno == EINTR)
             continue;
-        drop_link();
+        drop_link(m);
         return;
     }
+    if (rx_full)
+        m->mem[ACIA_DATA] = rx_byte;
 }
 
 void acia_service(cpu *m) {
@@ -105,6 +112,7 @@ void acia_service(cpu *m) {
             uint8_t byte;
             ssize_t n = (pfd.revents & POLLIN) ? read(link_fd, &byte, 1) : 0;
             if (n == 1) {
+                rx_byte = byte;
                 m->mem[ACIA_DATA] = byte;
                 rx_full = true;
                 if (!(m->mem[ACIA_COMMAND] & CMD_RX_IRQ_OFF)) {
@@ -112,7 +120,7 @@ void acia_service(cpu *m) {
                     m->interrupt_waiting = 0x01;
                 }
             } else if (!(n < 0 && (errno == EINTR || errno == EAGAIN))) {
-                drop_link();
+                drop_link(m);
                 return;
             }
         }

@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from minios_session import WozmonSession
+from minios_session import MENU, WozmonSession
 
 IDLE = "\r\nA011: 10\r\n"
 RX_FULL = "\r\nA011: 18\r\n"
@@ -58,3 +58,29 @@ def test_peer_disconnect_leaves_the_emulator_running(woz):
     assert woz.line("A011") == IDLE
     woz.line("A010: 42")
     assert woz.line("A011") == IDLE
+
+
+def _run_sta_a010(woz):
+    woz.line("0570: A9 41 8D 10 A0 60")
+    woz._type("0570R\r")
+    woz._wait(MENU, 15)
+    woz.left = True
+    w = WozmonSession(woz.menu)
+    w.enter()
+    return w
+
+
+def test_a_data_write_with_rx_full_sends_the_stored_byte_and_keeps_rx(woz):
+    woz.menu.peer.send(b"Z")
+    eventually(lambda: woz.line("A011") == RX_FULL)
+    woz.menu.peer.clear()
+    w = _run_sta_a010(woz)
+    assert woz.menu.peer.wait_for(b"A") == b"A"
+    assert w.line("A011") == RX_FULL
+    assert w.line("A010") == "\r\nA010: 5A\r\n"
+
+
+def test_a_data_write_with_rx_idle_sends_the_stored_byte(woz):
+    woz.menu.peer.clear()
+    _run_sta_a010(woz)
+    assert woz.menu.peer.wait_for(b"A") == b"A"

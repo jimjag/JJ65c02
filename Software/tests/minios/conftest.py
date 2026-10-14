@@ -61,15 +61,17 @@ supermon = _program(SupermonSession)
 
 def _booted_serial(rom, emulator_bin, directory):
     peer = SerialPeer()
-    emu = EmulatorSession(rom, directory / "console.txt", emulator=emulator_bin,
-                          acia_path=peer.path)
+    emu = None
     try:
+        emu = EmulatorSession(rom, directory / "console.txt",
+                              emulator=emulator_bin, acia_path=peer.path)
         peer.accept(10.0)
         m = MenuSession(emu)
         m.peer = peer
         m.boot()
     except BaseException:
-        emu.close()
+        if emu is not None:
+            emu.close()
         peer.close()
         raise
     return m
