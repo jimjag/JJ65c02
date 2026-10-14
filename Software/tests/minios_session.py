@@ -17,6 +17,10 @@ def _cr_only_echo(ch: str) -> bytes:
     return ch.encode("ascii")
 
 
+def _upper_echo(ch: str) -> bytes:
+    return b"\r\n" if ch == "\r" else ch.upper().encode("ascii")
+
+
 def prompts_for(line: str) -> int:
     """MilliForth prints a prompt after every executed word, not every line."""
     count, compiling, skip = 0, False, False
@@ -100,6 +104,7 @@ class _Program:
 class WozmonSession(_Program):
     key = b"6"
     banner_pattern = b"EWOZMON 1.0.\r\n]"
+    echo_for = staticmethod(_upper_echo)
     SYNC = BS + b"\r\n"
 
     def line(self, text, timeout=10.0, **type_kw) -> str:
