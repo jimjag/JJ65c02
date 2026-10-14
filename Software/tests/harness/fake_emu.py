@@ -6,7 +6,7 @@ import sys
 import time
 import tty
 
-opts = dict(getopt.getopt(sys.argv[1:], "snfo:p:b:")[0])
+opts = dict(getopt.getopt(sys.argv[1:], "snfo:p:b:a:")[0])
 mode = os.environ.get("FAKE_EMU_MODE", "")
 tty.setraw(0)
 log = open(opts["-o"], "wb", buffering=0)

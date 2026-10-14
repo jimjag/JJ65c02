@@ -35,7 +35,7 @@ class EchoMismatch(EmulatorError):
 
 class EmulatorSession:
     def __init__(self, rom, console_path, *, emulator=None, speed="n",
-                 socket_path=None, keep_pty=False):
+                 socket_path=None, acia_path=None, keep_pty=False):
         self.console_path = Path(console_path)
         self.console_path.unlink(missing_ok=True)
         env = dict(os.environ, LINES="60", COLUMNS="132")
@@ -44,6 +44,8 @@ class EmulatorSession:
                "-o", str(self.console_path)]
         if socket_path:
             cmd += ["-p", str(socket_path)]
+        if acia_path:
+            cmd += ["-a", str(acia_path)]
         cmd.append(str(rom))
         self._master, slave = pty.openpty()
         self._proc = subprocess.Popen(cmd, stdin=slave, stdout=slave,
