@@ -233,3 +233,10 @@ class XmodemSession(_Loader):
     def end(self, timeout=60.0) -> bytes:
         self.send(bytes([EOT]))
         return self.peer.wait_for(b"Successful!\n\r", timeout)
+
+
+class IhexSession(_Loader):
+    key = b"2"
+
+    def send_text(self, text: str) -> None:
+        self.peer.send(text.encode("ascii"))
