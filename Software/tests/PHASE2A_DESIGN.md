@@ -85,7 +85,7 @@ current behaviour; `sim-minios.rom` only; goldens refreshed with
 
 Probe run against `sim-minios.rom` through `Harness/x65c02_session.py`
 (throwaway script, not committed). Every "Facts established before planning"
-entry in `PHASE2A_PLAN.md` was checked; the transcripts are in the table below.
+entry in the implementation plan was checked; the transcripts are in the table below.
 
 1. **Echo.** Menu keys are not echoed. Typed CR echoes as `\r\n` in Wozmon, as
    `\r` only in MilliForth and Supermon+. Wozmon upper-cases before echoing, so
