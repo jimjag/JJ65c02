@@ -78,6 +78,9 @@ LIB_bin_to_hex:
 ;================================================================================
 
 LIB_delay1ms:
+.IFDEF SIM_ACIA
+    rts
+.ENDIF
     pha
     phx                                         ; save .X
     phy                                         ; and .Y

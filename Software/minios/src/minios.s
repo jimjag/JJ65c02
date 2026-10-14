@@ -489,6 +489,13 @@ ISR:
     and #%00000010
     beq @done
 .ENDIF
+.IFDEF SIM_ACIA
+    bit ACIA_STATUS
+    bpl @sim_via
+    jsr ACIA_ihandler
+    bra @done
+@sim_via:
+.ENDIF
     jsr VIA_ihandler
 @done:
     plx

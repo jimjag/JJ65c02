@@ -82,3 +82,26 @@ def serial_menu(rom, emulator_bin, tmp_path):
     m = _booted_serial(rom, emulator_bin, tmp_path)
     yield m
     m.close()
+
+
+@pytest.fixture(scope="module")
+def _loader_holder(acia_rom, emulator_bin, tmp_path_factory):
+    holder = {}
+
+    def get():
+        m = holder.get("m")
+        if m is None or m.broken or not m.emu.alive:
+            if m is not None:
+                m.close()
+            holder["m"] = m = _booted_serial(acia_rom, emulator_bin,
+                                             tmp_path_factory.mktemp("loader"))
+        return m
+
+    yield get
+    if "m" in holder:
+        holder["m"].close()
+
+
+@pytest.fixture
+def loader_menu(_loader_holder):
+    return _loader_holder()

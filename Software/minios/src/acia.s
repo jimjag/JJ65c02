@@ -36,7 +36,7 @@
 ;================================================================================
 
 ACIA_init:
-.IFNDEF SIM
+.IF (.NOT .DEFINED(SIM)) .OR .DEFINED(SIM_ACIA)
     pha
     lda #(ACIA_HARDWARE_RESET)
     sta ACIA_STATUS

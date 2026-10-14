@@ -52,6 +52,18 @@ def rom():
 
 
 @pytest.fixture(scope="session")
+def acia_rom():
+    override = os.environ.get("MINIOS_ACIA_ROM")
+    if override:
+        return Path(override)
+    src = SOFTWARE / "minios" / "src"
+    _build(["make", "simacia"], src, CA65_HINT)
+    path = src / "simacia-minios.rom"
+    assert path.stat().st_size == 0x5000, "sim ROM must be exactly $B000-$FFFF"
+    return path
+
+
+@pytest.fixture(scope="session")
 def emulator_bin():
     override = os.environ.get("X65C02")
     if override:

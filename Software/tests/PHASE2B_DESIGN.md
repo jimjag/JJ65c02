@@ -82,3 +82,47 @@ yet run are reconciled against these measurements.
 
 Real baud timing, TX interrupts, XMODEM send (`XMODEM_send`), hardware flow
 control, sound, `LOAD`/`SAVE`/`TTY` commands.
+
+## Measured results
+
+Measured with `simacia-minios.rom` and the 15K cycles/s emulator, one fresh boot per
+scenario. Times are wall seconds; the block is 128 bytes, block 1, CRC-16/XMODEM.
+
+**Source readings confirmed.** The banner says `ACIA-enabled`; `LIB_delay1ms`
+is a no-op in this variant, so `GetByte` and the success delays are cheap. Console
+`L` is not echoed (console empty after `L`). Menu keys other than `L` return to
+`OK> ` in about 1.2 s with nothing on the serial line.
+
+**Contradiction: the receive path drops bytes.** Sending a block in one write,
+or at 10 ms/byte or faster, never ACKs (the ROM answers `15`); 12.5 ms and 15 ms per
+byte also failed once each, and 8-byte chunks every 0.1 s failed once. Reliable: 20 ms
+per byte (about 3.0 s per block; every such run, about ten, behaved as expected) and
+16-byte chunks every 0.2 s (one run). The cause is not isolated (a 128-byte input ring
+overrun is the guess). A single byte, or the 35-byte Intel-HEX text sent in one write,
+is fine and read back correctly. Tests must pace block data at 20 ms/byte.
+
+| Step | Measured |
+|---|---|
+| Boot, console | banner through `  miniOS v2.0.0 ACIA-enabled\n    Clock Mhz: 8\n\n Testing RAM... FAIL\n` then the menu and `OK> ` (`Testing RAM... FAIL` is also in the existing sim goldens). Boot to `OK> `: 2.7-4.1 s |
+| Boot, serial | `\x1b[40m\x1b[32m\x1b[H\x1b[2J` then the logo lines and `  miniOS v2.0.0 ACIA-enabled\r\n`, nothing after |
+| Menu `1`, console | `\r\n Getting Ready To LOAD RAM (via XMODEM).\r\n Press 'L' or 'l' key on console to start: ` |
+| After `L`, serial | `Begin XMODEM upload. Press <Esc> to abort...\n\rC`; first `C` 0.5-1.0 s after `L` |
+| `C` repeat while idle | one `C` about every 1.2 s (5 `C` in 6 s), nothing else |
+| Good block, paced | send 3.0-3.1 s, ACK `06` 1.9-2.6 s after the last byte |
+| EOT | serial `06 04 \n\rTransfer Successful!\n\r` (`b'\x06\x04\n\rTransfer Successful!\n\r'`); 0.6 s after EOT; `OK> ` 1.9-2.0 s after EOT; serial silent afterwards |
+| Stored data | block bytes read back at `$0400` with Wozmon (`0400: 03 0A 11 18 1F 26 2D 34`, matching the data) |
+| Bad CRC | `15` about 2.1 s after the last byte; resending the good block is ACKed `06` and the transfer continues |
+| Wrong block number (2 first) | serial `Transfer Error!\n\r` only; `OK> ` about 2.3 s after the last byte |
+| Bad complement | same as wrong block number |
+| First byte not SOH/EOT/ESC (`X`) | `15`; transfer stays open |
+| ESC (`1b`) after the first `C` | no serial output; `OK> ` 1.3 s later |
+| Menu `2`, console | `\r\n Getting Ready To LOAD RAM (via Intel HEX).\r\n Press 'L' or 'l' key on console to start: ` |
+| After `L`, serial | `Start Intel Hex code Transfer.` (no newline) |
+| `:0404000001020304EE\r\n:00000001FF\r\n` | serial `..Intel Hex Imported OK.`: one `.` per record including the EOF record, the result on the serial line, not the console; `OK> ` 1.5-2.8 s after sending starts; `0400: 01 02 03 04` read back |
+| Same with checksum `EF` | serial `..Intel Hex Imported with checksum error.`; `OK> ` 2.4 s |
+
+Console output during a loader is empty until the menu is reprinted (`\r\n1. Load RAM
+Image...OK> `). The Intel-HEX result text goes out the same serial line as the `.`
+characters, so the design's "result text goes to the TTY" means the serial line.
+A record addressed at `$0000` (probably clobbering the loader's own zero page) 
+gave a checksum error in the one run tried; test records must use `$0400` or above.
