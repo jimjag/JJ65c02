@@ -44,7 +44,9 @@ with EmulatorSession(rom, "console.txt", speed="n") as emu:
 ```
 
 - `EmulatorSession(rom, console_path, *, emulator=None, speed="n",
-  socket_path=None, keep_pty=False)`; `emulator` defaults like `$X65C02` above.
+  socket_path=None, acia_path=None, keep_pty=False)`; `emulator` defaults like `$X65C02` above.
+  `acia_path` passes `-a PATH`, connecting the emulated 6551 ACIA to a unix
+  socket the harness listens on.
 - `send(keys)` writes raw bytes. `wait_for(pattern, timeout=10.0)` reads the
   console log until `pattern` appears and consumes up to and including it.
 - `type_text(text, echo_timeout=5.0, retries=0, echo_for=None)` sends one
@@ -55,6 +57,15 @@ with EmulatorSession(rom, "console.txt", speed="n") as emu:
   ignores SIGTERM and waits for a keypress on its shutdown screen).
 - Exceptions: `EmulatorError` is the base of `EmulatorTimeout`,
   `EmulatorExited` (carries the console tail) and `EchoMismatch`.
+
+## Serial line
+
+`serial_peer.SerialPeer` is the listening end of `-a PATH`: `peer.path` goes
+to `EmulatorSession(acia_path=)`, then `peer.accept()` once the emulator is
+running. `send(bytes)` writes to the ROM's serial input; `wait_for(pattern,
+timeout)` and `read(n, timeout)` consume what the ROM sent (a reader thread
+drains the socket); `unread()`, `clear()`, `close()`. Timeouts raise
+`EmulatorTimeout` and report the unread bytes.
 
 ## Use `--console` to read program output
 
