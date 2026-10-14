@@ -93,13 +93,15 @@ is a no-op in this variant, so `GetByte` and the success delays are cheap. Conso
 `L` is not echoed (console empty after `L`). Menu keys other than `L` return to
 `OK> ` in about 1.2 s with nothing on the serial line.
 
-**Contradiction: the receive path drops bytes.** Sending a block in one write,
-or at 10 ms/byte or faster, never ACKs (the ROM answers `15`); 12.5 ms and 15 ms per
-byte also failed once each, and 8-byte chunks every 0.1 s failed once. Reliable: 20 ms
-per byte (about 3.0 s per block; every such run, about ten, behaved as expected) and
-16-byte chunks every 0.2 s (one run). The cause is not isolated (a 128-byte input ring
-overrun is the guess). A single byte, or the 35-byte Intel-HEX text sent in one write,
-is fine and read back correctly. Tests must pace block data at 20 ms/byte.
+**Contradiction: the first emulator model overran the ROM's input ring.** It delivered
+each byte the moment the previous interrupt was taken, so the ISR ran back to back
+and the main loop got about one instruction per byte; a 133-byte block overran the
+128-byte ring and the ROM answered `15`. Measured with a minimum cycle gap between
+deliveries, whole block in one write, 4 runs each: gap 0, 50 and 75 cycles NAK every
+time; 100, 150, 200, 300 and 600 ACK every time. The model now uses 200 cycles. With
+it a one-write block is ACKed about 6 s after sending (about 13 s for the whole test,
+boot included). The paced-send times in the table below (20 ms/byte, taken before the
+fix) are superseded: send the block in one write.
 
 | Step | Measured |
 |---|---|
@@ -123,6 +125,6 @@ is fine and read back correctly. Tests must pace block data at 20 ms/byte.
 
 Console output during a loader is empty until the menu is reprinted (`\r\n1. Load RAM
 Image...OK> `). The Intel-HEX result text goes out the same serial line as the `.`
-characters, so the design's "result text goes to the TTY" means the serial line.
-A record addressed at `$0000` (probably clobbering the loader's own zero page) 
-gave a checksum error in the one run tried; test records must use `$0400` or above.
+characters, so the design's "result text goes to the TTY" means the serial line (measured).
+A record addressed at `$0000` gave `..Intel Hex Imported with checksum error.` for a record with a correct checksum
+(measured); use `$0400` or above.

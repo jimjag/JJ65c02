@@ -17,12 +17,16 @@
 #define ST_RX_FULL     0x08
 #define CMD_RX_IRQ_OFF 0x02
 
+// Back-to-back delivery starves the main loop and overruns the ROM's 128-byte input ring; 75 cycles failed, 100 held.
+#define ACIA_BYTE_GAP_CYCLES 200
+
 const char *acia_path = NULL;
 
 static int  link_fd = -1;
 static bool rx_full = false;
 static bool irq_flag = false;
 static uint8_t rx_byte = 0;
+static uint32_t last_delivery = 0;
 
 static void drop_link(cpu *m) {
     if (link_fd >= 0)
@@ -106,12 +110,14 @@ void acia_service(cpu *m) {
     if (link_fd < 0)
         return;
 
-    if (!rx_full && !m->interrupt_waiting) {
+    if (!rx_full && !m->interrupt_waiting &&
+        m->cycle - last_delivery >= ACIA_BYTE_GAP_CYCLES) {
         struct pollfd pfd = { .fd = link_fd, .events = POLLIN, .revents = 0 };
         if (poll(&pfd, 1, 0) > 0) {
             uint8_t byte;
             ssize_t n = (pfd.revents & POLLIN) ? read(link_fd, &byte, 1) : 0;
             if (n == 1) {
+                last_delivery = m->cycle;
                 rx_byte = byte;
                 m->mem[ACIA_DATA] = byte;
                 rx_full = true;
