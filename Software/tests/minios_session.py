@@ -1,4 +1,6 @@
 """miniOS menu and the monitors reachable from it, on top of an EmulatorSession."""
+import time
+
 from loader_data import EOT
 from x65c02_session import EmulatorError, EmulatorTimeout
 
@@ -219,10 +221,14 @@ class XmodemSession(_Loader):
 
     def reply(self, timeout=60.0) -> int:
         """Next ACK/NAK; the periodic 'C' start requests are skipped."""
+        deadline = time.monotonic() + timeout
         while True:
-            b = self.peer.read(1, timeout)[0]
+            b = self.peer.read(1, max(0.0, deadline - time.monotonic()))[0]
             if b != ord("C"):
                 return b
+            if time.monotonic() >= deadline:
+                raise EmulatorTimeout(
+                    f"no ACK/NAK within {timeout}s; only 'C' start requests arrived")
 
     def end(self, timeout=60.0) -> bytes:
         self.send(bytes([EOT]))

@@ -9,9 +9,13 @@ LOAD = 0x0400
 @pytest.fixture
 def xm(loader_menu):
     x = XmodemSession(loader_menu)
-    x.enter()
-    x.begin()
-    x.wait_c()
+    try:
+        x.enter()
+        x.begin()
+        x.wait_c()
+    except BaseException:
+        loader_menu.broken = True
+        raise
     yield x
     if not x.left:
         loader_menu.broken = True
@@ -94,23 +98,31 @@ def test_esc_on_the_serial_line_aborts_without_an_error_message(xm):
 
 
 def test_a_key_other_than_l_returns_to_the_menu(loader_menu):
-    x = XmodemSession(loader_menu)
-    x.enter()
-    loader_menu.emu.send(b"x")
-    x.finish()
+    try:
+        x = XmodemSession(loader_menu)
+        x.enter()
+        loader_menu.emu.send(b"x")
+        x.finish()
+    except BaseException:
+        loader_menu.broken = True
+        raise
 
 
 def test_a_failed_transfer_does_not_poison_the_next_one(loader_menu):
-    x = XmodemSession(loader_menu)
-    x.enter(); x.begin(); x.wait_c()
-    x.send(xmodem_block(3, pattern(0x70)))
-    x.peer.wait_for(b"Transfer Error!\n\r", 60)
-    x.finish()
-    data = pattern(0x71)
-    y = XmodemSession(loader_menu)
-    y.enter(); y.begin(); y.wait_c()
-    y.send(xmodem_block(1, data))
-    assert y.reply() == ACK
-    y.end()
-    y.finish()
+    try:
+        x = XmodemSession(loader_menu)
+        x.enter(); x.begin(); x.wait_c()
+        x.send(xmodem_block(3, pattern(0x70)))
+        x.peer.wait_for(b"Transfer Error!\n\r", 60)
+        x.finish()
+        data = pattern(0x71)
+        y = XmodemSession(loader_menu)
+        y.enter(); y.begin(); y.wait_c()
+        y.send(xmodem_block(1, data))
+        assert y.reply() == ACK
+        y.end()
+        y.finish()
+    except BaseException:
+        loader_menu.broken = True
+        raise
     assert dump_ram(loader_menu, LOAD, 128) == data

@@ -105,3 +105,45 @@ def test_acia_path_becomes_dash_a(monkeypatch, tmp_path):
         EmulatorSession("rom", tmp_path / "c.txt", emulator="emu",
                         acia_path="/x/s")
     assert seen["cmd"][seen["cmd"].index("-a") + 1] == "/x/s"
+
+
+def test_xmodem_reply_gives_up_when_only_c_requests_arrive(peer):
+    from minios_session import XmodemSession
+
+    class Stub:
+        emu = None
+
+    stub = Stub()
+    stub.peer = peer
+    t = threading.Thread(target=lambda: peer.accept(5))
+    t.start()
+    c = _connect(peer.path)
+    t.join()
+    stop = threading.Event()
+
+    def trickle():
+        while not stop.is_set():
+            try:
+                c.sendall(b"C")
+            except OSError:
+                return
+            time.sleep(0.05)
+
+    threading.Thread(target=trickle, daemon=True).start()
+    result = []
+
+    def run():
+        try:
+            XmodemSession(stub).reply(timeout=1.0)
+        except BaseException as e:
+            result.append(e)
+
+    r = threading.Thread(target=run, daemon=True)
+    start = time.monotonic()
+    r.start()
+    r.join(5)
+    stop.set()
+    c.close()
+    assert not r.is_alive(), "reply() never gave up"
+    assert time.monotonic() - start < 2.5
+    assert isinstance(result[0], EmulatorTimeout)
