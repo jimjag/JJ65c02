@@ -1,4 +1,5 @@
 """miniOS menu and the monitors reachable from it, on top of an EmulatorSession."""
+from loader_data import EOT
 from x65c02_session import EmulatorError, EmulatorTimeout
 
 MENU = b"OK> "
@@ -172,3 +173,57 @@ class SupermonSession(_Program):
 
     def leave(self) -> str:
         return self._leave_with("X\r")
+
+
+def dump_ram(menu, start, length) -> bytes:
+    woz = WozmonSession(menu)
+    woz.enter()
+    out = woz.line(f"{start:04X}.{start + length - 1:04X}")
+    woz.leave()
+    data = bytearray()
+    for ln in out.split("\r\n"):
+        if ":" in ln:
+            data += bytes.fromhex("".join(ln.split(":", 1)[1].split()))
+    return bytes(data)
+
+
+class _Loader(_Program):
+    banner_pattern = b"to start: "
+
+    def __init__(self, menu):
+        super().__init__(menu)
+        self.peer = menu.peer
+
+    def enter(self) -> str:
+        out = super().enter()
+        self.peer.clear()
+        return out
+
+    def begin(self) -> None:
+        self.emu.send(b"L")
+
+    def finish(self, timeout=60.0) -> str:
+        out = _text(self._wait(MENU, timeout))
+        self.left = True
+        return out
+
+
+class XmodemSession(_Loader):
+    key = b"1"
+
+    def wait_c(self, timeout=60.0) -> bytes:
+        return self.peer.wait_for(b"C", timeout)
+
+    def send(self, raw: bytes) -> None:
+        self.peer.send(raw)
+
+    def reply(self, timeout=60.0) -> int:
+        """Next ACK/NAK; the periodic 'C' start requests are skipped."""
+        while True:
+            b = self.peer.read(1, timeout)[0]
+            if b != ord("C"):
+                return b
+
+    def end(self, timeout=60.0) -> bytes:
+        self.send(bytes([EOT]))
+        return self.peer.wait_for(b"Successful!\n\r", timeout)
